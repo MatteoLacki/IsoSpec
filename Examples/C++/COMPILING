@@ -1,0 +1,14 @@
+In order to compile this example please first build the C++ library (following the instructions
+in INSTALL file in main directory), then copy/link over the resulting libIsoSpec++.so file
+to this directory, next, issue the following command:
+
+clang++ -std=c++11 -lIsoSpec++ -L. water.cpp
+
+You may replace clang++ with g++ if you do not have LLVM installed.
+
+Run the example by:
+
+./a.out
+
+
+

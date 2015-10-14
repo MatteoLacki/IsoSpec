@@ -1,0 +1,68 @@
+-------------------------------------------
+Building and installing the C/C++ library
+
+Requirements:
+   A C++11 compiler, clang++ (v3.3 or later) or g++ (v4.7 or later)
+   Make (GNU make is OK)
+
+
+Note: clang++ is the default (and preferred) compiler as it produces 
+faster code (in our tests, the difference in speed is about 20%). 
+If you'd like to use g++ instead, please edit the first line of 
+IsoSpec++/Makefile appropriately.
+
+Next, execute the following commands:
+
+cd IsoSpec++
+make
+
+You may copy the resulting .so file to a convenient location.
+If you wish to develop software using this library, you will also 
+have to place the header files (*.hpp/*.h) somewhere your C/C++
+compiler can find them.
+
+
+------------------------------------------
+Building and installing the Python package
+
+IMPORTANT: please note that the Python package is standalone, in the
+sense that it does not need the C/C++ library to be installed separately.
+
+
+
+Requirements:
+    Python (obviously) (v2 and v3 are supported)
+    C++11 compiler, clang++ (v3.3 or later) or g++ (v4.7 or later)
+    setuptools
+    cffi (this, if not present, will be automatically downloaded and
+          installed by the setup script, however you may prefer to use 
+          your distribution's package manager to install that)
+
+Execute the following commands:
+cd IsoSpecPy
+sudo python setup.py install
+
+Again, clang++ is the preferred compiler and will be used if found by the 
+setup script. If you want to override the behaviour (if you have clang++ 
+installed, but still want to use g++) you will have to replace the last 
+command with:
+
+ISO_USE_DEFAULT_CXX=TRUE sudo python setup.py install
+
+
+------------------------------------------
+Building and installing the R package
+	
+	A version of our software will be put on the Bioconductor server. 
+	Before that, you can install the package by following these instructions. 
+
+Requirements:
+	R (>= 3.2.1)
+
+Move to the folder containing the IsoStarR folder. Then run in terminal:
+
+	R CMD build IsoStarR 
+	R CMD INSTALL IsoStarR_1.0.tar.gz  
+
+All necessary packages should download automatically. 
+
