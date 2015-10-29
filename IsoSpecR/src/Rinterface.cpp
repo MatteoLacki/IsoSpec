@@ -7,16 +7,17 @@
 
 using namespace Rcpp;
 
-//' Call the C++ routine for calculating isotopic fine structure peaks.
-//' 
-//' @param isotopeNumbers 	Interger, numbers of isotopes of elements composing the studied chemical compound. 
-//' @param atomCounts 		Interger, numbers of atoms of elements composing the studied chemical compound. 
-//' @param isotopeMasses  	Numeric, masses of isotopes of elements composing the studied chemical compound. 
-//' @param isotopeProbabilities Numeric, frequencies of isotopes of elements composing the studied chemical compound. 
-//' @param cutOff 			Numeric, either the probability of the optimal p-set, or the threshold value of probability below which isotopologues are trimmed.
-//' @param tabSize 			Integer, technical parameter.
-//' @param hashSize 		Integer, initial size of the hash-table used.
-//' @param step  			Numeric, the percentage of the percentile from the previous layer below defining the threshold for the next layer.
+/// ' Call the C++ routine for calculating isotopic fine structure peaks.
+/// ' 
+/// ' @param isotopeNumbers 	Interger, numbers of isotopes of elements composing the studied chemical compound. 
+/// ' @param atomCounts 		Interger, numbers of atoms of elements composing the studied chemical compound. 
+/// ' @param isotopeMasses  	Numeric, masses of isotopes of elements composing the studied chemical compound. 
+/// ' @param isotopeProbabilities Numeric, frequencies of isotopes of elements composing the studied chemical compound. 
+/// ' @param cutOff 			Numeric, either the probability of the optimal p-set, or the threshold value of probability below which isotopologues are trimmed.
+/// ' @param tabSize 			Integer, technical parameter.
+/// ' @param hashSize 		Integer, initial size of the hash-table used.
+/// ' @param step  			Numeric, the percentage of the percentile from the previous layer below defining the threshold for the next layer.
+
 // [[Rcpp::export]]
 List Rinterface(
 	IntegerVector 	isotopeNumbers,
