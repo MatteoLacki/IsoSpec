@@ -1,12 +1,17 @@
 Package: IsoSpecR
 Type: Package
-Title: What the package does (short line)
+Title: IsoSpecR - an R interface to the IsoSpec algorithm.
 Version: 1.0
-Date: 2015-06-10
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Date: 2015-10-29
+Author: Mateusz Krzysztof Lacki and Michal Startek
+Maintainer: Mateusz Krzysztof Lacki <mateusz.lacki@biol.uw.edu.pl>
+Description: 
+	IsoSpec is a fine structure calculator used for obtaining the most probable masses of a chemical compound given the frequencies of the composing isotopes and their masses. It finds the smallest set of isotopologues with a given probability. The probability is assumed to be that of the product of multinomial distributions, each corresponding to one particular element and parametrized by the frequencies of finding these elements in nature. These numbers are supplied by IUPAC - the International Union of Pure and Applied Chemistry.  
+	The software is publically available under AGPLv3 licence. If you require 
+	other licensing terms, please contact the authors. See LICENCE file for 
+	more details.
+License: AGPLv3
 Imports: methods, Rcpp (>= 0.12.0)
+LazyData: true
 LinkingTo: Rcpp
 

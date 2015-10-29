@@ -89,7 +89,7 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getProduct();
 
      #ifdef BUILDING_R
-     friend List stupidRinterface(
+     friend List Rinterface(
          IntegerVector isotopeNumbers,
          IntegerVector atomCounts,
          NumericVector isotopeMasses,

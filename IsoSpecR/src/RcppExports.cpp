@@ -5,9 +5,9 @@
 
 using namespace Rcpp;
 
-// stupidRinterface
-List stupidRinterface(IntegerVector isotopeNumbers, IntegerVector atomCounts, NumericVector isotopeMasses, NumericVector isotopeProbabilities, double cutOff, int tabSize, int hashSize, double step);
-RcppExport SEXP IsoSpecR_stupidRinterface(SEXP isotopeNumbersSEXP, SEXP atomCountsSEXP, SEXP isotopeMassesSEXP, SEXP isotopeProbabilitiesSEXP, SEXP cutOffSEXP, SEXP tabSizeSEXP, SEXP hashSizeSEXP, SEXP stepSEXP) {
+// Rinterface
+List Rinterface(IntegerVector isotopeNumbers, IntegerVector atomCounts, NumericVector isotopeMasses, NumericVector isotopeProbabilities, double stopCondition, int algo, int tabSize, int hashSize, double step);
+RcppExport SEXP IsoSpecR_Rinterface(SEXP isotopeNumbersSEXP, SEXP atomCountsSEXP, SEXP isotopeMassesSEXP, SEXP isotopeProbabilitiesSEXP, SEXP stopConditionSEXP, SEXP algoSEXP, SEXP tabSizeSEXP, SEXP hashSizeSEXP, SEXP stepSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -15,11 +15,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< IntegerVector >::type atomCounts(atomCountsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type isotopeMasses(isotopeMassesSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type isotopeProbabilities(isotopeProbabilitiesSEXP);
-    Rcpp::traits::input_parameter< double >::type cutOff(cutOffSEXP);
+    Rcpp::traits::input_parameter< double >::type stopCondition(stopConditionSEXP);
+    Rcpp::traits::input_parameter< int >::type algo(algoSEXP);
     Rcpp::traits::input_parameter< int >::type tabSize(tabSizeSEXP);
     Rcpp::traits::input_parameter< int >::type hashSize(hashSizeSEXP);
     Rcpp::traits::input_parameter< double >::type step(stepSEXP);
-    __result = Rcpp::wrap(stupidRinterface(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, cutOff, tabSize, hashSize, step));
+    __result = Rcpp::wrap(Rinterface(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, stopCondition, algo, tabSize, hashSize, step));
     return __result;
 END_RCPP
 }

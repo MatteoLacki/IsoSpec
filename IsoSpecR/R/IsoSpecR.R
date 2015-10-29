@@ -25,45 +25,65 @@ NULL
 # molecule <- c(C=2000,H=3000,N=300,O=300,S=20)
 # cutOff <- .9999
 # data(isotopicData)
+
+#' Calculate the isotopic fine structure peaks.
+#'
+#' \code{IsoSpecify} is a wrapper around \code{Rinterface} for the C++ implementation of the IsoSpec algorith.
+#' 
+#' @param molecule  A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.
+#' @param stopCondition A numeric value between 0 and 1.
+#' @param algo      An integer: 0 - for the standard IsoStar algoritm, where \code{stopCondition} specifies the probability of the optimal p-set, 3 - for the threshold version of IsoStar with \code{stopCondition} being the percentage of the highest peak below which isotopologues get pruned. 
+#' @param isotopes  A named list of isotopic information required for IsoStar, e.g. \code{isotopicData$IsoSpecShortList}. The names must be valid element symbols. Each enlisted object should be a \code{data.frame} containing columns \code{element} (specifying the symbol of the element), \code{mass} (specifying the mass of the isotope), \code{abundance} (specyfying the assumed frequency of finding that isotope).
+#' @param step      The percent of the the percentile of isotopologues in the current isolayer, specyfying the cutoff for the next isolayer. It has been optimised and better not change the default value.
+#' @param tabSize   A technical parameter: the initial size of the \code{C++} dynamic table containing the results. Better not change the default value.
+#' @return      
+#' @export
 IsoSpecify <- function(
         molecule,
         stopCondition,
-        tabSize = 1000,
-        hashSize= 1000,
-        isotopes= isotopicData$IsoSpecShortList,
+        isotopes= isotopicData$IsoSpec,
+        algo    = 0,
         step    = .3,
-	algo    = 0
+        tabSize = 1000
 ){
-        molecule        <- molecule[molecule>0]
-        moleculeNames   <- names(molecule)
+        # molecule <- c(C=10,H=20, O=2)
+        molecule <- molecule[molecule>0]
 
-        if( !all( names(molecule) %in% names(isotopes) ) ) error('The elements you inserted have a non standard symbol. E.G. you should have inserted c(C=100,H=200) not c(Carbon=12,Hydrogen=423,Apple=12)')
+        if( !all( names(molecule) %in% isotopes$element ) ) 
+            stop(
+                paste0('Elements: ',
+                    paste0(names(molecule)[!(names(molecule) %in% isotopes$element)],collapse=' ',''), 
+                    ' are not in the default/provided isotope data.frame. Check their name or insert an isotope data.frame containing this/these tags.'
+                )
+            )
 
+        massAbundance <- as.matrix( isotopicData$IsoSpec[ isotopicData$IsoSpec$element %in% moleculeNames, c('mass','abundance') ] )
+        rownames(massAbundance) <- NULL
+        
         molecule <- as.integer(molecule)
-        isotopes <- isotopes[moleculeNames]
-
-        massAbundance   <- sapply(
-                c('mass','abundance'),
-                function(x) unlist(
-                        sapply( isotopes, '[', x,USE.NAMES=FALSE ),
-                        use.names=FALSE
-                ),
-                USE.NAMES=FALSE
-        )
+        # isotopes <- isotopes[moleculeNames]
+        # massAbundance   <- sapply(
+        #         c('mass','abundance'),
+        #         function(x) unlist(
+        #                 sapply( isotopes, '[', x,USE.NAMES=FALSE ),
+        #                 use.names=FALSE
+        #         ),
+        #         USE.NAMES=FALSE
+        # )
 
         dims            <- as.integer(sapply(isotopes, nrow))
         elementsNo      <- as.integer(length(dims))
 
 
-        stupidRinterface(
+        Rinterface(
                 dims,
                 molecule,
-                as.double(massAbundance[,1]),
-                as.double(massAbundance[,2]),
+                as.double(massAbundance[,'mass']),
+                as.double(massAbundance[,'abundance']),
                 stopCondition,
-		algo,
+		        algo,
                 tabSize,
-                hashSize,
+                1000,
                 step
         )
 }
