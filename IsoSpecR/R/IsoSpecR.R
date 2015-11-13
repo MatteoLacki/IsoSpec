@@ -68,7 +68,10 @@ IsoSpecify <- function(
         isotopes$element %in% names(molecule), 
         c('element','isotope','mass','abundance') 
     ] 
+    namesMol<- names(molecule)
 
+        # Reordering the atom counts to match isotopes' information order.
+    molecule<- molecule[unique(isotopesTmp$element)]
     molecule<- as.integer(molecule)
     dims    <- as.integer(table(isotopesTmp[,'element']))
 
