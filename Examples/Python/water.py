@@ -11,13 +11,13 @@ confs = i.getConfs()
 
 print "The first configuration has the following parameters:"
 print "Mass:", confs[0][0]
-print "log-prob:", confs[0][1] 
+print "log(probability):", confs[0][1] 
 print "probability:", exp(confs[0][1])
-print "Protium atoms:", confs[0][2][0][0]
-print "Deuterium atoms", confs[0][2][0][1]
-print "O16 atoms:", confs[0][2][1][0]
-print "O17 atoms:", confs[0][2][1][1]
-print "O18 atoms:", confs[0][2][1][2]
+print "Number of Protium atoms:", confs[0][2][0][0]
+print "Number of Deuterium atoms", confs[0][2][0][1]
+print "Number of O16 atoms:", confs[0][2][1][0]
+print "Number of O17 atoms:", confs[0][2][1][1]
+print "Number of O18 atoms:", confs[0][2][1][2]
 
 print
 print "Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?"
@@ -38,11 +38,11 @@ print "The first configuration has the following parameters:"
 print "Mass:", confs[0][0]
 print "log-prob:", confs[0][1]
 print "probability:", exp(confs[0][1])
-print "Protium atoms:", confs[0][2][0][0]
-print "Deuterium atoms", confs[0][2][0][1]
-print "O16 atoms:", confs[0][2][1][0]
-print "O17 atoms:", confs[0][2][1][1]
-print "O18 atoms:", confs[0][2][1][2]
+print "Number of Protium atoms:", confs[0][2][0][0]
+print "Number of Deuterium atoms", confs[0][2][0][1]
+print "Number of O16 atoms:", confs[0][2][1][0]
+print "Number of O17 atoms:", confs[0][2][1][1]
+print "Number of O18 atoms:", confs[0][2][1][2]
 
 
 

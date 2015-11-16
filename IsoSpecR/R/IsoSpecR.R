@@ -32,6 +32,7 @@ NULL
 #' 
 #' @param molecule  A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.
 #' @param stopCondition A numeric value between 0 and 1.
+#' @param fancy Logical. If \code{TRUE}, then the algorithm's results are presented nicely. ATTENTION THOUGH: presenting them nicely involves ordering by probability. This compromises the linear operating time and should be avoided in large scale computations. 
 #' @param algo      An integer: 0 - use standard IsoStar algoritm, 
 #' where \code{stopCondition} specifies the probability of the optimal p-set, 
 #' 1 - use a version of algorithm that uses priority queue. Slower than 0, but does not require sorting.
@@ -45,11 +46,11 @@ NULL
 #' @export 
 #' @examples
 #' res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
-#' res2df(res)
 IsoSpecify <- function(
         molecule,
         stopCondition,
         isotopes= isotopicData$IsoSpec,
+        fancy   = TRUE,
         algo    = 0,
         step    = .25,
         tabSize = 1000
@@ -79,26 +80,16 @@ IsoSpecify <- function(
         isotopeProbabilities = isotopesTmp[,'abundance'], stopCondition = stopCondition, algo = as.integer(algo),
         tabSize = tabSize, hashSize = 1000, step = step )
     
-    c(res, isotopes = list(isotopesTmp$isotope))
-}
+    if(fancy){
+        confs <- as.data.frame( matrix(
+            res$configurations, 
+            nrow = length(res$mass), 
+            byrow= TRUE ) 
+        )
+        colnames(confs) <- as.character(isotopesTmp$isotope)
+        res <- cbind( mass = res$mass, logProb = res$logProb, prob = exp(res$logProb), confs )
+        res <- res[ order(res$logProb,decreasing=TRUE), ]
+    }
 
-#' Represents the results of IsoSpec in a user friendly way.
-#'
-#' ATTENTION: this function sorts the results with descending probability. 
-#' The sorting is a \code{nlog(n)} procedure which asymptotically dominates the calculations of IsoSpec and should be applied only for a good reason.
-#' 
-#' @param IsoSpecResults The list of results from calling \code{IsoSpecify}.
-#' @return A \code{data.frame} containing the masses, logarithms of probability, and probability of the isotopologues.     
-#' @export 
-#' @examples
-#' res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
-#' res2df(res)
-res2df <- function( IsoSpecResults ){
-    confs <- as.data.frame( matrix(
-            IsoSpecResults$configurations, 
-            nrow = length(IsoSpecResults$mass), 
-            byrow= TRUE ) )
-    colnames(confs) <- IsoSpecResults$isotope
-    res <- cbind( mass = IsoSpecResults$mass, logProb = IsoSpecResults$logProb, prob = exp(IsoSpecResults$logProb), cumProb = cumsum(exp(IsoSpecResults$logProb)), confs )
-    res[order(res$logProb,decreasing=TRUE),]
+    res
 }

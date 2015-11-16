@@ -5,7 +5,7 @@
 \title{Calculate the isotopic fine structure peaks.}
 \usage{
 IsoSpecify(molecule, stopCondition, isotopes = isotopicData$IsoSpec,
-  algo = 0, step = 0.25, tabSize = 1000)
+  fancy = TRUE, algo = 0, step = 0.25, tabSize = 1000)
 }
 \arguments{
 \item{molecule}{A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.}
@@ -13,6 +13,8 @@ IsoSpecify(molecule, stopCondition, isotopes = isotopicData$IsoSpec,
 \item{stopCondition}{A numeric value between 0 and 1.}
 
 \item{isotopes}{A named list of isotopic information required for IsoStar, e.g. \code{isotopicData$IsoSpecShortList}. The names must be valid element symbols. Each enlisted object should be a \code{data.frame} containing columns \code{element} (specifying the symbol of the element), \code{mass} (specifying the mass of the isotope), \code{abundance} (specyfying the assumed frequency of finding that isotope).}
+
+\item{fancy}{Logical. If \code{TRUE}, then the algorithm's results are presented nicely. ATTENTION THOUGH: presenting them nicely involves ordering by probability. This compromises the linear operating time and should be avoided in large scale computations.}
 
 \item{algo}{An integer: 0 - use standard IsoStar algoritm,
 where \code{stopCondition} specifies the probability of the optimal p-set,
@@ -33,6 +35,5 @@ A list constaining the masses, logarithms of probability, and the tags of isotop
 }
 \examples{
 res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
-res2df(res)
 }
 
