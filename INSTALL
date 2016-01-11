@@ -59,10 +59,10 @@ Building and installing the R package
 Requirements:
 	R (>= 3.2.1)
 
-Move to the folder containing the IsoStarR folder. Then run in terminal:
+Move to the folder containing the IsoSpecR folder. Then run in terminal:
 
-	R CMD build IsoStarR 
-	R CMD INSTALL IsoStarR_1.0.tar.gz  
+	R CMD build IsoSpecR 
+	R CMD INSTALL IsoSpecR_1.0.tar.gz  
 
 All necessary packages should download automatically. 
 
