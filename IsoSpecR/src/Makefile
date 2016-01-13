@@ -8,7 +8,7 @@ R_HOME := $(shell R RHOME)
 
 #RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config --cppflags)
 #RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config --ldflags)
-RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config CFLAGS)
+RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config CPPFLAGS)
 RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config LDFLAGS)
 
 
