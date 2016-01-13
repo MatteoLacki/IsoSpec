@@ -6,8 +6,10 @@ SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  logFacto
 
 R_HOME := $(shell R RHOME)
 
-RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config --cppflags) -I/usr/local/opt/gettext/include
-RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config --ldflags) -L/usr/local/opt/gettext/lib
+#RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config --cppflags)
+#RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config --ldflags)
+RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config CFLAGS)
+RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config LDFLAGS)
 
 
 RCPPINCL := $(shell echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave)
