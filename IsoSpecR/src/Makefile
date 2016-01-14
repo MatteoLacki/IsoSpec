@@ -8,8 +8,8 @@ R_HOME := $(shell R RHOME)
 
 #RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config --cppflags)
 #RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config --ldflags)
-RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config CPPFLAGS)
-RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config LDFLAGS)
+RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config CPPFLAGS) $(shell $(R_HOME)/bin/R CMD config --cppflags)
+RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config LDFLAGS) $(shell $(R_HOME)/bin/R CMD config --ldflags) 
 
 
 RCPPINCL := $(shell echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave)
