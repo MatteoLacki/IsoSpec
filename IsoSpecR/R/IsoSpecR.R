@@ -72,9 +72,10 @@ IsoSpecify <- function(
     namesMol<- names(molecule)
 
         # Reordering the atom counts to match isotopes' information order.
-    molecule<- molecule[unique(isotopesTmp$element)]
+    correctOrder <- unique(isotopesTmp$element)
+    molecule<- molecule[correctOrder]
     molecule<- as.integer(molecule)
-    dims    <- as.integer(table(isotopesTmp[,'element']))
+    dims    <- as.integer( table(isotopesTmp[,'element'])[correctOrder] )
 
     res <- Rinterface( isotopeNumbers = dims, atomCounts = molecule, isotopeMasses = isotopesTmp[,'mass'],
         isotopeProbabilities = isotopesTmp[,'abundance'], stopCondition = stopCondition, algo = as.integer(algo),
