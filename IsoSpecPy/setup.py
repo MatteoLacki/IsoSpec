@@ -12,6 +12,11 @@ from distutils import spawn
 from codecs import open
 import os
 import glob
+import shutil
+
+if not os.path.exists("IsoSpec++"):
+    shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
+
 
 if os.getenv('ISO_USE_DEFAULT_CXX') == None and spawn.find_executable('clang++') != None:
     os.environ['CC'] = 'clang++'
