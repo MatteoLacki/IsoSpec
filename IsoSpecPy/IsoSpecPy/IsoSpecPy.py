@@ -22,8 +22,10 @@ import itertools
 import math
 import re
 import os
+import glob
 from kahan import Summator
 from collections import defaultdict
+
 
 
 try:
@@ -107,20 +109,21 @@ won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're 
 sure you want to do that, edit the source and disable this check.''')
 
         libpaths = [
-            'IsoSpecCppPy.so',
-            os.path.join(mod_dir, 'IsoSpecCppPy.so'),
-            os.path.join(mod_dir, '..', 'IsoSpecCppPy.so'),
-            'libIsoSpec++.so',
-            os.path.join(mod_dir, 'libIsoSpec++.so'),
-            os.path.join(mod_dir, '..', 'libIsoSpec++.so')
+            'IsoSpecCppPy*.so',
+            os.path.join(mod_dir, 'IsoSpecCppPy*.so'),
+            os.path.join(mod_dir, '..', 'IsoSpecCppPy*.so'),
+            'libIsoSpec++*.so',
+            os.path.join(mod_dir, 'libIsoSpec++*.so'),
+            os.path.join(mod_dir, '..', 'libIsoSpec++*.so')
         ]
 
         self.clib = None
         for libpath in libpaths:
             try:
-                self.clib = self.ffi.dlopen(libpath)
+                fn = glob.glob(libpath)[0]
+                self.clib = self.ffi.dlopen(fn)
                 break
-            except OSError:
+            except (OSError, IndexError):
                 pass
 
         if self.clib == None:
