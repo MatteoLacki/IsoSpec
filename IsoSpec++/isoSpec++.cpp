@@ -317,7 +317,26 @@ void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_
         i++;
     }
 }
+/*
+std::unordered_map<double, double> IsoSpec::getPlot(double resolution)
+{
+    xret = new unordered_map<double, double>
 
+    for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
+    {
+        int* curr_conf  = getConf(*it);
+	double mass     = nearbyint(combinedSum( curr_conf, masses, dimNumber )/resolution)*resolution;
+	double logProb  = getLProb(*it);
+        
+	if(xret.count(mass) == 0)
+	    xret[mass] = new Summator();
+
+	xret[mass].add(exp(logProb));
+    }
+
+    return xret;
+}
+*/
 int IsoSpec::getNoVisitedConfs()
 {
     return newaccepted.size();

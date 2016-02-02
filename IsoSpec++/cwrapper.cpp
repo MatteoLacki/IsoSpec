@@ -152,7 +152,13 @@ void* setupIsoLayered( int      _dimNumber,
         step
     );
 
-    iso->processConfigurationsUntilCutoff();
+    try {
+        iso->processConfigurationsUntilCutoff();
+    }
+    catch (std::bad_alloc& ba) { 
+        delete iso;
+        iso = NULL;
+    }
 
     delete[] IM;
     delete[] IP;
@@ -192,7 +198,13 @@ void* setupIsoOrdered( int             _dimNumber,
         hashSize
     );
 
-    iso->processConfigurationsUntilCutoff();
+    try {
+        iso->processConfigurationsUntilCutoff();
+    }
+    catch (std::bad_alloc& ba) {
+        delete iso;
+        iso = NULL;
+    }
 
     delete[] IM;
     delete[] IP;
@@ -234,7 +246,13 @@ void* setupIsoThreshold( int      _dimNumber,
         hashSize
     );
 
-    iso->processConfigurationsAboveThreshold();
+    try { 
+        iso->processConfigurationsAboveThreshold();
+    }
+    catch (std::bad_alloc& ba) {
+        delete iso;
+	iso = NULL;
+    }
 
     delete[] IM;
     delete[] IP;

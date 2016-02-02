@@ -23,10 +23,7 @@ import math
 import re
 import os
 from kahan import Summator
-
-'''
-THis is helpful help.
-'''
+from collections import defaultdict
 
 
 try:
@@ -248,6 +245,10 @@ class IsoSpec:
                                 step
                             )
 
+        if not self.iso.__nonzero__():
+            raise MemoryError
+
+
 
     @staticmethod
     def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'layered', step = 0.25):
@@ -277,7 +278,8 @@ class IsoSpec:
 
 
     def __del__(self):
-        self.clib.destroyIso(self.iso)
+        if not self.iso.__nonzero__():
+            self.clib.destroyIso(self.iso)
 
     def __len__(self):
         return isoFFI.clib.getIsoConfNo(self.iso)
@@ -328,3 +330,22 @@ class IsoSpec:
         for conf in confs:
             print(("Mass = {0}\t and log-prob = {1} and prob = {2}\t and configuration"\
                   "=\t{3}").format(conf[0], conf[1], math.exp(conf[1]), self.confStr(conf[2])))
+
+
+
+
+
+class IsoPlot(dict):
+    def __init__(self, iso, bin_w):
+        self.iso = iso
+        self.bin_w = bin_w
+        masses, logProbs, _isoCounts = iso.getConfsRaw()
+        dd = defaultdict(Summator)
+        for i in xrange(len(masses)):
+            dd[float(int(masses[i]/bin_w))*bin_w].add(math.exp(logProbs[i]))
+        for key, val in dd.items():
+            self[key] = val.get()
+
+
+
+
