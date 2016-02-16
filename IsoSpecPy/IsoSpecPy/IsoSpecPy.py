@@ -230,7 +230,8 @@ class IsoSpec:
             self.algo = { 'layered' : 0,
               'ordered' : 1,
               'threshold_absolute' : 2,
-              'threshold_relative' : 3
+              'threshold_relative' : 3,
+              'layered_estimating' : 4,
             }[method]
         except KeyError:
             raise Exception("Invalid ISO method")
@@ -249,7 +250,7 @@ class IsoSpec:
                             )
 
         if not self.iso.__nonzero__():
-            raise MemoryError
+            raise MemoryError()
 
 
 

@@ -129,6 +129,8 @@ class IsoSpecLayered;
      std::vector<void*>*         next;
      double                      lprobThr;
      double                      percentageToExpand;
+     double			 lastMinLProb;
+     bool                        estimateThresholds;
  public:
      IsoSpecLayered(
          int             _dimNumber,
@@ -139,7 +141,8 @@ class IsoSpecLayered;
          const double    _cutOff,
          int             tabSize = 1000,
          int             hashSize = 1000,
-         double          layerStep = 0.25
+         double          layerStep = 0.25,
+	 bool            _estimateThresholds = false
      );
 
      virtual ~IsoSpecLayered();

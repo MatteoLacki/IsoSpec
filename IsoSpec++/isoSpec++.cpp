@@ -400,7 +400,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
                                 const double    _cutOff,
                                 int             tabSize,
                                 int             hashSize,
-                                double          layerStep
+                                double          layerStep,
+				bool            _estimateThresholds
 ) : IsoSpec( _dimNumber,
              _isotopeNumbers,
              _atomCounts,
@@ -409,7 +410,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
              _cutOff,
              tabSize = 1000,
              hashSize = 1000
-)
+),
+estimateThresholds(_estimateThresholds)
 {
     current = new std::vector<void*>();
     next    = new std::vector<void*>();
@@ -418,6 +420,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
 
     percentageToExpand = layerStep;
     lprobThr = (*reinterpret_cast<double*>(initialConf));
+
+    lastMinLProb = lprobThr;
 };
 
 
@@ -452,6 +456,8 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
+	    if(lastMinLProb > top_lprob)
+	        lastMinLProb = top_lprob;
         }
         else
         {
@@ -501,7 +507,11 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             current = next;
             next = nnew;
             int howmany = floor(current->size()*percentageToExpand);
-            lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
+	    if(estimateThresholds)
+	        // Screw numeric correctness, ARRRRRRR!!!
+	    	lprobThr += log((1.0-cutOff)*percentageToExpand) - log(1.0-prob_in_this_layer.get());
+	    else
+                lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
             totalProb = prob_in_this_layer;
         }
         else

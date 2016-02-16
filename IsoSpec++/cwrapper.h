@@ -24,6 +24,7 @@
 #define ALGO_ORDERED 1
 #define ALGO_THRESHOLD_ABSOLUTE 2
 #define ALGO_THRESHOLD_RELATIVE 3
+#define ALGO_LAYERED_ESTIMATE 4
 
 
 #ifdef __cplusplus
@@ -65,7 +66,8 @@ void* setupIsoLayered( int             _dimNumber,
                        const double    _cutOff,
                        int             tabSize,
                        int             hashSize,
-                       double          step
+                       double          step,
+                       bool            estimate
 );
 
 void* setupIsoOrdered( int             _dimNumber,

@@ -126,7 +126,8 @@ void* setupIsoLayered( int      _dimNumber,
                         const double    _cutOff,
                         int             tabSize,
                         int             hashSize,
-                        double          step
+                        double          step,
+                        bool            estimate
 )
 {
     const double** IM = new const double*[_dimNumber];
@@ -149,7 +150,8 @@ void* setupIsoLayered( int      _dimNumber,
         _cutOff,
         tabSize,
         hashSize,
-        step
+        step,
+	estimate
     );
 
     try {
@@ -276,8 +278,12 @@ void* setupIso( int             _dimNumber,
     {
         case ALGO_LAYERED:
             return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step);
+                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, false);
             break;
+	case ALGO_LAYERED_ESTIMATE:
+	    return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
+                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, true);
+
         case ALGO_ORDERED:
             return setupIsoOrdered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
                                     _isotopeProbabilities, _StopCondition, tabSize, hashSize);
@@ -357,7 +363,8 @@ void SetupIsoR(
         *_cutOff,
         *tabSize,
         *hashSize,
-        0.25
+        0.25,
+	false
     );
 
     std::cout << iso << ' ' << *iso << std::endl;
