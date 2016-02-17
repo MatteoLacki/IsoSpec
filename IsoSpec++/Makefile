@@ -10,8 +10,10 @@ lib:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -fPIC -shared -o libIsoSpec++.so 
 
 debug:
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) -fPIC -shared -o libIsoSpec++.so
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so
 
+perftest:
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so 
 
 ctest: lib
 	$(CC) -g -L. -lIsoSpec++ test.c -o ctest

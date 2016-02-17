@@ -131,6 +131,12 @@ class IsoSpecLayered;
      double                      percentageToExpand;
      double			 lastMinLProb;
      bool                        estimateThresholds;
+#ifdef DEBUG
+     int layers = 0;
+     int moves = 0;
+     int hits = 0;
+#endif /* DEBUG */
+
  public:
      IsoSpecLayered(
          int             _dimNumber,

@@ -435,6 +435,10 @@ IsoSpecLayered::~IsoSpecLayered()
 
 bool IsoSpecLayered::advanceToNextConfiguration()
 {
+#ifdef DEBUG
+    layers += 1;
+#endif /* DEBUG */
+
     if(current == nullptr)
         return false;
     int accepted_in_this_layer = 0;
@@ -453,6 +457,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
         if(top_lprob >= lprobThr)
         {
+#ifdef DEBUG
+            hits += 1;
+#endif /* DEBUG */
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
@@ -461,6 +468,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
         else
         {
+#ifdef DEBUG
+            moves += 1;
+#endif /* DEBUG */
             next->push_back(topConf);
             continue;
         }
@@ -508,7 +518,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             next = nnew;
             int howmany = floor(current->size()*percentageToExpand);
 	    if(estimateThresholds)
-	        // Screw numeric correctness, ARRRRRRR!!!
+	        // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
 	    	lprobThr += log((1.0-cutOff)*percentageToExpand) - log(1.0-prob_in_this_layer.get());
 	    else
                 lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
@@ -516,6 +526,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
         else
         {
+#ifdef DEBUG
+            std::cerr << "No. layers: " << layers << "	hits: " << hits << "	misses: " << moves << "	miss ratio: " << static_cast<float>(moves) / static_cast<float>(hits) << std::endl;
+#endif /* DEBUG */
             delete next;
             next = nullptr;
             delete current;
@@ -565,7 +578,12 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 else
                     end = loweridx;
             }
-            int accend = newaccepted.size()-accepted_in_this_layer+start+1;
+	    int accend = newaccepted.size()-accepted_in_this_layer+start+1;
+#ifdef DEBUG
+            std::cerr << "Last layer size: " << accepted_in_this_layer << "	Total size: " << newaccepted.size() << "	Total size after trimming: " << accend << "	No. trimmed: " << -start-1+accepted_in_this_layer 
+	    << "	Trimmed to left ratio: " << static_cast<float>(-start-1+accepted_in_this_layer) / static_cast<float>(accend) << std::endl;
+#endif /* DEBUG */
+
             totalProb = qsprob;
             newaccepted.resize(accend);
             return true;
