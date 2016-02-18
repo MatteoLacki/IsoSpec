@@ -15,7 +15,10 @@ import glob
 import shutil
 
 if not os.path.exists("IsoSpec++"):
-    shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
+    try: 
+        os.symlink("../IsoSpec++", "IsoSpec++")
+    except: # OS doesn't support symlinks
+        shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
 
 
 if os.getenv('ISO_USE_DEFAULT_CXX') == None and spawn.find_executable('clang++') != None:
@@ -32,7 +35,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 cmodule = Extension('IsoSpecCppPy',
                     sources = glob.glob('IsoSpec++/*.cpp'), 
-                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++11'.split() #+ ['-DDEBUG']
+                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++11'.split() + ['-DDEBUG']
                     )
 
 

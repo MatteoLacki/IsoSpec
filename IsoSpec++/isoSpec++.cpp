@@ -420,8 +420,6 @@ estimateThresholds(_estimateThresholds)
 
     percentageToExpand = layerStep;
     lprobThr = (*reinterpret_cast<double*>(initialConf));
-
-    lastMinLProb = lprobThr;
 };
 
 
@@ -435,9 +433,8 @@ IsoSpecLayered::~IsoSpecLayered()
 
 bool IsoSpecLayered::advanceToNextConfiguration()
 {
-#ifdef DEBUG
     layers += 1;
-#endif /* DEBUG */
+    double maxFringeLprob = -std::numeric_limits<double>::infinity();
 
     if(current == nullptr)
         return false;
@@ -451,8 +448,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
         cnt++;
 
-        int* topConfIsoCounts = getConf(topConf);
-
         double top_lprob = getLProb(topConf);
 
         if(top_lprob >= lprobThr)
@@ -463,8 +458,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
-	    if(lastMinLProb > top_lprob)
-	        lastMinLProb = top_lprob;
         }
         else
         {
@@ -474,6 +467,8 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             next->push_back(topConf);
             continue;
         }
+
+	int* topConfIsoCounts = getConf(topConf);
 
         for(int j = 0; j < dimNumber; ++j)
         {
@@ -494,12 +489,18 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     dimNumber
                 );
 
+
+
                 *(reinterpret_cast<double*>(acceptedCandidate)) = newConfProb;
 
                 if(newConfProb >= lprobThr)
                     current->push_back(acceptedCandidate);
                 else
+		{
                     next->push_back(acceptedCandidate);
+		    if(newConfProb > maxFringeLprob)
+		        maxFringeLprob = top_lprob;
+		}
             }
             if(topConfIsoCounts[j] > 0)
                 break;
@@ -519,7 +520,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             int howmany = floor(current->size()*percentageToExpand);
 	    if(estimateThresholds)
 	        // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
-	    	lprobThr += log((1.0-cutOff)*percentageToExpand) - log(1.0-prob_in_this_layer.get());
+	    	lprobThr += log((1.0-cutOff))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
+		if(lprobThr > maxFringeLprob)
+		    lprobThr = maxFringeLprob;
 	    else
                 lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
             totalProb = prob_in_this_layer;
@@ -527,7 +530,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         else
         {
 #ifdef DEBUG
-            std::cerr << "No. layers: " << layers << "	hits: " << hits << "	misses: " << moves << "	miss ratio: " << static_cast<float>(moves) / static_cast<float>(hits) << std::endl;
+            std::cerr << "No. layers: " << layers << "	hits: " << hits << "	misses: " << moves << "	miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
 #endif /* DEBUG */
             delete next;
             next = nullptr;
@@ -581,7 +584,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 	    int accend = newaccepted.size()-accepted_in_this_layer+start+1;
 #ifdef DEBUG
             std::cerr << "Last layer size: " << accepted_in_this_layer << "	Total size: " << newaccepted.size() << "	Total size after trimming: " << accend << "	No. trimmed: " << -start-1+accepted_in_this_layer 
-	    << "	Trimmed to left ratio: " << static_cast<float>(-start-1+accepted_in_this_layer) / static_cast<float>(accend) << std::endl;
+	    << "	Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
 #endif /* DEBUG */
 
             totalProb = qsprob;

@@ -129,10 +129,9 @@ class IsoSpecLayered;
      std::vector<void*>*         next;
      double                      lprobThr;
      double                      percentageToExpand;
-     double			 lastMinLProb;
      bool                        estimateThresholds;
-#ifdef DEBUG
      int layers = 0;
+#ifdef DEBUG
      int moves = 0;
      int hits = 0;
 #endif /* DEBUG */
