@@ -525,6 +525,20 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             std::cout << std::endl;
 #endif /* DEBUG */
 
+        // // This was an attempt to merge two methods: layered and layered_estimating 
+        // // that does not work so good as predicted.
+//             if( estimateThresholds and ( prob_in_this_layer.get() >= cutOff*.99 ) ){
+//                 estimateThresholds = false;
+//                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
+// #ifdef DEBUG
+//                 std::cout << "We switch!" << std::endl;
+// #endif /* DEBUG */
+//             }
+
+#ifdef DEBUG
+                std::cout << "percentageToExpand = " << percentageToExpand << std::endl;
+#endif /* DEBUG */
+
             std::vector<void*>* nnew = current;
             nnew->clear();
             current = next;
@@ -534,8 +548,15 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
                 // lprobThr += log((1.0-cutOff))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
                 lprobThr += log(1.0-cutOff) + log(1.0-(1.0-percentageToExpand)/pow(layers, 2.0)) - log(1.0 -prob_in_this_layer.get());
-                if(lprobThr > maxFringeLprob)
+                if(lprobThr > maxFringeLprob){
                     lprobThr = maxFringeLprob;
+                    estimateThresholds = false;
+                    percentageToExpand = .3;
+#ifdef DEBUG
+                    std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
+#endif /* DEBUG */
+                    lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));                    
+                }
             } else
                 lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
             totalProb = prob_in_this_layer;

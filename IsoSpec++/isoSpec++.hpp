@@ -146,8 +146,8 @@ class IsoSpecLayered;
          const double    _cutOff,
          int             tabSize = 1000,
          int             hashSize = 1000,
-         double          layerStep = 0.25,
-	 bool            _estimateThresholds = false
+         double          layerStep = 0.3,
+	     bool            _estimateThresholds = false
      );
 
      virtual ~IsoSpecLayered();

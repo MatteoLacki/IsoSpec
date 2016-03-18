@@ -26,8 +26,6 @@ import glob
 from kahan import Summator
 from collections import defaultdict
 
-
-
 try:
     xrange
 except NameError:
@@ -212,7 +210,7 @@ class IsoSpec:
                     _stopCondition,
                     tabSize = 1000,
                     hashSize = 1000,
-                    step = 0.25,
+                    step = 0.3,
                     method = 'layered'
                 ):
         self.clib = isoFFI.clib #can't use global vars in destructor, again...
