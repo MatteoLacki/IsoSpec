@@ -280,8 +280,9 @@ class IsoSpec:
 
 
     def __del__(self):
-        if not self.iso.__nonzero__():
+        if self.iso is not None and not self.iso.__nonzero__():
             self.clib.destroyIso(self.iso)
+            self.iso = None
 
     def __len__(self):
         return isoFFI.clib.getIsoConfNo(self.iso)
