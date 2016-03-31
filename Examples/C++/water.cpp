@@ -29,9 +29,9 @@ int main()
     std::cout << "O18 atoms: " << configs[4] << std::endl;
 
     delete iso;
-    delete masses;
-    delete logprobs;
-    delete configs;
+    delete[] masses;
+    delete[] logprobs;
+    delete[] configs;
 
 
     std::cout << "Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?" << std::endl;
@@ -79,7 +79,7 @@ int main()
     std::cout << "O18 atoms: " << configs[4] << std::endl;
 
     delete iso;
-    delete masses;
-    delete logprobs;
-    delete configs;
+    delete[] masses;
+    delete[] logprobs;
+    delete[] configs;
 }
