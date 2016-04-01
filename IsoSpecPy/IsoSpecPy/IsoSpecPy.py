@@ -284,10 +284,8 @@ class IsoSpec:
         self.cleanup()
 
     def cleanup(self):
-        print "outside cleanup"
         print self.iso is not None, self.iso.__nonzero__()
         if self.iso is not None and self.iso.__nonzero__():
-            print "PyDestr called"
             self.clib.destroyIso(self.iso)
             self.iso = None
 
