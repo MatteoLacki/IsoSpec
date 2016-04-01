@@ -112,7 +112,8 @@ sure you want to do that, edit the source and disable this check.''')
             os.path.join(mod_dir, '..', 'IsoSpecCppPy*.so'),
             'libIsoSpec++*.so',
             os.path.join(mod_dir, 'libIsoSpec++*.so'),
-            os.path.join(mod_dir, '..', 'libIsoSpec++*.so')
+            os.path.join(mod_dir, '..', 'libIsoSpec++*.so'),
+            os.path.join('..', 'IsoSpec++', 'libIsoSpec++*.so')
         ]
 
         self.clib = None
@@ -280,7 +281,13 @@ class IsoSpec:
 
 
     def __del__(self):
-        if self.iso is not None and not self.iso.__nonzero__():
+        self.cleanup()
+
+    def cleanup(self):
+        print "outside cleanup"
+        print self.iso is not None, self.iso.__nonzero__()
+        if self.iso is not None and self.iso.__nonzero__():
+            print "PyDestr called"
             self.clib.destroyIso(self.iso)
             self.iso = None
 
