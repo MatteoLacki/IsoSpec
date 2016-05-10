@@ -23,6 +23,8 @@ import math
 import re
 import os
 import glob
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from kahan import Summator
 from collections import defaultdict
 
@@ -247,9 +249,11 @@ class IsoSpec:
                                 hashSize,
                                 step
                             )
-
-        if not self.iso.__nonzero__():
-            raise MemoryError()
+        try:
+            if not self.iso.__nonzero__():
+                raise MemoryError()
+        except AttributeError: # Python3 doesn't have __nonzero__...
+            pass
 
 
 
@@ -284,7 +288,7 @@ class IsoSpec:
         self.cleanup()
 
     def cleanup(self):
-        if self.iso is not None and self.iso.__nonzero__():
+        if self.iso is not None:
             self.clib.destroyIso(self.iso)
             self.iso = None
 

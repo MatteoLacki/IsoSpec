@@ -112,7 +112,10 @@ void getConfs(int howmany, void* MT, double* masses, double* logprobs, int* conf
 
 void destroyConf(void* marginals)
 {
-    delete reinterpret_cast<MarginalTrek*>(marginals);
+    if (marginals != nullptr)
+    {
+        delete reinterpret_cast<MarginalTrek*>(marginals);
+    }
 }
 
 
@@ -159,7 +162,7 @@ void* setupIsoLayered( int      _dimNumber,
     }
     catch (std::bad_alloc& ba) { 
         delete iso;
-        iso = NULL;
+        iso = nullptr;
     }
 
     delete[] IM;
@@ -334,7 +337,10 @@ void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoC
 
 void destroyIso(void* iso)
 {
-    delete reinterpret_cast<IsoSpec*>(iso);
+    if (iso != nullptr)
+    {
+        delete reinterpret_cast<IsoSpec*>(iso);
+    }
 }
 
 
@@ -367,14 +373,12 @@ void SetupIsoR(
 	false
     );
 
-    std::cout << iso << ' ' << *iso << std::endl;
 }
 
 
 
 void getIsoConfNoR(void** iso, int* number)
 {
-    std::cout << iso << ' ' << *iso << std::endl;
     *number = reinterpret_cast<IsoSpec*>(*iso)->getNoVisitedConfs();
 }
 
@@ -386,7 +390,10 @@ void getIsoConfsR(void** iso, double* res_mass, double* res_logProb, int* res_is
 
 void destroyIsoR(void** iso)
 {
-    delete reinterpret_cast<IsoSpec*>(*iso);
+    if(iso != nullptr)
+    {
+    	delete reinterpret_cast<IsoSpec*>(*iso);
+    }
 }
 
 
