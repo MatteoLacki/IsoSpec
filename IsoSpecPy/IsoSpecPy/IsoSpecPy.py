@@ -23,6 +23,8 @@ import math
 import re
 import os
 import glob
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from kahan import Summator
 from collections import defaultdict
 
@@ -112,7 +114,8 @@ sure you want to do that, edit the source and disable this check.''')
             os.path.join(mod_dir, '..', 'IsoSpecCppPy*.so'),
             'libIsoSpec++*.so',
             os.path.join(mod_dir, 'libIsoSpec++*.so'),
-            os.path.join(mod_dir, '..', 'libIsoSpec++*.so')
+            os.path.join(mod_dir, '..', 'libIsoSpec++*.so'),
+            os.path.join('..', 'IsoSpec++', 'libIsoSpec++*.so')
         ]
 
         self.clib = None
@@ -246,9 +249,11 @@ class IsoSpec:
                                 hashSize,
                                 step
                             )
-
-        if not self.iso.__nonzero__():
-            raise MemoryError()
+        try:
+            if not self.iso.__nonzero__():
+                raise MemoryError()
+        except AttributeError: # Python3 doesn't have __nonzero__...
+            pass
 
 
 
@@ -280,7 +285,10 @@ class IsoSpec:
 
 
     def __del__(self):
-        if self.iso is not None and not self.iso.__nonzero__():
+        self.cleanup()
+
+    def cleanup(self):
+        if self.iso is not None:
             self.clib.destroyIso(self.iso)
             self.iso = None
 
