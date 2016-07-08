@@ -242,6 +242,7 @@ MarginalTrek::MarginalTrek(
 ) : _tabSize(tabSize),
 _hashSize(hashSize),
 _isotopeNo(isotopeNo),
+_atomCnt(atomCnt),
 iso_masses(arr_copy(masses, isotopeNo)),
 logProbs(getMLogProbs(probs, isotopeNo)),
 allocator(isotopeNo, _tabSize),
@@ -339,9 +340,9 @@ bool MarginalTrek::add_next_conf()
 
     totalProb.add( exp( logprob ) );
 
-    for( int i = 0; i < _isotopeNo; ++i )
+    for( unsigned int i = 0; i < _isotopeNo; ++i )
     {
-        for( int j = 0; j < _isotopeNo; ++j )
+        for( unsigned int j = 0; j < _isotopeNo; ++j )
         {
             // Growing index different than decreasing one AND
             // Remain on simplex condition.
@@ -386,6 +387,23 @@ int MarginalTrek::processUntilCutoff(double cutoff)
     return _conf_probs.size();
 }
 
+double MarginalTrek::getLightestConfMass()
+{
+    double ret_mass = std::numeric_limits<double>::infinity();
+    for(unsigned int ii=0; ii < _isotopeNo; ii++)
+        if( ret_mass > iso_masses[ii] )
+	    ret_mass = iso_masses[ii];
+    return ret_mass*_atomCnt;
+}
+
+double MarginalTrek::getHeaviestConfMass()
+{
+    double ret_mass = 0.0;
+    for(unsigned int ii=0; ii < _isotopeNo; ii++)
+        if( ret_mass < iso_masses[ii] )
+            ret_mass = iso_masses[ii];
+    return ret_mass*_atomCnt;
+}
 
 MarginalTrek::~MarginalTrek()
 {

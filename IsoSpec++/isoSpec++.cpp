@@ -193,6 +193,23 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
 
 }
 
+double IsoSpec::getLightestPeakMass()
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+	mass += marginalResults[ii]->getLightestConfMass();
+    return mass;
+}
+
+double IsoSpec::getHeaviestPeakMass()
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginalResults[ii]->getHeaviestConfMass();
+    return mass;
+}
+
+
 template  IsoSpecOrdered*
 IsoSpec::IsoFromFormula<IsoSpecOrdered>(const char* formula,
                                         double cutoff,
@@ -768,6 +785,7 @@ void printConfigurations(
         std::cout << std::endl;
     }
 }
+
 
 
 

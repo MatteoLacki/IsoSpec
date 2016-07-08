@@ -37,7 +37,7 @@ public:
     }
     inline void add(double x)
     {
-        int i=0;
+        unsigned int i=0;
         for(int pidx=0; pidx<maxpart; pidx++)
         {
             double y = partials[pidx];

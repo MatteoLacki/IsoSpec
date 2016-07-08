@@ -48,8 +48,9 @@ class MarginalTrek
     const int _tabSize;
     const int _hashSize;
 public:
-    const int _isotopeNo;
+    const unsigned int _isotopeNo;
 private:
+    const unsigned int _atomCnt;
     const double* iso_masses;
     const double* logProbs;
     Allocator<int> allocator;
@@ -95,6 +96,8 @@ public:
     inline const int get_isotopeNo() const { return _isotopeNo; };
     ~MarginalTrek();
 
+    double getLightestConfMass();
+    double getHeaviestConfMass();
 };
 
 

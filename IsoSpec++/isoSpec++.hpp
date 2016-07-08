@@ -81,6 +81,8 @@ class IsoSpecLayered;
      void processConfigurationsUntilCutoff();
      int getNoVisitedConfs();
      int getNoIsotopesTotal();
+     double getLightestPeakMass();
+     double getHeaviestPeakMass();
 
 
      void getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts);
