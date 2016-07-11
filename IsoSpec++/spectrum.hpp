@@ -13,8 +13,8 @@ public:
 
 	Kernel(double _width, double* _k, double _bucketsize, double buckets);
 
-	static Kernel* Gaussian(double stdev, double bucketsize, double prob);
 	static Kernel* SinglePoint();
+	static Kernel* Gaussian(double stdev, double bucketsize, double prob);
 	static Kernel* Rectangular(int width, double bucketsize);
 	static Kernel* Triangular(int width, double bucketsize);
 
