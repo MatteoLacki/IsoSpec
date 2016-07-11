@@ -21,7 +21,7 @@
 
 #include <string.h>
 #include "conf.hpp"
-#include "logFactorial.hpp"
+#include "isoMath.hpp"
 #include "misc.hpp"
 
 

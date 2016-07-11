@@ -16,9 +16,11 @@
  *   along with IsoSpec.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LOGFACTORIAL_HPP
-#define LOGFACTORIAL_HPP
+#ifndef ISOMATH_HPP
+#define ISOMATH_HPP
 
 double logFactorial(int n);
+double NormalCDFInverse(double p);
 
-#endif
+
+#endif /* ISOMATH_HPP */
