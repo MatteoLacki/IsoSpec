@@ -282,7 +282,7 @@ double logFactorial(int n)
 
 
 
-
+const double pi = 3.141592653589793;
 
 double RationalApproximation(double t)
 {
@@ -301,5 +301,18 @@ double NormalCDFInverse(double p)
         return -RationalApproximation( sqrt(-2.0*log(p)) );
     else
         return RationalApproximation( sqrt(-2.0*log(1-p)) );
+}
+
+double NormalCDFInverse(double p, double mean, double stdev)
+{
+	return mean + stdev * NormalCDFInverse(p);
+}
+
+
+double NormalPDF(double x, double mean, double stdev)
+{
+	double two_variance = stdev * stdev * 2.0;
+	double delta = x-mean;
+	return exp( -delta*delta / two_variance )      /     sqrt( two_variance * pi );
 }
 
