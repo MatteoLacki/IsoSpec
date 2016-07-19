@@ -61,7 +61,7 @@ stdev(_stdev), prob(_prob)
 {
 	support_min = NormalCDFInverse((1.0 - prob)/2.0, 0.0, stdev);
 	support_max = -support_max;
-	support_len = support_max - support_min;
+//	support_len = support_max - support_min;
 	correction = 1.0/prob;
 };
 
@@ -72,6 +72,24 @@ double TruncatedGaussianFunctionalKernel::getMass(double bucketStart, double buc
 	return (NormalCDF(end, 0.0, stdev) - NormalCDF(start, 0.0, stdev)) * correction;
 }
 
+double TruncatedGaussianFunctionalKernel::getSupportMin()
+{ return support_min; }
+
+double TruncatedGaussianFunctionalKernel::getSupportMax()
+{ return support_max; }
+
+
+RectangularFunctionalKernel::RectangularFunctionalKernel(double start, double end) :
+support_min(start), support_max(end)
+{
+	support_len = support_max - support_min;
+};
+
+double RectangularFunctionalKernel::getSupportMin()
+{ return support_min; }
+
+double RectangularFunctionalKernel::getSupportMax()
+{ return support_max; }
 
 
 Spectrum::Spectrum(double _start, double _bucketsize, int _buckets, bool _clear)

@@ -46,13 +46,25 @@ class TruncatedGaussianFunctionalKernel : FunctionalKernel
 	double prob;
 	double support_min;
 	double support_max;
-	double support_len;
+//	double support_len;
 	double correction;
 public:
 	TruncatedGaussianFunctionalKernel(double _stdev, double _prob = 0.99);
-	virtual double getMass(double bucketStart, double bucketEnd);
-	virtual double getSupportMin();
-	virtual double getSupportMax();
+	double getMass(double bucketStart, double bucketEnd);
+	double getSupportMin();
+	double getSupportMax();
+};
+
+
+class RectangularFunctionalKernel : FunctionalKernel
+{
+	double support_min;
+	double support_max;
+	double support_len;
+public:
+	RectangularFunctionalKernel(double start, double end);
+	double getSupportMin();
+	double getSupportMax();
 };
 
 
