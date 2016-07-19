@@ -100,24 +100,52 @@ Spectrum::Spectrum(double _start, double _bucketsize, int _buckets, bool _clear)
 }
 	
 
-Spectrum::Spectrum(IsoSpec& iso, Kernel& k)
+Spectrum::Spectrum(IsoSpec& iso, FunctionalKernel& kernel, double _bucketsize)
 {
-	bucketsize = k.bucketsize;
+	double ker_supp_min = kernel.getSupportMin();
+	double ker_supp_max = kernel.getSupportMax();
 
-	double lpm = iso.getLightestPeakMass();
-	double hpm = iso.getHeaviestPeakMass();
+	double lpm = iso.getLightestPeakMass() + ker_supp_min;
+	double hpm = iso.getHeaviestPeakMass() + ker_supp_max;
 
 	start = floor(lpm) - bucketsize * 1.5;
 	buckets = floor((hpm - start)/bucketsize) + 2;
 	end = start + buckets * bucketsize;
 
 	spectrum = new double[buckets];
-	memset(spectrum, buckets, sizeof(double));
+	memset(spectrum, 0, buckets * sizeof *spectrum);
 
 	iso.processConfigurationsUntilCutoff();
 
+	double* masses = new double[iso.cnt];
+	double* lprobs = new double[iso.cnt];
 
+	iso.getCurrentProduct(masses, lprobs, nullptr);
+
+	unsigned int kernel_bucketstart_offset = static_cast<unsigned int>(ceil(-ker_supp_min/bucketsize)) + 1;
+	unsigned int buckets_needed = static_cast<unsigned int>(ceil((ker_supp_max - ker_supp_min)/bucketsize)) + 1;
+
+	for(unsigned int ii = 0; ii < iso.cnt; ii++)
+	{
+		unsigned int pos = position(masses[ii]);
+		unsigned int start_iter = pos - kernel_bucketstart_offset;
+		unsigned int end_iter   = start_iter + buckets_needed;
+
+		double current_bucket_start;
+		double current_bucket_end   = mass_at_index_start(start_iter);
+
+		double prob = exp(lprobs[ii]);
+		
+		for(unsigned int jj = start_iter; jj <= end_iter; jj++)
+		{
+			current_bucket_start = current_bucket_end;
+			current_bucket_end += bucketsize;
+
+			spectrum[jj] += kernel.getMass(current_bucket_start, current_bucket_end) * prob;
+		}
+	}
 }
+
 
 
 

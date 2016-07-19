@@ -78,7 +78,7 @@ public:
 	double  bucketsize = 1.0;
 	int	buckets = 0;
 
-	inline int position(double mass)
+	inline unsigned int position(double mass)
 	{
 		if(mass >= end)
 			return buckets - 1;
@@ -92,8 +92,13 @@ public:
 		return spectrum[position(mass)];
 	};
 
+	inline double mass_at_index_start(unsigned int idx)
+	{
+		return start + bucketsize * idx;
+	}
+
 	Spectrum(double _start = -0.5, double _bucketsize = 1.0, int _buckets = 1, bool _clear = true);
-	Spectrum(IsoSpec& iso, Kernel& k);
+	Spectrum(IsoSpec& iso, FunctionalKernel& k, double _bucketsize);
 
 	
 
