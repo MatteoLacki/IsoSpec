@@ -317,20 +317,27 @@ void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_
     for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
     {
         int* curr_conf  = getConf(*it);
-        res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
-        res_logProb[i]  = getLProb(*it);
 
-        for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
-        {
-            int currentConfIndex = curr_conf[isotopeNumber];
-            int locIsoNo = isotopeNumbers[isotopeNumber];
-            memcpy(
-                &res_isoCounts[j],
-                (*marginalConfs[isotopeNumber])[currentConfIndex],
-                   sizeof(int)*locIsoNo
-            );
-            j += locIsoNo;
-        }
+	if(res_mass != nullptr)
+        	res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
+	
+	if(res_logProb != nullptr)
+        	res_logProb[i]  = getLProb(*it);
+
+	if(res_isoCounts != nullptr)
+	{
+            for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
+            {
+                int currentConfIndex = curr_conf[isotopeNumber];
+                int locIsoNo = isotopeNumbers[isotopeNumber];
+                memcpy(
+                    &res_isoCounts[j],
+                    (*marginalConfs[isotopeNumber])[currentConfIndex],
+                        sizeof(int)*locIsoNo
+                );
+                j += locIsoNo;
+            }
+	}
         i++;
     }
 }
