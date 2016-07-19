@@ -98,6 +98,8 @@ class IsoSpecLayered;
          NumericVector isotopeProbabilities,
          double stopCondition, int algo, int tabSize, int hashSize, double step);
      #endif
+
+     friend class Spectrum;
  };
 
  class IsoSpecOrdered : public IsoSpec

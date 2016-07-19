@@ -23,6 +23,38 @@ public:
 };
 
 
+class FunctionalKernel
+{
+public:
+	virtual double getMass(double bucketStart, double bucketEnd) = 0;
+	virtual double getSupportMin() = 0;
+	virtual double getSupportMax() = 0;
+};
+
+class SinglePointFunctionalKernel : FunctionalKernel
+{
+public:
+	SinglePointFunctionalKernel();
+	virtual double getMass(double bucketStart, double bucketEnd);
+	virtual double getSupportMin();
+	virtual double getSupportMax();
+};
+
+class TruncatedGaussianFunctionalKernel : FunctionalKernel
+{
+	double stdev;
+	double prob;
+	double support_min;
+	double support_max;
+	double support_len;
+	double correction;
+public:
+	TruncatedGaussianFunctionalKernel(double _stdev, double _prob = 0.99);
+	virtual double getMass(double bucketStart, double bucketEnd);
+	virtual double getSupportMin();
+	virtual double getSupportMax();
+};
+
 
 class Spectrum
 {

@@ -40,6 +40,40 @@ void Kernel::print()
 }
 
 
+SinglePointFunctionalKernel::SinglePointFunctionalKernel() {};
+
+double SinglePointFunctionalKernel::getMass(double bucketStart, double bucketEnd)
+{
+	if(bucketStart <= 0.0 and 0.0 < bucketEnd)
+		return 1.0;
+	return 0.0;
+}
+
+double SinglePointFunctionalKernel::getSupportMin()
+{ return 0.0; };
+
+double SinglePointFunctionalKernel::getSupportMax()
+{ return 0.0; };
+
+
+TruncatedGaussianFunctionalKernel::TruncatedGaussianFunctionalKernel(double _stdev, double _prob) :
+stdev(_stdev), prob(_prob)
+{
+	support_min = NormalCDFInverse((1.0 - prob)/2.0, 0.0, stdev);
+	support_max = -support_max;
+	support_len = support_max - support_min;
+	correction = 1.0/prob;
+};
+
+double TruncatedGaussianFunctionalKernel::getMass(double bucketStart, double bucketEnd)
+{
+	double start = std::max(support_min, bucketStart);
+	double end   = std::min(support_max, bucketEnd);
+	return (NormalCDF(end, 0.0, stdev) - NormalCDF(start, 0.0, stdev)) * correction;
+}
+
+
+
 Spectrum::Spectrum(double _start, double _bucketsize, int _buckets, bool _clear)
 : start(_start), end(_start + _bucketsize * static_cast<float>(_buckets)), bucketsize(_bucketsize), buckets(_buckets)
 {
@@ -61,6 +95,10 @@ Spectrum::Spectrum(IsoSpec& iso, Kernel& k)
 
 	spectrum = new double[buckets];
 	memset(spectrum, buckets, sizeof(double));
+
+	iso.processConfigurationsUntilCutoff();
+
+
 }
 
 
