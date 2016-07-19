@@ -21,7 +21,7 @@
 
 double logFactorial(int n);
 double NormalCDFInverse(double p);
-double NormalCDFInverse(double p, double stdev);
+double NormalCDFInverse(double p, double mean, double stdev);
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 
 
