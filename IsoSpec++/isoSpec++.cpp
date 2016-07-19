@@ -291,7 +291,7 @@ std::tuple<double*,double*,int*,int> IsoSpec::getCurrentProduct()
     double*         res_logProb     = new double[cnt];
     int*            res_isoCounts   = new int[cnt*allDim];
 
-    getProduct(res_mass, res_logProb, res_isoCounts);
+    getCurrentProduct(res_mass, res_logProb, res_isoCounts);
 
     return std::tuple<double*,double*,int*,int>(
         res_mass,
