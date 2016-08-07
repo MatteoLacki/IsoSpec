@@ -28,7 +28,7 @@ Building and installing the Python package
 IMPORTANT: please note that the Python package is standalone, in the
 sense that it does not need the C/C++ library to be installed separately.
 
-
+IsoSpecPy is compatible with both CPython and PyPy.
 
 Requirements:
     Python (obviously) (v2 and v3 are supported)
@@ -58,6 +58,8 @@ Building and installing the R package
 
 Requirements:
 	R (>= 3.2.1)
+	Rcpp package from CRAN
+	C++11 compiler, clang++ (v3.3 or later) or g++ (v4.7 or later)
 
 Move to the folder containing the IsoSpecR folder. Then run in terminal:
 

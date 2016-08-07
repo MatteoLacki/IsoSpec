@@ -10,7 +10,7 @@ Description:
 	The software is publically available under AGPLv3 licence. If you require 
 	other licensing terms, please contact the authors. See LICENCE file for 
 	more details.
-License: AGPL-3
+License: BSD_2_clause
 Depends: R (>= 3.0.0)
 Imports: methods, Rcpp (>= 0.12.0)
 LazyData: true

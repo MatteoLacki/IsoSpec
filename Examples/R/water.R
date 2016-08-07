@@ -21,7 +21,7 @@ print('Number of O17 atoms:');res$O17
 print('Number of O18 atoms:');res$O18
 
 print("Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?")
-print('In R, we have to preper additional parameter for the algorithm: a data.frame containing the new isotopic ratios.')
+print('In R, we have to provide an additional parameter to the algorithm: a data.frame containing the new isotopic ratios.')
 modifiedIsotopes <- data.frame(
 	element = c('H', 'H', 'O', 'O', 'O'),
 	isotope = c('H1', 'H2', 'O16', 'O17', 'O18'),
