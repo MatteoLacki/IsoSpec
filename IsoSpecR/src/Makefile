@@ -3,6 +3,7 @@ OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g
 CXXFLAGS=-std=c++11 
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  logFactorial.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp Rinterface.cpp RcppExports.cpp
+CXX_STD = CXX11
 
 R_HOME := $(shell R RHOME)
 

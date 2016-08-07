@@ -655,7 +655,7 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 }
 
 
-
+#ifndef BUILDING_R
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
     int     dimNumber,
@@ -684,7 +684,7 @@ void printConfigurations(
         std::cout << std::endl;
     }
 }
-
+#endif /* BUILDING_R */
 
 
 

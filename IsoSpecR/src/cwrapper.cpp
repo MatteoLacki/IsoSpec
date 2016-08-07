@@ -342,14 +342,12 @@ void SetupIsoR(
         0.25
     );
 
-    std::cout << iso << ' ' << *iso << std::endl;
 }
 
 
 
 void getIsoConfNoR(void** iso, int* number)
 {
-    std::cout << iso << ' ' << *iso << std::endl;
     *number = reinterpret_cast<IsoSpec*>(*iso)->getNoVisitedConfs();
 }
 
