@@ -22,7 +22,7 @@
 
 class SSummator
 {
-    // Schewchuk algorithm
+    // Shewchuk algorithm
     std::vector<double> partials;
     int maxpart;
 public:

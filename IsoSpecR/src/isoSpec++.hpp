@@ -81,6 +81,8 @@ class IsoSpecLayered;
      void processConfigurationsUntilCutoff();
      int getNoVisitedConfs();
      int getNoIsotopesTotal();
+     double getLightestPeakMass();
+     double getHeaviestPeakMass();
 
 
      void getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts);
@@ -96,6 +98,8 @@ class IsoSpecLayered;
          NumericVector isotopeProbabilities,
          double stopCondition, int algo, int tabSize, int hashSize, double step);
      #endif
+
+     friend class Spectrum;
  };
 
  class IsoSpecOrdered : public IsoSpec
@@ -129,6 +133,13 @@ class IsoSpecLayered;
      std::vector<void*>*         next;
      double                      lprobThr;
      double                      percentageToExpand;
+     bool                        estimateThresholds;
+     int layers = 0;
+#ifdef DEBUG
+     int moves = 0;
+     int hits = 0;
+#endif /* DEBUG */
+
  public:
      IsoSpecLayered(
          int             _dimNumber,
@@ -139,7 +150,8 @@ class IsoSpecLayered;
          const double    _cutOff,
          int             tabSize = 1000,
          int             hashSize = 1000,
-         double          layerStep = 0.25
+         double          layerStep = 0.3,
+	     bool            _estimateThresholds = false
      );
 
      virtual ~IsoSpecLayered();

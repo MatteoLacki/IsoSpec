@@ -22,7 +22,7 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-#include "logFactorial.hpp"
+#include "isoMath.hpp"
 
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber

@@ -112,7 +112,10 @@ void getConfs(int howmany, void* MT, double* masses, double* logprobs, int* conf
 
 void destroyConf(void* marginals)
 {
-    delete reinterpret_cast<MarginalTrek*>(marginals);
+    if (marginals != nullptr)
+    {
+        delete reinterpret_cast<MarginalTrek*>(marginals);
+    }
 }
 
 
@@ -126,7 +129,8 @@ void* setupIsoLayered( int      _dimNumber,
                         const double    _cutOff,
                         int             tabSize,
                         int             hashSize,
-                        double          step
+                        double          step,
+                        bool            estimate
 )
 {
     const double** IM = new const double*[_dimNumber];
@@ -149,10 +153,17 @@ void* setupIsoLayered( int      _dimNumber,
         _cutOff,
         tabSize,
         hashSize,
-        step
+        step,
+	estimate
     );
 
-    iso->processConfigurationsUntilCutoff();
+    try {
+        iso->processConfigurationsUntilCutoff();
+    }
+    catch (std::bad_alloc& ba) { 
+        delete iso;
+        iso = nullptr;
+    }
 
     delete[] IM;
     delete[] IP;
@@ -192,7 +203,13 @@ void* setupIsoOrdered( int             _dimNumber,
         hashSize
     );
 
-    iso->processConfigurationsUntilCutoff();
+    try {
+        iso->processConfigurationsUntilCutoff();
+    }
+    catch (std::bad_alloc& ba) {
+        delete iso;
+        iso = NULL;
+    }
 
     delete[] IM;
     delete[] IP;
@@ -234,7 +251,13 @@ void* setupIsoThreshold( int      _dimNumber,
         hashSize
     );
 
-    iso->processConfigurationsAboveThreshold();
+    try { 
+        iso->processConfigurationsAboveThreshold();
+    }
+    catch (std::bad_alloc& ba) {
+        delete iso;
+	iso = NULL;
+    }
 
     delete[] IM;
     delete[] IP;
@@ -258,8 +281,12 @@ void* setupIso( int             _dimNumber,
     {
         case ALGO_LAYERED:
             return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step);
+                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, false);
             break;
+	case ALGO_LAYERED_ESTIMATE:
+	    return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
+                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, true);
+
         case ALGO_ORDERED:
             return setupIsoOrdered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
                                     _isotopeProbabilities, _StopCondition, tabSize, hashSize);
@@ -310,7 +337,10 @@ void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoC
 
 void destroyIso(void* iso)
 {
-    delete reinterpret_cast<IsoSpec*>(iso);
+    if (iso != nullptr)
+    {
+        delete reinterpret_cast<IsoSpec*>(iso);
+    }
 }
 
 
@@ -339,7 +369,8 @@ void SetupIsoR(
         *_cutOff,
         *tabSize,
         *hashSize,
-        0.25
+        0.25,
+	false
     );
 
 }
@@ -359,7 +390,10 @@ void getIsoConfsR(void** iso, double* res_mass, double* res_logProb, int* res_is
 
 void destroyIsoR(void** iso)
 {
-    delete reinterpret_cast<IsoSpec*>(*iso);
+    if(iso != nullptr)
+    {
+    	delete reinterpret_cast<IsoSpec*>(*iso);
+    }
 }
 
 

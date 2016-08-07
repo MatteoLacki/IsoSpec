@@ -193,6 +193,23 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
 
 }
 
+double IsoSpec::getLightestPeakMass()
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+	mass += marginalResults[ii]->getLightestConfMass();
+    return mass;
+}
+
+double IsoSpec::getHeaviestPeakMass()
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginalResults[ii]->getHeaviestConfMass();
+    return mass;
+}
+
+
 template  IsoSpecOrdered*
 IsoSpec::IsoFromFormula<IsoSpecOrdered>(const char* formula,
                                         double cutoff,
@@ -274,7 +291,7 @@ std::tuple<double*,double*,int*,int> IsoSpec::getCurrentProduct()
     double*         res_logProb     = new double[cnt];
     int*            res_isoCounts   = new int[cnt*allDim];
 
-    getProduct(res_mass, res_logProb, res_isoCounts);
+    getCurrentProduct(res_mass, res_logProb, res_isoCounts);
 
     return std::tuple<double*,double*,int*,int>(
         res_mass,
@@ -300,24 +317,50 @@ void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_
     for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
     {
         int* curr_conf  = getConf(*it);
-        res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
-        res_logProb[i]  = getLProb(*it);
 
-        for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
-        {
-            int currentConfIndex = curr_conf[isotopeNumber];
-            int locIsoNo = isotopeNumbers[isotopeNumber];
-            memcpy(
-                &res_isoCounts[j],
-                (*marginalConfs[isotopeNumber])[currentConfIndex],
-                   sizeof(int)*locIsoNo
-            );
-            j += locIsoNo;
-        }
+	if(res_mass != nullptr)
+        	res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
+	
+	if(res_logProb != nullptr)
+        	res_logProb[i]  = getLProb(*it);
+
+	if(res_isoCounts != nullptr)
+	{
+            for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
+            {
+                int currentConfIndex = curr_conf[isotopeNumber];
+                int locIsoNo = isotopeNumbers[isotopeNumber];
+                memcpy(
+                    &res_isoCounts[j],
+                    (*marginalConfs[isotopeNumber])[currentConfIndex],
+                        sizeof(int)*locIsoNo
+                );
+                j += locIsoNo;
+            }
+	}
         i++;
     }
 }
+/*
+std::unordered_map<double, double> IsoSpec::getPlot(double resolution)
+{
+    xret = new unordered_map<double, double>
 
+    for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
+    {
+        int* curr_conf  = getConf(*it);
+    double mass     = nearbyint(combinedSum( curr_conf, masses, dimNumber )/resolution)*resolution;
+    double logProb  = getLProb(*it);
+        
+    if(xret.count(mass) == 0)
+        xret[mass] = new Summator();
+
+    xret[mass].add(exp(logProb));
+    }
+
+    return xret;
+}
+*/
 int IsoSpec::getNoVisitedConfs()
 {
     return newaccepted.size();
@@ -381,7 +424,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
                                 const double    _cutOff,
                                 int             tabSize,
                                 int             hashSize,
-                                double          layerStep
+                                double          layerStep,
+                bool            _estimateThresholds
 ) : IsoSpec( _dimNumber,
              _isotopeNumbers,
              _atomCounts,
@@ -390,7 +434,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
              _cutOff,
              tabSize = 1000,
              hashSize = 1000
-)
+),
+estimateThresholds(_estimateThresholds)
 {
     current = new std::vector<void*>();
     next    = new std::vector<void*>();
@@ -412,10 +457,14 @@ IsoSpecLayered::~IsoSpecLayered()
 
 bool IsoSpecLayered::advanceToNextConfiguration()
 {
+    layers += 1;
+    double maxFringeLprob = -std::numeric_limits<double>::infinity();
+
     if(current == nullptr)
         return false;
     int accepted_in_this_layer = 0;
     Summator prob_in_this_layer(totalProb);
+
 
     while(current->size() > 0)
     {
@@ -424,21 +473,27 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
         cnt++;
 
-        int* topConfIsoCounts = getConf(topConf);
-
         double top_lprob = getLProb(topConf);
 
         if(top_lprob >= lprobThr)
         {
+#ifdef DEBUG
+            hits += 1;
+#endif /* DEBUG */
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
         }
         else
         {
+#ifdef DEBUG
+            moves += 1;
+#endif /* DEBUG */
             next->push_back(topConf);
             continue;
         }
+
+    int* topConfIsoCounts = getConf(topConf);
 
         for(int j = 0; j < dimNumber; ++j)
         {
@@ -459,12 +514,18 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     dimNumber
                 );
 
+
+
                 *(reinterpret_cast<double*>(acceptedCandidate)) = newConfProb;
 
                 if(newConfProb >= lprobThr)
                     current->push_back(acceptedCandidate);
                 else
+        {
                     next->push_back(acceptedCandidate);
+            if(newConfProb > maxFringeLprob)
+                maxFringeLprob = top_lprob;
+        }
             }
             if(topConfIsoCounts[j] > 0)
                 break;
@@ -477,16 +538,58 @@ bool IsoSpecLayered::advanceToNextConfiguration()
     {
         if(prob_in_this_layer.get() < cutOff)
         {
+#ifdef DEBUG
+            Summator testDupa(prob_in_this_layer);
+            for (auto it = next->begin(); it != next->end(); it++) {
+                testDupa.add(exp(getLProb(*it)));
+            }
+            std::cout << "Prob(Layer) = " << prob_in_this_layer.get() << std::endl;
+            std::cout << "Prob(Layer)+Prob(Fringe) = " << testDupa.get() << std::endl;
+            std::cout << "Layers = " << layers << std::endl;
+            std::cout << std::endl;
+#endif /* DEBUG */
+
+        // // This was an attempt to merge two methods: layered and layered_estimating 
+        // // that does not work so good as predicted.
+//             if( estimateThresholds and ( prob_in_this_layer.get() >= cutOff*.99 ) ){
+//                 estimateThresholds = false;
+//                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
+// #ifdef DEBUG
+//                 std::cout << "We switch!" << std::endl;
+// #endif /* DEBUG */
+//             }
+
+#ifdef DEBUG
+                std::cout << "percentageToExpand = " << percentageToExpand << std::endl;
+#endif /* DEBUG */
+
             std::vector<void*>* nnew = current;
             nnew->clear();
             current = next;
             next = nnew;
             int howmany = floor(current->size()*percentageToExpand);
-            lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
+            if(estimateThresholds){
+                // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
+                // lprobThr += log((1.0-cutOff))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
+                lprobThr += log(1.0-cutOff) + log(1.0-(1.0-percentageToExpand)/pow(layers, 2.0)) - log(1.0 -prob_in_this_layer.get());
+                if(lprobThr > maxFringeLprob){
+                    lprobThr = maxFringeLprob;
+                    estimateThresholds = false;
+                    percentageToExpand = .3;
+#ifdef DEBUG
+                    std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
+#endif /* DEBUG */
+                    lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));                    
+                }
+            } else
+                lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
             totalProb = prob_in_this_layer;
         }
         else
         {
+#ifdef DEBUG
+            std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
+#endif /* DEBUG */
             delete next;
             next = nullptr;
             delete current;
@@ -536,7 +639,12 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 else
                     end = loweridx;
             }
-            int accend = newaccepted.size()-accepted_in_this_layer+start+1;
+        int accend = newaccepted.size()-accepted_in_this_layer+start+1;
+#ifdef DEBUG
+            std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer 
+        << "    Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
+#endif /* DEBUG */
+
             totalProb = qsprob;
             newaccepted.resize(accend);
             return true;
@@ -655,7 +763,7 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 }
 
 
-#ifndef BUILDING_R
+
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
     int     dimNumber,
@@ -684,7 +792,8 @@ void printConfigurations(
         std::cout << std::endl;
     }
 }
-#endif /* BUILDING_R */
+
+
 
 
 
