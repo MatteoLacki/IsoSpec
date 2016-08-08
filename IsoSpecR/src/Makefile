@@ -13,8 +13,8 @@ RCPPFLAGS = $(shell $(R_HOME)/bin/R CMD config CPPFLAGS) $(shell $(R_HOME)/bin/R
 RLDFLAGS = $(shell $(R_HOME)/bin/R CMD config LDFLAGS) $(shell $(R_HOME)/bin/R CMD config --ldflags) 
 
 
-RCPPINCL = $(shell echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave)
-RCPPLIBS = $(shell echo 'Rcpp:::LdFlags()'  | $(R_HOME)/bin/R --vanilla --slave)
+RCPPINCL = `echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave`
+RCPPLIBS = `echo 'Rcpp:::LdFlags()'  | $(R_HOME)/bin/R --vanilla --slave`
 
 all: lib
 
