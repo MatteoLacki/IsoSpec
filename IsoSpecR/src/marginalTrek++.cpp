@@ -192,22 +192,6 @@ std::tuple<double*,double*,int*,int> getMarginal(
 }
 
 
-void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
-{
-    for(int i=0; i<std::get<3>(results); i++){
-
-        std::cout << "Mass = "  << std::get<0>(results)[i] <<
-        " log-prob =\t"                 << std::get<1>(results)[i] <<
-        " prob =\t"                     << exp(std::get<1>(results)[i]) <<
-        "\tand configuration =\t";
-
-        for(int j=0; j<dim; j++) std::cout << std::get<2>(results)[i*dim + j] << " ";
-
-        std::cout << std::endl;
-    }
-}
-
-
 
 double* getMLogProbs(const double* probs, int isoNo)
 {

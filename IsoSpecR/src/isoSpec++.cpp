@@ -538,31 +538,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
     {
         if(prob_in_this_layer.get() < cutOff)
         {
-#ifdef DEBUG
-            Summator testDupa(prob_in_this_layer);
-            for (auto it = next->begin(); it != next->end(); it++) {
-                testDupa.add(exp(getLProb(*it)));
-            }
-            std::cout << "Prob(Layer) = " << prob_in_this_layer.get() << std::endl;
-            std::cout << "Prob(Layer)+Prob(Fringe) = " << testDupa.get() << std::endl;
-            std::cout << "Layers = " << layers << std::endl;
-            std::cout << std::endl;
-#endif /* DEBUG */
-
-        // // This was an attempt to merge two methods: layered and layered_estimating 
-        // // that does not work so good as predicted.
-//             if( estimateThresholds and ( prob_in_this_layer.get() >= cutOff*.99 ) ){
-//                 estimateThresholds = false;
-//                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
-// #ifdef DEBUG
-//                 std::cout << "We switch!" << std::endl;
-// #endif /* DEBUG */
-//             }
-
-#ifdef DEBUG
-                std::cout << "percentageToExpand = " << percentageToExpand << std::endl;
-#endif /* DEBUG */
-
             std::vector<void*>* nnew = current;
             nnew->clear();
             current = next;
@@ -576,9 +551,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     lprobThr = maxFringeLprob;
                     estimateThresholds = false;
                     percentageToExpand = .3;
-#ifdef DEBUG
-                    std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
-#endif /* DEBUG */
                     lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));                    
                 }
             } else
@@ -587,9 +559,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
         else
         {
-#ifdef DEBUG
-            std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
-#endif /* DEBUG */
             delete next;
             next = nullptr;
             delete current;
@@ -640,10 +609,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     end = loweridx;
             }
         int accend = newaccepted.size()-accepted_in_this_layer+start+1;
-#ifdef DEBUG
-            std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer 
-        << "    Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
-#endif /* DEBUG */
 
             totalProb = qsprob;
             newaccepted.resize(accend);
@@ -763,35 +728,6 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 }
 
 
-
-void printConfigurations(
-    const   std::tuple<double*,double*,int*,int>& results,
-    int     dimNumber,
-    int*    isotopeNumbers
-){
-    int m = 0;
-
-    for(int i=0; i<std::get<3>(results); i++){
-
-        std::cout << "Mass = "  << std::get<0>(results)[i] <<
-        "\tand log-prob = "     << std::get<1>(results)[i] <<
-        "\tand prob = "                 << exp(std::get<1>(results)[i]) <<
-        "\tand configuration =\t";
-
-
-        for(int j=0; j<dimNumber; j++){
-            for(int k=0; k<isotopeNumbers[j]; k++ )
-            {
-                std::cout << std::get<2>(results)[m] << " ";
-                m++;
-            }
-            std::cout << '\t';
-        }
-
-
-        std::cout << std::endl;
-    }
-}
 
 
 
