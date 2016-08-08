@@ -5,16 +5,16 @@ CXXFLAGS=-std=c++11
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp   marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp Rinterface.cpp RcppExports.cpp isoMath.cpp
 CXX_STD = CXX11
 
-R_HOME := $(shell R RHOME)
+R_HOME = $(shell R RHOME)
 
-#RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config --cppflags)
-#RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config --ldflags)
-RCPPFLAGS := $(shell $(R_HOME)/bin/R CMD config CPPFLAGS) $(shell $(R_HOME)/bin/R CMD config --cppflags)
-RLDFLAGS := $(shell $(R_HOME)/bin/R CMD config LDFLAGS) $(shell $(R_HOME)/bin/R CMD config --ldflags) 
+#RCPPFLAGS = $(shell $(R_HOME)/bin/R CMD config --cppflags)
+#RLDFLAGS = $(shell $(R_HOME)/bin/R CMD config --ldflags)
+RCPPFLAGS = $(shell $(R_HOME)/bin/R CMD config CPPFLAGS) $(shell $(R_HOME)/bin/R CMD config --cppflags)
+RLDFLAGS = $(shell $(R_HOME)/bin/R CMD config LDFLAGS) $(shell $(R_HOME)/bin/R CMD config --ldflags) 
 
 
-RCPPINCL := $(shell echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave)
-RCPPLIBS := $(shell echo 'Rcpp:::LdFlags()'  | $(R_HOME)/bin/R --vanilla --slave)
+RCPPINCL = $(shell echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave)
+RCPPLIBS = $(shell echo 'Rcpp:::LdFlags()'  | $(R_HOME)/bin/R --vanilla --slave)
 
 all: lib
 
