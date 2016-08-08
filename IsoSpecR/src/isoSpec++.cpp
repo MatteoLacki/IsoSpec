@@ -578,7 +578,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 // Partition part
 
                 int len = end - start;
-                int pivot = rand() % len + start;
+                int pivot = len/2 + start;
                 void* pval = lastLayer[pivot];
                 double pprob = getLProb(pval);
                 mswap(lastLayer[pivot], lastLayer[end-1]);

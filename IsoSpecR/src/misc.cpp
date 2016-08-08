@@ -35,7 +35,7 @@ void* quickselect(void** array, int n, int start, int end)
     {
         // Partition part
         int len = end - start;
-        int pivot = rand() % len + start;
+        int pivot = len/2 + start;
         void* pval = array[pivot];
         double pprob = getLProb(pval);
         mswap(array[pivot], array[end-1]);
