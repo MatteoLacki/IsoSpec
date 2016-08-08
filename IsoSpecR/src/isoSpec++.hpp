@@ -28,10 +28,8 @@
 #include "marginalTrek++.hpp"
 
 
-#ifdef BUILDING_R
  #include <Rcpp.h>
  using namespace Rcpp;
-#endif /* BUILDING_R */
 
 
 class IsoSpecLayered;
@@ -90,14 +88,18 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getCurrentProduct();
      std::tuple<double*,double*,int*,int> getProduct();
 
-     #ifdef BUILDING_R
      friend List Rinterface(
-         IntegerVector isotopeNumbers,
-         IntegerVector atomCounts,
-         NumericVector isotopeMasses,
-         NumericVector isotopeProbabilities,
-         double stopCondition, int algo, int tabSize, int hashSize, double step);
-     #endif
+        IntegerVector   isotopeNumbers,
+        IntegerVector   atomCounts,
+        NumericVector   isotopeMasses,
+        NumericVector   isotopeProbabilities,
+        double          stopCondition,
+        int             algo,
+        int             tabSize,
+        int             hashSize,
+        double          step
+	);
+
 
      friend class Spectrum;
  };
