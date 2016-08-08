@@ -2,8 +2,11 @@
 Installing the precompiled R package for Windows
 
 0. Download the package and save it on local disk
-   Note: the same package should work both with x86 x86_64
-   versions of R
+   Note: the same package should work both with x86 and
+   x86_64 versions of R. Direct link:
+
+https://github.com/MatteoLacki/IsoSpec/raw/master/prebuilt_packages/Windows/R/IsoSpecR_1.0.zip
+
 1. Launch R GUI
 2. Ensure you have both Rcpp and Rcpp11 packages installed
    by issuing the command:
