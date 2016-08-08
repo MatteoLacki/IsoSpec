@@ -5,16 +5,13 @@ CXXFLAGS=-std=c++11
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp   marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp Rinterface.cpp RcppExports.cpp isoMath.cpp
 CXX_STD = CXX11
 
-R_HOME = $(shell R RHOME)
 
-#RCPPFLAGS = $(shell $(R_HOME)/bin/R CMD config --cppflags)
-#RLDFLAGS = $(shell $(R_HOME)/bin/R CMD config --ldflags)
-RCPPFLAGS = $(shell $(R_HOME)/bin/R CMD config CPPFLAGS) $(shell $(R_HOME)/bin/R CMD config --cppflags)
-RLDFLAGS = $(shell $(R_HOME)/bin/R CMD config LDFLAGS) $(shell $(R_HOME)/bin/R CMD config --ldflags) 
+RCPPFLAGS = `R CMD config CPPFLAGS` `R CMD config --cppflags`
+RLDFLAGS =  `R CMD config LDFLAGS`  `R CMD config --ldflags`
 
 
-RCPPINCL = `echo 'Rcpp:::CxxFlags()' | $(R_HOME)/bin/R --vanilla --slave`
-RCPPLIBS = `echo 'Rcpp:::LdFlags()'  | $(R_HOME)/bin/R --vanilla --slave`
+RCPPINCL = `echo 'Rcpp:::CxxFlags()' | R --vanilla --slave`
+RCPPLIBS = `echo 'Rcpp:::LdFlags()'  | R --vanilla --slave`
 
 all: lib
 
@@ -25,6 +22,7 @@ debug: rcppstuff
 	$(CXX) $(RCPPFLAGS) $(RLDFLAGS) $(RCPPINCL) $(RCPPLIBS) $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) -DBUILDING_R -fPIC -shared -o IsoSpecR.so
 
 rcppstuff:
-	echo "Rcpp:::compileAttributes('..')" | $(R_HOME)/bin/R --vanilla --slave
+	echo "Rcpp:::compileAttributes('..')" | R --vanilla --slave
+
 clean:
 	rm -f libIsoSpec++.so
