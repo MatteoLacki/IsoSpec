@@ -108,27 +108,48 @@ class IsoFFI:
 won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
 sure you want to do that, edit the source and disable this check.''')
 
-        libpaths = [
-            'IsoSpecCppPy*.so',
-            os.path.join(mod_dir, 'IsoSpecCppPy*.so'),
-            os.path.join(mod_dir, '..', 'IsoSpecCppPy*.so'),
-            'libIsoSpec++*.so',
-            os.path.join(mod_dir, 'libIsoSpec++*.so'),
-            os.path.join(mod_dir, '..', 'libIsoSpec++*.so'),
-            os.path.join('..', 'IsoSpec++', 'libIsoSpec++*.so')
-        ]
+        libnames =  ['IsoSpecCppPy*', 'IsoSpec++*']
+        libprefix = ['', 'lib', 'Lib']
+        extension = ['.so', '.dylib', '.dll']
+        try:
+            import platform
+            if platform.system() == 'Linux':
+                extension = ['.so']
+            elif platform.system == 'Windows':
+                extension = ['.dll']
+        except:
+            pass
 
+        prebuilt =  ['', 'prebuilt-']
+        
+        def cprod(ll1, ll2):
+            res = []
+            for l1 in ll1:
+                for l2 in ll2:
+                    res.append(l1+l2)
+            return res
+
+        paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
+
+        dpc = []
+
+        for dirpath in [mod_dir, mod_dir + '/..']:
+            dpc.extend([os.path.join(dirpath, p) for p in paths_to_check])
+
+        paths_to_check = dpc
+
+        paths_to_check = sum(map(glob.glob, paths_to_check), [])
+        
         self.clib = None
-        for libpath in libpaths:
+        for libpath in set(paths_to_check):
             try:
-                fn = glob.glob(libpath)[0]
-                self.clib = self.ffi.dlopen(fn)
+                self.clib = self.ffi.dlopen(libpath)
                 break
-            except (OSError, IndexError):
+            except (IndexError, OSError) as e:
                 pass
 
         if self.clib == None:
-            raise Exception("Cannot find IsoSpecCppPy.so")
+            raise Exception("Cannot find or load the C++ part of the library")
 
 
 
