@@ -1,0 +1,15 @@
+This file lists *major* changes between releases, for a full list see git log.
+
+
+----------------------------------
+1.0.0
+
+- Initial release
+
+----------------------------------
+1.0.1
+
+- Only affecting IsoSpecPy: provide prebuilt library
+- Only affecting IsoSpecPy: Improve Python/cygwin functionality
+
+
