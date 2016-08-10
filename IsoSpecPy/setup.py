@@ -136,13 +136,26 @@ setup_args = {
 }
 
 import platform
+import sys
 if platform.system() == 'Windows':
+    # Probably Anaconda distribution.
     # Of course Windows can't even compile stuff. Install prebuilt C++ lib.
     import copy
     win_setup_args = copy.deepcopy(setup_args)
     win_setup_args['ext_modules'] = []
     win_setup_args['data_files'] = ['IsoSpecPy/prebuilt-libIsoSpec++1.0-x32.dll', 'IsoSpecPy/prebuilt-libIsoSpec++1.0-x64.dll']
     setup(**win_setup_args)
+elif 'CYGWIN' in platform.system():
+    try:
+        import cffi
+    except ImportError:
+        print "You appear to be using CYGWIN, and CFFI was not found. Please use the Cygwin installer to install the cffi-python package for the appropriate Python version."
+        print "Installing CFFI using pip will most likely NOT work. This is *NOT* a bug in IsoSpecPy."
+        sys.exit(0)
+    if spawn.find_executable('clang++') == None:
+        print "You appear to be using CYGWIN and clang++ executable was not found. Please install the clang++ package using Cygwin installer."
+        sys.exit(0)
+    setup(**setup_args)
 else:
     # Assuming UNIX with a compiler.
     setup(**setup_args)
