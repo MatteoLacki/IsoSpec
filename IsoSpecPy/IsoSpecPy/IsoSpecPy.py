@@ -380,4 +380,4 @@ class IsoPlot(dict):
 
 
 
-
+version = '1.0.1'

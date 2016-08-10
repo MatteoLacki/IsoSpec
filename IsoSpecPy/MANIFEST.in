@@ -1,0 +1,2 @@
+include IsoSpecPy/prebuilt-libIsoSpec++1.0-x32.dll
+include IsoSpecPy/prebuilt-libIsoSpec++1.0-x64.dll
