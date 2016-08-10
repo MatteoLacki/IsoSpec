@@ -146,6 +146,7 @@ if platform.system() == 'Windows':
     win_setup_args = copy.deepcopy(setup_args)
     win_setup_args['ext_modules'] = []
     win_setup_args['data_files'] = ['IsoSpecPy/prebuilt-libIsoSpec++1.0-x32.dll', 'IsoSpecPy/prebuilt-libIsoSpec++1.0-x64.dll']
+    win_setup_args['include_package_data'] = True
     setup(**win_setup_args)
 elif 'CYGWIN' in platform.system():
     try:
@@ -157,6 +158,10 @@ elif 'CYGWIN' in platform.system():
     if spawn.find_executable('clang++') == None:
         print "You appear to be using CYGWIN and clang++ executable was not found. Please install the clang++ package using Cygwin installer."
         sys.exit(0)
+    import distutils
+    import distutils.sysconfig
+    distutils.sysconfig.get_config_vars() # Precalculate the dict so we can...
+    distutils.sysconfig._config_vars['CFLAGS'] = "" # Nuke CFLAGS: they contain gcc stuff not supported by clang
     setup(**setup_args)
 else:
     # Assuming UNIX with a compiler.
