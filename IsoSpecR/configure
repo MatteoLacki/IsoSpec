@@ -1,9 +1,10 @@
 #!/bin/sh
 
-# Basically just detect clang++ and if present use it in preference over g++
+exit 0
 
+# Basically just detect clang++ and if present use it in preference over g++
 echo -n "Checking for working clang++ with c++11 support... "
-CLANG="clang++ -fsyntax-only `R CMD config CPPFLAGS` `R CMD config --cppflags` `echo 'Rcpp:::CxxFlags()' | R --vanilla --slave` *.cpp"
+CLANG="clang++ -fsyntax-only `R CMD config CPPFLAGS` `R CMD config --cppflags` `echo 'Rcpp:::CxxFlags()' | R --vanilla --slave` src/*.cpp"
 if $CLANG -std=c++11 2> /dev/null
 then
 	echo "Found. Using -std=c++11"
@@ -26,8 +27,13 @@ if [ ! -z $STDCXX ]
 then
 	echo "CXX1X = clang++" >> Makevars
 	echo "CXX1XSTD = $STDCXX" >> Makevars
+	echo "PKGCXX1X = clang++" >> Makevars
+	echo "PKG_CXX1XSTD = $STDCXX" >> Makevars
 fi
 
 
-echo "CXX1XFLAGS = -march=native -mtune=native -O3 -DBUILDING_R"
+echo "CXX1XFLAGS = -march=native -mtune=native -O3 -DBUILDING_R" >> Makevars
+echo "PKG_CXX1XFLAGS = -march=native -mtune=native -O3 -DBUILDING_R" >> Makevars
+
+
 
