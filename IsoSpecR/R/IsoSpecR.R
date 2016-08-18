@@ -50,7 +50,7 @@ IsoSpecify <- function(
         molecule,
         stopCondition,
         isotopes= isotopicData$IsoSpec,
-        fancy   = TRUE,
+        fancy   = FALSE,
         algo    = 0,
         step    = .25,
         tabSize = 1000
