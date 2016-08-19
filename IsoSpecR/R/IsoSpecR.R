@@ -49,12 +49,17 @@ NULL
 IsoSpecify <- function(
         molecule,
         stopCondition,
-        isotopes= isotopicData$IsoSpec,
+        isotopes= NULL,
         fancy   = FALSE,
         algo    = 0,
         step    = .25,
         tabSize = 1000
 ){
+    if(is.null(isotopes)){ 
+        utils::data('isotopicData', envir=environment())
+        isotopes <- isotopicData$IsoSpec
+    }
+
     molecule <- molecule[molecule>0]
 
     if( !all( names(molecule) %in% isotopes$element ) ) 

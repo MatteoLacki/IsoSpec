@@ -4,8 +4,8 @@
 \alias{IsoSpecify}
 \title{Calculate the isotopic fine structure peaks.}
 \usage{
-IsoSpecify(molecule, stopCondition, isotopes = isotopicData$IsoSpec,
-  fancy = FALSE, algo = 0, step = 0.25, tabSize = 1000)
+IsoSpecify(molecule, stopCondition, isotopes = NULL, fancy = FALSE,
+  algo = 0, step = 0.25, tabSize = 1000)
 }
 \arguments{
 \item{molecule}{A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.}
