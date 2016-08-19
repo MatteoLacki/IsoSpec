@@ -17,8 +17,7 @@ License: BSD_2_clause + file LICENCE
 Depends:
     R (>= 3.0.0)
 Imports:
-    Rcpp (>= 0.12.0),
-    utils
+    Rcpp (>= 0.12.0)
 LazyData: no
 LinkingTo: Rcpp
 NeedsCompilation: yes

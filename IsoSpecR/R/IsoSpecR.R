@@ -32,7 +32,7 @@ NULL
 #' 
 #' @param molecule  A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.
 #' @param stopCondition A numeric value between 0 and 1.
-#' @param fancy Logical. If \code{TRUE}, then the algorithm's results are presented nicely. ATTENTION THOUGH: presenting them nicely involves ordering by probability. This compromises the linear operating time and should be avoided in large scale computations. 
+#' @param fancy Logical. If \code{TRUE}, then the algorithm's results are presented in a dataframe, sorted increasingly with mass. ATTENTION!!! Sorting by mass compromises linear operating time and should be avoided in large scale computations. Then again - who would use R for that?
 #' @param algo      An integer: 0 - use standard IsoStar algoritm, 
 #' where \code{stopCondition} specifies the probability of the optimal p-set, 
 #' 1 - use a version of algorithm that uses priority queue. Slower than 0, but does not require sorting.
@@ -56,7 +56,6 @@ IsoSpecify <- function(
         tabSize = 1000
 ){
     if(is.null(isotopes)){ 
-        utils::data('isotopicData', envir=environment())
         isotopes <- isotopicData$IsoSpec
     }
 
@@ -94,7 +93,7 @@ IsoSpecify <- function(
         )
         colnames(confs) <- as.character(isotopesTmp$isotope)
         res <- cbind( mass = res$mass, logProb = res$logProb, prob = exp(res$logProb), confs )
-        res <- res[ order(res$logProb,decreasing=TRUE), ]
+        res <- res[ order(res$mass), ]
     }
 
     res

@@ -14,7 +14,7 @@ IsoSpecify(molecule, stopCondition, isotopes = NULL, fancy = FALSE,
 
 \item{isotopes}{A named list of isotopic information required for IsoStar, e.g. \code{isotopicData$IsoSpecShortList}. The names must be valid element symbols. Each enlisted object should be a \code{data.frame} containing columns \code{element} (specifying the symbol of the element), \code{mass} (specifying the mass of the isotope), \code{abundance} (specyfying the assumed frequency of finding that isotope).}
 
-\item{fancy}{Logical. If \code{TRUE}, then the algorithm's results are presented nicely. ATTENTION THOUGH: presenting them nicely involves ordering by probability. This compromises the linear operating time and should be avoided in large scale computations.}
+\item{fancy}{Logical. If \code{TRUE}, then the algorithm's results are presented in a dataframe, sorted increasingly with mass. ATTENTION!!! Sorting by mass compromises linear operating time and should be avoided in large scale computations. Then again - who would use R for that?}
 
 \item{algo}{An integer: 0 - use standard IsoStar algoritm, 
 where \code{stopCondition} specifies the probability of the optimal p-set, 
