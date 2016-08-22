@@ -1,5 +1,5 @@
 CXX=clang++
-OPTFLAGS=-O3 -march=native -mtune=native
+OPTFLAGS=-O2 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g
 CXXFLAGS=-std=c++11 
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp   marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp Rinterface.cpp RcppExports.cpp isoMath.cpp

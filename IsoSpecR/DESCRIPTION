@@ -4,7 +4,7 @@ Title: IsoSpecR - an R interface to the IsoSpec algorithm
 Version: 1.0
 Date: 2015-10-29
 Author: Mateusz Krzysztof Lacki and Michal Startek
-Maintainer: Michal Startek <mist@mimuw.edu.pl>
+Maintainer: Matteo Lacki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most
     probable masses of a chemical compound given the frequencies of the composing
     isotopes and their masses. It finds the smallest set of isotopologues with
