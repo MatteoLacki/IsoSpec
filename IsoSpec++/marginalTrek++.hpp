@@ -93,7 +93,7 @@ public:
     inline const std::vector<double>& conf_probs() const { return _conf_probs; };
     inline const std::vector<double>& conf_masses() const { return _conf_masses; };
     inline const std::vector<int*>& confs() const { return _confs; };
-    inline const int get_isotopeNo() const { return _isotopeNo; };
+    inline int get_isotopeNo() const { return _isotopeNo; };
     ~MarginalTrek();
 
     double getLightestConfMass();
