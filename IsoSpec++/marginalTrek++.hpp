@@ -83,9 +83,9 @@ public:
         if(current_count > idx)
             return true;
         while(current_count <= idx)
-            if(not add_next_conf())
+            if(not add_next_conf()) 
                 return false;
-            return true;
+        return true;
     }
 
     int processUntilCutoff(double cutoff);
