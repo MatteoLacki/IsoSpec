@@ -1,8 +1,8 @@
 Package: IsoSpecR
 Type: Package
-Title: IsoSpecR - an R interface to the IsoSpec algorithm
+Title: An R Interface to the IsoSpec Algorithm
 Version: 1.0
-Date: 2015-10-29
+Date: 2016-08-15
 Author: Mateusz Krzysztof Lacki and Michal Startek
 Maintainer: Matteo Lacki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most
