@@ -10,7 +10,7 @@ public:
 	const double delta;
 	const double* k;
 	const double bucketsize;
-	const int buckets;
+	const unsigned int buckets;
 
 	Kernel(double _width, double* _k, double _bucketsize, double _buckets);
 
@@ -76,7 +76,7 @@ public:
 	double  start = 0.0;
 	double  end = 1.0;
 	double  bucketsize = 1.0;
-	int	buckets = 0;
+	unsigned int	buckets = 0;
 
 	inline unsigned int position(double mass)
 	{

@@ -26,7 +26,7 @@ Kernel* Kernel::Gaussian(double stdev, double bucketsize, double prob)
 	unsigned int buck_offset = static_cast<unsigned int>(bucklen);
 	unsigned int buckets = 2 * buck_offset + 1;
 	double* k = new double[buckets];
-	for (int ii=0; ii<buckets; ii++)
+	for (unsigned int ii=0; ii<buckets; ii++)
 		k[ii] = NormalPDF((ii - buck_offset) * bucketsize, 0.0, stdev);
 	return new Kernel((static_cast<double>(buck_offset) + 0.5) * bucketsize, k, bucketsize, buckets);
 }
