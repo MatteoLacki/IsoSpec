@@ -21,9 +21,9 @@
 #include <iostream>
 #include <algorithm>
 #include "cwrapper.h"
-#include "misc.hpp"
-#include "marginalTrek++.hpp"
-#include "isoSpec++.hpp"
+#include "misc.h"
+#include "marginalTrek++.h"
+#include "isoSpec++.h"
 
 
 extern "C"

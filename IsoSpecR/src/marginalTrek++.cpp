@@ -26,11 +26,11 @@
 #include <utility>
 #include <iostream>
 #include <string.h>
-#include "marginalTrek++.hpp"
-#include "conf.hpp"
-#include "allocator.hpp"
-#include "operators.hpp"
-#include "summator.hpp"
+#include "marginalTrek++.h"
+#include "conf.h"
+#include "allocator.h"
+#include "operators.h"
+#include "summator.h"
 #include "element_tables.h"
 
 

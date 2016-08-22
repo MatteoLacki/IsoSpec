@@ -21,7 +21,7 @@
 
 #include <vector>
 #include <iostream>
-#include "conf.hpp"
+#include "conf.h"
 
 
 template <typename T> inline void copyConf(

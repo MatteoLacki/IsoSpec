@@ -16,7 +16,7 @@
  *   along with IsoSpec.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "operators.hpp"
+#include "operators.h"
 
 KeyHasher::KeyHasher(int dim)
 : dim(dim)

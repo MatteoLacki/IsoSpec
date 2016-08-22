@@ -28,13 +28,13 @@
 #include <iostream>
 #include <iomanip>
 #include <cctype>
-#include "conf.hpp"
-#include "dirtyAllocator.hpp"
-#include "operators.hpp"
-#include "summator.hpp"
-#include "marginalTrek++.hpp"
-#include "isoSpec++.hpp"
-#include "misc.hpp"
+#include "conf.h"
+#include "dirtyAllocator.h"
+#include "operators.h"
+#include "summator.h"
+#include "marginalTrek++.h"
+#include "isoSpec++.h"
+#include "misc.h"
 #include "element_tables.h"
 
 
