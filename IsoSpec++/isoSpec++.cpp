@@ -410,10 +410,10 @@ IsoSpecOrdered::IsoSpecOrdered( int             _dimNumber,
              _cutOff,
              tabSize = 1000,
              hashSize = 1000)
-{pq.push(initialConf);};
+{pq.push(initialConf);}
 
 
-IsoSpecOrdered::~IsoSpecOrdered(){};
+IsoSpecOrdered::~IsoSpecOrdered(){}
 
 
 IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
@@ -444,7 +444,7 @@ estimateThresholds(_estimateThresholds)
 
     percentageToExpand = layerStep;
     lprobThr = (*reinterpret_cast<double*>(initialConf));
-};
+}
 
 
 IsoSpecLayered::~IsoSpecLayered()
@@ -453,7 +453,7 @@ IsoSpecLayered::~IsoSpecLayered()
         delete current;
     if(next != NULL)
         delete next;
-};
+}
 
 bool IsoSpecLayered::advanceToNextConfiguration()
 {
@@ -652,7 +652,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
     }
     return true;
 
-};
+}
 
 
 
@@ -682,10 +682,10 @@ IsoSpecThreshold::IsoSpecThreshold( int             _dimNumber,
 
     if(not _absolute)
         lprobThr += *reinterpret_cast<double*>(initialConf);
-};
+}
 
 
-IsoSpecThreshold::~IsoSpecThreshold(){};
+IsoSpecThreshold::~IsoSpecThreshold(){}
 
 
 bool IsoSpecThreshold::advanceToNextConfiguration()
@@ -754,7 +754,7 @@ bool IsoSpecThreshold::advanceToNextConfiguration()
 
     return true;
 
-};
+}
 
 
 void IsoSpecThreshold::processConfigurationsAboveThreshold()

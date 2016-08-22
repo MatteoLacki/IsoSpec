@@ -59,7 +59,7 @@ inline double logProb(const int* conf, const double* logProbs, int dim)
         res += conf[i] * logProbs[i];
     }
     return res + logFactorial(N);
-};
+}
 
 inline double mass(const int* conf, const double* masses, int dim)
 {
@@ -71,7 +71,7 @@ inline double mass(const int* conf, const double* masses, int dim)
     }
 
     return res;
-};
+}
 
 
 inline bool tupleCmp(
@@ -79,19 +79,19 @@ inline bool tupleCmp(
     std::tuple<double,double,int*> t2
 ){
     return std::get<1>(t1) > std::get<1>(t2);
-};
+}
 
 template<typename T> void printArray(const T* array, int size)
 {
     for (int i=0; i<size; i++)
         std::cout << array[i] << " ";
     std::cout << std::endl;
-};
+}
 
 template<typename T> void printVector(const std::vector<T>& vec)
 {
     printArray<T>(vec.data(), vec.size());
-};
+}
 
 
 template<typename T> void printNestedArray(const T** array, const int* shape, int size)
@@ -99,7 +99,7 @@ template<typename T> void printNestedArray(const T** array, const int* shape, in
     for (int i=0; i<size; i++)
         printArray(array[i], shape[i]);
     std::cout << std::endl;
-};
+}
 
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 

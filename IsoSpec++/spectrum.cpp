@@ -40,7 +40,7 @@ void Kernel::print()
 }
 
 
-SinglePointFunctionalKernel::SinglePointFunctionalKernel() {};
+SinglePointFunctionalKernel::SinglePointFunctionalKernel() {}
 
 double SinglePointFunctionalKernel::getMass(double bucketStart, double bucketEnd)
 {
@@ -50,10 +50,10 @@ double SinglePointFunctionalKernel::getMass(double bucketStart, double bucketEnd
 }
 
 double SinglePointFunctionalKernel::getSupportMin()
-{ return 0.0; };
+{ return 0.0; }
 
 double SinglePointFunctionalKernel::getSupportMax()
-{ return 0.0; };
+{ return 0.0; }
 
 
 TruncatedGaussianFunctionalKernel::TruncatedGaussianFunctionalKernel(double _stdev, double _prob) :
@@ -63,7 +63,7 @@ stdev(_stdev), prob(_prob)
 	support_max = -support_max;
 //	support_len = support_max - support_min;
 	correction = 1.0/prob;
-};
+}
 
 double TruncatedGaussianFunctionalKernel::getMass(double bucketStart, double bucketEnd)
 {
@@ -83,7 +83,7 @@ RectangularFunctionalKernel::RectangularFunctionalKernel(double start, double en
 support_min(start), support_max(end)
 {
 	support_len = support_max - support_min;
-};
+}
 
 double RectangularFunctionalKernel::getSupportMin()
 { return support_min; }

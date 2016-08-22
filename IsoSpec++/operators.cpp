@@ -20,13 +20,13 @@
 
 KeyHasher::KeyHasher(int dim)
 : dim(dim)
-{};
+{}
 
 ConfEqual::ConfEqual(int dim)
 : size( dim*sizeof(int) )
-{};
+{}
 
 ConfOrderMarginal::ConfOrderMarginal(const double* logProbs, int dim)
 : logProbs(logProbs), dim(dim)
-{};
+{}
 
