@@ -39,8 +39,6 @@ std::tuple<double*,double*,int*,int> getMarginal(
     const int hashSize= 1000
 );
 
-void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim);
-
 
 class MarginalTrek
 {
@@ -83,9 +81,9 @@ public:
         if(current_count > idx)
             return true;
         while(current_count <= idx)
-            if(not add_next_conf())
+            if(not add_next_conf()) 
                 return false;
-            return true;
+        return true;
     }
 
     int processUntilCutoff(double cutoff);
@@ -93,7 +91,7 @@ public:
     inline const std::vector<double>& conf_probs() const { return _conf_probs; };
     inline const std::vector<double>& conf_masses() const { return _conf_masses; };
     inline const std::vector<int*>& confs() const { return _confs; };
-    inline const int get_isotopeNo() const { return _isotopeNo; };
+    inline int get_isotopeNo() const { return _isotopeNo; };
     ~MarginalTrek();
 
     double getLightestConfMass();

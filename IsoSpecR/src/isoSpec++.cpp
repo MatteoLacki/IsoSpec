@@ -410,10 +410,10 @@ IsoSpecOrdered::IsoSpecOrdered( int             _dimNumber,
              _cutOff,
              tabSize = 1000,
              hashSize = 1000)
-{pq.push(initialConf);};
+{pq.push(initialConf);}
 
 
-IsoSpecOrdered::~IsoSpecOrdered(){};
+IsoSpecOrdered::~IsoSpecOrdered(){}
 
 
 IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
@@ -444,7 +444,7 @@ estimateThresholds(_estimateThresholds)
 
     percentageToExpand = layerStep;
     lprobThr = (*reinterpret_cast<double*>(initialConf));
-};
+}
 
 
 IsoSpecLayered::~IsoSpecLayered()
@@ -453,7 +453,7 @@ IsoSpecLayered::~IsoSpecLayered()
         delete current;
     if(next != NULL)
         delete next;
-};
+}
 
 bool IsoSpecLayered::advanceToNextConfiguration()
 {
@@ -477,18 +477,12 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
         if(top_lprob >= lprobThr)
         {
-#ifdef DEBUG
-            hits += 1;
-#endif /* DEBUG */
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
         }
         else
         {
-#ifdef DEBUG
-            moves += 1;
-#endif /* DEBUG */
             next->push_back(topConf);
             continue;
         }
@@ -578,7 +572,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 // Partition part
 
                 int len = end - start;
-                int pivot = len/2 + start;
+		int pivot = len/2 + start;
                 void* pval = lastLayer[pivot];
                 double pprob = getLProb(pval);
                 mswap(lastLayer[pivot], lastLayer[end-1]);
@@ -610,14 +604,14 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             }
         int accend = newaccepted.size()-accepted_in_this_layer+start+1;
 
-            totalProb = qsprob;
-            newaccepted.resize(accend);
-            return true;
+        totalProb = qsprob;
+        newaccepted.resize(accend);
+        return true;
         }
     }
     return true;
 
-};
+}
 
 
 
@@ -647,10 +641,10 @@ IsoSpecThreshold::IsoSpecThreshold( int             _dimNumber,
 
     if(not _absolute)
         lprobThr += *reinterpret_cast<double*>(initialConf);
-};
+}
 
 
-IsoSpecThreshold::~IsoSpecThreshold(){};
+IsoSpecThreshold::~IsoSpecThreshold(){}
 
 
 bool IsoSpecThreshold::advanceToNextConfiguration()
@@ -719,16 +713,13 @@ bool IsoSpecThreshold::advanceToNextConfiguration()
 
     return true;
 
-};
+}
 
 
 void IsoSpecThreshold::processConfigurationsAboveThreshold()
 {
     while (advanceToNextConfiguration()) {}
 }
-
-
-
 
 
 

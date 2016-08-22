@@ -26,7 +26,7 @@ class SSummator
     std::vector<double> partials;
     int maxpart;
 public:
-    inline SSummator(int plen = 10000)
+    inline SSummator()
     {
         maxpart = 0;
     }

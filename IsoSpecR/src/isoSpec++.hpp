@@ -28,8 +28,8 @@
 #include "marginalTrek++.hpp"
 
 
- #include <Rcpp.h>
- using namespace Rcpp;
+#include <Rcpp.h>
+using namespace Rcpp;
 
 
 class IsoSpecLayered;
@@ -47,8 +47,8 @@ class IsoSpecLayered;
      DirtyAllocator          allocator;
      std::vector<void*>      newaccepted;
      Summator                totalProb;
-     int                     cnt = 0;
-     const int               confSize;
+     unsigned int            cnt = 0;
+     const unsigned int      confSize;
      int*                    candidate;
      void*                   topConf;
      int                     allDim = 0;
@@ -89,17 +89,11 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getProduct();
 
      friend List Rinterface(
-        IntegerVector   isotopeNumbers,
-        IntegerVector   atomCounts,
-        NumericVector   isotopeMasses,
-        NumericVector   isotopeProbabilities,
-        double          stopCondition,
-        int             algo,
-        int             tabSize,
-        int             hashSize,
-        double          step
-	);
-
+         IntegerVector isotopeNumbers,
+         IntegerVector atomCounts,
+         NumericVector isotopeMasses,
+         NumericVector isotopeProbabilities,
+         double stopCondition, int algo, int tabSize, int hashSize, double step);
 
      friend class Spectrum;
  };
@@ -137,10 +131,6 @@ class IsoSpecLayered;
      double                      percentageToExpand;
      bool                        estimateThresholds;
      int layers = 0;
-#ifdef DEBUG
-     int moves = 0;
-     int hits = 0;
-#endif /* DEBUG */
 
  public:
      IsoSpecLayered(
@@ -188,9 +178,4 @@ class IsoSpecLayered;
 
 
 
- void printConfigurations(
-     const   std::tuple<double*,double*,int*,int>& results,
-     int     dimNumber,
-     int*    isotopeNumbers
- );
 #endif
