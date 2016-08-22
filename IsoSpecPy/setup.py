@@ -52,7 +52,7 @@ setup_args = {
     'long_description' : 'Python interface to IsoSpec++ isotopic envelope calculator library',
 
     # The project's main homepage.
-    'url' : 'https://bioputer.mimuw.edu.pl/isoSpec',
+    'url' : 'http://matteolacki.github.io/IsoSpec/',
 
     # Author details
     'author' : 'Mateusz Lacki & Michal Startek',
