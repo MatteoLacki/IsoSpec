@@ -6,9 +6,16 @@ water <- c(H=2,O=1)
 # Desired joint probability p of the p-optimal set of isotopologues (90%): 
 p <- .9
 
-# The fancy representation of the results is on.
-# ATTENTION: while turned on, the algorithm's time complexity is nlog(n) instead of linear.
+# Get raw information:
+resRaw <- IsoSpecify( molecule=water, stopCondition=.99 )
+print(resRaw)
+
+# While not doing any high-throughput analysis, you might consider to present reported data in a fancy way. 
+# ATTENTION: this will CORRUPT THE LINEAR RUNTIME claim, as setting "fancy = TRUE" involves sorting the results. 
 res <- IsoSpecify( molecule=water, stopCondition=.99, fancy=TRUE )
+
+# ATTENTION: while turned on, the algorithm's time complexity is nlog(n) instead of linear.
+
 
 print('The first configuration has the following parameters:')
 print('Mass:');res$mass
