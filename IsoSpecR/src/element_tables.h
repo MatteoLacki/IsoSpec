@@ -1,20 +1,19 @@
 /*
- *   Copyright (C) 2015 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
  *   IsoSpec is free software: you can redistribute it and/or modify
- *   it under the terms of the GNU Affero General Public License
- *   version 3, as published by the Free Software Foundation.
+ *   it under the terms of the Simplified ("2-clause") BSD licence.
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU Affero General Public License for more details.
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- *   You should have received a copy of the GNU Affero General Public License
- *   along with IsoSpec.  If not, see <http://www.gnu.org/licenses/>.
+ *   You should have received a copy of the Simplified BSD Licence
+ *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
+
 
 #ifndef ELEMENT_TABLES_HPP
 #define ELEMENT_TABLES_HPP
