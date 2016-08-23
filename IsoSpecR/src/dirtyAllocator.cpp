@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <stdlib.h>
-#include "dirtyAllocator.hpp"
+#include "dirtyAllocator.h"
 
 
 DirtyAllocator::DirtyAllocator(
@@ -27,14 +27,14 @@ DirtyAllocator::DirtyAllocator(
     currentTab      = malloc( cellSize * tabSize );
     currentConf     = currentTab;
     endOfTablePtr = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
-};
+}
 
 
 DirtyAllocator::~DirtyAllocator()
 {
     for(unsigned int i = 0; i < prevTabs.size(); ++i) free(prevTabs[i]);
     free(currentTab);
-};
+}
 
 void DirtyAllocator::shiftTables()
 {
@@ -43,4 +43,4 @@ void DirtyAllocator::shiftTables()
     currentTab              = malloc( cellSize * tabSize );
     currentConf             = currentTab;
     endOfTablePtr   = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
-};
+}

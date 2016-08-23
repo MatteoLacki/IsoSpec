@@ -17,8 +17,8 @@
 
 #include <Rcpp.h>
 #include "cwrapper.h"
-#include "misc.hpp"
-#include "isoSpec++.hpp"
+#include "misc.h"
+#include "isoSpec++.h"
 #include <vector>
 #include <iostream>
 

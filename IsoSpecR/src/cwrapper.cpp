@@ -20,9 +20,9 @@
 #include <iostream>
 #include <algorithm>
 #include "cwrapper.h"
-#include "misc.hpp"
-#include "marginalTrek++.hpp"
-#include "isoSpec++.hpp"
+#include "misc.h"
+#include "marginalTrek++.h"
+#include "isoSpec++.h"
 
 
 extern "C"
@@ -69,7 +69,7 @@ void* setupMarginal(
         hashSize
     );
     return reinterpret_cast<void*>(MT);
-};
+}
 
 int probeConfigurationIdx(void* MT, int idx)
 {

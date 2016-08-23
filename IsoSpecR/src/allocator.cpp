@@ -16,7 +16,7 @@
 
 
 #include <iostream>
-#include "allocator.hpp"
+#include "allocator.h"
 
 
 
@@ -24,7 +24,7 @@ template <typename T>
 Allocator<T>::Allocator(const int dim, const int tabSize): currentId(0), dim(dim), tabSize(tabSize)
 {
     currentTab = new T[dim * tabSize];
-};
+}
 
 template <typename T>
 Allocator<T>::~Allocator()
@@ -35,7 +35,7 @@ Allocator<T>::~Allocator()
     }
 
     delete [] currentTab;
-};
+}
 
 template <typename T>
 void Allocator<T>::shiftTables()
@@ -43,6 +43,6 @@ void Allocator<T>::shiftTables()
     prevTabs.push_back(currentTab);
     currentTab      = new T[dim * tabSize];
     currentId       = 0;
-};
+}
 
 template class Allocator<int>;

@@ -69,7 +69,7 @@ void* setupMarginal(
         hashSize
     );
     return reinterpret_cast<void*>(MT);
-};
+}
 
 int probeConfigurationIdx(void* MT, int idx)
 {

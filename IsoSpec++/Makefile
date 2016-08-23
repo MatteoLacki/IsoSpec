@@ -1,7 +1,7 @@
 CXX=clang++
 OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g
-CXXFLAGS=-std=c++11 -Wall
+CXXFLAGS=-std=c++11 -Wall -pedantic
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp spectrum.cpp
 
 all: lib
