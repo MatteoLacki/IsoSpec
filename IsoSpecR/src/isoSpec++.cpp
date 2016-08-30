@@ -28,6 +28,8 @@
 #include <iomanip>
 #include <cctype>
 #include <stdexcept>
+#include <string>
+#include <limits>
 #include "lang.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
@@ -106,8 +108,20 @@ allDim(0)
 
 }
 
+
+inline int str_to_int(const string& s)
+{
+	char* endptr[1];
+	const char* c_s = s.c_str();
+	int ret = (int) strtol(c_s, endptr, 10);
+	if (c_s == endptr[0])
+		throw invalid_argument("Invalid formula");
+	return ret;
+}
+
 template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
 {
+// This function is NOT guaranteed to be secure againt malicious input. It should be used only for debugging.
     static_assert(std::is_base_of<IsoSpec, T>::value, "Template argument must be derived from IsoSpec");
 
     string cpp_formula(formula);
@@ -126,14 +140,14 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
         }
         else if(isalpha(formula[pos]) && mode == 1)
         {
-            numbers.push_back(stoi(cpp_formula.substr(last_modeswitch, pos-last_modeswitch)));
+            numbers.push_back(str_to_int(cpp_formula.substr(last_modeswitch, pos-last_modeswitch)));
             last_modeswitch = pos;
             mode = 0;
         }
         pos++;
     }
 
-    numbers.push_back(stoi(cpp_formula.substr(last_modeswitch, pos)));
+    numbers.push_back(str_to_int(cpp_formula.substr(last_modeswitch, pos)));
 
 
     if(elements.size() != numbers.size())

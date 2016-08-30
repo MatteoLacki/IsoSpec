@@ -25,6 +25,7 @@
 #include <utility>
 #include <iostream>
 #include <string.h>
+#include <limits>
 #include "lang.h"
 #include "marginalTrek++.h"
 #include "conf.h"
