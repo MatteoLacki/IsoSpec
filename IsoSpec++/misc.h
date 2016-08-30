@@ -21,7 +21,7 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
-#include "isoMath.hpp"
+#include "isoMath.h"
 
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber

@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <stdlib.h>
-#include "dirtyAllocator.hpp"
+#include "dirtyAllocator.h"
 
 
 DirtyAllocator::DirtyAllocator(

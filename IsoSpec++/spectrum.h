@@ -18,7 +18,7 @@
 #ifndef SPECTRUM_HPP
 #define SPECTRUM_HPP
 #include <math.h>
-#include "isoSpec++.hpp"
+#include "isoSpec++.h"
 
 
 class Kernel

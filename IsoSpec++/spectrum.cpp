@@ -17,9 +17,9 @@
 #include <math.h>
 #include <string.h>
 #include <iostream>
-#include "spectrum.hpp"
-#include "isoMath.hpp"
-#include "isoSpec++.hpp"
+#include "spectrum.h"
+#include "isoMath.h"
+#include "isoSpec++.h"
 
 Kernel::Kernel(double _delta, double* _k, double _bucketsize, double _buckets) : 
 delta(_delta),

@@ -15,7 +15,7 @@
  */
 
 
-#include "operators.hpp"
+#include "operators.h"
 
 KeyHasher::KeyHasher(int dim)
 : dim(dim)

@@ -20,10 +20,10 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
-#include "conf.hpp"
-#include "allocator.hpp"
-#include "operators.hpp"
-#include "summator.hpp"
+#include "conf.h"
+#include "allocator.h"
+#include "operators.h"
+#include "summator.h"
 
 
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs);

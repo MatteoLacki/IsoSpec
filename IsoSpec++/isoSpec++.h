@@ -21,10 +21,10 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
-#include "dirtyAllocator.hpp"
-#include "summator.hpp"
-#include "operators.hpp"
-#include "marginalTrek++.hpp"
+#include "dirtyAllocator.h"
+#include "summator.h"
+#include "operators.h"
+#include "marginalTrek++.h"
 
 
 #ifdef BUILDING_R

@@ -19,9 +19,9 @@
 #define OPERATORS_HPP
 
 #include <string.h>
-#include "conf.hpp"
-#include "isoMath.hpp"
-#include "misc.hpp"
+#include "conf.h"
+#include "isoMath.h"
+#include "misc.h"
 
 
 
