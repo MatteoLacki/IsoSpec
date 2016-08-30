@@ -15,6 +15,7 @@ Description: IsoSpec is a fine structure calculator used for obtaining the most
     numbers are supplied by IUPAC - the International Union of Pure and Applied
     Chemistry.
 License: BSD_2_clause + file LICENCE
+URL: http://matteolacki.github.io/IsoSpec/
 Depends:
     R (>= 3.0.0)
 Imports:
