@@ -21,6 +21,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
+#include "lang.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
 #include "operators.h"

@@ -25,6 +25,7 @@
 #include <utility>
 #include <iostream>
 #include <string.h>
+#include "lang.h"
 #include "marginalTrek++.h"
 #include "conf.h"
 #include "allocator.h"
@@ -190,7 +191,7 @@ std::tuple<double*,double*,int*,int> getMarginal(
     );
 }
 
-
+#ifndef BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){
@@ -205,7 +206,7 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
         std::cout << std::endl;
     }
 }
-
+#endif
 
 
 double* getMLogProbs(const double* probs, int isoNo)

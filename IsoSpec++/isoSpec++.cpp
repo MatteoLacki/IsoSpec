@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <cctype>
 #include <stdexcept>
+#include "lang.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
@@ -611,7 +612,11 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 // Partition part
 
                 int len = end - start;
-                int pivot = rand() % len + start;
+#ifdef BUILDING_R
+		int pivot = len/2 + start;
+#else
+		int pivot = rand() % len + start;
+#endif
                 void* pval = lastLayer[pivot];
                 double pprob = getLProb(pval);
                 mswap(lastLayer[pivot], lastLayer[end-1]);
@@ -765,6 +770,7 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 }
 
 
+#ifndef BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
@@ -795,7 +801,7 @@ void printConfigurations(
     }
 }
 
-
+#endif /* BUILDING_R */
 
 
 
