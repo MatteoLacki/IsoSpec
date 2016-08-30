@@ -1,5 +1,5 @@
 #include <iostream>
-#include "isoSpec++.hpp"
+#include "isoSpec++.h"
 
 int main(int argc, char** argv)
 {
@@ -7,4 +7,5 @@ int main(int argc, char** argv)
 	i->processConfigurationsUntilCutoff();
 	std::cout << i->getNoVisitedConfs() << std::endl;
 	delete i;
+
 }
