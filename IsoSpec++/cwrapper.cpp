@@ -19,6 +19,7 @@
 #include <string.h>
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 #include "cwrapper.h"
 #include "misc.hpp"
 #include "marginalTrek++.hpp"

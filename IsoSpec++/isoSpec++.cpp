@@ -27,6 +27,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cctype>
+#include <stdexcept>
 #include "conf.hpp"
 #include "dirtyAllocator.hpp"
 #include "operators.hpp"
