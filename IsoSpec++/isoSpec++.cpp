@@ -55,9 +55,10 @@ IsoSpec::IsoSpec(
 dimNumber(_dimNumber),
 cutOff(_cutOff),
 allocator(_dimNumber, tabSize),
+cnt(0),
 confSize(_dimNumber * sizeof(int)),
-candidate(new int[dimNumber])
-
+candidate(new int[dimNumber]),
+allDim(0)
 {
     isotopeNumbers  = new int[_dimNumber];
     memcpy(isotopeNumbers, _isotopeNumbers, _dimNumber*sizeof(int));
@@ -158,7 +159,7 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
 
     vector<int> isotope_numbers;
 
-    for(auto it = element_indexes.begin(); it != element_indexes.end(); ++it)
+    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         int num = 0;
         int at_idx = *it;
@@ -173,7 +174,7 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
 
     vector<const double*> isotope_masses;
     vector<const double*> isotope_probabilities;
-    for(auto it = element_indexes.begin(); it != element_indexes.end(); ++it)
+    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         isotope_masses.push_back(&elem_table_mass[*it]);
         isotope_probabilities.push_back(&elem_table_probability[*it]);
@@ -307,23 +308,24 @@ void IsoSpec::getProduct(double* res_mass, double* res_logProb, int* res_isoCoun
     getCurrentProduct(res_mass, res_logProb, res_isoCounts);
 }
 
+
 void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts)
 {
 
     int i = 0;
     int j = 0;
 
-    for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
+    for(unsigned int na_idx = 0; na_idx < newaccepted.size(); na_idx++)
     {
-        int* curr_conf  = getConf(*it);
+        int* curr_conf  = getConf(newaccepted[na_idx]);
 
-	if(res_mass != nullptr)
+	if(res_mass != NULL)
         	res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
 	
-	if(res_logProb != nullptr)
-        	res_logProb[i]  = getLProb(*it);
+	if(res_logProb != NULL)
+        	res_logProb[i]  = getLProb(newaccepted[na_idx]);
 
-	if(res_isoCounts != nullptr)
+	if(res_isoCounts != NULL)
 	{
             for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
             {
@@ -434,7 +436,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
              tabSize = 1000,
              hashSize = 1000
 ),
-estimateThresholds(_estimateThresholds)
+estimateThresholds(_estimateThresholds),
+layers(0)
 {
     current = new std::vector<void*>();
     next    = new std::vector<void*>();
@@ -459,7 +462,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
     layers += 1;
     double maxFringeLprob = -std::numeric_limits<double>::infinity();
 
-    if(current == nullptr)
+    if(current == NULL)
         return false;
     int accepted_in_this_layer = 0;
     Summator prob_in_this_layer(totalProb);
@@ -531,7 +534,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
     }
 
-    if(next == nullptr || next->size() < 1)
+    if(next == NULL || next->size() < 1)
         return false;
     else
     {
@@ -539,7 +542,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         {
 #ifdef DEBUG
             Summator testDupa(prob_in_this_layer);
-            for (auto it = next->begin(); it != next->end(); it++) {
+            for (std::vector<void*>::iterator it = next->begin(); it != next->end(); it++) {
                 testDupa.add(exp(getLProb(*it)));
             }
             std::cout << "Prob(Layer) = " << prob_in_this_layer.get() << std::endl;
@@ -590,9 +593,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
 #endif /* DEBUG */
             delete next;
-            next = nullptr;
+            next = NULL;
             delete current;
-            current = nullptr;
+            current = NULL;
             int start = 0;
             int end = accepted_in_this_layer - 1;
             void* swapspace;

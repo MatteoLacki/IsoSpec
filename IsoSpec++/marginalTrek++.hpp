@@ -43,7 +43,7 @@ void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim)
 
 class MarginalTrek
 {
-    int current_count = 0;
+    int current_count;
     const int _tabSize;
     const int _hashSize;
 public:

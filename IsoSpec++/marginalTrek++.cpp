@@ -238,7 +238,8 @@ MarginalTrek::MarginalTrek(
     int atomCnt,
     int tabSize,
     int hashSize
-) : _tabSize(tabSize),
+) : current_count(0),
+_tabSize(tabSize),
 _hashSize(hashSize),
 _isotopeNo(isotopeNo),
 _atomCnt(atomCnt),
@@ -278,7 +279,7 @@ candidate(new int[isotopeNo])
     }
     // Find max element in case loop terminated from cont==false, and not from break
 
-    auto max_el_it = std::max_element(_conf_probs.begin(), _conf_probs.end());
+    std::vector<double>::iterator max_el_it = std::max_element(_conf_probs.begin(), _conf_probs.end());
     int max_idx = std::distance(_conf_probs.begin(), max_el_it);
 
     initialConf = _confs[max_idx];

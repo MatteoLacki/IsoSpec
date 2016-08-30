@@ -48,11 +48,11 @@ class IsoSpecLayered;
      DirtyAllocator          allocator;
      std::vector<void*>      newaccepted;
      Summator                totalProb;
-     unsigned int            cnt = 0;
+     unsigned int            cnt;
      const unsigned int      confSize;
      int*                    candidate;
      void*                   topConf;
-     int                     allDim = 0;
+     int                     allDim;
      void*                   initialConf;
 
  public:
@@ -133,7 +133,7 @@ class IsoSpecLayered;
      double                      lprobThr;
      double                      percentageToExpand;
      bool                        estimateThresholds;
-     int layers = 0;
+     int layers;
 #ifdef DEBUG
      int moves = 0;
      int hits = 0;
