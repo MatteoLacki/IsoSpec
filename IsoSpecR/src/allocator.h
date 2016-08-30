@@ -14,6 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+
 #ifndef ALLOCATOR_HPP
 #define ALLOCATOR_HPP
 

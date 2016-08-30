@@ -14,7 +14,6 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
 #ifndef SUMMATOR_HPP
 #define SUMMATOR_HPP
 #include <cmath>
@@ -26,9 +25,8 @@ class SSummator
     int maxpart;
 public:
     inline SSummator()
-    {
-        maxpart = 0;
-    }
+    { maxpart = 0; }
+
     inline SSummator(SSummator& other)
     {
         this->partials = other.partials;
@@ -73,10 +71,13 @@ public:
 
 class Summator{
     // Kahan algorithm
-   double sum = 0.0;
-   double c = 0.0;
+   double sum;
+   double c;
 
 public:
+    inline Summator()
+    { sum = 0.0; c = 0.0;}
+
     inline void add(double what)
     {
         double y = what - c;
@@ -94,8 +95,11 @@ public:
 class TSummator
 {
     // Tirival algorithm
-    double sum = 0.0;
+    double sum;
 public:
+    inline TSummator()
+    { sum = 0.0; }
+
     inline void add(double what)
     {
         sum += what;

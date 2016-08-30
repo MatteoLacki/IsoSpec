@@ -14,6 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+
 #ifndef DIRTY_ALLOCATOR_HPP
 #define DIRTY_ALLOCATOR_HPP
 
@@ -26,7 +27,8 @@ private:
     void*   currentTab;
     void*   currentConf;
     void*   endOfTablePtr;
-    const int       tabSize, cellSize;
+    const int       tabSize;
+    int     cellSize;
     std::vector<void*>  prevTabs;
 public:
     DirtyAllocator(const int dim, const int tabSize = 10000);

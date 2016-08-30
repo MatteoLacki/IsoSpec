@@ -27,6 +27,8 @@
 #include <iostream>
 #include <iomanip>
 #include <cctype>
+#include <stdexcept>
+#include "lang.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
@@ -35,7 +37,6 @@
 #include "isoSpec++.h"
 #include "misc.h"
 #include "element_tables.h"
-
 
 
 using namespace std;
@@ -55,9 +56,10 @@ IsoSpec::IsoSpec(
 dimNumber(_dimNumber),
 cutOff(_cutOff),
 allocator(_dimNumber, tabSize),
+cnt(0),
 confSize(_dimNumber * sizeof(int)),
-candidate(new int[dimNumber])
-
+candidate(new int[dimNumber]),
+allDim(0)
 {
     isotopeNumbers  = new int[_dimNumber];
     memcpy(isotopeNumbers, _isotopeNumbers, _dimNumber*sizeof(int));
@@ -158,7 +160,7 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
 
     vector<int> isotope_numbers;
 
-    for(auto it = element_indexes.begin(); it != element_indexes.end(); ++it)
+    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         int num = 0;
         int at_idx = *it;
@@ -173,7 +175,7 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
 
     vector<const double*> isotope_masses;
     vector<const double*> isotope_probabilities;
-    for(auto it = element_indexes.begin(); it != element_indexes.end(); ++it)
+    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         isotope_masses.push_back(&elem_table_mass[*it]);
         isotope_probabilities.push_back(&elem_table_probability[*it]);
@@ -307,23 +309,24 @@ void IsoSpec::getProduct(double* res_mass, double* res_logProb, int* res_isoCoun
     getCurrentProduct(res_mass, res_logProb, res_isoCounts);
 }
 
+
 void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts)
 {
 
     int i = 0;
     int j = 0;
 
-    for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
+    for(unsigned int na_idx = 0; na_idx < newaccepted.size(); na_idx++)
     {
-        int* curr_conf  = getConf(*it);
+        int* curr_conf  = getConf(newaccepted[na_idx]);
 
-	if(res_mass != nullptr)
+	if(res_mass != NULL)
         	res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
 	
-	if(res_logProb != nullptr)
-        	res_logProb[i]  = getLProb(*it);
+	if(res_logProb != NULL)
+        	res_logProb[i]  = getLProb(newaccepted[na_idx]);
 
-	if(res_isoCounts != nullptr)
+	if(res_isoCounts != NULL)
 	{
             for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
             {
@@ -434,7 +437,8 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
              tabSize = 1000,
              hashSize = 1000
 ),
-estimateThresholds(_estimateThresholds)
+estimateThresholds(_estimateThresholds),
+layers(0)
 {
     current = new std::vector<void*>();
     next    = new std::vector<void*>();
@@ -459,7 +463,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
     layers += 1;
     double maxFringeLprob = -std::numeric_limits<double>::infinity();
 
-    if(current == nullptr)
+    if(current == NULL)
         return false;
     int accepted_in_this_layer = 0;
     Summator prob_in_this_layer(totalProb);
@@ -476,12 +480,18 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
         if(top_lprob >= lprobThr)
         {
+#ifdef DEBUG
+            hits += 1;
+#endif /* DEBUG */
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
         }
         else
         {
+#ifdef DEBUG
+            moves += 1;
+#endif /* DEBUG */
             next->push_back(topConf);
             continue;
         }
@@ -525,12 +535,37 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
     }
 
-    if(next == nullptr || next->size() < 1)
+    if(next == NULL || next->size() < 1)
         return false;
     else
     {
         if(prob_in_this_layer.get() < cutOff)
         {
+#ifdef DEBUG
+            Summator testDupa(prob_in_this_layer);
+            for (std::vector<void*>::iterator it = next->begin(); it != next->end(); it++) {
+                testDupa.add(exp(getLProb(*it)));
+            }
+            std::cout << "Prob(Layer) = " << prob_in_this_layer.get() << std::endl;
+            std::cout << "Prob(Layer)+Prob(Fringe) = " << testDupa.get() << std::endl;
+            std::cout << "Layers = " << layers << std::endl;
+            std::cout << std::endl;
+#endif /* DEBUG */
+
+        // // This was an attempt to merge two methods: layered and layered_estimating 
+        // // that does not work so good as predicted.
+//             if( estimateThresholds and ( prob_in_this_layer.get() >= cutOff*.99 ) ){
+//                 estimateThresholds = false;
+//                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
+// #ifdef DEBUG
+//                 std::cout << "We switch!" << std::endl;
+// #endif /* DEBUG */
+//             }
+
+#ifdef DEBUG
+                std::cout << "percentageToExpand = " << percentageToExpand << std::endl;
+#endif /* DEBUG */
+
             std::vector<void*>* nnew = current;
             nnew->clear();
             current = next;
@@ -544,6 +579,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     lprobThr = maxFringeLprob;
                     estimateThresholds = false;
                     percentageToExpand = .3;
+#ifdef DEBUG
+                    std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
+#endif /* DEBUG */
                     lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));                    
                 }
             } else
@@ -552,10 +590,13 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
         else
         {
+#ifdef DEBUG
+            std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
+#endif /* DEBUG */
             delete next;
-            next = nullptr;
+            next = NULL;
             delete current;
-            current = nullptr;
+            current = NULL;
             int start = 0;
             int end = accepted_in_this_layer - 1;
             void* swapspace;
@@ -571,7 +612,11 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 // Partition part
 
                 int len = end - start;
+#ifdef BUILDING_R
 		int pivot = len/2 + start;
+#else
+		int pivot = rand() % len + start;
+#endif
                 void* pval = lastLayer[pivot];
                 double pprob = getLProb(pval);
                 mswap(lastLayer[pivot], lastLayer[end-1]);
@@ -602,10 +647,14 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     end = loweridx;
             }
         int accend = newaccepted.size()-accepted_in_this_layer+start+1;
+#ifdef DEBUG
+            std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer 
+        << "    Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
+#endif /* DEBUG */
 
-        totalProb = qsprob;
-        newaccepted.resize(accend);
-        return true;
+            totalProb = qsprob;
+            newaccepted.resize(accend);
+            return true;
         }
     }
     return true;
@@ -720,6 +769,39 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
     while (advanceToNextConfiguration()) {}
 }
 
+
+#ifndef BUILDING_R
+
+void printConfigurations(
+    const   std::tuple<double*,double*,int*,int>& results,
+    int     dimNumber,
+    int*    isotopeNumbers
+){
+    int m = 0;
+
+    for(int i=0; i<std::get<3>(results); i++){
+
+        std::cout << "Mass = "  << std::get<0>(results)[i] <<
+        "\tand log-prob = "     << std::get<1>(results)[i] <<
+        "\tand prob = "                 << exp(std::get<1>(results)[i]) <<
+        "\tand configuration =\t";
+
+
+        for(int j=0; j<dimNumber; j++){
+            for(int k=0; k<isotopeNumbers[j]; k++ )
+            {
+                std::cout << std::get<2>(results)[m] << " ";
+                m++;
+            }
+            std::cout << '\t';
+        }
+
+
+        std::cout << std::endl;
+    }
+}
+
+#endif /* BUILDING_R */
 
 
 

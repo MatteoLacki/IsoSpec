@@ -21,14 +21,17 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
+#include "lang.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
 #include "operators.h"
 #include "marginalTrek++.h"
 
 
-#include <Rcpp.h>
-using namespace Rcpp;
+#ifdef BUILDING_R
+ #include <Rcpp.h>
+ using namespace Rcpp;
+#endif /* BUILDING_R */
 
 
 class IsoSpecLayered;
@@ -46,11 +49,11 @@ class IsoSpecLayered;
      DirtyAllocator          allocator;
      std::vector<void*>      newaccepted;
      Summator                totalProb;
-     unsigned int            cnt = 0;
+     unsigned int            cnt;
      const unsigned int      confSize;
      int*                    candidate;
      void*                   topConf;
-     int                     allDim = 0;
+     int                     allDim;
      void*                   initialConf;
 
  public:
@@ -87,12 +90,14 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getCurrentProduct();
      std::tuple<double*,double*,int*,int> getProduct();
 
+     #ifdef BUILDING_R
      friend List Rinterface(
          IntegerVector isotopeNumbers,
          IntegerVector atomCounts,
          NumericVector isotopeMasses,
          NumericVector isotopeProbabilities,
          double stopCondition, int algo, int tabSize, int hashSize, double step);
+     #endif
 
      friend class Spectrum;
  };
@@ -129,7 +134,11 @@ class IsoSpecLayered;
      double                      lprobThr;
      double                      percentageToExpand;
      bool                        estimateThresholds;
-     int layers = 0;
+     int layers;
+#ifdef DEBUG
+     int moves = 0;
+     int hits = 0;
+#endif /* DEBUG */
 
  public:
      IsoSpecLayered(
@@ -177,4 +186,9 @@ class IsoSpecLayered;
 
 
 
+ void printConfigurations(
+     const   std::tuple<double*,double*,int*,int>& results,
+     int     dimNumber,
+     int*    isotopeNumbers
+ );
 #endif

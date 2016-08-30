@@ -19,6 +19,7 @@
 #include <string.h>
 #include <iostream>
 #include <algorithm>
+#include <stdexcept>
 #include "cwrapper.h"
 #include "misc.h"
 #include "marginalTrek++.h"
@@ -111,7 +112,7 @@ void getConfs(int howmany, void* MT, double* masses, double* logprobs, int* conf
 
 void destroyConf(void* marginals)
 {
-    if (marginals != nullptr)
+    if (marginals != NULL)
     {
         delete reinterpret_cast<MarginalTrek*>(marginals);
     }
@@ -161,7 +162,7 @@ void* setupIsoLayered( int      _dimNumber,
     }
     catch (std::bad_alloc& ba) { 
         delete iso;
-        iso = nullptr;
+        iso = NULL;
     }
 
     delete[] IM;
@@ -336,7 +337,7 @@ void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoC
 
 void destroyIso(void* iso)
 {
-    if (iso != nullptr)
+    if (iso != NULL)
     {
         delete reinterpret_cast<IsoSpec*>(iso);
     }
@@ -389,7 +390,7 @@ void getIsoConfsR(void** iso, double* res_mass, double* res_logProb, int* res_is
 
 void destroyIsoR(void** iso)
 {
-    if(iso != nullptr)
+    if(iso != NULL)
     {
     	delete reinterpret_cast<IsoSpec*>(*iso);
     }

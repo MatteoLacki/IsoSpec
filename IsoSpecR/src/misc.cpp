@@ -17,6 +17,7 @@
 
 
 #include "misc.h"
+#include "lang.h"
 
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
@@ -33,7 +34,11 @@ void* quickselect(void** array, int n, int start, int end)
     {
         // Partition part
         int len = end - start;
+#ifdef BUILDING_R
         int pivot = len/2 + start;
+#else
+	int pivot = rand() % len + start;
+#endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);
         mswap(array[pivot], array[end-1]);

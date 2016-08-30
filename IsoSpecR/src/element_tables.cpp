@@ -14,7 +14,6 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
 #include "element_tables.h"
 
 #ifdef __cplusplus

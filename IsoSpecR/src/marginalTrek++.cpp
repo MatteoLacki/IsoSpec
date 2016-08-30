@@ -25,6 +25,7 @@
 #include <utility>
 #include <iostream>
 #include <string.h>
+#include "lang.h"
 #include "marginalTrek++.h"
 #include "conf.h"
 #include "allocator.h"
@@ -190,6 +191,22 @@ std::tuple<double*,double*,int*,int> getMarginal(
     );
 }
 
+#ifndef BUILDING_R
+void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
+{
+    for(int i=0; i<std::get<3>(results); i++){
+
+        std::cout << "Mass = "  << std::get<0>(results)[i] <<
+        " log-prob =\t"                 << std::get<1>(results)[i] <<
+        " prob =\t"                     << exp(std::get<1>(results)[i]) <<
+        "\tand configuration =\t";
+
+        for(int j=0; j<dim; j++) std::cout << std::get<2>(results)[i*dim + j] << " ";
+
+        std::cout << std::endl;
+    }
+}
+#endif
 
 
 double* getMLogProbs(const double* probs, int isoNo)
@@ -222,7 +239,8 @@ MarginalTrek::MarginalTrek(
     int atomCnt,
     int tabSize,
     int hashSize
-) : _tabSize(tabSize),
+) : current_count(0),
+_tabSize(tabSize),
 _hashSize(hashSize),
 _isotopeNo(isotopeNo),
 _atomCnt(atomCnt),
@@ -262,7 +280,7 @@ candidate(new int[isotopeNo])
     }
     // Find max element in case loop terminated from cont==false, and not from break
 
-    auto max_el_it = std::max_element(_conf_probs.begin(), _conf_probs.end());
+    std::vector<double>::iterator max_el_it = std::max_element(_conf_probs.begin(), _conf_probs.end());
     int max_idx = std::distance(_conf_probs.begin(), max_el_it);
 
     initialConf = _confs[max_idx];
