@@ -256,7 +256,7 @@ How would you do that? </p>
 <h2>
 <a id="how-to-install-isospec" class="anchor" href="#how-to-install-isospec" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>How to install IsoSpec?</h2>
 
-<p>IsoSpec is written in <strong>C++</strong> has bindings to <strong>Python</strong>, <strong>R</strong>, and <strong>C</strong>.</p>
+<p>IsoSpec is written in <strong>C++</strong> has bindings to <strong>Python</strong> (IsoSpecPy), <strong>R</strong> (IsoSpecR), and <strong>C</strong>. </p>
 
 <h3>
 <a id="python" class="anchor" href="#python" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Python</h3>
@@ -301,7 +301,14 @@ command with:</p>
 <li>R (&gt;= 3.2.1)</li>
 </ul>
 
-<p>Until the package will find its way on CRAN and BioConductor, you have to </p>
+<p>The package is host at <a href="https://cran.r-project.org/web/packages/IsoSpecR/index.html"><strong>CRAN</strong></a>. 
+This means that it can be automatically downloaded. Just start an R console (or R studio) and run</p>
+
+<div class="highlight highlight-source-r"><pre>    install.packages(<span class="pl-s"><span class="pl-pds">'</span>IsoSpecR<span class="pl-pds">'</span></span>)</pre></div>
+
+<p>Then, follow the instructions. For Windows users, this will result in downloading a precompiled version of the package.</p>
+
+<p>The package can be also directly downloaded from this page. If you use either Linux of Mac OSX, then simply:</p>
 
 <ol>
 <li>Download the package.</li>
@@ -472,7 +479,7 @@ print(<span class="pl-s"><span class="pl-pds">'</span>The number of configuratio
     <span class="pl-k">delete</span> configs;
 
 
-    std::cout &lt;&lt; <span class="pl-s"><span class="pl-pds">"</span>Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50<span class="pl-ii">%</span>, O17 at 30<span class="pl-c1">% a</span>nd O18 at 20<span class="pl-ii">%</span>?<span class="pl-pds">"</span></span> &lt;&lt; std::endl;
+    std::cout &lt;&lt; <span class="pl-s"><span class="pl-pds">"</span>Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?<span class="pl-pds">"</span></span> &lt;&lt; std::endl;
 
     <span class="pl-k">const</span> <span class="pl-k">int</span> elementNumber = <span class="pl-c1">2</span>;
     <span class="pl-k">const</span> <span class="pl-k">int</span> isotopeNumbers[<span class="pl-c1">2</span>] = {<span class="pl-c1">2</span>,<span class="pl-c1">3</span>};
