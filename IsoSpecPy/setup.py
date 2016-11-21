@@ -152,19 +152,19 @@ elif 'CYGWIN' in platform.system():
     try:
         import cffi
     except ImportError:
-        print "You appear to be using CYGWIN, and CFFI was not found. Please use the Cygwin installer to install the cffi-python package for the appropriate Python version."
-        print "Installing CFFI using pip will most likely NOT work. This is *NOT* a bug in IsoSpecPy."
-        sys.exit(0)
+        print("You appear to be using CYGWIN, and CFFI was not found. Please use the Cygwin installer to install the cffi-python package for the appropriate Python version.")
+        print("Installing CFFI using pip will most likely NOT work. This is *NOT* a bug in IsoSpecPy.")
+        sys.exit(1)
     if spawn.find_executable('clang++') == None:
-        print "You appear to be using CYGWIN and clang++ executable was not found. Please install the clang++ package using Cygwin installer."
-        sys.exit(0)
+        print("You appear to be using CYGWIN and clang++ executable was not found. Please install the clang++ package using Cygwin installer.")
+        sys.exit(1)
     import distutils
     import distutils.sysconfig
     distutils.sysconfig.get_config_vars() # Precalculate the dict so we can...
     distutils.sysconfig._config_vars['CFLAGS'] = "" # Nuke CFLAGS: they contain gcc stuff not supported by clang
     setup(**setup_args)
 else:
-    # Assuming UNIX with a compiler.
+    # Assuming UNIX with a working compiler.
     setup(**setup_args)
 
 
