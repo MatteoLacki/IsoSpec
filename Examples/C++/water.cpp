@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../../IsoSpec++/isoSpec++.hpp"
+#include "../../IsoSpec++/isoSpec++.h"
 
 
 int main()
