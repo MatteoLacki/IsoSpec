@@ -16,11 +16,11 @@ IsoSpecify(molecule, stopCondition, isotopes = NULL, fancy = FALSE,
 
 \item{fancy}{Logical. If \code{TRUE}, then the algorithm's results are presented in a dataframe, sorted increasingly with mass. ATTENTION!!! Sorting by mass compromises linear operating time and should be avoided in large scale computations. Then again - who would use R for that?}
 
-\item{algo}{An integer: 0 - use standard IsoStar algoritm, 
-where \code{stopCondition} specifies the probability of the optimal p-set, 
+\item{algo}{An integer: 0 - use standard IsoStar algoritm,
+where \code{stopCondition} specifies the probability of the optimal p-set,
 1 - use a version of algorithm that uses priority queue. Slower than 0, but does not require sorting.
-2 - use a threshold version of the algorithm, where \code{stopCondition} specifies the height of the pruned peaks. 
-3 - for the threshold version of IsoStar with \code{stopCondition} being 
+2 - use a threshold version of the algorithm, where \code{stopCondition} specifies the height of the pruned peaks.
+3 - for the threshold version of IsoStar with \code{stopCondition} being
 the percentage of the highest peak below which isotopologues get pruned.}
 
 \item{step}{The percent of the the percentile of isotopologues in the current isolayer, specyfying the cutoff for the next isolayer. It has been optimised and better not change the default value.}

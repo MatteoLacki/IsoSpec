@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -97,6 +97,41 @@ class IsoSpecLayered;
          NumericVector isotopeMasses,
          NumericVector isotopeProbabilities,
          double stopCondition, int algo, int tabSize, int hashSize, double step);
+
+    friend  List Rinterface2(
+         	const IntegerVector& 	molecule,
+         	const DataFrame& 		isotopes,
+         	double 			stopCondition,
+         	int				algo,
+         	int 			tabSize,
+         	int				hashSize,
+         	double 			step,
+         	bool 			fancy
+        );
+
+    friend  DataFrame Rinterface3(
+         	const IntegerVector& 	molecule,
+         	const DataFrame& 		isotopes,
+         	double 			stopCondition,
+         	int				algo,
+         	int 			tabSize,
+         	int				hashSize,
+         	double 			step,
+         	bool 			fancy
+        );
+
+    // An R friend should be considered the worse enemy.
+    //                              Sun Tzu.
+    friend  NumericMatrix Rinterface4(
+         	const IntegerVector& 	molecule,
+         	const DataFrame& 		isotopes,
+         	double 			stopCondition,
+         	int				algo,
+         	int 			tabSize,
+         	int				hashSize,
+         	double 			step,
+         	bool 			fancy
+        );
      #endif
 
      friend class Spectrum;
