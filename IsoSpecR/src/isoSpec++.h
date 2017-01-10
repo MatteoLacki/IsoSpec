@@ -91,46 +91,17 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getProduct();
 
      #ifdef BUILDING_R
-     friend List Rinterface(
-         IntegerVector isotopeNumbers,
-         IntegerVector atomCounts,
-         NumericVector isotopeMasses,
-         NumericVector isotopeProbabilities,
-         double stopCondition, int algo, int tabSize, int hashSize, double step);
-
-    friend  List Rinterface2(
-         	const IntegerVector& 	molecule,
-         	const DataFrame& 		isotopes,
-         	double 			stopCondition,
-         	int				algo,
-         	int 			tabSize,
-         	int				hashSize,
-         	double 			step,
-         	bool 			fancy
-        );
-
-    friend  DataFrame Rinterface3(
-         	const IntegerVector& 	molecule,
-         	const DataFrame& 		isotopes,
-         	double 			stopCondition,
-         	int				algo,
-         	int 			tabSize,
-         	int				hashSize,
-         	double 			step,
-         	bool 			fancy
-        );
-
     // An R friend should be considered the worse enemy.
     //                              Sun Tzu.
-    friend  NumericMatrix Rinterface4(
-         	const IntegerVector& 	molecule,
-         	const DataFrame& 		isotopes,
-         	double 			stopCondition,
-         	int				algo,
-         	int 			tabSize,
-         	int				hashSize,
-         	double 			step,
-         	bool 			fancy
+    friend  NumericMatrix Rinterface(
+         	const IntegerVector&  molecule,
+         	const DataFrame&      isotopes,
+         	double  stopCondition,
+         	int		algo,
+         	int 	tabSize,
+         	int		hashSize,
+         	double 	step,
+         	bool 	fancy
         );
      #endif
 

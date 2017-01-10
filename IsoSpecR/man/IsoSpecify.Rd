@@ -4,7 +4,7 @@
 \alias{IsoSpecify}
 \title{Calculate the isotopic fine structure peaks.}
 \usage{
-IsoSpecify(molecule, stopCondition, isotopes = NULL, fancy = FALSE,
+IsoSpecify(molecule, stopCondition, isotopes = NULL, showCounts = FALSE,
   algo = 0, step = 0.25, tabSize = 1000)
 }
 \arguments{
@@ -14,7 +14,7 @@ IsoSpecify(molecule, stopCondition, isotopes = NULL, fancy = FALSE,
 
 \item{isotopes}{A named list of isotopic information required for IsoStar, e.g. \code{isotopicData$IsoSpecShortList}. The names must be valid element symbols. Each enlisted object should be a \code{data.frame} containing columns \code{element} (specifying the symbol of the element), \code{mass} (specifying the mass of the isotope), \code{abundance} (specyfying the assumed frequency of finding that isotope).}
 
-\item{fancy}{Logical. If \code{TRUE}, then the algorithm's results are presented in a dataframe, sorted increasingly with mass. ATTENTION!!! Sorting by mass compromises linear operating time and should be avoided in large scale computations. Then again - who would use R for that?}
+\item{showCounts}{Logical. If \code{TRUE}, then we output matrix contains additionally counts of isotopes for each isotopologue.}
 
 \item{algo}{An integer: 0 - use standard IsoStar algoritm,
 where \code{stopCondition} specifies the probability of the optimal p-set,
@@ -28,12 +28,15 @@ the percentage of the highest peak below which isotopologues get pruned.}
 \item{tabSize}{A technical parameter: the initial size of the \code{C++} dynamic table containing the results. Better not change the default value.}
 }
 \value{
-A list constaining the masses, logarithms of probability, and the tags of isotopes making up the molecule.
+A numeric matrix containing the masses, the logarithms of probability, and, optionally, counts of isotopologues. Attention: this matrix does not have to be sorted. Sorting it would also compromise the linear complexity of our algorithm, so if you really really want to, then please do it yourself: we wash our hands.
 }
 \description{
 \code{IsoSpecify} is a wrapper around \code{Rinterface} for the C++ implementation of the IsoSpec algorithm.
 }
 \examples{
-res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
+res1 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
+print(res1)
+res2 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts )
+print(res2)
 }
 
