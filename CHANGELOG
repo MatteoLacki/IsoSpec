@@ -15,6 +15,11 @@ This file lists *major* changes between releases, for a full list see git log.
 ----------------------------------
 1.0.2
 
-- Only affecting IsoSpecR: improve efficiency of R to C++ interface
+- Some further Python+Windows compatibility improvements
+
+----------------------------------
+1.0.3
+
+- Only affecting IsoSpecR: improve the efficiency of R to C++ interface
 - Add an option to skip discarding the superfluous configurations
 

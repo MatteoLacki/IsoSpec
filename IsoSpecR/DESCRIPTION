@@ -2,7 +2,7 @@ Encoding: UTF-8
 Package: IsoSpecR
 Type: Package
 Title: An R Interface to the IsoSpec Algorithm
-Version: 1.0.2
+Version: 1.0.3
 Date: 2017-01-10
 Author: Mateusz Krzysztof Łącki and Michał Startek
 Maintainer: Matteo Lacki <matteo.lacki@gmail.com>

@@ -64,7 +64,8 @@ class IsoFFI:
                                         int             algo,
                                         int             tabSize,
                                         int             hashSize,
-                                        double          step
+                                        double          step,
+                                        bool            trim
                         );
 
 
@@ -233,6 +234,7 @@ class IsoSpec:
                     tabSize = 1000,
                     hashSize = 1000,
                     step = 0.3,
+                    trim = True,
                     method = 'layered'
                 ):
         self.clib = isoFFI.clib #can't use global vars in destructor, again...
@@ -245,6 +247,7 @@ class IsoSpec:
         self._stopCondition            = _stopCondition
         self.tabSize                   = tabSize
         self.hashSize                  = hashSize
+        self.trim                      = trim
 
         try:
             self.algo = { 'layered' : 0,
@@ -266,18 +269,19 @@ class IsoSpec:
                                 self.algo,
                                 tabSize,
                                 hashSize,
-                                step
+                                step,
+                                trim
                             )
         try:
             if not self.iso.__nonzero__():
                 raise MemoryError()
-        except AttributeError: # Python3 doesn't have __nonzero__...
+        except AttributeError: # Python3 doesn't have __nonzero__... Nor any obvious alternative...
             pass
 
 
 
     @staticmethod
-    def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'layered', step = 0.25):
+    def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'layered', step = 0.25, trim = True):
         # It's much easier to just parse it in python than to use the C parsing function
         # and retrieve back into Python the relevant object sizes
         symbols = re.findall("\D+", formula)
@@ -297,9 +301,9 @@ class IsoSpec:
         probs   = [[isoFFI.clib.elem_table_probability[idx] for idx in idxs] for idxs in indexes]
 
         if classId == None:
-            return IsoSpec(atom_counts, masses, probs, cutoff, tabSize, hashSize, step, method)
+            return IsoSpec(atom_counts, masses, probs, cutoff, tabSize, hashSize, step, trim, method)
         else:
-            return classId(atom_counts, masses, probs, cutoff, tabSize, hashSize)
+            return classId(atom_counts, masses, probs, cutoff, tabSize, hashSize, trim)
 
 
 
@@ -378,4 +382,4 @@ class IsoPlot(dict):
 
 
 
-version = '1.0.2'
+version = '1.0.3'
