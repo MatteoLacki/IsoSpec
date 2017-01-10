@@ -124,7 +124,8 @@ void SetupIsoR(
     const double*   _isotopeProbabilities,
     const double*   _cutOff,
     int*            tabSize,
-    int*            hashSize
+    int*            hashSize,
+    bool            trim
 );
 
 

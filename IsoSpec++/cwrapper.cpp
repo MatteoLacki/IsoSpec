@@ -360,7 +360,8 @@ void SetupIsoR(
     const double*   _isotopeProbabilities,
     const double*   _cutOff,
     int*            tabSize,
-    int*            hashSize
+    int*            hashSize,
+    bool            trim
 )
 {
     *iso = setupIsoLayered(
@@ -373,7 +374,8 @@ void SetupIsoR(
         *tabSize,
         *hashSize,
         0.25,
-	false
+	false,
+        trim
     );
 
 }
