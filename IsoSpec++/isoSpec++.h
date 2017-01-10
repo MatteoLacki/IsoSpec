@@ -91,7 +91,7 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getProduct();
 
      #ifdef BUILDING_R
-    // An R friend should be considered the worse enemy.
+    // An R friend should be considered the worst enemy.
     //                              Sun Tzu.
     friend  NumericMatrix Rinterface(
          	const IntegerVector&  molecule,
@@ -101,7 +101,7 @@ class IsoSpecLayered;
          	int 	tabSize,
          	int		hashSize,
          	double 	step,
-         	bool 	fancy
+         	bool 	fancy,
         );
      #endif
 
@@ -140,6 +140,7 @@ class IsoSpecLayered;
      double                      lprobThr;
      double                      percentageToExpand;
      bool                        estimateThresholds;
+     bool                        do_trim;
      int layers;
 #ifdef DEBUG
      int moves = 0;
@@ -157,7 +158,8 @@ class IsoSpecLayered;
          int             tabSize = 1000,
          int             hashSize = 1000,
          double          layerStep = 0.3,
-	     bool            _estimateThresholds = false
+         bool            _estimateThresholds = false,
+	 bool            trim = true
      );
 
      virtual ~IsoSpecLayered();
