@@ -66,7 +66,8 @@ void* setupIsoLayered( int             _dimNumber,
                        int             tabSize,
                        int             hashSize,
                        double          step,
-                       bool            estimate
+                       bool            estimate,
+		       bool            trim
 );
 
 void* setupIsoOrdered( int             _dimNumber,
@@ -99,7 +100,8 @@ void* setupIso( int             _dimNumber,
                 int             algo,
                 int             tabSize,
                 int             hashSize,
-                double          step
+                double          step,
+		bool            trim
 );
 
 void* IsoFromFormula(const char* formula, double cutoff, int tabSize, int hashSize);
