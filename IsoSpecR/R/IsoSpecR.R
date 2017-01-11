@@ -56,6 +56,7 @@ IsoSpecify <- function(
         stopCondition,
         isotopes= NULL,
         showCounts = FALSE,
+        trim    = TRUE,
         algo    = 0,
         step    = .25,
         tabSize = 1000
@@ -73,6 +74,6 @@ IsoSpecify <- function(
         hashSize        = 1000,
         step            = step,
         showCounts      = showCounts,
-
+        trim            = trim
     )
 }

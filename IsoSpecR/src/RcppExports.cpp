@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // Rinterface
-NumericMatrix Rinterface(const IntegerVector& molecule, const DataFrame& isotopes, double stopCondition, int algo, int tabSize, int hashSize, double step, bool fancy);
-RcppExport SEXP IsoSpecR_Rinterface(SEXP moleculeSEXP, SEXP isotopesSEXP, SEXP stopConditionSEXP, SEXP algoSEXP, SEXP tabSizeSEXP, SEXP hashSizeSEXP, SEXP stepSEXP, SEXP fancySEXP) {
+NumericMatrix Rinterface(const IntegerVector& molecule, const DataFrame& isotopes, double stopCondition, int algo, int tabSize, int hashSize, double step, bool showCounts, bool trim);
+RcppExport SEXP IsoSpecR_Rinterface(SEXP moleculeSEXP, SEXP isotopesSEXP, SEXP stopConditionSEXP, SEXP algoSEXP, SEXP tabSizeSEXP, SEXP hashSizeSEXP, SEXP stepSEXP, SEXP showCountsSEXP, SEXP trimSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -18,8 +18,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type tabSize(tabSizeSEXP);
     Rcpp::traits::input_parameter< int >::type hashSize(hashSizeSEXP);
     Rcpp::traits::input_parameter< double >::type step(stepSEXP);
-    Rcpp::traits::input_parameter< bool >::type fancy(fancySEXP);
-    rcpp_result_gen = Rcpp::wrap(Rinterface(molecule, isotopes, stopCondition, algo, tabSize, hashSize, step, fancy));
+    Rcpp::traits::input_parameter< bool >::type showCounts(showCountsSEXP);
+    Rcpp::traits::input_parameter< bool >::type trim(trimSEXP);
+    rcpp_result_gen = Rcpp::wrap(Rinterface(molecule, isotopes, stopCondition, algo, tabSize, hashSize, step, showCounts, trim));
     return rcpp_result_gen;
 END_RCPP
 }

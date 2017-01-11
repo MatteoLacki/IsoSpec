@@ -69,7 +69,7 @@ NumericMatrix Rinterface(
 				counter++;
 				stdIsotopeMasses.push_back( mass[j] );
 				stdIsotopeProbabilities.push_back( abundance[j] );
-				if( fancy )
+				if( showCounts )
 					stdIsotopeTags.push_back( isotope[j] );
 			}
 		stdIsotopeNumbers.push_back(counter);
@@ -114,7 +114,7 @@ NumericMatrix Rinterface(
 			int currentConfIndex = curr_conf[isotopeNumber];
 			int locIsoNo = stdIsotopeNumbers[isotopeNumber];
 
-			if( fancy )
+			if( showCounts )
 				for( int k=0; k<locIsoNo; k++)
 					res(i,2+j+k) = (*(iso->marginalConfs[isotopeNumber]))[currentConfIndex][k];
 			j += locIsoNo;
