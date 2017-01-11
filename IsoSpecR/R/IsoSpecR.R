@@ -72,5 +72,7 @@ IsoSpecify <- function(
         tabSize         = tabSize,
         hashSize        = 1000,
         step            = step,
-        fancy           = showCounts )
+        showCounts      = showCounts,
+
+    )
 }

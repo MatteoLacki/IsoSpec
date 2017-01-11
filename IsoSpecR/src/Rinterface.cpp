@@ -38,12 +38,13 @@ using namespace Rcpp;
 NumericMatrix Rinterface(
 	const IntegerVector& 	molecule,
 	const DataFrame& 		isotopes,
-	double 			stopCondition,
-	int				algo 		= 0,
-	int 			tabSize 	= 1000,
-	int				hashSize 	= 1000,
-	double 			step 		= .25,
-	bool 			fancy 		= false
+	double 	stopCondition,
+	int		algo 		= 0,
+	int 	tabSize 	= 1000,
+	int		hashSize 	= 1000,
+	double 	step 		= .25,
+	bool 	showCounts  = false,
+	bool	trim 		= true
 ){
 
 	unsigned int dimNumber = molecule.size();
@@ -84,7 +85,8 @@ NumericMatrix Rinterface(
 		algo,
 		tabSize,
 		hashSize,
-		step
+		step,
+        trim
 	));
 
 	int confsNo = iso->getNoVisitedConfs();
