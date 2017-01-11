@@ -63,7 +63,7 @@ NumericMatrix Rinterface(
 	for (unsigned int i=0; i<dimNumber; i++)
 	{
 		unsigned int counter = 0;
-		for (unsigned int j=0; j<element.size(); j++)
+		for (int j=0; j<element.size(); j++)
 			if( element[j] == molecule_names[i] )
 			{
 				counter++;
@@ -93,7 +93,7 @@ NumericMatrix Rinterface(
 	int columnsNo = stdIsotopeTags.size(); // standard
 
 	int isotopesNo = 0;
-	for( auto it=stdIsotopeNumbers.begin(); it != stdIsotopeNumbers.end(); it++ ){
+	for( std::vector<int>::iterator it=stdIsotopeNumbers.begin(); it != stdIsotopeNumbers.end(); it++ ){
 		isotopesNo += *it;
 	}
 
@@ -102,14 +102,14 @@ NumericMatrix Rinterface(
 	int i = 0;
 	int j = 0;
 
-	for(auto it = iso->newaccepted.cbegin(); it != iso->newaccepted.cend(); it++)
+	for( std::vector<void*>::iterator it = iso->newaccepted.cbegin(); it != iso->newaccepted.cend(); it++)
 	{
 		int* curr_conf  = getConf(*it);
 		res(i,0) = combinedSum( curr_conf, iso->masses, dimNumber );
 		res(i,1) = getLProb(*it);
 
 		j = 0;
-		for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
+		for(unsigned int isotopeNumber=0; isotopeNumber < dimNumber; isotopeNumber++)
 		{
 			int currentConfIndex = curr_conf[isotopeNumber];
 			int locIsoNo = stdIsotopeNumbers[isotopeNumber];

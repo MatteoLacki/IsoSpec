@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -336,7 +336,7 @@ void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_
 
 	if(res_mass != NULL)
         	res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
-	
+
 	if(res_logProb != NULL)
         	res_logProb[i]  = getLProb(newaccepted[na_idx]);
 
@@ -357,26 +357,7 @@ void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_
         i++;
     }
 }
-/*
-std::unordered_map<double, double> IsoSpec::getPlot(double resolution)
-{
-    xret = new unordered_map<double, double>
 
-    for(auto it = newaccepted.cbegin(); it != newaccepted.cend(); it++)
-    {
-        int* curr_conf  = getConf(*it);
-    double mass     = nearbyint(combinedSum( curr_conf, masses, dimNumber )/resolution)*resolution;
-    double logProb  = getLProb(*it);
-        
-    if(xret.count(mass) == 0)
-        xret[mass] = new Summator();
-
-    xret[mass].add(exp(logProb));
-    }
-
-    return xret;
-}
-*/
 int IsoSpec::getNoVisitedConfs()
 {
     return newaccepted.size();
@@ -568,7 +549,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             std::cout << std::endl;
 #endif /* DEBUG */
 
-        // // This was an attempt to merge two methods: layered and layered_estimating 
+        // // This was an attempt to merge two methods: layered and layered_estimating
         // // that does not work so good as predicted.
 //             if( estimateThresholds and ( prob_in_this_layer.get() >= cutOff*.99 ) ){
 //                 estimateThresholds = false;
@@ -598,7 +579,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 #ifdef DEBUG
                     std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
 #endif /* DEBUG */
-                    lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));                    
+                    lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
                 }
             } else
                 lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
@@ -631,7 +612,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
                     int len = end - start;
 #ifdef BUILDING_R
-            int pivot = len/2 + start;  // We're very definitely NOT switching to R to use a RNG, and if R sees us use C RNG it complains... 
+            int pivot = len/2 + start;  // We're very definitely NOT switching to R to use a RNG, and if R sees us use C RNG it complains...
 #else
             int pivot = rand() % len + start;
 #endif
@@ -666,7 +647,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                 }
             int accend = newaccepted.size()-accepted_in_this_layer+start+1;
     #ifdef DEBUG
-                std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer 
+                std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer
             << "    Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
     #endif /* DEBUG */
 
@@ -826,8 +807,3 @@ void printConfigurations(
 }
 
 #endif /* BUILDING_R */
-
-
-
-
-
