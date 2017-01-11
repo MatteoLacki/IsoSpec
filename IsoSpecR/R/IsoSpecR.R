@@ -30,11 +30,12 @@ NULL
 
 #' Calculate the isotopic fine structure peaks.
 #'
-#' \code{IsoSpecify} is a wrapper around \code{Rinterface} for the C++ implementation of the IsoSpec algorithm.
+#' \code{IsoSpecify} is a wrapper around \code{Rinterface} that calls the C++ implementation of the IsoSpec algorithm. Given a molecular formula, it will calculate the smallest set of infinitely resolved peaks (isotopologues) that jointly is \code{p} probable, where \code{p} is provided by the user.
 #'
 #' @param molecule  A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.
 #' @param stopCondition A numeric value between 0 and 1.
 #' @param showCounts Logical. If \code{TRUE}, then we output matrix contains additionally counts of isotopes for each isotopologue.
+#' @param trim Logical. If \code{FALSE}, then we output matrix contains additionally isotopologues that otherwise would get trimmed in order to find the smalles possible p-set. Therefore, switching to \code{FALSE} results in a slightly larger set then the optimal p-set.
 #' @param algo An integer: 0 - use standard IsoStar algoritm,
 #' where \code{stopCondition} specifies the probability of the optimal p-set,
 #' 1 - use a version of algorithm that uses priority queue. Slower than 0, but does not require sorting.
@@ -49,8 +50,10 @@ NULL
 #' @examples
 #' res1 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
 #' print(res1)
-#' res2 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts )
+#' res2 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts=TRUE )
 #' print(res2)
+#' res3 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts=TRUE, trim = FALSE )
+#' print(res3)
 IsoSpecify <- function(
         molecule,
         stopCondition,
