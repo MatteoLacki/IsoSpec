@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -131,7 +131,7 @@ void* setupIsoLayered( int      _dimNumber,
                         int             hashSize,
                         double          step,
                         bool            estimate,
-			bool            trim
+                        bool            trim
 )
 {
     const double** IM = new const double*[_dimNumber];
@@ -162,7 +162,7 @@ void* setupIsoLayered( int      _dimNumber,
     try {
         iso->processConfigurationsUntilCutoff();
     }
-    catch (std::bad_alloc& ba) { 
+    catch (std::bad_alloc& ba) {
         delete iso;
         iso = NULL;
     }
@@ -219,7 +219,7 @@ void* setupIsoOrdered( int             _dimNumber,
     return reinterpret_cast<void*>(iso);
 }
 
-void* setupIsoThreshold( int      _dimNumber,
+void* setupIsoThreshold(    int      _dimNumber,
                             const int*      _isotopeNumbers,
                             const int*      _atomCounts,
                             const double*   _isotopeMasses,
@@ -253,7 +253,7 @@ void* setupIsoThreshold( int      _dimNumber,
         hashSize
     );
 
-    try { 
+    try {
         iso->processConfigurationsAboveThreshold();
     }
     catch (std::bad_alloc& ba) {
@@ -277,7 +277,7 @@ void* setupIso( int             _dimNumber,
                 int             tabSize,
                 int             hashSize,
                 double          step,
-		bool            trim
+                bool            trim
 )
 {
     switch(algo)
@@ -347,61 +347,4 @@ void destroyIso(void* iso)
 }
 
 
-// =========================================================================================
-// Same stuff, except compatible with R's primitive C interface.
-using namespace std;
-
-void SetupIsoR(
-    void**          iso,
-    int*            _dimNumber,
-    const int*      _isotopeNumbers,
-    const int*      _atomCounts,
-    const double*   _isotopeMasses,
-    const double*   _isotopeProbabilities,
-    const double*   _cutOff,
-    int*            tabSize,
-    int*            hashSize,
-    bool            trim
-)
-{
-    *iso = setupIsoLayered(
-        *_dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        _isotopeMasses,
-        _isotopeProbabilities,
-        *_cutOff,
-        *tabSize,
-        *hashSize,
-        0.25,
-	false,
-        trim
-    );
-
 }
-
-
-
-void getIsoConfNoR(void** iso, int* number)
-{
-    *number = reinterpret_cast<IsoSpec*>(*iso)->getNoVisitedConfs();
-}
-
-
-void getIsoConfsR(void** iso, double* res_mass, double* res_logProb, int* res_isoCounts)
-{
-    reinterpret_cast<IsoSpec*>(*iso)->getProduct(res_mass, res_logProb, res_isoCounts);
-}
-
-void destroyIsoR(void** iso)
-{
-    if(iso != NULL)
-    {
-    	delete reinterpret_cast<IsoSpec*>(*iso);
-    }
-}
-
-
-}
-
-

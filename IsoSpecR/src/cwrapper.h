@@ -114,27 +114,6 @@ void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoC
 
 void destroyIso(void* iso);
 
-
-void SetupIsoR(
-    void**          iso,
-    int*            _dimNumber,
-    const int*      _isotopeNumbers,
-    const int*      _atomCounts,
-    const double*   _isotopeMasses,
-    const double*   _isotopeProbabilities,
-    const double*   _cutOff,
-    int*            tabSize,
-    int*            hashSize,
-    bool            trim
-);
-
-void getIsoConfNoR(void** iso, int* number);
-
-void getIsoConfsR(void** iso, double* res_mass, double* res_logProb, int* res_isoCounts);
-
-void destroyIsoR(void** iso);
-
-
 #ifdef __cplusplus
 }
 #endif
