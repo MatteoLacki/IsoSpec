@@ -1,5 +1,4 @@
-include IsoSpecPy/prebuilt-libIsoSpec++1.0-x32.dll
-include IsoSpecPy/prebuilt-libIsoSpec++1.0-x64.dll
+include IsoSpecPy/prebuilt-libIsoSpec++*.dll
 include IsoSpec++/*.cpp
 include IsoSpec++/*.hpp
 include IsoSpec++/*.h
