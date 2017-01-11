@@ -102,7 +102,7 @@ NumericMatrix Rinterface(
 	int i = 0;
 	int j = 0;
 
-	for( std::vector<void*>::iterator it = iso->newaccepted.cbegin(); it != iso->newaccepted.cend(); it++)
+	for( std::vector<void*>::iterator it = iso->newaccepted.begin(); it != iso->newaccepted.end(); it++)
 	{
 		int* curr_conf  = getConf(*it);
 		res(i,0) = combinedSum( curr_conf, iso->masses, dimNumber );
