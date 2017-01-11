@@ -67,7 +67,7 @@ void* setupIsoLayered( int             _dimNumber,
                        int             hashSize,
                        double          step,
                        bool            estimate,
-		       bool            trim
+                       bool            trim
 );
 
 void* setupIsoOrdered( int             _dimNumber,

@@ -101,7 +101,8 @@ class IsoSpecLayered;
          	int 	tabSize,
          	int		hashSize,
          	double 	step,
-         	bool 	fancy,
+         	bool 	showCounts,
+            bool    trim
         );
      #endif
 

@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -67,7 +67,7 @@ void* setupIsoLayered( int             _dimNumber,
                        int             hashSize,
                        double          step,
                        bool            estimate,
-		       bool            trim
+                       bool            trim
 );
 
 void* setupIsoOrdered( int             _dimNumber,
@@ -101,7 +101,7 @@ void* setupIso( int             _dimNumber,
                 int             tabSize,
                 int             hashSize,
                 double          step,
-		bool            trim
+                bool            trim
 );
 
 void* IsoFromFormula(const char* formula, double cutoff, int tabSize, int hashSize);
@@ -127,8 +127,6 @@ void SetupIsoR(
     int*            hashSize,
     bool            trim
 );
-
-
 
 void getIsoConfNoR(void** iso, int* number);
 
