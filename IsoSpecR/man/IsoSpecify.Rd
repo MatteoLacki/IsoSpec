@@ -36,11 +36,7 @@ A numeric matrix containing the masses, the logarithms of probability, and, opti
 \code{IsoSpecify} is a wrapper around \code{Rinterface} that calls the C++ implementation of the IsoSpec algorithm. Given a molecular formula, it will calculate the smallest set of infinitely resolved peaks (isotopologues) that jointly is \code{p} probable, where \code{p} is provided by the user.
 }
 \examples{
-res1 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
-print(res1)
-res2 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts=TRUE )
-print(res2)
-res3 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts=TRUE, trim = FALSE )
-print(res3)
+res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
+print(res)
 }
 
