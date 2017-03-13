@@ -164,7 +164,6 @@ class MarginalDistribution:
                     atomCnt,
                     tabSize = 1000,
                     hashSize = 1000,
-                    burnIn = 1000
                 ):
         self.clib = isoFFI.clib #because you can't use global vars in destructor, which is UTTERLY STUPID
         self.masses = masses
