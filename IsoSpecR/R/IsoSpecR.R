@@ -23,9 +23,7 @@ NULL
   library.dynam.unload("IsoSpecR", libpath)
 }
 
-# molecule <- c(C=2000,H=3000,N=300,O=300,S=20)
-# cutOff <- .9999
-# data(isotopicData)
+
 
 
 #' Calculate the isotopic fine structure peaks.
@@ -48,12 +46,8 @@ NULL
 #' @return A numeric matrix containing the masses, the logarithms of probability, and, optionally, counts of isotopologues. Attention: this matrix does not have to be sorted. Sorting it would also compromise the linear complexity of our algorithm, so if you really really want to, then please do it yourself: we wash our hands.
 #' @export
 #' @examples
-#' res1 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
-#' print(res1)
-#' res2 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts=TRUE )
-#' print(res2)
-#' res3 <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999, showCounts=TRUE, trim = FALSE )
-#' print(res3)
+#' res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
+#' print(res)
 IsoSpecify <- function(
         molecule,
         stopCondition,

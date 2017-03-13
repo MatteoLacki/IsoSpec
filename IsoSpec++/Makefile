@@ -23,3 +23,6 @@ tests: lib
 	$(CXX) -std=c++11 -I. -O3 -L. -Wl,-rpath,. -lIsoSpec++ test3.cpp -o test3
 clean:
 	rm -f libIsoSpec++.so
+
+windows:
+	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc *.cpp -o lib.dll
