@@ -28,15 +28,6 @@
 
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs);
 
-std::tuple<double*,double*,int*,int> getMarginal(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
-    const double cutOff = 0.99999,
-    const int tabSize = 1000,
-    const int hashSize= 1000
-);
 
 void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim);
 
