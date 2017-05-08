@@ -38,29 +38,6 @@ void* setupMarginal(
     int hashSize
 )
 {
-    /*
-        *        std::tuple<double*,double*,int*,int> res_tmp =
-        *                        getMarginal(
-        *                                masses,
-        *                                probs,
-        *                                isotopeNo,
-        *                                atomCnt,
-        *                                cutOff,
-        *                                tabSize,
-        *                                hashSize
-        *                        );
-        *
-        *        std::tuple<double*,double*,int*,int,int>* res =
-        *                        new std::tuple<double*,double*,int*,int,int>(
-        *                                                std::get<0>(res_tmp),
-        *                                                std::get<1>(res_tmp),
-        *                                                std::get<2>(res_tmp),
-        *                                                std::get<3>(res_tmp),
-        *                                                isotopeNo
-        *                                            );
-        *
-        *        return reinterpret_cast<void*>(res);
-        */
     MarginalTrek* MT = new MarginalTrek(
         masses,
         probs,
