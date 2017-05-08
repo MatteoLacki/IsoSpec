@@ -8,7 +8,8 @@
 
 #include <cmath>
 
-const double pi = 3.141592653589793;
+
+const double pi = 3.14159265358979323846264338328;
 
 double RationalApproximation(double t)
 {
