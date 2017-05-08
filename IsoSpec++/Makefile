@@ -1,13 +1,16 @@
 CXX=clang++
 OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g
-CXXFLAGS=-std=c++11 -Wall -pedantic
-SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp spectrum.cpp
+CXXFLAGS=-std=c++11 -Wall -pedantic -Wextra
+SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp
 
 all: lib
 
 lib:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -fPIC -shared -o libIsoSpec++.so 
+
+unitylib:
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so
 
 debug:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so
@@ -26,3 +29,4 @@ clean:
 
 windows:
 	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc *.cpp -o lib.dll
+
