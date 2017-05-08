@@ -65,7 +65,6 @@ private:
     std::vector<int*> _confs;
 
     bool add_next_conf();
-    void sort_configs();
 
 public:
     MarginalTrek(

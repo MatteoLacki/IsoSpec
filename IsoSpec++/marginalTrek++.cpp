@@ -304,26 +304,6 @@ candidate(new int[isotopeNo])
 
 }
 
-void MarginalTrek::sort_configs()
-{
-    std::vector<std::tuple<double,double,int*> > T;
-    for (unsigned int i=0; i<_conf_probs.size(); i++)
-        T.push_back(std::make_tuple(_conf_masses[i], _conf_probs[i], _confs[i]));
-
-    std::sort(T.begin(), T.end(), tupleCmp);
-
-    _conf_masses.clear();
-    _conf_probs.clear();
-    _confs.clear();
-
-    for(unsigned int i=0; i<T.size(); i++)
-    {
-        _conf_masses.push_back(std::get<0>(T[i]));
-        _conf_probs.push_back(std::get<1>(T[i]));
-        _confs.push_back(std::get<2>(T[i]));
-    }
-}
-
 
 bool MarginalTrek::add_next_conf()
 {
