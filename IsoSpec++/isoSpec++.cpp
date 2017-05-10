@@ -158,10 +158,10 @@ inline int str_to_int(const string& s)
 	return ret;
 }
 
-template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
+IsoThresholdGenerator* IsoSpec::IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
 {
 // This function is NOT guaranteed to be secure againt malicious input. It should be used only for debugging.
-    static_assert(std::is_base_of<IsoSpec, T>::value, "Template argument must be derived from IsoSpec");
+//    static_assert(std::is_base_of<IsoSpec, T>::value, "Template argument must be derived from IsoSpec");
 
     string cpp_formula(formula);
     int last_modeswitch = 0;
@@ -234,20 +234,24 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
         isotope_probabilities.push_back(&elem_table_probability[*it]);
     }
 
-    return new T(
+    return new IsoThresholdGenerator(
                  elements.size(),
                  isotope_numbers.data(),
                  numbers.data(),
                  isotope_masses.data(),
                  isotope_probabilities.data(),
                  cutoff,
+		 false,
                  tabsize,
                  hashsize
     );
 
 }
 
-
+//Iso* getIso(int type = int dimnr, const int* isonr, const int* atcnts, const double** imasses, const double** iprobs, double cutoff = 0.5, bool abs = true, int ts = 1000, int hs = 1000)
+//{
+	
+/*
 template  IsoSpecOrdered*
 IsoSpec::IsoFromFormula<IsoSpecOrdered>(const char* formula,
                                         double cutoff,
@@ -258,6 +262,7 @@ IsoSpec::IsoFromFormula<IsoSpecLayered>(const char* formula,
                                         double cutoff,
                                         int tabsize,
                                         int hashsize);
+*/
 
 
 void IsoSpec::processConfigurationsUntilCutoff()
@@ -835,7 +840,9 @@ IsoThresholdGenerator::IsoThresholdGenerator(int _dimNumber,
                 int             _hashSize) :
 IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize),
 counter(new unsigned int[_dimNumber]),
-partialLProbs(new double[_dimNumber+1])
+partialLProbs(new double[_dimNumber+1]),
+partialMasses(new double[_dimNumber+1]),
+maxConfsLPSum(new double[_dimNumber])
 {
 	for(int ii=0; ii<dimNumber; ii++)
 	{
@@ -843,18 +850,60 @@ partialLProbs(new double[_dimNumber+1])
 	    marginalResults[ii]->probeConfigurationIdx(0);
 	}
 
+	maxConfsLPSum[0] = marginalResults[0]->conf_probs()[0];
+	for(int ii=1; ii<dimNumber; ii++)
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->conf_probs()[0];
+
 	partialLProbs[dimNumber] = 0.0;
-	recalc_currentLProb(dimNumber-1);
+	partialMasses[dimNumber] = 0.0;
+
+	recalc(dimNumber-1);
 
 	Lcutoff = log(_threshold);
 
 	if(not _absolute)
-		Lcutoff = partialLProbs[0];
-
-	
-
+		Lcutoff += partialLProbs[0];
 }
 
+bool IsoThresholdGenerator::advanceToNextConfiguration()
+{
+//	printArray<unsigned int>(counter, dimNumber);
+	counter[0]++;
+	if(marginalResults[0]->probeConfigurationIdx(counter[0]))
+	{
+//	std::cerr << "AAA" << partialLProbs[0] << " " << Lcutoff << '\n';
+		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->conf_probs()[counter[0]];
+		if(partialLProbs[0] > Lcutoff)
+		{
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_probs()[counter[0]];
+			return true;
+		}
+	}
+
+	// If we reached this point, a carry is needed
+	
+	int idx = 0;
+
+//	std::cerr << "LP " << partialLProbs[0];
+
+	while(idx<dimNumber-1)
+	{
+		counter[idx] = 0;
+		idx++;
+		counter[idx]++;
+		if(marginalResults[idx]->probeConfigurationIdx(counter[idx]))
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
+			{
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+				recalc(idx-1);
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 
 #endif /* BUILDING_R */

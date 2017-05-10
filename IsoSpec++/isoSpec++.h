@@ -35,6 +35,7 @@
 
 
 class IsoSpecLayered;
+class IsoThresholdGenerator;
 
 class Iso {
 protected:
@@ -92,7 +93,7 @@ public:
          int             hashSize = 1000
      );
 
-     template<typename T = IsoSpecLayered> static T* IsoFromFormula(
+     static IsoThresholdGenerator* IsoFromFormula(
          const char* formula,
          double cutoff,
          int tabsize = 1000,
@@ -223,7 +224,7 @@ public:
 	virtual bool advanceToNextConfiguration() = 0;
 	virtual const double& lprob() const = 0;
 	virtual const double& mass() const = 0;
-	virtual const int* const & conf() const = 0;
+//	virtual const int* const & conf() const = 0;
 
 	inline IsoGenerator(int _dimNumber,
             	const int*      _isotopeNumbers,
@@ -242,14 +243,16 @@ class IsoThresholdGenerator : public IsoGenerator
 private:
 	unsigned int* counter;
 	double* partialLProbs;
+	double* partialMasses;
+	double* maxConfsLPSum;
 	double Lcutoff;
 
 	
 public:
 	virtual bool advanceToNextConfiguration();
 	virtual inline const double& lprob() const { return partialLProbs[0]; };
-	virtual const double& mass() const;
-	virtual const int* const & conf() const;
+	virtual const double& mass() const { return partialMasses[0]; };
+//	virtual const int* const & conf() const;
 
 	inline IsoThresholdGenerator(int _dimNumber,
                 const int*      _isotopeNumbers,
@@ -260,16 +263,19 @@ public:
 		bool            _absolute = true,
                 int             _tabSize = 1000,
                 int             _hashSize = 1000);
-	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; };
+	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum;};
 
 private:
-	inline void recalc_currentLProb(int idx)
+	inline void recalc(int idx)
 	{
 		for(; idx >=0; idx--)
 		{
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]]; 
+			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
 		}
 	}
+
+	
 
 };
 
