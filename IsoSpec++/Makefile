@@ -30,3 +30,6 @@ clean:
 windows:
 	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc *.cpp -o lib.dll
 
+unity:
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so
+
