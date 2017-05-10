@@ -103,4 +103,12 @@ template<typename T> void printNestedArray(const T** array, const int* shape, in
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
 void* quickselect(void** array, int n, int start, int end);
+
+template <typename T> inline static double* array_copy(const T* A, int size)
+{
+    double* ret = new T[size];
+    memcpy(ret, A, size*sizeof(T));
+    return ret;
+}
+
 #endif

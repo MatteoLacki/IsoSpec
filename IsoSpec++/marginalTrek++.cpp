@@ -33,6 +33,7 @@
 #include "operators.h"
 #include "summator.h"
 #include "element_tables.h"
+#include "misc.h"
 
 
 
@@ -112,12 +113,6 @@ double* getMLogProbs(const double* probs, int isoNo)
     return ret;
 }
 
-double* arr_copy(const double* T, int size)
-{
-    double* ret = new double[size];
-    memcpy(ret, T, size*sizeof(double));
-    return ret;
-}
 
 MarginalTrek::MarginalTrek(
     const double* masses,   // masses size = logProbs size = isotopeNo
@@ -131,7 +126,7 @@ _tabSize(tabSize),
 _hashSize(hashSize),
 _isotopeNo(isotopeNo),
 _atomCnt(atomCnt),
-iso_masses(arr_copy(masses, isotopeNo)),
+iso_masses(array_copy<double>(masses, isotopeNo)),
 logProbs(getMLogProbs(probs, isotopeNo)),
 allocator(isotopeNo, _tabSize),
 keyHasher(isotopeNo),
