@@ -43,6 +43,65 @@
 
 using namespace std;
 
+Iso::Iso(
+    int             _dimNumber,
+    const int*      _isotopeNumbers,
+    const int*      _atomCounts,
+    const double**  _isotopeMasses,
+    const double**  _isotopeProbabilities,
+    int             _tabSize,
+    int             _hashSize
+) :
+dimNumber(_dimNumber),
+isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
+atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
+confSize(_dimNumber * sizeof(int)),
+allDim(0),
+marginalResults(new MarginalTrek*[dimNumber]),
+tabSize(_tabSize),
+hashSize(_hashSize)
+
+{
+    for(int i=0; i<dimNumber;i++) 
+    {
+	allDim += isotopeNumbers[i];
+	marginalResults[i] = new MarginalTrek(
+            _isotopeMasses[i],
+            _isotopeProbabilities[i],
+            _isotopeNumbers[i],
+            atomCounts[i],
+            _tabSize,
+            _hashSize
+        );
+
+
+    }
+
+}
+
+Iso::~Iso()
+{
+	dealloc_table(marginalResults, dimNumber);
+	delete[] isotopeNumbers;
+	delete[] atomCounts;
+}
+
+
+double Iso::getLightestPeakMass()
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginalResults[ii]->getLightestConfMass();
+    return mass;
+}
+
+double Iso::getHeaviestPeakMass()
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginalResults[ii]->getHeaviestConfMass();
+    return mass;
+}
 
 
 IsoSpec::IsoSpec(
@@ -54,39 +113,19 @@ IsoSpec::IsoSpec(
     const double    _cutOff,
     int             tabSize,
     int             hashSize
-) :
-dimNumber(_dimNumber),
+) : Iso(_dimNumber, _isotopeNumbers, _atomCounts, isotopeMasses, isotopeProbabilities, tabSize, hashSize),
 cutOff(_cutOff),
 allocator(_dimNumber, tabSize),
 cnt(0),
-confSize(_dimNumber * sizeof(int)),
 candidate(new int[dimNumber]),
 allDim(0)
 {
-    isotopeNumbers  = new int[_dimNumber];
-    memcpy(isotopeNumbers, _isotopeNumbers, _dimNumber*sizeof(int));
-    atomCounts      = new int[_dimNumber];
-    memcpy(atomCounts, _atomCounts, _dimNumber*sizeof(int));
-
-
-    for(int i=0; i<dimNumber;i++) allDim += isotopeNumbers[i];
-
     logProbs        = new const vector<double>*[dimNumber];
     masses          = new const vector<double>*[dimNumber];
     marginalConfs   = new const vector<int*>*[dimNumber];
 
-    marginalResults = new MarginalTrek*[dimNumber];
     for(int i = 0; i<dimNumber; i++)
     {
-        marginalResults[i] = new MarginalTrek(
-            isotopeMasses[i],
-            isotopeProbabilities[i],
-            isotopeNumbers[i],
-            atomCounts[i],
-            tabSize,
-            hashSize
-        );
-
         masses[i] = &marginalResults[i]->conf_masses();
         logProbs[i] = &marginalResults[i]->conf_probs();
         marginalConfs[i] = &marginalResults[i]->confs();
@@ -206,22 +245,6 @@ template<typename T> T* IsoSpec::IsoFromFormula(const char* formula, double cuto
                  hashsize
     );
 
-}
-
-double IsoSpec::getLightestPeakMass()
-{
-    double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
-	mass += marginalResults[ii]->getLightestConfMass();
-    return mass;
-}
-
-double IsoSpec::getHeaviestPeakMass()
-{
-    double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
-        mass += marginalResults[ii]->getHeaviestConfMass();
-    return mass;
 }
 
 
@@ -371,24 +394,12 @@ int IsoSpec::getNoIsotopesTotal()
     return ret;
 }
 
-template<typename T> void dealloc_table(T* tbl, int dim)
-{
-    for(int i=0; i<dim; i++)
-    {
-        delete tbl[i];
-    }
-    delete[] tbl;
-}
-
 IsoSpec::~IsoSpec()
 {
-    dealloc_table(marginalResults, dimNumber);
     delete[] candidate;
     delete[] logProbs;
     delete[] masses;
     delete[] marginalConfs;
-    delete[] atomCounts;
-    delete[] isotopeNumbers;
 }
 
 IsoSpecOrdered::IsoSpecOrdered( int             _dimNumber,

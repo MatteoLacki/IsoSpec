@@ -106,9 +106,20 @@ void* quickselect(void** array, int n, int start, int end);
 
 template <typename T> inline static T* array_copy(const T* A, int size)
 {
-    double* ret = new T[size];
+    T* ret = new T[size];
     memcpy(ret, A, size*sizeof(T));
     return ret;
 }
+
+template<typename T> void dealloc_table(T* tbl, int dim)
+{
+    for(int i=0; i<dim; i++)
+    {
+        delete tbl[i];
+    }
+    delete[] tbl;
+}
+
+
 
 #endif

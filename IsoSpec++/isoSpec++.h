@@ -36,13 +36,38 @@
 
 class IsoSpecLayered;
 
- class IsoSpec{
+class Iso {
+protected:
+	const int 		dimNumber;
+	const int*		isotopeNumbers;
+	const int*		atomCounts;
+	const unsigned int	confSize;
+	int			allDim;
+	MarginalTrek**          marginalResults;
+	const int             	tabSize;
+        const int             	hashSize;
+
+public:
+	Iso(
+	    int             _dimNumber,
+	    const int*      _isotopeNumbers,
+	    const int*      _atomCounts,
+	    const double**  _isotopeMasses,
+	    const double**  _isotopeProbabilities,
+	    int		    _tabSize,
+	    int             _hashSize
+	);
+
+	virtual ~Iso();
+
+	double getLightestPeakMass();
+	double getHeaviestPeakMass();
+
+};
+
+ class IsoSpec : public Iso {
  protected:
-     const int               dimNumber;
-     int*                    isotopeNumbers;
-     int*                    atomCounts;
      const double            cutOff;
-     MarginalTrek**          marginalResults;
      const std::vector<double>**     logProbs;
      const std::vector<double>**     masses;
      const std::vector<int*>**       marginalConfs;
@@ -50,7 +75,6 @@ class IsoSpecLayered;
      std::vector<void*>      newaccepted;
      Summator                totalProb;
      unsigned int            cnt;
-     const unsigned int      confSize;
      int*                    candidate;
      void*                   topConf;
      int                     allDim;
@@ -81,8 +105,6 @@ class IsoSpecLayered;
      void processConfigurationsUntilCutoff();
      int getNoVisitedConfs();
      int getNoIsotopesTotal();
-     double getLightestPeakMass();
-     double getHeaviestPeakMass();
 
 
      void getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts);
