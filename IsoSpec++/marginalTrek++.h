@@ -69,8 +69,6 @@ public:
 
     inline bool probeConfigurationIdx(int idx)
     {
-        if(current_count > idx)
-            return true;
         while(current_count <= idx)
             if(not add_next_conf()) 
                 return false;

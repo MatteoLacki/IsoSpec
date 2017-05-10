@@ -217,6 +217,62 @@ public:
 
 
 
+class IsoGenerator : public Iso
+{
+public:
+	virtual bool advanceToNextConfiguration() = 0;
+	virtual const double& lprob() const = 0;
+	virtual const double& mass() const = 0;
+	virtual const int* const & conf() const = 0;
+
+	inline IsoGenerator(int _dimNumber,
+            	const int*      _isotopeNumbers,
+            	const int*      _atomCounts,
+            	const double**  _isotopeMasses,
+            	const double**  _isotopeProbabilities,
+            	int             _tabSize,
+            	int             _hashSize) : 
+	    Iso(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize) {};
+	inline virtual ~IsoGenerator() {};
+
+};
+
+class IsoThresholdGenerator : public IsoGenerator
+{
+private:
+	unsigned int* counter;
+	double* partialLProbs;
+	double Lcutoff;
+
+	
+public:
+	virtual bool advanceToNextConfiguration();
+	virtual inline const double& lprob() const { return partialLProbs[0]; };
+	virtual const double& mass() const;
+	virtual const int* const & conf() const;
+
+	inline IsoThresholdGenerator(int _dimNumber,
+                const int*      _isotopeNumbers,
+                const int*      _atomCounts,
+                const double**  _isotopeMasses,
+                const double**  _isotopeProbabilities,
+		double          _threshold,
+		bool            _absolute = true,
+                int             _tabSize = 1000,
+                int             _hashSize = 1000);
+	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; };
+
+private:
+	inline void recalc_currentLProb(int idx)
+	{
+		for(; idx >=0; idx--)
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]]; 
+		}
+	}
+
+};
+
  void printConfigurations(
      const   std::tuple<double*,double*,int*,int>& results,
      int     dimNumber,

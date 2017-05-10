@@ -817,4 +817,44 @@ void printConfigurations(
     }
 }
 
+
+
+
+
+
+
+
+IsoThresholdGenerator::IsoThresholdGenerator(int _dimNumber,
+                const int*      _isotopeNumbers,
+                const int*      _atomCounts,
+                const double**  _isotopeMasses,
+                const double**  _isotopeProbabilities,
+                double          _threshold,
+                bool            _absolute,
+                int             _tabSize,
+                int             _hashSize) :
+IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize),
+counter(new unsigned int[_dimNumber]),
+partialLProbs(new double[_dimNumber+1])
+{
+	for(int ii=0; ii<dimNumber; ii++)
+	{
+	    counter[ii] = 0;
+	    marginalResults[ii]->probeConfigurationIdx(0);
+	}
+
+	partialLProbs[dimNumber] = 0.0;
+	recalc_currentLProb(dimNumber-1);
+
+	Lcutoff = log(_threshold);
+
+	if(not _absolute)
+		Lcutoff = partialLProbs[0];
+
+	
+
+}
+
+
+
 #endif /* BUILDING_R */
