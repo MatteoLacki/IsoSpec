@@ -104,7 +104,7 @@ template<typename T> void printNestedArray(const T** array, const int* shape, in
 
 void* quickselect(void** array, int n, int start, int end);
 
-template <typename T> inline static double* array_copy(const T* A, int size)
+template <typename T> inline static T* array_copy(const T* A, int size)
 {
     double* ret = new T[size];
     memcpy(ret, A, size*sizeof(T));
