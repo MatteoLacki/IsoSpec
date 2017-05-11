@@ -842,15 +842,13 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 
 bool IsoThresholdGenerator::advanceToNextConfiguration()
 {
-//	printArray<unsigned int>(counter, dimNumber);
 	counter[0]++;
 	if(marginalResults[0]->probeConfigurationIdx(counter[0]))
 	{
-//	std::cerr << "AAA" << partialLProbs[0] << " " << Lcutoff << '\n';
 		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->conf_probs()[counter[0]];
 		if(partialLProbs[0] > Lcutoff)
 		{
-			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_probs()[counter[0]];
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_masses()[counter[0]];
 			return true;
 		}
 	}
@@ -858,8 +856,6 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 	// If we reached this point, a carry is needed
 	
 	int idx = 0;
-
-//	std::cerr << "LP " << partialLProbs[0];
 
 	while(idx<dimNumber-1)
 	{
@@ -871,7 +867,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
 			{
-				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
 				recalc(idx-1);
 				return true;
 			}
@@ -937,15 +933,13 @@ void IsoThresholdGeneratorMultithreaded::IsoThresholdGeneratorMultithreaded_init
 
 bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 {
-//	printArray<unsigned int>(counter, dimNumber);
 	counter[0]++;
 	if(marginalResults[0]->probeConfigurationIdx(counter[0]))
 	{
-//	std::cerr << "AAA" << partialLProbs[0] << " " << Lcutoff << '\n';
 		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->conf_probs()[counter[0]];
 		if(partialLProbs[0] > Lcutoff)
 		{
-			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_probs()[counter[0]];
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_masses()[counter[0]];
 			return true;
 		}
 	}
@@ -953,8 +947,6 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 	// If we reached this point, a carry is needed
 	
 	int idx = 0;
-
-//	std::cerr << "LP " << partialLProbs[0];
 
 	while(idx<dimNumber-2)
 	{
@@ -966,7 +958,7 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
 			{
-				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
 				recalc(idx-1);
 				return true;
 			}
@@ -981,7 +973,7 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
             {
-                    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+                    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
                     recalc(idx-1);
                     return true;
             }
