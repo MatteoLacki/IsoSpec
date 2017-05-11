@@ -166,6 +166,7 @@ inline int str_to_int(const string& s)
 }
 
 Iso::Iso(const char* formula, int _tabsize, int _hashsize) :
+marginalResults(nullptr),
 tabSize(_tabsize),
 hashSize(_hashsize)
 {
@@ -877,7 +878,7 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 		Lcutoff += partialLProbs[0];
 }
 /*
-IsoThresholdGenerator::IsoThresholdGenerator(char* formula,
+IsoThresholdGenerator::IsoThresholdGenerator(const char* formula,
                 double  _threshold,
                 bool    _absolute,
                 int     _tabSize,

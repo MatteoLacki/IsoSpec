@@ -277,7 +277,7 @@ public:
                 int             _hashSize = 1000) : IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize)
 						{ IsoThresholdGenerator_init(_threshold, _absolute); };
 
-	inline IsoThresholdGenerator(char* formula, 
+	inline IsoThresholdGenerator(const char* formula, 
 	        double 	_threshold,
 		bool 	_absolute = true,
 		int 	_tabSize  = 1000,
