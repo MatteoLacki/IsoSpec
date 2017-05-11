@@ -57,24 +57,30 @@ isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
-marginalResults(new MarginalTrek*[dimNumber]),
+marginalResults(nullptr),
 tabSize(_tabSize),
 hashSize(_hashSize)
-
 {
-    for(int i=0; i<dimNumber;i++) 
+	setupMarginals(_isotopeMasses, _isotopeProbabilities);
+}
+
+inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities)
+{
+    if (marginalResults == nullptr)
     {
-	allDim += isotopeNumbers[i];
-	marginalResults[i] = new MarginalTrek(
-            _isotopeMasses[i],
-            _isotopeProbabilities[i],
-            _isotopeNumbers[i],
-            atomCounts[i],
-            _tabSize,
-            _hashSize
-        );
-
-
+        marginalResults = new MarginalTrek*[dimNumber];
+        for(int i=0; i<dimNumber;i++) 
+        {
+	    allDim += isotopeNumbers[i];
+	    marginalResults[i] = new MarginalTrek(
+                _isotopeMasses[i],
+                _isotopeProbabilities[i],
+                isotopeNumbers[i],
+                atomCounts[i],
+                tabSize,
+                hashSize
+             );
+        }
     }
 
 }
@@ -158,10 +164,11 @@ inline int str_to_int(const string& s)
 	return ret;
 }
 
-IsoThresholdGenerator* IsoSpec::IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
+Iso::Iso(const char* formula, int _tabsize, int _hashsize) :
+tabSize(_tabsize),
+hashSize(_hashsize)
 {
 // This function is NOT guaranteed to be secure againt malicious input. It should be used only for debugging.
-//    static_assert(std::is_base_of<IsoSpec, T>::value, "Template argument must be derived from IsoSpec");
 
     string cpp_formula(formula);
     int last_modeswitch = 0;
@@ -211,7 +218,7 @@ IsoThresholdGenerator* IsoSpec::IsoFromFormula(const char* formula, double cutof
 
     }
 
-    vector<int> isotope_numbers;
+    vector<int> _isotope_numbers;
 
     for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
@@ -223,7 +230,7 @@ IsoThresholdGenerator* IsoSpec::IsoFromFormula(const char* formula, double cutof
             at_idx++;
             num++;
         }
-        isotope_numbers.push_back(num);
+        _isotope_numbers.push_back(num);
     }
 
     vector<const double*> isotope_masses;
@@ -234,17 +241,14 @@ IsoThresholdGenerator* IsoSpec::IsoFromFormula(const char* formula, double cutof
         isotope_probabilities.push_back(&elem_table_probability[*it]);
     }
 
-    return new IsoThresholdGenerator(
-                 elements.size(),
-                 isotope_numbers.data(),
-                 numbers.data(),
-                 isotope_masses.data(),
-                 isotope_probabilities.data(),
-                 cutoff,
-		 false,
-                 tabsize,
-                 hashsize
-    );
+    dimNumber = elements.size();
+    isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
+    atomCounts = array_copy<int>(numbers.data(), dimNumber);
+    confSize = dimNumber * sizeof(int);
+    allDim = 0;
+
+    setupMarginals(isotope_masses.data(), isotope_probabilities.data());
+
 
 }
 
@@ -864,6 +868,15 @@ maxConfsLPSum(new double[_dimNumber])
 	if(not _absolute)
 		Lcutoff += partialLProbs[0];
 }
+
+IsoThresholdGenerator::IsoThresholdGenerator(char* formula,
+                double  _threshold,
+                bool    _absolute,
+                int     _tabSize,
+                int     _hashSize) : 
+IsoGenerator(formula, _tabSize, _hashSize)
+{}
+
 
 bool IsoThresholdGenerator::advanceToNextConfiguration()
 {

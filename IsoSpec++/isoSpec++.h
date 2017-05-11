@@ -38,11 +38,13 @@ class IsoSpecLayered;
 class IsoThresholdGenerator;
 
 class Iso {
+private:
+	void setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities);
 protected:
-	const int 		dimNumber;
-	const int*		isotopeNumbers;
-	const int*		atomCounts;
-	const unsigned int	confSize;
+	int 			dimNumber;
+	int*			isotopeNumbers;
+	int*			atomCounts;
+	unsigned int		confSize;
 	int			allDim;
 	MarginalTrek**          marginalResults;
 	const int             	tabSize;
@@ -58,6 +60,13 @@ public:
 	    int		    _tabSize,
 	    int             _hashSize
 	);
+
+	Iso(
+	    const char* formula,
+            int tabsize = 1000,
+            int hashsize = 1000
+        );
+
 
 	virtual ~Iso();
 
@@ -234,6 +243,8 @@ public:
             	int             _tabSize,
             	int             _hashSize) : 
 	    Iso(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize) {};
+	inline IsoGenerator(const char* formula, int _tabsize, int _hashsize) :
+		Iso(formula, _tabsize, _hashsize) {}
 	inline virtual ~IsoGenerator() {};
 
 };
@@ -263,6 +274,12 @@ public:
 		bool            _absolute = true,
                 int             _tabSize = 1000,
                 int             _hashSize = 1000);
+	IsoThresholdGenerator(char* formula, 
+	        double 	_threshold,
+		bool 	_absolute = true,
+		int 	_tabSize  = 1000,
+		int 	_hashSize = 1000);
+
 	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum;};
 
 private:
