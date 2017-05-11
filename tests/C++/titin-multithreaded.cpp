@@ -50,7 +50,7 @@ void* thread(void* nr)
 	    last = exp(iso->lprob());
         };
 */	
-	Spectrum spctr(*iso, 0.0001);
+	Spectrum spctr(*iso, 0.01);
 	delete iso;
 	cnt_tot += cnt;
 	std::cout <<  "Slice: " << cnt << " element(s), last: " << last << std::endl;
