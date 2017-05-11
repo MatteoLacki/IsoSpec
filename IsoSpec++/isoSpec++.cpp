@@ -87,7 +87,8 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
 
 Iso::~Iso()
 {
-	dealloc_table(marginalResults, dimNumber);
+	if (marginalResults != nullptr)
+	    dealloc_table(marginalResults, dimNumber);
 	delete[] isotopeNumbers;
 	delete[] atomCounts;
 }
@@ -831,7 +832,7 @@ void printConfigurations(
 
 
 
-
+/*
 
 IsoThresholdGenerator::IsoThresholdGenerator(int _dimNumber,
                 const int*      _isotopeNumbers,
@@ -842,12 +843,19 @@ IsoThresholdGenerator::IsoThresholdGenerator(int _dimNumber,
                 bool            _absolute,
                 int             _tabSize,
                 int             _hashSize) :
-IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize),
-counter(new unsigned int[_dimNumber]),
-partialLProbs(new double[_dimNumber+1]),
-partialMasses(new double[_dimNumber+1]),
-maxConfsLPSum(new double[_dimNumber])
+IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize)
 {
+	IsoThresholdGenerator_init(_threshold, _absolute);
+}
+*/
+
+void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _absolute)
+{
+	counter 	= new unsigned int[dimNumber];
+	partialLProbs 	= new double[dimNumber+1];
+	partialMasses 	= new double[dimNumber+1];
+	maxConfsLPSum 	= new double[dimNumber];
+
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
@@ -868,7 +876,7 @@ maxConfsLPSum(new double[_dimNumber])
 	if(not _absolute)
 		Lcutoff += partialLProbs[0];
 }
-
+/*
 IsoThresholdGenerator::IsoThresholdGenerator(char* formula,
                 double  _threshold,
                 bool    _absolute,
@@ -876,7 +884,7 @@ IsoThresholdGenerator::IsoThresholdGenerator(char* formula,
                 int     _hashSize) : 
 IsoGenerator(formula, _tabSize, _hashSize)
 {}
-
+*/
 
 bool IsoThresholdGenerator::advanceToNextConfiguration()
 {

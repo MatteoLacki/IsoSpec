@@ -258,7 +258,8 @@ private:
 	double* maxConfsLPSum;
 	double Lcutoff;
 
-	
+	void IsoThresholdGenerator_init(double _threshold, bool _absolute);
+
 public:
 	virtual bool advanceToNextConfiguration();
 	virtual inline const double& lprob() const { return partialLProbs[0]; };
@@ -273,12 +274,14 @@ public:
 		double          _threshold,
 		bool            _absolute = true,
                 int             _tabSize = 1000,
-                int             _hashSize = 1000);
-	IsoThresholdGenerator(char* formula, 
+                int             _hashSize = 1000) : IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize)
+						{ IsoThresholdGenerator_init(_threshold, _absolute); };
+
+	inline IsoThresholdGenerator(char* formula, 
 	        double 	_threshold,
 		bool 	_absolute = true,
 		int 	_tabSize  = 1000,
-		int 	_hashSize = 1000);
+		int 	_hashSize = 1000) : IsoGenerator(formula, _tabSize, _hashSize) { IsoThresholdGenerator_init(_threshold, _absolute); };
 
 	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum;};
 
