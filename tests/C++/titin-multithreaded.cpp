@@ -1,6 +1,7 @@
 #include <iostream>
 #include "isoSpec++.h"
 #include "summator.h"
+#include "spectrum2.h"
 #include <pthread.h>
 
 
@@ -40,7 +41,7 @@ void* thread(void* nr)
 	std::cout << "Ready: " << exp(iso->lprob()) << "Range: " << iso->getLightestPeakMass() << " - " << iso->getHeaviestPeakMass() << std::endl;
 	double last = 0.0;
         unsigned int cnt = 0;
-        while (iso->advanceToNextConfiguration())
+/*        while (iso->advanceToNextConfiguration())
         {
     	    cnt++;
 	    s.add(exp(iso->lprob()));
@@ -48,6 +49,8 @@ void* thread(void* nr)
 		std::cout << cnt << "	" << s.get() << "\t" << exp(iso->lprob()) << '\n';
 	    last = exp(iso->lprob());
         };
+*/	
+	Spectrum spctr(*iso, 0.0001);
 	delete iso;
 	cnt_tot += cnt;
 	std::cout <<  "Slice: " << cnt << " element(s), last: " << last << std::endl;
