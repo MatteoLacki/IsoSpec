@@ -30,6 +30,7 @@
 #include <stdexcept>
 #include <string>
 #include <limits>
+#include <assert.h>
 #include "lang.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
@@ -797,58 +798,17 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 }
 
 
-#ifndef BUILDING_R
-
-void printConfigurations(
-    const   std::tuple<double*,double*,int*,int>& results,
-    int     dimNumber,
-    int*    isotopeNumbers
-){
-    int m = 0;
-
-    for(int i=0; i<std::get<3>(results); i++){
-
-        std::cout << "Mass = "  << std::get<0>(results)[i] <<
-        "\tand log-prob = "     << std::get<1>(results)[i] <<
-        "\tand prob = "                 << exp(std::get<1>(results)[i]) <<
-        "\tand configuration =\t";
-
-
-        for(int j=0; j<dimNumber; j++){
-            for(int k=0; k<isotopeNumbers[j]; k++ )
-            {
-                std::cout << std::get<2>(results)[m] << " ";
-                m++;
-            }
-            std::cout << '\t';
-        }
-
-
-        std::cout << std::endl;
-    }
-}
-
-
-
-
-
-
 /*
+ * ----------------------------------------------------------------------------------------------------------
+ */
 
-IsoThresholdGenerator::IsoThresholdGenerator(int _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double**  _isotopeMasses,
-                const double**  _isotopeProbabilities,
-                double          _threshold,
-                bool            _absolute,
-                int             _tabSize,
-                int             _hashSize) :
-IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize)
-{
-	IsoThresholdGenerator_init(_threshold, _absolute);
-}
-*/
+
+
+
+
+
+
+
 
 void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _absolute)
 {
@@ -876,16 +836,9 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 
 	if(not _absolute)
 		Lcutoff += partialLProbs[0];
+
+	counter[0]--;
 }
-/*
-IsoThresholdGenerator::IsoThresholdGenerator(const char* formula,
-                double  _threshold,
-                bool    _absolute,
-                int     _tabSize,
-                int     _hashSize) : 
-IsoGenerator(formula, _tabSize, _hashSize)
-{}
-*/
 
 bool IsoThresholdGenerator::advanceToNextConfiguration()
 {
@@ -927,5 +880,147 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 	return false;
 }
 
+/*
+ * ----------------------------------------------------------------------------------------------------------
+ */
+
+
+
+
+
+
+
+
+void IsoThresholdGeneratorMultithreaded::IsoThresholdGeneratorMultithreaded_init(unsigned int _total_threads, unsigned int _thread_offset, double _threshold, bool _absolute)
+{
+	total_threads   = _total_threads;
+	thread_offset   = _thread_offset;
+	counter 	= new unsigned int[dimNumber];
+	partialLProbs 	= new double[dimNumber+1];
+	partialMasses 	= new double[dimNumber+1];
+	maxConfsLPSum 	= new double[dimNumber];
+
+	for(int ii=0; ii<dimNumber; ii++)
+	{
+	    counter[ii] = 0;
+	    marginalResults[ii]->probeConfigurationIdx(0);
+	}
+
+        partialLProbs[dimNumber] = 0.0;
+        partialMasses[dimNumber] = 0.0;
+
+
+	Lcutoff = log(_threshold);
+
+	if(not _absolute)
+	{
+                recalc(dimNumber-1);
+                Lcutoff += partialLProbs[0];
+        }
+
+	assert(marginalResults[dimNumber-1]->probeConfigurationIdx(thread_offset));
+
+	maxConfsLPSum[0] = marginalResults[0]->conf_probs()[0];
+	for(int ii=1; ii<dimNumber; ii++)
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->conf_probs()[0];
+
+
+	counter[dimNumber-1] = thread_offset;
+
+	recalc(dimNumber-1);
+
+	counter[0]--;
+}
+
+
+
+
+bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
+{
+//	printArray<unsigned int>(counter, dimNumber);
+	counter[0]++;
+	if(marginalResults[0]->probeConfigurationIdx(counter[0]))
+	{
+//	std::cerr << "AAA" << partialLProbs[0] << " " << Lcutoff << '\n';
+		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->conf_probs()[counter[0]];
+		if(partialLProbs[0] > Lcutoff)
+		{
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_probs()[counter[0]];
+			return true;
+		}
+	}
+
+	// If we reached this point, a carry is needed
+	
+	int idx = 0;
+
+//	std::cerr << "LP " << partialLProbs[0];
+
+	while(idx<dimNumber-2)
+	{
+		counter[idx] = 0;
+		idx++;
+		counter[idx]++;
+		if(marginalResults[idx]->probeConfigurationIdx(counter[idx]))
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
+			{
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+				recalc(idx-1);
+				return true;
+			}
+		}
+	}
+    
+    counter[idx] = 0;
+    idx++;
+    counter[idx] += total_threads;
+    if(marginalResults[idx]->probeConfigurationIdx(counter[idx]))
+    {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
+            {
+                    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+                    recalc(idx-1);
+                    return true;
+            }
+    }
+
+
+	return false;
+}
+
+
+#ifndef BUILDING_R
+
+void printConfigurations(
+    const   std::tuple<double*,double*,int*,int>& results,
+    int     dimNumber,
+    int*    isotopeNumbers
+){
+    int m = 0;
+
+    for(int i=0; i<std::get<3>(results); i++){
+
+        std::cout << "Mass = "  << std::get<0>(results)[i] <<
+        "\tand log-prob = "     << std::get<1>(results)[i] <<
+        "\tand prob = "                 << exp(std::get<1>(results)[i]) <<
+        "\tand configuration =\t";
+
+
+        for(int j=0; j<dimNumber; j++){
+            for(int k=0; k<isotopeNumbers[j]; k++ )
+            {
+                std::cout << std::get<2>(results)[m] << " ";
+                m++;
+            }
+            std::cout << '\t';
+        }
+
+
+        std::cout << std::endl;
+    }
+}
 
 #endif /* BUILDING_R */

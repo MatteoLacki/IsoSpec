@@ -289,8 +289,10 @@ int getIsotopesNo(void* iso)
     return reinterpret_cast<IsoSpec*>(iso)->getNoIsotopesTotal();
 }
 
+/*
 void* IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
 {
+return NULL;
     IsoSpec* iso;
     try{
         iso = IsoSpec::IsoFromFormula<IsoSpecLayered>(
@@ -303,7 +305,7 @@ void* IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsi
     }
 
     return reinterpret_cast<void*>(iso);
-}
+} */
 
 int getIsoConfNo(void* iso)
 {

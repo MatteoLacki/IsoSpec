@@ -299,6 +299,67 @@ private:
 
 };
 
+
+class IsoThresholdGeneratorMultithreaded : public IsoGenerator
+{
+private:
+        unsigned int* counter;
+	unsigned int total_threads;
+	unsigned int thread_offset;
+        double* partialLProbs;
+        double* partialMasses;
+        double* maxConfsLPSum;
+        double Lcutoff;
+
+        void IsoThresholdGeneratorMultithreaded_init(unsigned int _total_threads, unsigned int _thread_offset, double _threshold, bool _absolute);
+
+public:
+        virtual bool advanceToNextConfiguration();
+        virtual inline const double& lprob() const { return partialLProbs[0]; };
+        virtual const double& mass() const { return partialMasses[0]; };
+//      virtual const int* const & conf() const;
+
+        inline IsoThresholdGeneratorMultithreaded(
+		unsigned int 	_total_threads,
+		unsigned int 	_thread_offset,
+		int 		_dimNumber,
+                const int*      _isotopeNumbers,
+                const int*      _atomCounts,
+                const double**  _isotopeMasses,
+                const double**  _isotopeProbabilities,
+                double          _threshold,
+                bool            _absolute = true,
+                int             _tabSize = 1000,
+                int             _hashSize = 1000) : IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize)
+                                                { IsoThresholdGeneratorMultithreaded_init(_total_threads, _thread_offset, _threshold, _absolute); };
+
+        inline IsoThresholdGeneratorMultithreaded(
+		unsigned int    _total_threads,
+                unsigned int    _thread_offset,
+		const char* 	formula,
+                double  	_threshold,
+                bool    	_absolute = true,
+                int     	_tabSize  = 1000,
+                int     	_hashSize = 1000) : IsoGenerator(formula, _tabSize, _hashSize) 
+						{ IsoThresholdGeneratorMultithreaded_init(_total_threads, _thread_offset, _threshold, _absolute); };
+
+        inline virtual ~IsoThresholdGeneratorMultithreaded() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum;};
+
+private:
+        inline void recalc(int idx)
+        {
+                for(; idx >=0; idx--)
+                {
+                        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+                        partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
+                }
+        }
+
+
+
+};
+
+
  void printConfigurations(
      const   std::tuple<double*,double*,int*,int>& results,
      int     dimNumber,
