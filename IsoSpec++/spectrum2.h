@@ -11,5 +11,6 @@ private:
 	double* storage;
 public:
 	Spectrum(IsoGenerator& G, double bucket_width);
+	Summator sum;
 
 };
