@@ -985,7 +985,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
             double candidateLProb = combinedSum(candidate, logProbs, dimNumber);
 
-            if (candidateLProb > _cutOff)
+            if (candidateLProb > cutOff)
 	    {
                 void*       acceptedCandidate                       = allocator.newConf();
                 int*        acceptedCandidateIsoCounts      = getConf(acceptedCandidate);
