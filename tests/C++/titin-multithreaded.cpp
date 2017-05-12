@@ -10,6 +10,7 @@
 void* thread(void* nr);
 
 double fin_probs[n_threads];
+Spectrum* spectra[n_threads];
 
 int main()
 {
@@ -30,6 +31,13 @@ int main()
 
     std::cout << "Final summary: prob: " << total << '\n';
 
+    for(int ii=1; ii<n_threads; ii++)
+    {
+    	spectra[0]->add_other(*spectra[ii]);
+	delete spectra[ii];
+    }
+    spectra[0]->print();
+    delete spectra[0];
 }
 
 
@@ -43,7 +51,7 @@ void* thread(void* nr)
 
     SSummator s;
     unsigned int cnt_tot = 0;
-    double threshold = 0.0001;
+    double threshold = 0.00001;
         IsoThresholdGeneratorMultithreaded* iso = new IsoThresholdGeneratorMultithreaded(n_threads, numer, "C169719H270464N45688O52237S911", threshold, false);
 	std::cout << "Ready: " << exp(iso->lprob()) << "Range: " << iso->getLightestPeakMass() << " - " << iso->getHeaviestPeakMass() << std::endl;
         unsigned int cnt = 0;
@@ -56,10 +64,11 @@ void* thread(void* nr)
 	    last = exp(iso->lprob());
         };
 */	
-	Spectrum spctr(*iso, 0.1);
+	spectra[numer] = new Spectrum (*iso, 0.0001);
+	Spectrum* spctr = spectra[numer];
 	delete iso;
 	cnt_tot += cnt;
-	std::cout <<  "Slice: " << cnt << " element(s), last: " << "totalprob: " << spctr.sum.get() << std::endl;
-	fin_probs[numer] = spctr.sum.get();
+	std::cout <<  "Slice: " << cnt << " element(s), last: " << "totalprob: " << spctr->sum.get() << std::endl;
+	fin_probs[numer] = spctr->sum.get();
 	return NULL;
 }
