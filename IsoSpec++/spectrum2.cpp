@@ -38,13 +38,13 @@ void Spectrum::add_other(Spectrum& other)
 	assert(bucket_width == other.bucket_width);
 	assert(lowest_mass == other.lowest_mass);
 	sum.add(other.sum.get());
-	for(int ii=0; ii<n_buckets; ii++)
+	for(unsigned long ii=0; ii<n_buckets; ii++)
 	    if(other.storage[ii] > 0.0) // This seemingly unnecesary if is here to avoid needless writes into mmaped memory
 	        storage[ii] += other.storage[ii];
 }
 
 void Spectrum::print(std::ostream& o)
 {
-	for(int ii=0; ii<n_buckets; ii++)
+	for(unsigned long ii=0; ii<n_buckets; ii++)
 	    o << lowest_mass + static_cast<double>(ii)*bucket_width << "\t" << storage[ii] << std::endl;
 }
