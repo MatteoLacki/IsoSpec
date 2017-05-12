@@ -278,54 +278,6 @@ void IsoSpec::processConfigurationsUntilCutoff()
 }
 
 
-bool IsoSpecOrdered::advanceToNextConfiguration()
-{
-    if(pq.size() < 1)
-        return false;
-
-
-    topConf = pq.top();
-    pq.pop();
-
-    cnt++;
-
-    int* topConfIsoCounts = getConf(topConf);
-
-    //      visited[topConfIsoCounts] = cnt;
-    newaccepted.push_back(topConf);
-
-    totalProb.add( exp(*reinterpret_cast<double*>(topConf) ));
-
-    for(int j = 0; j < dimNumber; ++j)
-    {
-        // candidate cannot refer to a position that is
-        // out of range of the stored marginal distribution.
-        if(marginalResults[j]->probeConfigurationIdx(topConfIsoCounts[j] + 1))
-        {
-            memcpy(candidate, topConfIsoCounts, confSize);
-            candidate[j]++;
-
-            void*       acceptedCandidate                       = allocator.newConf();
-            int*        acceptedCandidateIsoCounts      = getConf(acceptedCandidate);
-            memcpy(     acceptedCandidateIsoCounts, candidate, confSize);
-
-            *(reinterpret_cast<double*>(acceptedCandidate)) =
-            combinedSum(
-                candidate,
-                logProbs,
-                dimNumber
-            );
-            pq.push(acceptedCandidate);
-        }
-        if(topConfIsoCounts[j] > 0)
-            break;
-    }
-
-
-    return true;
-}
-
-
 
 std::tuple<double*,double*,int*,int> IsoSpec::getProduct()
 {
@@ -414,26 +366,6 @@ IsoSpec::~IsoSpec()
     delete[] marginalConfs;
 }
 
-IsoSpecOrdered::IsoSpecOrdered( int             _dimNumber,
-                                const int*      _isotopeNumbers,
-                                const int*      _atomCounts,
-                                const double**  _isotopeMasses,
-                                const double**  _isotopeProbabilities,
-                                const double    _cutOff,
-                                int             tabSize,
-                                int             hashSize
-) : IsoSpec( _dimNumber,
-             _isotopeNumbers,
-             _atomCounts,
-             _isotopeMasses,
-             _isotopeProbabilities,
-             _cutOff,
-             tabSize = 1000,
-             hashSize = 1000)
-{pq.push(initialConf);}
-
-
-IsoSpecOrdered::~IsoSpecOrdered(){}
 
 
 IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
@@ -983,6 +915,93 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 	return false;
 }
 
+
+/*
+ * ------------------------------------------------------------------------------------------------------------------------
+ */
+
+
+void IsoOrderedGenerator::IsoOrderedGenerator_init(const double    _cutOff)
+{
+    logProbs        = new const vector<double>*[dimNumber];
+    masses          = new const vector<double>*[dimNumber];
+    marginalConfs   = new const vector<int*>*[dimNumber];
+    candidate	    = new int[dimNumber];
+
+    for(int i = 0; i<dimNumber; i++)
+    {
+        masses[i] = &marginalResults[i]->conf_masses();
+        logProbs[i] = &marginalResults[i]->conf_probs();
+        marginalConfs[i] = &marginalResults[i]->confs();
+    }
+
+    topConf     = allocator.newConf();
+    memset(
+        reinterpret_cast<char*>(topConf) + sizeof(double),
+           0,
+           sizeof(int)*dimNumber
+    );
+
+    *(reinterpret_cast<double*>(topConf)) =
+    combinedSum(
+        getConf(topConf),
+                logProbs,
+                dimNumber
+    );
+
+    pq.push(topConf);
+    cutOff = _cutOff;
+
+}
+
+
+IsoOrderedGenerator::~IsoOrderedGenerator(){};
+
+bool IsoOrderedGenerator::advanceToNextConfiguration()
+{
+    if(pq.size() < 1)
+        return false;
+
+
+    topConf = pq.top();
+    pq.pop();
+
+    int* topConfIsoCounts = getConf(topConf);
+
+    // newaccepted.push_back(topConf);
+    currentLProb = *(reinterpret_cast<double*>(topConf));
+    currentMass = combinedSum( topConfIsoCounts, masses, dimNumber );
+
+    // totalProb.add( exp(*reinterpret_cast<double*>(topConf) ));
+
+    for(int j = 0; j < dimNumber; ++j)
+    {
+        // candidate cannot refer to a position that is
+        // out of range of the stored marginal distribution.
+        if(marginalResults[j]->probeConfigurationIdx(topConfIsoCounts[j] + 1))
+        {
+            memcpy(candidate, topConfIsoCounts, confSize);
+            candidate[j]++;
+
+            void*       acceptedCandidate                       = allocator.newConf();
+            int*        acceptedCandidateIsoCounts      = getConf(acceptedCandidate);
+            memcpy(     acceptedCandidateIsoCounts, candidate, confSize);
+
+            *(reinterpret_cast<double*>(acceptedCandidate)) =
+            combinedSum(
+                candidate,
+                logProbs,
+                dimNumber
+            );
+            pq.push(acceptedCandidate);
+        }
+        if(topConfIsoCounts[j] > 0)
+            break;
+    }
+
+
+    return true;
+}
 
 #ifndef BUILDING_R
 
