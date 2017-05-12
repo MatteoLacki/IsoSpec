@@ -274,7 +274,7 @@ public:
                                    const int*      _atomCounts,
                                    const double**  _isotopeMasses,
                                    const double**  _isotopeProbabilities,
-                                   const double    _cutOff   = std::numeric_limits<double>::infinity(),
+                                   const double    _cutOff   = -std::numeric_limits<double>::infinity(),
                                    int             _tabSize  = 1000,
                                    int             _hashSize = 1000) : 
 			IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize),

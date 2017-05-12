@@ -983,17 +983,17 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
             memcpy(candidate, topConfIsoCounts, confSize);
             candidate[j]++;
 
-            void*       acceptedCandidate                       = allocator.newConf();
-            int*        acceptedCandidateIsoCounts      = getConf(acceptedCandidate);
-            memcpy(     acceptedCandidateIsoCounts, candidate, confSize);
+            double candidateLProb = combinedSum(candidate, logProbs, dimNumber);
 
-            *(reinterpret_cast<double*>(acceptedCandidate)) =
-            combinedSum(
-                candidate,
-                logProbs,
-                dimNumber
-            );
-            pq.push(acceptedCandidate);
+            if (candidateLProb > _cutOff)
+	    {
+                void*       acceptedCandidate                       = allocator.newConf();
+                int*        acceptedCandidateIsoCounts      = getConf(acceptedCandidate);
+                memcpy(     acceptedCandidateIsoCounts, candidate, confSize);
+
+                *(reinterpret_cast<double*>(acceptedCandidate)) = candidateLProb;
+                pq.push(acceptedCandidate);
+	    }
         }
         if(topConfIsoCounts[j] > 0)
             break;
