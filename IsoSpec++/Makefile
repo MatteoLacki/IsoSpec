@@ -4,7 +4,7 @@ DEBUGFLAGS=-O0 -g
 CXXFLAGS=-std=c++11 -Wall -pedantic -Wextra
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp
 
-all: lib
+all: unitylib
 
 lib:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -fPIC -shared -o libIsoSpec++.so 
