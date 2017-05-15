@@ -44,7 +44,7 @@ private:
     const double* iso_masses;
     const double* logProbs;
     Allocator<int> allocator;
-    KeyHasher keyHasher;
+    const KeyHasher keyHasher;
     const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
     std::unordered_map<Conf,int,KeyHasher,ConfEqual> visited;
@@ -91,21 +91,30 @@ public:
 };
 
 
-/*
+
 class PrecalculatedMarginal
 {
-    std::vector configurations;
+private:
+    std::vector<Conf> configurations;
+    Conf* confs;
+    double* masses;
+    double* lProbs;
+    const unsigned int isotopeNo;
+    const unsigned int atomCnt;
+    const double* isoMasses;
+    const double* isoLProbs;
+    Allocator<int> allocator;
 public: 
     PrecalculatedMarginal(
     	const double* masses,
 	const double* probs,
 	int isotopeNo,
 	int atomCnt,
+	double cutOff,
+	bool sort = true,
 	int tabSize = 1000,
-	int hashSize = 1000,
-	double cutOff
+	int hashSize = 1000
     );
-}
-*/
+};
 
 #endif

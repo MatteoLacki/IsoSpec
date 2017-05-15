@@ -275,18 +275,75 @@ MarginalTrek::~MarginalTrek()
     delete[] iso_masses;
 }
 
-/*
+
 
 
 PrecalculatedMarginal::PrecalculatedMarginal(
-        const double* masses,
-        const double* probs,
-        int isotopeNo,
-        int atomCnt,
-        int tabSize = 1000,
-        int hashSize = 1000,
-        double cutOff
+        const double* _masses,
+        const double* _lprobs,
+        int _isotopeNo,
+        int _atomCnt,
+	double cutOff,
+	bool sort,
+        int tabSize,
+        int hashSize
 ) : 
+isotopeNo(_isotopeNo),
+atomCnt(_atomCnt),
+isoMasses(array_copy<double>(_masses, isotopeNo)),
+isoLProbs(getMLogProbs(_lprobs, isotopeNo)),
+allocator(isotopeNo,tabSize)
 {
-    
-}*/
+    const ConfEqual equalizer(isotopeNo);
+    const KeyHasher keyHasher(isotopeNo);
+    const ConfOrderMarginal orderMarginal(isoLProbs, isotopeNo);
+
+    std::unordered_map<Conf,int,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+
+
+    Conf currentConf = initialConfigure(atomCnt, isotopeNo, _lprobs, isoLProbs);
+    configurations.push_back(currentConf);
+    visited[currentConf] = 1;
+
+    unsigned int idx = 0;
+
+    while(idx < configurations.size())
+    {
+        currentConf = configurations[idx];
+	idx++;
+
+        for( int ii = 0; ii < _isotopeNo; ii++ )
+            for( int jj = 0; jj < _isotopeNo; jj++ )
+                if( ii != jj && currentConf[jj] > 0 )
+		{
+		    currentConf[ii]++;
+		    currentConf[jj]--;
+
+		    if (visited.count(currentConf) == 0 and logProb(currentConf, isoLProbs, _isotopeNo) >= cutOff)
+		    {
+		    	 visited[currentConf] = 1;
+                         configurations.push_back(allocator.makeCopy(currentConf));
+	            }
+
+		    currentConf[ii]--;
+		    currentConf[jj]++;
+
+                }
+    }
+
+    if(sort)
+        std::sort(configurations.begin(), configurations.end(), orderMarginal);
+
+
+    confs  = &configurations[0];
+    lProbs = new double[configurations.size()];
+    masses = new double[configurations.size()];
+
+
+    for(unsigned int ii=0; ii < configurations.size(); ii++)
+    {
+        lProbs[ii] = logProb(confs[ii], isoLProbs, _isotopeNo);
+	masses[ii] = mass(confs[ii], isoMasses, _isotopeNo);
+    }
+
+}

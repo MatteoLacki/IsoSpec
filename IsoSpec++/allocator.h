@@ -27,7 +27,7 @@ template <typename T> inline void copyConf(
     const T* source, T* destination,
     int dim
 ){
-    for(int i = 0; i < dim; i++) destination[i] = source[i];
+    memcpy(destination, source, dim*sizeof(T));
 }
 
 template <typename T> class Allocator{
