@@ -16,7 +16,7 @@ n_buckets(static_cast<unsigned int>(ceil(G.getHeaviestPeakMass()-lowest_mass)/bu
 	long pagesize = sysconf(_SC_PAGESIZE);
 	unsigned long mmap_len = n_buckets * sizeof(double);
 	mmap_len += pagesize - mmap_len%pagesize;
-	storage = static_cast<double*>(mmap(NULL, n_buckets*sizeof(double), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+	storage = reinterpret_cast<double*>(mmap(NULL, n_buckets*sizeof(double), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
 	unsigned int diff = static_cast<unsigned int>(floor(lowest_mass/bucket_width));
 	double* ofset_store = storage - diff;
 	while(G.advanceToNextConfiguration())
