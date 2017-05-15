@@ -69,9 +69,12 @@ public:
 
     inline bool probeConfigurationIdx(int idx)
     {
+//    	std::cerr << "PC\n" << idx << '\n';
         while(current_count <= idx)
             if(not add_next_conf()) 
+	    {	//std::cerr << "PC\n" << idx << "FALSE" << '\n';
                 return false;
+	    }
         return true;
     }
 
@@ -88,8 +91,21 @@ public:
 };
 
 
-
-
-
+/*
+class PrecalculatedMarginal
+{
+    std::vector configurations;
+public: 
+    PrecalculatedMarginal(
+    	const double* masses,
+	const double* probs,
+	int isotopeNo,
+	int atomCnt,
+	int tabSize = 1000,
+	int hashSize = 1000,
+	double cutOff
+    );
+}
+*/
 
 #endif

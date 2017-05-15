@@ -38,7 +38,7 @@
 
 
 
-Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs)
+Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
 {
     Conf res = new int[isotopeNo];
 
@@ -74,6 +74,37 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
                 diff = abs(coordDiff);
             }
         }
+    }
+
+    // What we computed so far will be very clsoe to the mode: hillclimb the rest of the way
+    
+    bool modified = true;
+    double LP = logProb(res, lprobs, isotopeNo);
+    double NLP;
+
+    while(modified)
+    {
+    	modified = false;
+    	for(int ii = 0; ii<isotopeNo; ii++)
+	    for(int jj = 0; jj<isotopeNo; jj++)
+	        if(ii != jj and res[ii] > 0)
+		{
+		    res[ii]--;
+		    res[jj]++;
+		    NLP = logProb(res, lprobs, isotopeNo);
+		    if(NLP>LP)
+		    {
+		    	modified = true;
+			LP = NLP;
+		    }
+		    else
+		    {
+		    	res[ii]++;
+			res[jj]--;
+		    }
+		}
+
+	    
     }
     return res;
 }
@@ -147,42 +178,11 @@ candidate(new int[isotopeNo])
     pq.push(initialConf);
     visited[initialConf] = 0;
 
-    bool cont = true;
-    double last_prob = -10000.0;
-
-    double cconf = -INFINITY;
-    while(cont)
-    {
-        cont = add_next_conf();
-        cconf = _conf_probs.back();
-        if(cconf < last_prob)
-            break;
-        last_prob = cconf;
-
-    }
-    // Find max element in case loop terminated from cont==false, and not from break
-
-    std::vector<double>::iterator max_el_it = std::max_element(_conf_probs.begin(), _conf_probs.end());
-    int max_idx = std::distance(_conf_probs.begin(), max_el_it);
-
-    initialConf = _confs[max_idx];
-
-    pq = std::priority_queue<Conf,std::vector<Conf>,ConfOrderMarginal>(orderMarginal);
-    visited = std::unordered_map<Conf,int,KeyHasher,ConfEqual>(_hashSize,keyHasher,equalizer);
-    _conf_probs.clear();
-    _conf_masses.clear();
-    _confs.clear();
-
     totalProb = Summator();
-
-    pq.push(initialConf);
-    visited[initialConf] = 0;
 
     current_count = 0;
 
     add_next_conf();
-
-
 }
 
 
@@ -274,3 +274,19 @@ MarginalTrek::~MarginalTrek()
     delete[] candidate;
     delete[] iso_masses;
 }
+
+/*
+
+
+PrecalculatedMarginal::PrecalculatedMarginal(
+        const double* masses,
+        const double* probs,
+        int isotopeNo,
+        int atomCnt,
+        int tabSize = 1000,
+        int hashSize = 1000,
+        double cutOff
+) : 
+{
+    
+}*/
