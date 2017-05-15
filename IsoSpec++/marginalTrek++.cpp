@@ -347,3 +347,17 @@ allocator(isotopeNo,tabSize)
     }
 
 }
+
+
+PrecalculatedMarginal::~PrecalculatedMarginal()
+{
+    if(lProbs != nullptr)
+    	delete[] lProbs;
+    if(masses != nullptr)
+    	delete[] masses;
+    delete[] isoMasses;
+    delete[] isoLProbs;
+}
+
+
+

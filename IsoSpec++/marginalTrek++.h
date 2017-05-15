@@ -115,6 +115,7 @@ public:
 	int tabSize = 1000,
 	int hashSize = 1000
     );
+    virtual ~PrecalculatedMarginal();
 };
 
 #endif
