@@ -20,6 +20,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
+#include <atomic>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
@@ -97,6 +98,7 @@ class PrecalculatedMarginal
 private:
     std::vector<Conf> configurations;
     Conf* confs;
+    int no_confs;
     double* masses;
     double* lProbs;
     const unsigned int isotopeNo;
@@ -116,6 +118,36 @@ public:
 	int hashSize = 1000
     );
     virtual ~PrecalculatedMarginal();
+    inline bool inRange(int idx) { return idx < no_confs; };
+};
+
+class SyncMarginal : public PrecalculatedMarginal
+{
+private:
+    std::atomic<int> counter;
+public:
+    inline SyncMarginal(
+        const double* masses,
+        const double* probs,
+        int isotopeNo,
+        int atomCnt,
+        double cutOff,
+        int tabSize = 1000,
+        int hashSize = 1000
+    ) : PrecalculatedMarginal(
+        masses,
+        probs,
+        isotopeNo,
+        atomCnt,
+        cutOff,
+        false,
+        tabSize,
+        hashSize
+    ), counter(0) {};
+
+
+    inline int getNextConfIdx() { return counter.fetch_add(1, std::memory_order_relaxed); };
+
 };
 
 #endif

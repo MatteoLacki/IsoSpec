@@ -336,11 +336,12 @@ allocator(isotopeNo,tabSize)
 
 
     confs  = &configurations[0];
-    lProbs = new double[configurations.size()];
-    masses = new double[configurations.size()];
+    no_confs = configurations.size();
+    lProbs = new double[no_confs];
+    masses = new double[no_confs];
 
 
-    for(unsigned int ii=0; ii < configurations.size(); ii++)
+    for(int ii=0; ii < no_confs; ii++)
     {
         lProbs[ii] = logProb(confs[ii], isoLProbs, _isotopeNo);
 	masses[ii] = mass(confs[ii], isoMasses, _isotopeNo);
