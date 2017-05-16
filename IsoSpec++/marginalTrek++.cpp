@@ -362,3 +362,93 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 
 
+RGTMarginal::RGTMarginal(
+	const double* masses,
+        const double* probs,
+        int isotopeNo,
+        int atomCnt,
+        double cutOff,
+        int tabSize,
+        int hashSize) : 
+	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, cutOff, true, tabSize, hashSize),
+	tree_overhead(next_pow2(no_confs)-1),
+	tree_size(tree_overhead+no_confs),
+	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
+	subtree_sizes(alloc_and_setup_subtree_sizes()),
+	mass_layer_size(compute_total_no_masses()),
+	subtree_locations(alloc_and_setup_subtree_locations())
+
+
+
+{
+    // Range tree implementation using implicit trees. 
+    // Sadly, reinventing the wheel: common publically available implementations... suck.
+    // TODO: implement fractional cascading.
+
+}
+
+double* RGTMarginal::alloc_and_construct_ptree()
+{
+	double* ret = new double[tree_size];
+	construct_ptree(ret, 0, lProbs, no_confs);
+	return ret;
+}
+
+void RGTMarginal::construct_ptree(double* new_tree, unsigned int tidx, double* pstart, unsigned int howmany)
+{
+	if(howmany == 1)
+	{
+		new_tree[tidx] = *pstart;
+		return;
+	}
+	unsigned int pp = prev_pow2(howmany);
+	new_tree[tidx] = pstart[pp];
+	construct_ptree(new_tree, tidx*2+1, pstart, pp);
+	construct_ptree(new_tree, tidx*2+2, pstart+pp, howmany-pp);
+}
+
+unsigned int* RGTMarginal::alloc_and_setup_subtree_sizes()
+{
+	unsigned int* ret = new unsigned int[tree_size];
+	setup_subtree_sizes(ret, 0);
+	return ret;
+}
+
+unsigned int RGTMarginal::setup_subtree_sizes(unsigned int* T, unsigned int idx)
+{
+    if(idx >= tree_overhead)
+    {
+    	T[idx] = 1;
+	return 1;
+    }
+    T[idx] = setup_subtree_sizes(T, idx*2+1) + setup_subtree_sizes(T, idx*2+2);
+    return T[idx];
+}
+
+unsigned int RGTMarginal::compute_total_no_masses()
+{
+	// FIXME: unnecessary pass. Next function could just retrun two values...
+	unsigned int ret = 0;
+	for(unsigned int ii=0; ii<tree_size; ii++)
+	    ret += subtree_sizes[ii];
+	return ret;
+}
+
+unsigned int* RGTMarginal::alloc_and_setup_subtree_locations()
+{
+	unsigned int* ret = new unsigned int[tree_size];
+	setup_subtree_locations(ret, 0, 0);
+	return ret;
+}
+
+unsigned int RGTMarginal::setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum)
+{
+	if(idx >= tree_overhead)
+	{
+	    T[idx] = csum;
+	    return csum+1;
+	}
+	T[idx] = setup_subtree_locations(T, 2*idx+1, csum);
+	return setup_subtree_locations(T, 2*idx+2, T[idx]+subtree_sizes[idx]);
+}
+

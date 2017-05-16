@@ -95,7 +95,7 @@ public:
 
 class PrecalculatedMarginal
 {
-private:
+protected:
     std::vector<Conf> configurations;
     Conf* confs;
     int no_confs;
@@ -147,6 +147,38 @@ public:
 
 
     inline int getNextConfIdx() { return counter.fetch_add(1, std::memory_order_relaxed); };
+
+};
+
+class RGTMarginal : public PrecalculatedMarginal
+{
+private:
+    const unsigned int tree_overhead;
+    const unsigned int tree_size;
+    const double* probs_tree;
+    unsigned int* subtree_sizes;
+    unsigned int mass_layer_size;
+    unsigned int* subtree_locations;
+public:
+    RGTMarginal(
+	const double* masses,
+        const double* probs,
+        int isotopeNo,
+        int atomCnt,
+        double cutOff,
+        int tabSize = 1000,
+        int hashSize = 1000
+    );
+private:
+    double* alloc_and_construct_ptree();
+    void construct_ptree(double* new_tree, unsigned int where, double* pstart, unsigned int howmany);
+    unsigned int compute_total_no_masses();
+    unsigned int* alloc_and_setup_subtree_sizes();
+    unsigned int setup_subtree_sizes(unsigned int* T, unsigned int idx);
+    unsigned int* alloc_and_setup_subtree_locations();
+    unsigned int setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum);
+
+
 
 };
 
