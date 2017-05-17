@@ -377,7 +377,8 @@ RGTMarginal::RGTMarginal(
 	subtree_sizes(alloc_and_setup_subtree_sizes()),
 	mass_layer_size(compute_total_no_masses()),
 	mass_order(isoMasses),
-	subtree_locations(alloc_and_setup_subtree_locations())
+	subtree_locations(alloc_and_setup_subtree_locations()),
+	subintervals(alloc_and_setup_subintervals())
 {
     // Range tree implementation using implicit trees. 
     // Sadly, reinventing the wheel: common publically available implementations... suck.
@@ -485,5 +486,11 @@ unsigned int RGTMarginal::setup_subintervals(unsigned int* T, unsigned int idx, 
 
 double* RGTMarginal::alloc_and_setup_mass_table()
 {
-	ret = 
+	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency.
+	double* ret = new double[mass_layer_size];
+	for(unsigned int ii=0; ii<mass_layer_size; ii++)
+		ret[ii] = masses[subintervals[ii]];
+	return ret;
 }
+
+

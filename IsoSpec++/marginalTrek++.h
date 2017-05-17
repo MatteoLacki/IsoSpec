@@ -161,6 +161,7 @@ private:
     const TableOrder<double> mass_order;
     const unsigned int* subtree_locations;
     const double* mass_table;
+    const unsigned int* subintervals;
 public:
     RGTMarginal(
 	const double* masses,
@@ -181,7 +182,7 @@ private:
     unsigned int setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum);
     unsigned int* alloc_and_setup_subintervals();
     unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
-    unsigned double* alloc_and_setup_mass_table();
+    double* alloc_and_setup_mass_table();
 
 
 
