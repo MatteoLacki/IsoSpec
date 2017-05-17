@@ -156,9 +156,11 @@ private:
     const unsigned int tree_overhead;
     const unsigned int tree_size;
     const double* probs_tree;
-    unsigned int* subtree_sizes;
-    unsigned int mass_layer_size;
-    unsigned int* subtree_locations;
+    const unsigned int* subtree_sizes;
+    const unsigned int mass_layer_size;
+    const TableOrder<double> mass_order;
+    const unsigned int* subtree_locations;
+    const double* mass_table;
 public:
     RGTMarginal(
 	const double* masses,
@@ -177,6 +179,10 @@ private:
     unsigned int setup_subtree_sizes(unsigned int* T, unsigned int idx);
     unsigned int* alloc_and_setup_subtree_locations();
     unsigned int setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum);
+    unsigned int* alloc_and_setup_subintervals();
+    unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
+    unsigned double* alloc_and_setup_mass_table();
+
 
 
 

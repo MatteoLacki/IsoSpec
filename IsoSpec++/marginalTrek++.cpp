@@ -376,10 +376,8 @@ RGTMarginal::RGTMarginal(
 	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
 	subtree_sizes(alloc_and_setup_subtree_sizes()),
 	mass_layer_size(compute_total_no_masses()),
+	mass_order(isoMasses),
 	subtree_locations(alloc_and_setup_subtree_locations())
-
-
-
 {
     // Range tree implementation using implicit trees. 
     // Sadly, reinventing the wheel: common publically available implementations... suck.
@@ -436,6 +434,7 @@ unsigned int RGTMarginal::compute_total_no_masses()
 
 unsigned int* RGTMarginal::alloc_and_setup_subtree_locations()
 {
+	// FIXME change to double*
 	unsigned int* ret = new unsigned int[tree_size];
 	setup_subtree_locations(ret, 0, 0);
 	return ret;
@@ -452,3 +451,39 @@ unsigned int RGTMarginal::setup_subtree_locations(unsigned int* T, unsigned int 
 	return setup_subtree_locations(T, 2*idx+2, T[idx]+subtree_sizes[idx]);
 }
 
+unsigned int* RGTMarginal::alloc_and_setup_subintervals()
+{
+	unsigned int* ret = new unsigned int[mass_layer_size];
+	setup_subintervals(ret, 0, true);
+	return ret;
+}
+
+
+unsigned int RGTMarginal::setup_subintervals(unsigned int* T, unsigned int idx, bool left)
+{
+        if(idx >= tree_overhead)
+        {
+                T[idx] = idx - tree_overhead;
+                return T[idx];
+        }
+	unsigned int ileft  = setup_subintervals(T, idx*2+1, true);
+	unsigned int iright = setup_subintervals(T, idx*2+2, false);
+	for(unsigned int ii = ileft; ii <= iright; ii++)
+	{
+		T[idx] = ii;
+		idx++;
+	}
+
+	std::sort(T, T+mass_layer_size, mass_order);
+
+	if(left)
+		return ileft;
+	else
+		return iright;
+
+}
+
+double* RGTMarginal::alloc_and_setup_mass_table()
+{
+	ret = 
+}
