@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <queue>
 #include <utility>
 #include <iostream>
@@ -170,7 +171,7 @@ candidate(new int[isotopeNo])
 {
 
 
-    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs);
+    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs, logProbs);
     int*    initialConf = allocator.makeCopy(initialConf_tmp);
     delete [] initialConf_tmp;
 
@@ -283,7 +284,7 @@ PrecalculatedMarginal::PrecalculatedMarginal(
         const double* _lprobs,
         int _isotopeNo,
         int _atomCnt,
-	double cutOff,
+	double lCutOff,
 	bool sort,
         int tabSize,
         int hashSize
@@ -298,30 +299,33 @@ allocator(isotopeNo,tabSize)
     const KeyHasher keyHasher(isotopeNo);
     const ConfOrderMarginal orderMarginal(isoLProbs, isotopeNo);
 
-    std::unordered_map<Conf,int,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
 
     Conf currentConf = initialConfigure(atomCnt, isotopeNo, _lprobs, isoLProbs);
-    configurations.push_back(currentConf);
-    visited[currentConf] = 1;
+    Conf tmpConf = currentConf;
+    if(logProb(currentConf, isoLProbs, _isotopeNo) >= lCutOff)
+    {
+        configurations.push_back(allocator.makeCopy(currentConf));
+        visited.insert(currentConf);
+    }
 
     unsigned int idx = 0;
 
     while(idx < configurations.size())
     {
-        currentConf = configurations[idx];
+        memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
 	idx++;
-
         for( int ii = 0; ii < _isotopeNo; ii++ )
             for( int jj = 0; jj < _isotopeNo; jj++ )
-                if( ii != jj && currentConf[jj] > 0 )
+                if( ii != jj and currentConf[jj] > 0)
 		{
 		    currentConf[ii]++;
 		    currentConf[jj]--;
 
-		    if (visited.count(currentConf) == 0 and logProb(currentConf, isoLProbs, _isotopeNo) >= cutOff)
+		    if (visited.count(currentConf) == 0 and logProb(currentConf, isoLProbs, _isotopeNo) >= lCutOff)
 		    {
-		    	 visited[currentConf] = 1;
+		    	 visited.insert(currentConf);
                          configurations.push_back(allocator.makeCopy(currentConf));
 	            }
 
@@ -330,6 +334,8 @@ allocator(isotopeNo,tabSize)
 
                 }
     }
+
+    delete[] tmpConf;
 
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);
@@ -367,10 +373,10 @@ RGTMarginal::RGTMarginal(
         const double* probs,
         int isotopeNo,
         int atomCnt,
-        double cutOff,
+        double lCutOff,
         int tabSize,
         int hashSize) : 
-	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, cutOff, true, tabSize, hashSize),
+	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, lCutOff, true, tabSize, hashSize),
 	tree_overhead(next_pow2(no_confs)-1),
 	tree_size(tree_overhead+no_confs),
 //	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
@@ -403,6 +409,7 @@ void RGTMarginal::construct_ptree(double* new_tree, unsigned int tidx, double* p
 */
 unsigned int* RGTMarginal::alloc_and_setup_subtree_sizes()
 {
+        std::cout << "tree_overhead " << tree_overhead << "\t confs_no: " << no_confs << std::endl;
 	unsigned int* ret = new unsigned int[tree_overhead];
         ret--; // 1-indexed array has easier (and faster) child <-> parent idx computations
 	setup_subtree_sizes(ret, 1);

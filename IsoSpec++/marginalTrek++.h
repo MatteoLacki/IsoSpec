@@ -112,7 +112,7 @@ public:
 	const double* probs,
 	int isotopeNo,
 	int atomCnt,
-	double cutOff,
+	double lCutOff,
 	bool sort = true,
 	int tabSize = 1000,
 	int hashSize = 1000
@@ -131,7 +131,7 @@ public:
         const double* probs,
         int isotopeNo,
         int atomCnt,
-        double cutOff,
+        double lCutOff,
         int tabSize = 1000,
         int hashSize = 1000
     ) : PrecalculatedMarginal(
@@ -139,7 +139,7 @@ public:
         probs,
         isotopeNo,
         atomCnt,
-        cutOff,
+        lCutOff,
         false,
         tabSize,
         hashSize
@@ -178,7 +178,7 @@ public:
         const double* probs,
         int isotopeNo,
         int atomCnt,
-        double cutOff,
+        double lCutOff,
         int tabSize = 1000,
         int hashSize = 1000
     );
