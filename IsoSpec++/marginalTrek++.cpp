@@ -377,7 +377,7 @@ RGTMarginal::RGTMarginal(
         int tabSize,
         int hashSize) : 
 	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, lCutOff, true, tabSize, hashSize),
-	tree_overhead(next_pow2(no_confs)-1),
+	tree_overhead(no_confs-1),
 	tree_size(tree_overhead+no_confs),
 //	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
 	subtree_sizes(alloc_and_setup_subtree_sizes()),
@@ -421,8 +421,7 @@ unsigned int RGTMarginal::setup_subtree_sizes(unsigned int* T, unsigned int idx)
     if(idx > tree_overhead)
 	return 1;
 
-    idx *= 2;
-    T[idx] = setup_subtree_sizes(T, idx) + setup_subtree_sizes(T, idx+1);
+    T[idx] = setup_subtree_sizes(T, idx*2) + setup_subtree_sizes(T, idx*2+1);
     return T[idx];
 }
 
