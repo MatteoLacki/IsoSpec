@@ -76,7 +76,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
         }
     }
 
-    // What we computed so far will be very clsoe to the mode: hillclimb the rest of the way
+    // What we computed so far will be very close to the mode: hillclimb the rest of the way
     
     bool modified = true;
     double LP = logProb(res, lprobs, isotopeNo);
@@ -341,7 +341,7 @@ allocator(isotopeNo,tabSize)
     masses = new double[no_confs];
 
 
-    for(int ii=0; ii < no_confs; ii++)
+    for(unsigned int ii=0; ii < no_confs; ii++)
     {
         lProbs[ii] = logProb(confs[ii], isoLProbs, _isotopeNo);
 	masses[ii] = mass(confs[ii], isoMasses, _isotopeNo);
@@ -373,19 +373,14 @@ RGTMarginal::RGTMarginal(
 	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, cutOff, true, tabSize, hashSize),
 	tree_overhead(next_pow2(no_confs)-1),
 	tree_size(tree_overhead+no_confs),
-	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
+//	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
 	subtree_sizes(alloc_and_setup_subtree_sizes()),
 	mass_layer_size(compute_total_no_masses()),
 	mass_order(isoMasses),
 	subtree_locations(alloc_and_setup_subtree_locations()),
 	subintervals(alloc_and_setup_subintervals())
-{
-    // Range tree implementation using implicit trees. 
-    // Sadly, reinventing the wheel: common publically available implementations... suck.
-    // TODO: implement fractional cascading.
-
-}
-
+{}
+/*
 double* RGTMarginal::alloc_and_construct_ptree()
 {
 	double* ret = new double[tree_size];
@@ -405,22 +400,22 @@ void RGTMarginal::construct_ptree(double* new_tree, unsigned int tidx, double* p
 	construct_ptree(new_tree, tidx*2+1, pstart, pp);
 	construct_ptree(new_tree, tidx*2+2, pstart+pp, howmany-pp);
 }
-
+*/
 unsigned int* RGTMarginal::alloc_and_setup_subtree_sizes()
 {
-	unsigned int* ret = new unsigned int[tree_size];
-	setup_subtree_sizes(ret, 0);
+	unsigned int* ret = new unsigned int[tree_overhead];
+        ret--; // 1-indexed array has easier (and faster) child <-> parent idx computations
+	setup_subtree_sizes(ret, 1);
 	return ret;
 }
 
 unsigned int RGTMarginal::setup_subtree_sizes(unsigned int* T, unsigned int idx)
 {
-    if(idx >= tree_overhead)
-    {
-    	T[idx] = 1;
+    if(idx > tree_overhead)
 	return 1;
-    }
-    T[idx] = setup_subtree_sizes(T, idx*2+1) + setup_subtree_sizes(T, idx*2+2);
+
+    idx *= 2;
+    T[idx] = setup_subtree_sizes(T, idx) + setup_subtree_sizes(T, idx+1);
     return T[idx];
 }
 
@@ -428,7 +423,7 @@ unsigned int RGTMarginal::compute_total_no_masses()
 {
 	// FIXME: unnecessary pass. Next function could just retrun two values...
 	unsigned int ret = 0;
-	for(unsigned int ii=0; ii<tree_size; ii++)
+	for(unsigned int ii=1; ii<=tree_size; ii++)
 	    ret += subtree_sizes[ii];
 	return ret;
 }
@@ -436,39 +431,39 @@ unsigned int RGTMarginal::compute_total_no_masses()
 unsigned int* RGTMarginal::alloc_and_setup_subtree_locations()
 {
 	// FIXME change to double*
-	unsigned int* ret = new unsigned int[tree_size];
-	setup_subtree_locations(ret, 0, 0);
+	unsigned int* ret = new unsigned int[tree_overhead];
+        ret--;
+	setup_subtree_locations(ret, 1, 0);
 	return ret;
 }
 
 unsigned int RGTMarginal::setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum)
 {
-	if(idx >= tree_overhead)
-	{
-	    T[idx] = csum;
+	if(idx > tree_overhead)
 	    return csum+1;
-	}
-	T[idx] = setup_subtree_locations(T, 2*idx+1, csum);
-	return setup_subtree_locations(T, 2*idx+2, T[idx]+subtree_sizes[idx]);
+
+        
+	T[idx] = setup_subtree_locations(T, 2*idx, csum);
+	return setup_subtree_locations(T, 2*idx+1, T[idx]+subtree_sizes[idx]);
 }
 
 unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 {
-	unsigned int* ret = new unsigned int[mass_layer_size];
-	setup_subintervals(ret, 0, true);
+	unsigned int* ret = new unsigned int[mass_layer_size+2];
+	setup_subintervals(ret, 1, true);
 	return ret;
 }
 
 
 unsigned int RGTMarginal::setup_subintervals(unsigned int* T, unsigned int idx, bool left)
 {
-        if(idx >= tree_overhead)
+        if(idx > tree_overhead)
         {
                 T[idx] = idx - tree_overhead;
                 return T[idx];
         }
-	unsigned int ileft  = setup_subintervals(T, idx*2+1, true);
-	unsigned int iright = setup_subintervals(T, idx*2+2, false);
+	unsigned int ileft  = setup_subintervals(T, idx*2, true);
+	unsigned int iright = setup_subintervals(T, idx*2+1, false);
 	for(unsigned int ii = ileft; ii <= iright; ii++)
 	{
 		T[idx] = ii;
@@ -492,5 +487,134 @@ double* RGTMarginal::alloc_and_setup_mass_table()
 		ret[ii] = masses[subintervals[ii]];
 	return ret;
 }
+
+/*
+ * -------- end of constructor -------------
+ */
+
+
+#if 0
+void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double _mmax)
+{
+	splitidx = 0;
+	pmin = _pmin;
+	pmax = _pmax;
+	mmin = _mmin;
+	mmax = _mmax;
+        /*
+	while (splitidx < tree_size)
+	if(probs_tree[splitidx]<pmin)
+		    splitidx = splitidx*2+1;
+		else
+		    if(probs_tree[splitidx] > pmax)
+		        splitidx = splitidx*2+2;
+		    else
+		        break;
+
+	goingleft = true;
+        currentIdx = splitidx;
+        */
+        if(isinf(pmin) and signbit(pmin))
+            // Negative infinity
+            lower = 0;
+        else
+        {
+            lower = std::lower_bound(lProbs, lProbs+no_confs, pmin);
+            if(lower == no_confs)
+            {
+                terminate();
+                return;
+            }
+        }
+
+        if (pmax >= 0.0)
+            upper = no_confs - 1;
+        else
+        {
+            upper = std::upper_bound(lProbs, lProbs+no_confs, pmax) - 1;
+
+            if(upper == -1)
+            {
+                terminate();
+                return;
+            }
+        }
+
+
+
+        unsigned int crnt = mass_layer_size;
+        if(mmin <= masses[lower] and masses[lower] <= mmax)
+        {
+            crnt++;
+            subintervals[crnt] = lower;
+        }
+        if(mmin <= masses[upper] and masses[upper] <= mmax)
+        {
+            crnt++;
+            subintervals[crnt] = upper;
+        }
+
+        arridx = mass_layer_size - 1;
+        arrend = crnt;
+
+        break_idx = next_pow2(tree_overhead) - tree_overhead;
+}
+
+
+bool RGTMarginal::next()
+{
+    // TODO: move to .h and inline this.
+    arridx++;
+    if(arridx < arrend and mass_table[arridx] <= mmax)
+    {
+        cidx = subintervals[arridx];
+        return true;
+    }
+
+    return hard_next();
+}
+
+bool RGTMarginal::hard_next()
+{
+    if(lower == upper)
+    {
+        if(lower < tree_overhead)
+            return false;
+        cidx = lower;
+        lower = -1;
+        upper = -1;
+        return true;
+    }
+
+    if(upper > lower)
+    {
+        if(upper >= tree_overhead)
+        {
+            // We're outside the tree, just return last element, and make sure we go into hard case next time too.
+            cidx = upper;
+            arridx = 10;
+            arrend = 0;
+            upper = (upper-1)/2;
+            if masses[cidx] 
+        }
+
+
+        }
+        if (upper % 2 == 1)
+        {
+            upper = upper/2;
+            // left child
+            return hard_next();
+        }
+        else
+        {
+            upper = (upper-2)/2;
+            arridx = 
+        
+
+    }
+}
+
+#endif /* 0 */
 
 

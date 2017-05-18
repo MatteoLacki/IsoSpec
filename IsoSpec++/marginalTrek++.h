@@ -98,7 +98,7 @@ class PrecalculatedMarginal
 protected:
     std::vector<Conf> configurations;
     Conf* confs;
-    int no_confs;
+    unsigned int no_confs;
     double* masses;
     double* lProbs;
     const unsigned int isotopeNo;
@@ -118,13 +118,13 @@ public:
 	int hashSize = 1000
     );
     virtual ~PrecalculatedMarginal();
-    inline bool inRange(int idx) { return idx < no_confs; };
+    inline bool inRange(unsigned int idx) { return idx < no_confs; };
 };
 
 class SyncMarginal : public PrecalculatedMarginal
 {
 private:
-    std::atomic<int> counter;
+    std::atomic<unsigned int> counter;
 public:
     inline SyncMarginal(
         const double* masses,
@@ -146,7 +146,14 @@ public:
     ), counter(0) {};
 
 
-    inline int getNextConfIdx() { return counter.fetch_add(1, std::memory_order_relaxed); };
+    inline unsigned int getNextConfIdx() { return counter.fetch_add(1, std::memory_order_relaxed); };
+    inline unsigned int getNextConfIdxwMass(double mmin, double mmax)
+    {
+    	unsigned int local = counter.fetch_add(1, std::memory_order_relaxed);
+	while(local < no_confs and (mmin > masses[local] or mmax < masses[local]))
+	    local = counter.fetch_add(1, std::memory_order_relaxed);
+	return local;
+    }
 
 };
 
@@ -162,6 +169,9 @@ private:
     const unsigned int* subtree_locations;
     const double* mass_table;
     const unsigned int* subintervals;
+    double pmin, pmax, mmin, mmax;
+    unsigned int splitidx;
+    bool goingleft;
 public:
     RGTMarginal(
 	const double* masses,
