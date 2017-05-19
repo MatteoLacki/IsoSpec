@@ -577,10 +577,20 @@ bool RGTMarginal::hard_next()
 
     }
 
-    // Hopefully will never be reached
+    // Hopefully will never be reached, except after terminate();
     return false;
     
 }
 
 
+void RGTMarginal::terminate()
+{
+arridx = arrend = lower = upper = 0;
+}
+
+RGTMarginal::~RGTMarginal()
+{
+    delete[] mass_table;
+    delete[] subintervals;
+}
 

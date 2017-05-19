@@ -178,8 +178,10 @@ public:
         int tabSize = 1000,
         int hashSize = 1000
     );
+    ~RGTMarginal();
     void setup_search(double _pmin, double _pmax, double _mmin, double _mmax);
     bool next();
+    void terminate();
 private:
     unsigned int* alloc_and_setup_subintervals();
     unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
