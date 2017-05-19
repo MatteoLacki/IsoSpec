@@ -160,17 +160,13 @@ public:
 class RGTMarginal : public PrecalculatedMarginal
 {
 private:
-    const unsigned int tree_overhead;
-    const unsigned int tree_size;
-    const double* probs_tree;
-    const unsigned int* subtree_sizes;
-    const unsigned int mass_layer_size;
+    const unsigned int TOV_NP2, TOV_NP2M1;
+    const unsigned int mass_table_rows_no, mass_table_row_size, mass_table_size;
     const TableOrder<double> mass_order;
-    const unsigned int* subtree_locations;
-    const double* mass_table;
-    const unsigned int* subintervals;
+    unsigned int* subintervals;
+    double* mass_table;
     double pmin, pmax, mmin, mmax;
-    unsigned int splitidx;
+    unsigned int lower, upper, arridx, arrend, mask, current_level, cidx;
     bool goingleft;
 public:
     RGTMarginal(
@@ -182,17 +178,15 @@ public:
         int tabSize = 1000,
         int hashSize = 1000
     );
+    void setup_search(double _pmin, double _pmax, double _mmin, double _mmax);
+    bool next();
 private:
-    double* alloc_and_construct_ptree();
-    void construct_ptree(double* new_tree, unsigned int where, double* pstart, unsigned int howmany);
-    unsigned int compute_total_no_masses();
-    unsigned int* alloc_and_setup_subtree_sizes();
-    unsigned int setup_subtree_sizes(unsigned int* T, unsigned int idx);
-    unsigned int* alloc_and_setup_subtree_locations();
-    unsigned int setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum);
     unsigned int* alloc_and_setup_subintervals();
     unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
     double* alloc_and_setup_mass_table();
+    bool hard_next();
+
+
 
 
 

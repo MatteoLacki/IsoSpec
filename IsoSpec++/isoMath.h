@@ -33,7 +33,7 @@ inline unsigned int next_pow2(unsigned int base)
 	// TODO: replace with one of those magic super-fast
 	// bit operations.
 	unsigned int ret = 1;
-	while (ret < base)
+	while (ret <= base)
 	    ret *= 2;
 	return ret;
 }
@@ -44,12 +44,24 @@ inline unsigned int prev_pow2(unsigned int arg)
 	// Arg has to be > 1.
 	unsigned int prev = 1;
 	unsigned int ret = 1;
-	while(ret < arg)
+	while(ret <= arg)
 	{
 	    ret *= 2;
 	    prev = ret;
 	}
 	return prev;
+}
+
+inline unsigned int floor_log2(unsigned int arg)
+{
+    // arg must be > 0
+    unsigned int ret = 0;
+    while(arg > 1)
+    {
+        arg /= 2;
+        ret++;
+    }
+    return ret;
 }
 
 #endif /* ISOMATH_HPP */

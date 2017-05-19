@@ -377,119 +377,47 @@ RGTMarginal::RGTMarginal(
         int tabSize,
         int hashSize) : 
 	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, lCutOff, true, tabSize, hashSize),
-	tree_overhead(no_confs-1),
-	tree_size(tree_overhead+no_confs),
-//	probs_tree(RGTMarginal::alloc_and_construct_ptree()),
-	subtree_sizes(alloc_and_setup_subtree_sizes()),
-	mass_layer_size(compute_total_no_masses()),
-	mass_order(isoMasses),
-	subtree_locations(alloc_and_setup_subtree_locations()),
-	subintervals(alloc_and_setup_subintervals())
+        TOV_NP2(next_pow2(no_confs)),
+        TOV_NP2M1(TOV_NP2/2),
+        mass_table_rows_no(floor_log2(TOV_NP2M1)),
+        mass_table_row_size(TOV_NP2),
+	mass_table_size(TOV_NP2 * mass_table_rows_no),
+	mass_order(masses),
+	subintervals(alloc_and_setup_subintervals()),
+        mass_table(alloc_and_setup_mass_table())
 {}
-/*
-double* RGTMarginal::alloc_and_construct_ptree()
-{
-	double* ret = new double[tree_size];
-	construct_ptree(ret, 0, lProbs, no_confs);
-	return ret;
-}
 
-void RGTMarginal::construct_ptree(double* new_tree, unsigned int tidx, double* pstart, unsigned int howmany)
-{
-	if(howmany == 1)
-	{
-		new_tree[tidx] = *pstart;
-		return;
-	}
-	unsigned int pp = prev_pow2(howmany);
-	new_tree[tidx] = pstart[pp];
-	construct_ptree(new_tree, tidx*2+1, pstart, pp);
-	construct_ptree(new_tree, tidx*2+2, pstart+pp, howmany-pp);
-}
-*/
-unsigned int* RGTMarginal::alloc_and_setup_subtree_sizes()
-{
-        std::cout << "tree_overhead " << tree_overhead << "\t confs_no: " << no_confs << std::endl;
-	unsigned int* ret = new unsigned int[tree_overhead];
-        ret--; // 1-indexed array has easier (and faster) child <-> parent idx computations
-	setup_subtree_sizes(ret, 1);
-	return ret;
-}
 
-unsigned int RGTMarginal::setup_subtree_sizes(unsigned int* T, unsigned int idx)
-{
-    if(idx > tree_overhead)
-	return 1;
-
-    T[idx] = setup_subtree_sizes(T, idx*2) + setup_subtree_sizes(T, idx*2+1);
-    return T[idx];
-}
-
-unsigned int RGTMarginal::compute_total_no_masses()
-{
-	// FIXME: unnecessary pass. Next function could just retrun two values...
-	unsigned int ret = 0;
-	for(unsigned int ii=1; ii<=tree_size; ii++)
-	    ret += subtree_sizes[ii];
-	return ret;
-}
-
-unsigned int* RGTMarginal::alloc_and_setup_subtree_locations()
-{
-	// FIXME change to double*
-	unsigned int* ret = new unsigned int[tree_overhead];
-        ret--;
-	setup_subtree_locations(ret, 1, 0);
-	return ret;
-}
-
-unsigned int RGTMarginal::setup_subtree_locations(unsigned int* T, unsigned int idx, unsigned int csum)
-{
-	if(idx > tree_overhead)
-	    return csum+1;
-
-        
-	T[idx] = setup_subtree_locations(T, 2*idx, csum);
-	return setup_subtree_locations(T, 2*idx+1, T[idx]+subtree_sizes[idx]);
-}
 
 unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 {
-	unsigned int* ret = new unsigned int[mass_layer_size+2];
-	setup_subintervals(ret, 1, true);
-	return ret;
-}
-
-
-unsigned int RGTMarginal::setup_subintervals(unsigned int* T, unsigned int idx, bool left)
-{
-        if(idx > tree_overhead)
+    unsigned int* ret = new unsigned int[mass_table_size+4];
+    unsigned int step = 2;
+    unsigned int counter = 0;
+    unsigned int mask = (mass_table_row_size-1);
+    for(unsigned int ii = 0; ii < mass_table_size; ii++)
+    {
+        ret[ii] = counter;
+        counter++;
+        if(counter == step)
         {
-                T[idx] = idx - tree_overhead;
-                return T[idx];
+            std::sort(ret+ii-counter+1, ret+ii+1, mass_order);
+            counter = 0;
+            if((ii & mask) == 0)
+                step<<=1;
         }
-	unsigned int ileft  = setup_subintervals(T, idx*2, true);
-	unsigned int iright = setup_subintervals(T, idx*2+1, false);
-	for(unsigned int ii = ileft; ii <= iright; ii++)
-	{
-		T[idx] = ii;
-		idx++;
-	}
-
-	std::sort(T, T+mass_layer_size, mass_order);
-
-	if(left)
-		return ileft;
-	else
-		return iright;
-
+    }
+    return ret;
 }
+
+
+
 
 double* RGTMarginal::alloc_and_setup_mass_table()
 {
-	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency.
-	double* ret = new double[mass_layer_size];
-	for(unsigned int ii=0; ii<mass_layer_size; ii++)
+	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency. Hopefully. Possibly. 
+	double* ret = new double[mass_table_size+4];
+	for(unsigned int ii=0; ii<mass_table_size; ii++)
 		ret[ii] = masses[subintervals[ii]];
 	return ret;
 }
@@ -499,33 +427,20 @@ double* RGTMarginal::alloc_and_setup_mass_table()
  */
 
 
-#if 0
 void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double _mmax)
 {
-	splitidx = 0;
 	pmin = _pmin;
 	pmax = _pmax;
 	mmin = _mmin;
 	mmax = _mmax;
-        /*
-	while (splitidx < tree_size)
-	if(probs_tree[splitidx]<pmin)
-		    splitidx = splitidx*2+1;
-		else
-		    if(probs_tree[splitidx] > pmax)
-		        splitidx = splitidx*2+2;
-		    else
-		        break;
 
-	goingleft = true;
-        currentIdx = splitidx;
-        */
+
         if(isinf(pmin) and signbit(pmin))
             // Negative infinity
             lower = 0;
         else
         {
-            lower = std::lower_bound(lProbs, lProbs+no_confs, pmin);
+            lower = std::lower_bound(lProbs, lProbs+no_confs, pmin)-lProbs;
             if(lower == no_confs)
             {
                 terminate();
@@ -537,43 +452,76 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             upper = no_confs - 1;
         else
         {
-            upper = std::upper_bound(lProbs, lProbs+no_confs, pmax) - 1;
+            upper = (std::upper_bound(lProbs, lProbs+no_confs, pmax)-lProbs);
 
-            if(upper == -1)
+            if(upper == no_confs)
             {
                 terminate();
                 return;
             }
         }
 
+    arridx = mass_table_size-1;
+    arrend = mass_table_size-1;
+    if(mmin <= masses[lower] and masses[lower] <= mmax)
+    {
+        arrend++;
+        subintervals[arrend] = lower;
+    }
+
+    if(lower == upper)
+        return;
+
+    if(mmin <= masses[upper] and masses[upper] <= mmax)
+    {
+        arrend++;
+        subintervals[arrend] = upper;
+    }
 
 
-        unsigned int crnt = mass_layer_size;
+    if((lower & 1) == 0)
+    {
+        // Is a left child: add right child too
+        lower++;
+        if(lower == upper)
+            return;
+        
         if(mmin <= masses[lower] and masses[lower] <= mmax)
         {
-            crnt++;
-            subintervals[crnt] = lower;
+            arrend++;
+            subintervals[arrend] = lower;
         }
+    }
+
+    if((upper & 1) == 1)
+    {
+        // Is a right child: add left child
+        upper--;
+
         if(mmin <= masses[upper] and masses[upper] <= mmax)
         {
-            crnt++;
-            subintervals[crnt] = upper;
+            arrend++;
+            subintervals[arrend] = upper;
         }
+    }
 
-        arridx = mass_layer_size - 1;
-        arrend = crnt;
+    mask = ~1;
 
-        break_idx = next_pow2(tree_overhead) - tree_overhead;
+    lower &= mask;
+    upper &= mask;
+
+    current_level = 0;
 }
 
 
 bool RGTMarginal::next()
 {
     // TODO: move to .h and inline this.
-    arridx++;
+
     if(arridx < arrend and mass_table[arridx] <= mmax)
     {
         cidx = subintervals[arridx];
+        arridx++;
         return true;
     }
 
@@ -582,45 +530,57 @@ bool RGTMarginal::next()
 
 bool RGTMarginal::hard_next()
 {
-    if(lower == upper)
-    {
-        if(lower < tree_overhead)
-            return false;
-        cidx = lower;
-        lower = -1;
-        upper = -1;
-        return true;
-    }
-
+    unsigned int nextmask;
     if(upper > lower)
     {
-        if(upper >= tree_overhead)
+        mask <<= 1;
+        current_level += mass_table_row_size;
+        nextmask = mask << 1;
+        if((upper & nextmask) == (lower & nextmask))
         {
-            // We're outside the tree, just return last element, and make sure we go into hard case next time too.
-            cidx = upper;
-            arridx = 10;
-            arrend = 0;
-            upper = (upper-1)/2;
-            if masses[cidx] 
+            terminate();
+            return false;
         }
-
-
-        }
-        if (upper % 2 == 1)
+        if((upper & ~mask) != 0)
         {
-            upper = upper/2;
-            // left child
+            // Coming from right child
+            // Add left sibling
+            arrend = upper;
+            upper &= mask; 
+            arridx = std::lower_bound(mass_table+current_level+upper, mass_table+current_level+arrend, mmin) - (mass_table+current_level+upper);
+            return next();
+        }
+        else
+        {
+            // Coming from left child
+            // Do nothing
+            upper &= mask;
+            return hard_next();
+        }
+    }
+    else // upper < lower, can't be equal
+    {
+        if((lower & ~mask) != 0)
+        {
+            // Coming from right child
+            // Do nothing
+            lower &= mask;
             return hard_next();
         }
         else
         {
-            upper = (upper-2)/2;
-            arridx = 
-        
+            arrend = lower + (~mask) - ((~mask)>>1);
+            arridx = std::lower_bound(mass_table+current_level+lower, mass_table+current_level+arrend, mmin) - (mass_table+current_level+lower);
+            lower &= mask;
+            return next();
+        }
 
     }
+
+    // Hopefully will never be reached
+    return false;
+    
 }
 
-#endif /* 0 */
 
 
