@@ -353,6 +353,7 @@ allocator(isotopeNo,tabSize)
 	masses[ii] = mass(confs[ii], isoMasses, _isotopeNo);
     }
 
+
 }
 
 
@@ -385,26 +386,31 @@ RGTMarginal::RGTMarginal(
 	mass_order(masses),
 	subintervals(alloc_and_setup_subintervals()),
         mass_table(alloc_and_setup_mass_table())
-{}
+{terminate_search();}
 
 
 
 unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 {
     unsigned int* ret = new unsigned int[mass_table_size+4];
-    unsigned int step = 2;
+    unsigned int step = 1;
+    unsigned int stepm1 = 0;
     unsigned int counter = 0;
-    unsigned int mask = (mass_table_row_size-1);
-    for(unsigned int ii = 0; ii < mass_table_size; ii++)
+    unsigned int confs_nom1 = no_confs-1;
+
+    for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
     {
-        ret[ii] = counter;
-        counter++;
-        if(counter == step)
+        step <<= 1;
+        stepm1 = step - 1;
+        counter = 0;
+        for(unsigned int ii = 0; ii<no_confs; ii++)
         {
-            std::sort(ret+ii-counter+1, ret+ii+1, mass_order);
-            counter = 0;
-            if((ii & mask) == 0)
-                step<<=1;
+            ret[level+ii] = ii;
+            if((ii & stepm1) == 0 or ii == confs_nom1)
+            {
+                std::sort(ret+counter+level, ret+ii+level, mass_order);
+                counter = ii;
+            }
         }
     }
     return ret;
@@ -417,7 +423,8 @@ double* RGTMarginal::alloc_and_setup_mass_table()
 {
 	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency. Hopefully. Possibly. 
 	double* ret = new double[mass_table_size+4];
-	for(unsigned int ii=0; ii<mass_table_size; ii++)
+        for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
+	    for(unsigned int ii=level; ii<no_confs+level; ii++)
 		ret[ii] = masses[subintervals[ii]];
 	return ret;
 }
@@ -435,7 +442,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 	mmax = _mmax;
 
 
-        if(isinf(pmin) and signbit(pmin))
+        if(std::isinf(pmin) and std::signbit(pmin))
             // Negative infinity
             lower = 0;
         else
@@ -443,7 +450,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             lower = std::lower_bound(lProbs, lProbs+no_confs, pmin)-lProbs;
             if(lower == no_confs)
             {
-                terminate();
+                terminate_search();
                 return;
             }
         }
@@ -456,17 +463,17 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
             if(upper == no_confs)
             {
-                terminate();
+                terminate_search();
                 return;
             }
         }
 
-    arridx = mass_table_size-1;
-    arrend = mass_table_size-1;
+    arridx = mass_table_size;
+    arrend = mass_table_size;
     if(mmin <= masses[lower] and masses[lower] <= mmax)
     {
-        arrend++;
         subintervals[arrend] = lower;
+        arrend++;
     }
 
     if(lower == upper)
@@ -474,8 +481,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
     if(mmin <= masses[upper] and masses[upper] <= mmax)
     {
-        arrend++;
         subintervals[arrend] = upper;
+        arrend++;
     }
 
 
@@ -488,8 +495,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         
         if(mmin <= masses[lower] and masses[lower] <= mmax)
         {
-            arrend++;
             subintervals[arrend] = lower;
+            arrend++;
         }
     }
 
@@ -500,10 +507,13 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
         if(mmin <= masses[upper] and masses[upper] <= mmax)
         {
-            arrend++;
             subintervals[arrend] = upper;
+            arrend++;
         }
     }
+
+    for(unsigned int ii=arridx; ii<arrend; ii++)
+        mass_table[ii] = masses[subintervals[ii]];
 
     mask = ~1;
 
@@ -538,7 +548,7 @@ bool RGTMarginal::hard_next()
         nextmask = mask << 1;
         if((upper & nextmask) == (lower & nextmask))
         {
-            terminate();
+            terminate_search();
             return false;
         }
         if((upper & ~mask) != 0)
@@ -558,7 +568,7 @@ bool RGTMarginal::hard_next()
             return hard_next();
         }
     }
-    else // upper < lower, can't be equal
+    else if(upper < lower)
     {
         if((lower & ~mask) != 0)
         {
@@ -577,15 +587,16 @@ bool RGTMarginal::hard_next()
 
     }
 
-    // Hopefully will never be reached, except after terminate();
+    // Hopefully will never be reached, except after terminate_search();
     return false;
     
 }
 
 
-void RGTMarginal::terminate()
+void RGTMarginal::terminate_search()
 {
 arridx = arrend = lower = upper = 0;
+pmin = pmax = mmin = mmax = 0.0;
 }
 
 RGTMarginal::~RGTMarginal()

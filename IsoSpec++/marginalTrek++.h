@@ -118,7 +118,9 @@ public:
 	int hashSize = 1000
     );
     virtual ~PrecalculatedMarginal();
-    inline bool inRange(unsigned int idx) { return idx < no_confs; };
+    inline bool inRange(unsigned int idx) const { return idx < no_confs; };
+    inline const double& get_lProb(unsigned int idx) const { return lProbs[idx]; };
+    inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
 };
 
 class SyncMarginal : public PrecalculatedMarginal
@@ -181,7 +183,10 @@ public:
     ~RGTMarginal();
     void setup_search(double _pmin, double _pmax, double _mmin, double _mmax);
     bool next();
-    void terminate();
+    void terminate_search();
+    inline const double& current_lProb() const { return lProbs[cidx]; };
+    inline const double& current_mass() const { return masses[cidx]; };
+
 private:
     unsigned int* alloc_and_setup_subintervals();
     unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
