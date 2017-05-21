@@ -121,6 +121,7 @@ public:
     inline bool inRange(unsigned int idx) const { return idx < no_confs; };
     inline const double& get_lProb(unsigned int idx) const { return lProbs[idx]; };
     inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
+    inline const Conf& get_conf(unsigned int idx) const { return confs[idx]; };
 };
 
 class SyncMarginal : public PrecalculatedMarginal
@@ -169,7 +170,7 @@ private:
     double* mass_table;
     double pmin, pmax, mmin, mmax;
     unsigned int lower, upper, arridx, arrend, mask, current_level, cidx;
-    bool goingleft;
+    bool goingleft, going_up;
 public:
     RGTMarginal(
 	const double* masses,
@@ -186,6 +187,7 @@ public:
     void terminate_search();
     inline const double& current_lProb() const { return lProbs[cidx]; };
     inline const double& current_mass() const { return masses[cidx]; };
+    inline const Conf& current_conf() const { return confs[cidx]; };
 
 private:
     unsigned int* alloc_and_setup_subintervals();

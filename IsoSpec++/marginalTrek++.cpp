@@ -392,6 +392,7 @@ RGTMarginal::RGTMarginal(
 
 unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 {
+    std::cout << "LEVELS: " << mass_table_rows_no << "\tROWLEN: " << mass_table_row_size << std::endl;
     unsigned int* ret = new unsigned int[mass_table_size+4];
     unsigned int step = 1;
     unsigned int stepm1 = 0;
@@ -521,12 +522,14 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     upper &= mask;
 
     current_level = 0;
+    going_up = true;
 }
 
 
 bool RGTMarginal::next()
 {
     // TODO: move to .h and inline this.
+    std::cout << "ARRIDX " << arridx << " ARREND " << arrend << std::endl;
 
     if(arridx < arrend and mass_table[arridx] <= mmax)
     {
@@ -537,13 +540,20 @@ bool RGTMarginal::next()
 
     return hard_next();
 }
+#include <bitset>
 
 bool RGTMarginal::hard_next()
 {
+    std::cout << "HARD\n" << "lower: " << lower << "\t upper: " << upper << " MASK: " << std::bitset<sizeof(unsigned int)*8>(mask) << "\n";
     unsigned int nextmask;
-    if(upper > lower)
+    if(upper == lower)
     {
-        mask <<= 1;
+        terminate_search();
+        return false;
+    }
+    if(going_up)
+    {
+        going_up = false;
         current_level += mass_table_row_size;
         nextmask = mask << 1;
         if((upper & nextmask) == (lower & nextmask))
@@ -557,7 +567,7 @@ bool RGTMarginal::hard_next()
             // Add left sibling
             arrend = upper;
             upper &= mask; 
-            arridx = std::lower_bound(mass_table+current_level+upper, mass_table+current_level+arrend, mmin) - (mass_table+current_level+upper);
+            arridx = std::lower_bound(mass_table+current_level+upper, mass_table+current_level+arrend, mmin) - (mass_table+current_level);
             return next();
         }
         else
@@ -568,28 +578,28 @@ bool RGTMarginal::hard_next()
             return hard_next();
         }
     }
-    else if(upper < lower)
+    else 
     {
+        going_up = true;
         if((lower & ~mask) != 0)
         {
             // Coming from right child
             // Do nothing
             lower &= mask;
+            mask <<= 1;
             return hard_next();
         }
         else
         {
             arrend = lower + (~mask) - ((~mask)>>1);
-            arridx = std::lower_bound(mass_table+current_level+lower, mass_table+current_level+arrend, mmin) - (mass_table+current_level+lower);
+            arridx = std::lower_bound(mass_table+current_level+lower, mass_table+current_level+arrend, mmin) - (mass_table+current_level);
             lower &= mask;
+            mask <<= 1;
             return next();
         }
 
     }
 
-    // Hopefully will never be reached, except after terminate_search();
-    return false;
-    
 }
 
 
