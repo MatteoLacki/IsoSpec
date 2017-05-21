@@ -383,7 +383,6 @@ RGTMarginal::RGTMarginal(
         mass_table_rows_no(floor_log2(TOV_NP2M1)),
         mass_table_row_size(TOV_NP2),
 	mass_table_size(TOV_NP2 * mass_table_rows_no),
-	mass_order(masses),
 	subintervals(alloc_and_setup_subintervals()),
         mass_table(alloc_and_setup_mass_table())
 {terminate_search();}
@@ -398,6 +397,7 @@ unsigned int* RGTMarginal::alloc_and_setup_subintervals()
     unsigned int stepm1 = 0;
     unsigned int counter = 0;
     unsigned int confs_nom1 = no_confs-1;
+    TableOrder<double> mass_order(masses);
 
     for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
     {
@@ -414,6 +414,9 @@ unsigned int* RGTMarginal::alloc_and_setup_subintervals()
             }
         }
     }
+    printArray(masses, no_confs);
+    printArray(lProbs, no_confs);
+    printArray(ret, mass_table_size);
     return ret;
 }
 
@@ -427,6 +430,8 @@ double* RGTMarginal::alloc_and_setup_mass_table()
         for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
 	    for(unsigned int ii=level; ii<no_confs+level; ii++)
 		ret[ii] = masses[subintervals[ii]];
+        printArray(ret, mass_table_size);
+
 	return ret;
 }
 
@@ -516,7 +521,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     for(unsigned int ii=arridx; ii<arrend; ii++)
         mass_table[ii] = masses[subintervals[ii]];
 
-    mask = ~1;
+    printArray(mass_table, mass_table_size);
+    mask = ~3;
 
     lower &= mask;
     upper &= mask;
@@ -563,6 +569,7 @@ bool RGTMarginal::hard_next()
         }
         if((upper & ~mask) != 0)
         {
+            std::cout << "branch 1" << std::endl;
             // Coming from right child
             // Add left sibling
             arrend = upper;
@@ -572,6 +579,7 @@ bool RGTMarginal::hard_next()
         }
         else
         {
+            std::cout << "branch 2" << std::endl;
             // Coming from left child
             // Do nothing
             upper &= mask;
@@ -583,6 +591,7 @@ bool RGTMarginal::hard_next()
         going_up = true;
         if((lower & ~mask) != 0)
         {
+        std::cout << "branch 3" << std::endl;
             // Coming from right child
             // Do nothing
             lower &= mask;
@@ -591,6 +600,7 @@ bool RGTMarginal::hard_next()
         }
         else
         {
+        std::cout << "branch 4" << std::endl;
             arrend = lower + (~mask) - ((~mask)>>1);
             arridx = std::lower_bound(mass_table+current_level+lower, mass_table+current_level+arrend, mmin) - (mass_table+current_level);
             lower &= mask;

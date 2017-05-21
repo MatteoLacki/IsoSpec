@@ -165,7 +165,6 @@ class RGTMarginal : public PrecalculatedMarginal
 private:
     const unsigned int TOV_NP2, TOV_NP2M1;
     const unsigned int mass_table_rows_no, mass_table_row_size, mass_table_size;
-    const TableOrder<double> mass_order;
     unsigned int* subintervals;
     double* mass_table;
     double pmin, pmax, mmin, mmax;
