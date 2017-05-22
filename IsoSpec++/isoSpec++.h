@@ -21,6 +21,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
+#include <limits>
 #include "lang.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -266,8 +267,8 @@ private:
 
 public:
 	virtual bool advanceToNextConfiguration();
-	virtual const double& lprob() const;
-	virtual const double& mass() const;
+	virtual const double& lprob() const { return currentLProb; };
+	virtual const double& mass() const { return currentMass; };
 
 	inline IsoOrderedGenerator(int             _dimNumber,
                                    const int*      _isotopeNumbers,
