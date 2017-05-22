@@ -572,10 +572,12 @@ bool RGTMarginal::hard_next()
             std::cout << "branch 1" << std::endl;
             // Coming from right child
             // Add left sibling
-            arrend = current_level+upper;
+            arrend = upper+current_level;
             upper &= mask; 
             cout << "bpunds on bounds: " << current_level+upper << " " << arrend << std::endl;
-            arridx = std::lower_bound(mass_table+current_level+upper, mass_table+current_level+arrend, mmin) - mass_table;
+            printArray(mass_table+current_level+upper, (mass_table+arrend) - (mass_table+current_level+upper));
+            arridx = std::lower_bound(mass_table+current_level+upper, mass_table+arrend, mmin) - mass_table;
+            cout << arridx << std::endl;
             return next();
         }
         else
@@ -603,7 +605,8 @@ bool RGTMarginal::hard_next()
         {
         std::cout << "branch 4" << std::endl;
             arrend = lower + (~mask) - ((~mask)>>1) + current_level;
-            arridx = std::lower_bound(mass_table+current_level+lower, mass_table+current_level+arrend, mmin) - mass_table;
+            printArray(mass_table+current_level+lower, (mass_table+arrend) - (mass_table+current_level+lower));
+            arridx = std::lower_bound(mass_table+current_level+lower, mass_table+arrend, mmin) - mass_table;
             lower &= mask;
             mask <<= 1;
             return next();
