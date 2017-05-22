@@ -474,6 +474,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             }
         }
 
+    std::cout << "lower/upper" << lower << " " << upper << '\n';
+
     arridx = mass_table_size;
     arrend = mass_table_size;
     if(mmin <= masses[lower] and masses[lower] <= mmax)
@@ -522,13 +524,16 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         mass_table[ii] = masses[subintervals[ii]];
 
     printArray(mass_table, mass_table_size);
-    mask = ~3;
+    mask = ~1;
 
+    std::cout << "lower/upper sss " << lower << " " << upper << '\n';
     lower &= mask;
     upper &= mask;
 
     current_level = 0;
     going_up = true;
+
+    std::cout << "lower/upper sss " << lower << " " << upper << '\n';
 }
 
 
@@ -551,7 +556,7 @@ bool RGTMarginal::next()
 bool RGTMarginal::hard_next()
 {
     std::cout << "HARD\n" << "lower: " << lower << "\t upper: " << upper << " MASK: " << std::bitset<sizeof(unsigned int)*8>(mask) << "\n";
-    unsigned int nextmask;
+    unsigned int nextmask = mask << 1;
     if(upper == lower)
     {
         terminate_search();
@@ -561,20 +566,20 @@ bool RGTMarginal::hard_next()
     {
         going_up = false;
         current_level += mass_table_row_size;
-        nextmask = mask << 1;
-        if((upper & nextmask) == (lower & nextmask))
+        if(goingup and (upper & (nextmask<<1)) == (lower & (nextmask<<1)))
         {
             terminate_search();
             return false;
         }
-        if((upper & ~mask) != 0)
+        if((upper & ~nextmask) != 0)
         {
             std::cout << "branch 1" << std::endl;
             // Coming from right child
             // Add left sibling
             arrend = upper+current_level;
-            upper &= mask; 
+            upper &= nextmask; 
             cout << "bpunds on bounds: " << current_level+upper << " " << arrend << std::endl;
+            cout << upper << " " << arrend - current_level << '\n';
             printArray(mass_table+current_level+upper, (mass_table+arrend) - (mass_table+current_level+upper));
             arridx = std::lower_bound(mass_table+current_level+upper, mass_table+arrend, mmin) - mass_table;
             cout << arridx << std::endl;
@@ -585,19 +590,19 @@ bool RGTMarginal::hard_next()
             std::cout << "branch 2" << std::endl;
             // Coming from left child
             // Do nothing
-            upper &= mask;
+            upper &= nextmask;
             return hard_next();
         }
     }
     else 
     {
         going_up = true;
-        if((lower & ~mask) != 0)
+        if((lower & ~nextmask) != 0)
         {
         std::cout << "branch 3" << std::endl;
             // Coming from right child
             // Do nothing
-            lower &= mask;
+            lower &= nextmask;
             mask <<= 1;
             return hard_next();
         }
@@ -607,7 +612,7 @@ bool RGTMarginal::hard_next()
             arrend = lower + (~mask) - ((~mask)>>1) + current_level;
             printArray(mass_table+current_level+lower, (mass_table+arrend) - (mass_table+current_level+lower));
             arridx = std::lower_bound(mass_table+current_level+lower, mass_table+arrend, mmin) - mass_table;
-            lower &= mask;
+            lower &= nextmask;
             mask <<= 1;
             return next();
         }
