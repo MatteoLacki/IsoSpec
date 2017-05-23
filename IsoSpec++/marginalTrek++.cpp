@@ -107,6 +107,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 	    
     }
+    std::cout << "CONFIGURED" << '\n';
     return res;
 }
 
@@ -159,7 +160,9 @@ atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
-{};
+{std::cout << "MARGINAL_CONSTRUCTED" << std::endl;
+printArray<int>(mode_conf, isotopeNo);
+};
 
 Marginal::Marginal(Marginal&& other) : 
 disowned(false),
@@ -169,6 +172,7 @@ atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
 mode_conf(other.mode_conf)
 {
+    std::cout << "COPIED" << std::endl;
     other.disowned = true;
 }
 
@@ -325,9 +329,13 @@ allocator(isotopeNo, tabSize)
 
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
+    std::cout << "MARGINAL_CUTOFF " << lCutOff << std::endl;
 
     Conf currentConf = mode_conf;
-    Conf tmpConf = currentConf;
+    printArray<int>(mode_conf, isotopeNo);
+    printArray<int>(currentConf, isotopeNo);
+    printArray<double>(atom_lProbs, isotopeNo);
+    std::cout << lCutOff << std::endl;
     if(logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
     {
         configurations.push_back(allocator.makeCopy(currentConf));
@@ -358,8 +366,6 @@ allocator(isotopeNo, tabSize)
 
                 }
     }
-
-    delete[] tmpConf;
 
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);

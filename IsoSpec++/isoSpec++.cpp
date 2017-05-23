@@ -171,7 +171,8 @@ inline int str_to_int(const string& s)
 Iso::Iso(const char* formula, int _tabsize, int _hashsize) :
 marginals(nullptr),
 tabSize(_tabsize),
-hashSize(_hashsize)
+hashSize(_hashsize),
+modeLProb(0.0)
 {
 std::vector<const double*> isotope_masses;
 std::vector<const double*> isotope_probabilities;
@@ -758,28 +759,37 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
         marginalResults = new PrecalculatedMarginal*[dimNumber];
 
         Lcutoff = log(_threshold);
+        if(not _absolute)
+            Lcutoff += modeLProb;
 
+
+        bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
+            std::cout << "LCUTOFF " << Lcutoff << std::endl;
+            std::cout << "MODELP " << modeLProb << std::endl;
+            std::cout << "MRG_>GETMODELP " << marginals[ii]->getModeLProb() << std::endl;
+            std::cout << "RESULT " << Lcutoff - modeLProb + marginals[ii]->getModeLProb() << std::endl;
+
             marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                             false,
                                                             tabSize, 
                                                             hashSize);
+            if(not marginalResults[ii]->inRange(0))
+                empty = true;
 	}
 
-	maxConfsLPSum[0] = marginalResults[0]->get_lProb(0);
+	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
 	for(int ii=1; ii<dimNumber; ii++)
-	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->get_lProb(0);
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
 	partialLProbs[dimNumber] = 0.0;
 	partialMasses[dimNumber] = 0.0;
 
-	recalc(dimNumber-1);
-
-	if(not _absolute)
-		Lcutoff += partialLProbs[0];
+        if(not empty)
+            recalc(dimNumber-1);
 
 	counter[0]--;
 }
