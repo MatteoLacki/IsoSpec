@@ -33,18 +33,35 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim);
 
 
-class MarginalTrek
+class Marginal
+{
+protected:
+    const unsigned int isotopeNo;
+    const unsigned int atomCnt;
+    const double* atom_masses;
+    const double* atom_lProbs;
+    Allocator<int> allocator;
+    
+public:
+    Marginal(
+        const double* _masses,   // masses size = logProbs size = isotopeNo
+        const double* _probs,
+        int _isotopeNo,                  // No of isotope configurations.
+        int _atomCnt,
+        int _tabSize = 1000
+    );
+    ~Marginal();
+    
+    inline int get_isotopeNo() const { return isotopeNo; };
+    double getLightestConfMass();
+    double getHeaviestConfMass();
+
+};
+
+class MarginalTrek : public Marginal
 {
     int current_count;
-    const int _tabSize;
-    const int _hashSize;
-public:
-    const unsigned int _isotopeNo;
 private:
-    const unsigned int _atomCnt;
-    const double* iso_masses;
-    const double* logProbs;
-    Allocator<int> allocator;
     const KeyHasher keyHasher;
     const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
@@ -55,6 +72,7 @@ private:
     std::vector<double> _conf_probs;
     std::vector<double> _conf_masses;
     std::vector<int*> _confs;
+
 
     bool add_next_conf();
 
@@ -70,12 +88,9 @@ public:
 
     inline bool probeConfigurationIdx(int idx)
     {
-//    	std::cerr << "PC\n" << idx << '\n';
         while(current_count <= idx)
             if(not add_next_conf()) 
-	    {	//std::cerr << "PC\n" << idx << "FALSE" << '\n';
                 return false;
-	    }
         return true;
     }
 
@@ -84,16 +99,14 @@ public:
     inline const std::vector<double>& conf_probs() const { return _conf_probs; };
     inline const std::vector<double>& conf_masses() const { return _conf_masses; };
     inline const std::vector<int*>& confs() const { return _confs; };
-    inline int get_isotopeNo() const { return _isotopeNo; };
-    ~MarginalTrek();
 
-    double getLightestConfMass();
-    double getHeaviestConfMass();
+
+    virtual ~MarginalTrek();
 };
 
 
 
-class PrecalculatedMarginal
+class PrecalculatedMarginal : public Marginal
 {
 protected:
     std::vector<Conf> configurations;
@@ -101,11 +114,6 @@ protected:
     unsigned int no_confs;
     double* masses;
     double* lProbs;
-    const unsigned int isotopeNo;
-    const unsigned int atomCnt;
-    const double* isoMasses;
-    const double* isoLProbs;
-    Allocator<int> allocator;
 public: 
     PrecalculatedMarginal(
     	const double* masses,

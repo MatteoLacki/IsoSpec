@@ -111,6 +111,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 }
 
 
+
 #ifndef BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
@@ -146,6 +147,45 @@ double* getMLogProbs(const double* probs, int isoNo)
 }
 
 
+Marginal::Marginal(
+    const double* _masses,
+    const double* _probs,
+    int _isotopeNo,  
+    int _atomCnt,
+    int _tabSize
+) : 
+isotopeNo(_isotopeNo),
+atomCnt(_atomCnt),
+atom_masses(array_copy<double>(_masses, isotopeNo)),
+atom_lProbs(getMLogProbs(_probs, isotopeNo)),
+allocator(isotopeNo, _tabSize)
+{};
+
+Marginal::~Marginal()
+{
+    delete[] atom_masses;
+    delete[] atom_lProbs;
+}
+
+
+double Marginal::getLightestConfMass()
+{
+    double ret_mass = std::numeric_limits<double>::infinity();
+    for(unsigned int ii=0; ii < isotopeNo; ii++)
+        if( ret_mass > atom_masses[ii] )
+	    ret_mass = atom_masses[ii];
+    return ret_mass*atomCnt;
+}
+
+double Marginal::getHeaviestConfMass()
+{
+    double ret_mass = 0.0;
+    for(unsigned int ii=0; ii < isotopeNo; ii++)
+        if( ret_mass < atom_masses[ii] )
+            ret_mass = atom_masses[ii];
+    return ret_mass*atomCnt;
+}
+
 MarginalTrek::MarginalTrek(
     const double* masses,   // masses size = logProbs size = isotopeNo
     const double* probs,
@@ -153,25 +193,20 @@ MarginalTrek::MarginalTrek(
     int atomCnt,
     int tabSize,
     int hashSize
-) : current_count(0),
-_tabSize(tabSize),
-_hashSize(hashSize),
-_isotopeNo(isotopeNo),
-_atomCnt(atomCnt),
-iso_masses(array_copy<double>(masses, isotopeNo)),
-logProbs(getMLogProbs(probs, isotopeNo)),
-allocator(isotopeNo, _tabSize),
+) : 
+Marginal(masses, probs, isotopeNo, atomCnt, tabSize),
+current_count(0),
 keyHasher(isotopeNo),
 equalizer(isotopeNo),
-orderMarginal(logProbs, isotopeNo),
-visited(_hashSize,keyHasher,equalizer),
+orderMarginal(atom_lProbs, isotopeNo),
+visited(hashSize,keyHasher,equalizer),
 pq(orderMarginal),
 totalProb(),
 candidate(new int[isotopeNo])
 {
 
 
-    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs, logProbs);
+    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs, atom_lProbs);
     int*    initialConf = allocator.makeCopy(initialConf_tmp);
     delete [] initialConf_tmp;
 
@@ -197,21 +232,21 @@ bool MarginalTrek::add_next_conf()
     visited[topConf] = current_count;
 
     _confs.push_back(topConf);
-    _conf_masses.push_back(mass(topConf, iso_masses, _isotopeNo));
-    double logprob = logProb(topConf, logProbs, _isotopeNo);
+    _conf_masses.push_back(mass(topConf, atom_masses, isotopeNo));
+    double logprob = logProb(topConf, atom_lProbs, isotopeNo);
     _conf_probs.push_back(logprob);
 
 
     totalProb.add( exp( logprob ) );
 
-    for( unsigned int i = 0; i < _isotopeNo; ++i )
+    for( unsigned int i = 0; i < isotopeNo; ++i )
     {
-        for( unsigned int j = 0; j < _isotopeNo; ++j )
+        for( unsigned int j = 0; j < isotopeNo; ++j )
         {
             // Growing index different than decreasing one AND
             // Remain on simplex condition.
             if( i != j && topConf[j] > 0 ){
-                copyConf(topConf, candidate, _isotopeNo);
+                copyConf(topConf, candidate, isotopeNo);
 
                 ++candidate[i];
                 --candidate[j];
@@ -251,29 +286,10 @@ int MarginalTrek::processUntilCutoff(double cutoff)
     return _conf_probs.size();
 }
 
-double MarginalTrek::getLightestConfMass()
-{
-    double ret_mass = std::numeric_limits<double>::infinity();
-    for(unsigned int ii=0; ii < _isotopeNo; ii++)
-        if( ret_mass > iso_masses[ii] )
-	    ret_mass = iso_masses[ii];
-    return ret_mass*_atomCnt;
-}
-
-double MarginalTrek::getHeaviestConfMass()
-{
-    double ret_mass = 0.0;
-    for(unsigned int ii=0; ii < _isotopeNo; ii++)
-        if( ret_mass < iso_masses[ii] )
-            ret_mass = iso_masses[ii];
-    return ret_mass*_atomCnt;
-}
 
 MarginalTrek::~MarginalTrek()
 {
-    delete[] logProbs;
     delete[] candidate;
-    delete[] iso_masses;
 }
 
 
@@ -281,30 +297,25 @@ MarginalTrek::~MarginalTrek()
 
 PrecalculatedMarginal::PrecalculatedMarginal(
         const double* _masses,
-        const double* _lprobs,
+        const double* _probs,
         int _isotopeNo,
         int _atomCnt,
 	double lCutOff,
 	bool sort,
         int tabSize,
         int hashSize
-) : 
-isotopeNo(_isotopeNo),
-atomCnt(_atomCnt),
-isoMasses(array_copy<double>(_masses, isotopeNo)),
-isoLProbs(getMLogProbs(_lprobs, isotopeNo)),
-allocator(isotopeNo,tabSize)
+) : Marginal(_masses, _probs, _isotopeNo, _atomCnt, tabSize)
 {
     const ConfEqual equalizer(isotopeNo);
     const KeyHasher keyHasher(isotopeNo);
-    const ConfOrderMarginal orderMarginal(isoLProbs, isotopeNo);
+    const ConfOrderMarginal orderMarginal(atom_lProbs, isotopeNo);
 
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
 
-    Conf currentConf = initialConfigure(atomCnt, isotopeNo, _lprobs, isoLProbs);
+    Conf currentConf = initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs);
     Conf tmpConf = currentConf;
-    if(logProb(currentConf, isoLProbs, _isotopeNo) >= lCutOff)
+    if(logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
     {
         configurations.push_back(allocator.makeCopy(currentConf));
         visited.insert(currentConf);
@@ -323,7 +334,7 @@ allocator(isotopeNo,tabSize)
 		    currentConf[ii]++;
 		    currentConf[jj]--;
 
-		    if (visited.count(currentConf) == 0 and logProb(currentConf, isoLProbs, _isotopeNo) >= lCutOff)
+		    if (visited.count(currentConf) == 0 and logProb(currentConf, atom_lProbs, _isotopeNo) >= lCutOff)
 		    {
 		    	 visited.insert(currentConf);
                          configurations.push_back(allocator.makeCopy(currentConf));
@@ -349,8 +360,8 @@ allocator(isotopeNo,tabSize)
 
     for(unsigned int ii=0; ii < no_confs; ii++)
     {
-        lProbs[ii] = logProb(confs[ii], isoLProbs, _isotopeNo);
-	masses[ii] = mass(confs[ii], isoMasses, _isotopeNo);
+        lProbs[ii] = logProb(confs[ii], atom_lProbs, _isotopeNo);
+	masses[ii] = mass(confs[ii], atom_masses, _isotopeNo);
     }
 
 
@@ -363,8 +374,6 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
     	delete[] lProbs;
     if(masses != nullptr)
     	delete[] masses;
-    delete[] isoMasses;
-    delete[] isoLProbs;
 }
 
 
@@ -566,7 +575,7 @@ bool RGTMarginal::hard_next()
     {
         going_up = false;
         current_level += mass_table_row_size;
-        if(goingup and (upper & (nextmask<<1)) == (lower & (nextmask<<1)))
+        if((upper & (nextmask<<1)) == (lower & (nextmask<<1)))
         {
             terminate_search();
             return false;
