@@ -35,6 +35,8 @@ void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim)
 
 class Marginal
 {
+private:
+    bool disowned;
 protected:
     const unsigned int isotopeNo;
     const unsigned int atomCnt;
@@ -49,12 +51,15 @@ public:
         int _isotopeNo,                  // No of isotope configurations.
         int _atomCnt
     );
-    ~Marginal();
+    Marginal(Marginal& other) = delete;
+    Marginal& operator= (const Marginal& other) = delete;
+    Marginal(Marginal&& other);
+    virtual ~Marginal();
     
     inline int get_isotopeNo() const { return isotopeNo; };
-    double getLightestConfMass();
-    double getHeaviestConfMass();
-    double getMostLikelyConfLProb();
+    double getLightestConfMass() const;
+    double getHeaviestConfMass() const;
+    double getMostLikelyConfLProb() const;
 };
 
 class MarginalTrek : public Marginal

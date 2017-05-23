@@ -153,6 +153,7 @@ Marginal::Marginal(
     int _isotopeNo,  
     int _atomCnt
 ) : 
+disowned(false),
 isotopeNo(_isotopeNo),
 atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
@@ -160,15 +161,29 @@ atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
 {};
 
+Marginal::Marginal(Marginal&& other) : 
+disowned(false),
+isotopeNo(other.isotopeNo),
+atomCnt(other.atomCnt),
+atom_masses(other.atom_masses),
+atom_lProbs(other.atom_lProbs),
+mode_conf(other.mode_conf)
+{
+    other.disowned = true;
+}
+
 Marginal::~Marginal()
 {
-    delete[] atom_masses;
-    delete[] atom_lProbs;
-    delete[] mode_conf;
+    if(not disowned)
+    {
+        delete[] atom_masses;
+        delete[] atom_lProbs;
+        delete[] mode_conf;
+    }
 }
 
 
-double Marginal::getLightestConfMass()
+double Marginal::getLightestConfMass() const
 {
     double ret_mass = std::numeric_limits<double>::infinity();
     for(unsigned int ii=0; ii < isotopeNo; ii++)
@@ -177,7 +192,7 @@ double Marginal::getLightestConfMass()
     return ret_mass*atomCnt;
 }
 
-double Marginal::getHeaviestConfMass()
+double Marginal::getHeaviestConfMass() const
 {
     double ret_mass = 0.0;
     for(unsigned int ii=0; ii < isotopeNo; ii++)
@@ -186,7 +201,7 @@ double Marginal::getHeaviestConfMass()
     return ret_mass*atomCnt;
 }
 
-double Marginal::getMostLikelyConfLProb()
+double Marginal::getMostLikelyConfLProb() const
 {
     return logProb(mode_conf, atom_lProbs, isotopeNo);
 }
