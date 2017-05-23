@@ -29,3 +29,8 @@ ConfOrderMarginal::ConfOrderMarginal(const double* logProbs, int dim)
 : logProbs(logProbs), dim(dim)
 {}
 
+ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* logProbs, int dim)
+: logProbs(logProbs), dim(dim)
+{}
+
+

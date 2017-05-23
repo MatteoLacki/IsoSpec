@@ -325,7 +325,7 @@ allocator(isotopeNo, tabSize)
 {
     const ConfEqual equalizer(isotopeNo);
     const KeyHasher keyHasher(isotopeNo);
-    const ConfOrderMarginal orderMarginal(atom_lProbs, isotopeNo);
+    const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
 
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
@@ -383,6 +383,7 @@ allocator(isotopeNo, tabSize)
 	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
 
+    printArray(lProbs, no_confs);
 
 }
 

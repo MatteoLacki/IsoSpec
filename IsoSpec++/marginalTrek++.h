@@ -133,6 +133,7 @@ public:
     inline const double& get_lProb(unsigned int idx) const { return lProbs[idx]; };
     inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
     inline const Conf& get_conf(unsigned int idx) const { return confs[idx]; };
+    inline unsigned int get_no_confs() const { return no_confs; };
 };
 
 class SyncMarginal : public PrecalculatedMarginal

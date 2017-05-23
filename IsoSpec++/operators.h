@@ -83,6 +83,21 @@ public:
     };
 };
 
+class ConfOrderMarginalDescending
+{
+//configurations comparator
+    const double*  logProbs;
+    int dim;
+public:
+    ConfOrderMarginalDescending(const double* logProbs, int dim);
+
+    inline bool operator()(const Conf conf1, const Conf conf2)
+    {// Return true if conf1 is less probable than conf2.
+        return logProb(conf1,logProbs,dim) > logProb(conf2,logProbs,dim);
+    };
+};
+
+
 template<typename T> class TableOrder
 {
 	const T* tbl;

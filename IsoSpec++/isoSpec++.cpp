@@ -774,9 +774,11 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 
             marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                            false,
+                                                            true,
                                                             tabSize, 
                                                             hashSize);
+
+            std::cout << "LENGTH: " << marginalResults[ii]->get_no_confs() << std::endl;
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
 	}
