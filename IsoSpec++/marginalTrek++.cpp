@@ -151,14 +151,12 @@ Marginal::Marginal(
     const double* _masses,
     const double* _probs,
     int _isotopeNo,  
-    int _atomCnt,
-    int _tabSize
+    int _atomCnt
 ) : 
 isotopeNo(_isotopeNo),
 atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
-allocator(isotopeNo, _tabSize),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
 {};
 
@@ -201,7 +199,7 @@ MarginalTrek::MarginalTrek(
     int tabSize,
     int hashSize
 ) : 
-Marginal(masses, probs, isotopeNo, atomCnt, tabSize),
+Marginal(masses, probs, isotopeNo, atomCnt),
 current_count(0),
 keyHasher(isotopeNo),
 equalizer(isotopeNo),
@@ -209,7 +207,8 @@ orderMarginal(atom_lProbs, isotopeNo),
 visited(hashSize,keyHasher,equalizer),
 pq(orderMarginal),
 totalProb(),
-candidate(new int[isotopeNo])
+candidate(new int[isotopeNo]),
+allocator(tabSize)
 {
     int*    initialConf = allocator.makeCopy(mode_conf);
 
@@ -306,7 +305,8 @@ PrecalculatedMarginal::PrecalculatedMarginal(
 	bool sort,
         int tabSize,
         int hashSize
-) : Marginal(_masses, _probs, _isotopeNo, _atomCnt, tabSize)
+) : Marginal(_masses, _probs, _isotopeNo, _atomCnt),
+allocator(tabSize)
 {
     const ConfEqual equalizer(isotopeNo);
     const KeyHasher keyHasher(isotopeNo);

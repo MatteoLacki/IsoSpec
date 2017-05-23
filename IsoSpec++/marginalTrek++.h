@@ -40,7 +40,6 @@ protected:
     const unsigned int atomCnt;
     const double* atom_masses;
     const double* atom_lProbs;
-    Allocator<int> allocator;
     const Conf mode_conf;
     
 public:
@@ -48,8 +47,7 @@ public:
         const double* _masses,   // masses size = logProbs size = isotopeNo
         const double* _probs,
         int _isotopeNo,                  // No of isotope configurations.
-        int _atomCnt,
-        int _tabSize = 1000
+        int _atomCnt
     );
     ~Marginal();
     
@@ -70,6 +68,7 @@ private:
     std::priority_queue<Conf,std::vector<Conf>,ConfOrderMarginal> pq;
     Summator totalProb;
     Conf candidate;
+    Allocator<int> allocator;
     std::vector<double> _conf_probs;
     std::vector<double> _conf_masses;
     std::vector<int*> _confs;
@@ -115,6 +114,7 @@ protected:
     unsigned int no_confs;
     double* masses;
     double* lProbs;
+    Allocator<int> allocator;
 public: 
     PrecalculatedMarginal(
     	const double* masses,

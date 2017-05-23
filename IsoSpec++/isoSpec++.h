@@ -35,6 +35,9 @@
 #endif /* BUILDING_R */
 
 
+
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
+
 class IsoSpecLayered;
 class IsoThresholdGenerator;
 

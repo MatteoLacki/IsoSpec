@@ -171,6 +171,16 @@ marginalResults(nullptr),
 tabSize(_tabsize),
 hashSize(_hashsize)
 {
+std::vector<const double*> isotope_masses;
+std::vector<const double*> isotope_probabilities;
+
+dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
+
+setupMarginals(isotope_masses.data(), isotope_probabilities.data());
+};
+
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
+{
 // This function is NOT guaranteed to be secure againt malicious input. It should be used only for debugging.
 
     string cpp_formula(formula);
@@ -236,22 +246,19 @@ hashSize(_hashsize)
         _isotope_numbers.push_back(num);
     }
 
-    vector<const double*> isotope_masses;
-    vector<const double*> isotope_probabilities;
     for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         isotope_masses.push_back(&elem_table_mass[*it]);
         isotope_probabilities.push_back(&elem_table_probability[*it]);
-    }
+    };
 
-    dimNumber = elements.size();
-    isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
-    atomCounts = array_copy<int>(numbers.data(), dimNumber);
-    confSize = dimNumber * sizeof(int);
-    allDim = 0;
+    const unsigned int dimNumber = elements.size();
 
-    setupMarginals(isotope_masses.data(), isotope_probabilities.data());
+    *isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
+    *atomCounts = array_copy<int>(numbers.data(), dimNumber);
+    *confSize = dimNumber * sizeof(int);
 
+    return dimNumber;
 
 }
 
