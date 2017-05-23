@@ -122,10 +122,7 @@ protected:
     Allocator<int> allocator;
 public: 
     PrecalculatedMarginal(
-    	const double* masses,
-	const double* probs,
-	int isotopeNo,
-	int atomCnt,
+        Marginal&& m,
 	double lCutOff,
 	bool sort = true,
 	int tabSize = 1000,
@@ -144,18 +141,12 @@ private:
     std::atomic<unsigned int> counter;
 public:
     inline SyncMarginal(
-        const double* masses,
-        const double* probs,
-        int isotopeNo,
-        int atomCnt,
+        Marginal&& m,
         double lCutOff,
         int tabSize = 1000,
         int hashSize = 1000
     ) : PrecalculatedMarginal(
-        masses,
-        probs,
-        isotopeNo,
-        atomCnt,
+        std::move(m),
         lCutOff,
         false,
         tabSize,
@@ -186,10 +177,7 @@ private:
     bool goingleft, going_up;
 public:
     RGTMarginal(
-	const double* masses,
-        const double* probs,
-        int isotopeNo,
-        int atomCnt,
+        Marginal&& m,
         double lCutOff,
         int tabSize = 1000,
         int hashSize = 1000

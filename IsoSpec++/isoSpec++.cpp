@@ -58,7 +58,7 @@ isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
-marginalResults(nullptr),
+marginals(nullptr),
 tabSize(_tabSize),
 hashSize(_hashSize)
 {
@@ -67,13 +67,13 @@ hashSize(_hashSize)
 
 inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities)
 {
-    if (marginalResults == nullptr)
+    if (marginals == nullptr)
     {
-        marginalResults = new MarginalTrek*[dimNumber];
+        marginals = new Marginal*[dimNumber];
         for(int i=0; i<dimNumber;i++) 
         {
 	    allDim += isotopeNumbers[i];
-	    marginalResults[i] = new MarginalTrek(
+	    marginals[i] = new MarginalTrek(
                 _isotopeMasses[i],
                 _isotopeProbabilities[i],
                 isotopeNumbers[i],
@@ -88,8 +88,8 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
 
 Iso::~Iso()
 {
-	if (marginalResults != nullptr)
-	    dealloc_table(marginalResults, dimNumber);
+	if (marginals != nullptr)
+	    dealloc_table(marginals, dimNumber);
 	delete[] isotopeNumbers;
 	delete[] atomCounts;
 }
@@ -99,7 +99,7 @@ double Iso::getLightestPeakMass()
 {
     double mass = 0.0;
     for (int ii=0; ii<dimNumber; ii++)
-        mass += marginalResults[ii]->getLightestConfMass();
+        mass += marginals[ii]->getLightestConfMass();
     return mass;
 }
 
@@ -107,7 +107,7 @@ double Iso::getHeaviestPeakMass()
 {
     double mass = 0.0;
     for (int ii=0; ii<dimNumber; ii++)
-        mass += marginalResults[ii]->getHeaviestConfMass();
+        mass += marginals[ii]->getHeaviestConfMass();
     return mass;
 }
 
@@ -167,7 +167,7 @@ inline int str_to_int(const string& s)
 }
 
 Iso::Iso(const char* formula, int _tabsize, int _hashsize) :
-marginalResults(nullptr),
+marginals(nullptr),
 tabSize(_tabsize),
 hashSize(_hashsize)
 {
@@ -759,12 +759,11 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
-	    marginalResults[ii]->probeConfigurationIdx(0);
 	}
 
-	maxConfsLPSum[0] = marginalResults[0]->conf_probs()[0];
+	maxConfsLPSum[0] = marginalResults[0]->get_lProb(0);
 	for(int ii=1; ii<dimNumber; ii++)
-	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->conf_probs()[0];
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->get_lProb(0);
 
 	partialLProbs[dimNumber] = 0.0;
 	partialMasses[dimNumber] = 0.0;
@@ -782,12 +781,12 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 bool IsoThresholdGenerator::advanceToNextConfiguration()
 {
 	counter[0]++;
-	if(marginalResults[0]->probeConfigurationIdx(counter[0]))
+	if(marginalResults[0]->inRange(counter[0]))
 	{
-		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->conf_probs()[counter[0]];
+		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
 		if(partialLProbs[0] > Lcutoff)
 		{
-			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_masses()[counter[0]];
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
 			return true;
 		}
 	}
@@ -801,12 +800,12 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 		counter[idx] = 0;
 		idx++;
 		counter[idx]++;
-		if(marginalResults[idx]->probeConfigurationIdx(counter[idx]))
+		if(marginalResults[idx]->inRange(counter[idx]))
 		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
 			{
-				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
 				recalc(idx-1);
 				return true;
 			}
@@ -838,7 +837,6 @@ void IsoThresholdGeneratorMultithreaded::IsoThresholdGeneratorMultithreaded_init
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
-	    marginalResults[ii]->probeConfigurationIdx(0);
 	}
 
         partialLProbs[dimNumber] = 0.0;
@@ -853,11 +851,9 @@ void IsoThresholdGeneratorMultithreaded::IsoThresholdGeneratorMultithreaded_init
                 Lcutoff += partialLProbs[0];
         }
 
-	assert(marginalResults[dimNumber-1]->probeConfigurationIdx(thread_offset));
-
-	maxConfsLPSum[0] = marginalResults[0]->conf_probs()[0];
+	maxConfsLPSum[0] = marginalResults[0]->get_lProb(0);
 	for(int ii=1; ii<dimNumber; ii++)
-	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->conf_probs()[0];
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->get_lProb(0);
 
 
 	counter[dimNumber-1] = thread_offset;
@@ -873,12 +869,12 @@ void IsoThresholdGeneratorMultithreaded::IsoThresholdGeneratorMultithreaded_init
 bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 {
 	counter[0]++;
-	if(marginalResults[0]->probeConfigurationIdx(counter[0]))
+	if(marginalResults[0]->inRange(counter[0]))
 	{
-		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->conf_probs()[counter[0]];
+		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
 		if(partialLProbs[0] > Lcutoff)
 		{
-			partialMasses[0] = partialMasses[1] + marginalResults[0]->conf_masses()[counter[0]];
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
 			return true;
 		}
 	}
@@ -892,12 +888,12 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 		counter[idx] = 0;
 		idx++;
 		counter[idx]++;
-		if(marginalResults[idx]->probeConfigurationIdx(counter[idx]))
+		if(marginalResults[idx]->inRange(counter[idx]))
 		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
 			{
-				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
 				recalc(idx-1);
 				return true;
 			}
@@ -907,12 +903,12 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
     counter[idx] = 0;
     idx++;
     counter[idx] += total_threads;
-    if(marginalResults[idx]->probeConfigurationIdx(counter[idx]))
+    if(marginalResults[idx]->inRange(counter[idx]))
     {
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
             {
-                    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
+                    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                     recalc(idx-1);
                     return true;
             }

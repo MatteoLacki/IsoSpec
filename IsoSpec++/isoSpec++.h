@@ -50,7 +50,7 @@ protected:
 	int*			atomCounts;
 	unsigned int		confSize;
 	int			allDim;
-	MarginalTrek**          marginalResults;
+	Marginal**              marginals;
 	const int             	tabSize;
         const int             	hashSize;
 
@@ -81,6 +81,7 @@ public:
 
  class IsoSpec : public Iso {
  protected:
+     MarginalTrek** marginalResults;
      const double            cutOff;
      const std::vector<double>**     logProbs;
      const std::vector<double>**     masses;
@@ -256,6 +257,7 @@ public:
 class IsoOrderedGenerator : public IsoGenerator
 {
 private:
+        MarginalTrek** marginalResults;
 	double cutOff;
 	std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
 	void IsoOrderedGenerator_init(double _cutoff);
@@ -304,6 +306,7 @@ private:
 	double* partialMasses;
 	double* maxConfsLPSum;
 	double Lcutoff;
+        PrecalculatedMarginal** marginalResults;
 
 	void IsoThresholdGenerator_init(double _threshold, bool _absolute);
 
@@ -337,8 +340,8 @@ private:
 	{
 		for(; idx >=0; idx--)
 		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]]; 
-			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
 		}
 	}
 
@@ -357,6 +360,8 @@ private:
         double* partialMasses;
         double* maxConfsLPSum;
         double Lcutoff;
+        PrecalculatedMarginal** marginalResults;
+        SyncMarginal* syncMarginal;
 
         void IsoThresholdGeneratorMultithreaded_init(unsigned int _total_threads, unsigned int _thread_offset, double _threshold, bool _absolute);
 
@@ -397,8 +402,8 @@ private:
         {
                 for(; idx >=0; idx--)
                 {
-                        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->conf_probs()[counter[idx]];
-                        partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->conf_masses()[counter[idx]];
+                        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+                        partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                 }
         }
 

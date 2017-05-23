@@ -311,16 +311,12 @@ MarginalTrek::~MarginalTrek()
 
 
 
-PrecalculatedMarginal::PrecalculatedMarginal(
-        const double* _masses,
-        const double* _probs,
-        int _isotopeNo,
-        int _atomCnt,
+PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m, 
 	double lCutOff,
 	bool sort,
         int tabSize,
         int hashSize
-) : Marginal(_masses, _probs, _isotopeNo, _atomCnt),
+) : Marginal(std::move(m)),
 allocator(tabSize)
 {
     const ConfEqual equalizer(isotopeNo);
@@ -344,14 +340,14 @@ allocator(tabSize)
     {
         memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
 	idx++;
-        for( int ii = 0; ii < _isotopeNo; ii++ )
-            for( int jj = 0; jj < _isotopeNo; jj++ )
+        for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                 if( ii != jj and currentConf[jj] > 0)
 		{
 		    currentConf[ii]++;
 		    currentConf[jj]--;
 
-		    if (visited.count(currentConf) == 0 and logProb(currentConf, atom_lProbs, _isotopeNo) >= lCutOff)
+		    if (visited.count(currentConf) == 0 and logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
 		    {
 		    	 visited.insert(currentConf);
                          configurations.push_back(allocator.makeCopy(currentConf));
@@ -377,8 +373,8 @@ allocator(tabSize)
 
     for(unsigned int ii=0; ii < no_confs; ii++)
     {
-        lProbs[ii] = logProb(confs[ii], atom_lProbs, _isotopeNo);
-	masses[ii] = mass(confs[ii], atom_masses, _isotopeNo);
+        lProbs[ii] = logProb(confs[ii], atom_lProbs, isotopeNo);
+	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
 
 
@@ -396,14 +392,11 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 
 RGTMarginal::RGTMarginal(
-	const double* masses,
-        const double* probs,
-        int isotopeNo,
-        int atomCnt,
+        Marginal&& m,
         double lCutOff,
         int tabSize,
         int hashSize) : 
-	PrecalculatedMarginal(masses, probs, isotopeNo, atomCnt, lCutOff, true, tabSize, hashSize),
+	PrecalculatedMarginal(std::move(m), lCutOff, true, tabSize, hashSize),
         TOV_NP2(next_pow2(no_confs)),
         TOV_NP2M1(TOV_NP2/2),
         mass_table_rows_no(floor_log2(TOV_NP2M1)),
