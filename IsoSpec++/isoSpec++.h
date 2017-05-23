@@ -335,7 +335,8 @@ public:
 		int 	_tabSize  = 1000,
 		int 	_hashSize = 1000) : IsoGenerator(formula, _tabSize, _hashSize) { IsoThresholdGenerator_init(_threshold, _absolute); };
 
-	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum;};
+	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
+                                                    dealloc_table(marginalResults, dimNumber);};
 
 private:
 	inline void recalc(int idx)
