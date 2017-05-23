@@ -41,6 +41,7 @@ protected:
     const double* atom_masses;
     const double* atom_lProbs;
     Allocator<int> allocator;
+    const Conf mode_conf;
     
 public:
     Marginal(
@@ -55,7 +56,7 @@ public:
     inline int get_isotopeNo() const { return isotopeNo; };
     double getLightestConfMass();
     double getHeaviestConfMass();
-
+    double getMostLikelyConfLProb();
 };
 
 class MarginalTrek : public Marginal

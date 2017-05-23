@@ -158,13 +158,15 @@ isotopeNo(_isotopeNo),
 atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
-allocator(isotopeNo, _tabSize)
+allocator(isotopeNo, _tabSize),
+mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
 {};
 
 Marginal::~Marginal()
 {
     delete[] atom_masses;
     delete[] atom_lProbs;
+    delete[] mode_conf;
 }
 
 
@@ -186,6 +188,11 @@ double Marginal::getHeaviestConfMass()
     return ret_mass*atomCnt;
 }
 
+double Marginal::getMostLikelyConfLProb()
+{
+    return logProb(mode_conf, atom_lProbs, isotopeNo);
+}
+
 MarginalTrek::MarginalTrek(
     const double* masses,   // masses size = logProbs size = isotopeNo
     const double* probs,
@@ -204,12 +211,7 @@ pq(orderMarginal),
 totalProb(),
 candidate(new int[isotopeNo])
 {
-
-
-    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs, atom_lProbs);
-    int*    initialConf = allocator.makeCopy(initialConf_tmp);
-    delete [] initialConf_tmp;
-
+    int*    initialConf = allocator.makeCopy(mode_conf);
 
     pq.push(initialConf);
     visited[initialConf] = 0;
@@ -313,7 +315,7 @@ PrecalculatedMarginal::PrecalculatedMarginal(
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
 
-    Conf currentConf = initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs);
+    Conf currentConf = mode_conf;
     Conf tmpConf = currentConf;
     if(logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
     {
