@@ -59,7 +59,7 @@ public:
     inline int get_isotopeNo() const { return isotopeNo; };
     double getLightestConfMass() const;
     double getHeaviestConfMass() const;
-    double getMostLikelyConfLProb() const;
+    double getModeLProb() const;
 };
 
 class MarginalTrek : public Marginal

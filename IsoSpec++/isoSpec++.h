@@ -53,6 +53,7 @@ protected:
 	Marginal**              marginals;
 	const int             	tabSize;
         const int             	hashSize;
+        double                  modeLProb;
 
 public:
 	Iso(
@@ -74,8 +75,9 @@ public:
 
 	virtual ~Iso();
 
-	double getLightestPeakMass();
-	double getHeaviestPeakMass();
+	double getLightestPeakMass() const;
+	double getHeaviestPeakMass() const;
+        inline double getModeLProb() const { return modeLProb; };
 
 };
 

@@ -201,7 +201,7 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
-double Marginal::getMostLikelyConfLProb() const
+double Marginal::getModeLProb() const
 {
     return logProb(mode_conf, atom_lProbs, isotopeNo);
 }

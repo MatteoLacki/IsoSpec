@@ -60,7 +60,8 @@ confSize(_dimNumber * sizeof(int)),
 allDim(0),
 marginals(nullptr),
 tabSize(_tabSize),
-hashSize(_hashSize)
+hashSize(_hashSize),
+modeLProb(0.0)
 {
 	setupMarginals(_isotopeMasses, _isotopeProbabilities);
 }
@@ -81,6 +82,7 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
                 tabSize,
                 hashSize
              );
+             modeLProb += marginals[i]->getModeLProb();
         }
     }
 
@@ -95,7 +97,7 @@ Iso::~Iso()
 }
 
 
-double Iso::getLightestPeakMass()
+double Iso::getLightestPeakMass() const
 {
     double mass = 0.0;
     for (int ii=0; ii<dimNumber; ii++)
@@ -103,7 +105,7 @@ double Iso::getLightestPeakMass()
     return mass;
 }
 
-double Iso::getHeaviestPeakMass()
+double Iso::getHeaviestPeakMass() const
 {
     double mass = 0.0;
     for (int ii=0; ii<dimNumber; ii++)
@@ -630,7 +632,6 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
 
 
-
 IsoSpecThreshold::IsoSpecThreshold( int             _dimNumber,
                                     const int*      _isotopeNumbers,
                                     const int*      _atomCounts,
@@ -685,9 +686,7 @@ bool IsoSpecThreshold::advanceToNextConfiguration()
             totalProb.add(exp(top_lprob));
         }
         else
-        {
             return true;
-        }
 
         memcpy(candidate, topConfIsoCounts, confSize);
 
@@ -756,9 +755,18 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 	partialMasses 	= new double[dimNumber+1];
 	maxConfsLPSum 	= new double[dimNumber];
 
+        marginalResults = new PrecalculatedMarginal*[dimNumber];
+
+        Lcutoff = log(_threshold);
+
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
+            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
+                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                            false,
+                                                            tabSize, 
+                                                            hashSize);
 	}
 
 	maxConfsLPSum[0] = marginalResults[0]->get_lProb(0);
@@ -769,8 +777,6 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 	partialMasses[dimNumber] = 0.0;
 
 	recalc(dimNumber-1);
-
-	Lcutoff = log(_threshold);
 
 	if(not _absolute)
 		Lcutoff += partialLProbs[0];
