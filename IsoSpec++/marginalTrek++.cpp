@@ -223,9 +223,9 @@ visited(hashSize,keyHasher,equalizer),
 pq(orderMarginal),
 totalProb(),
 candidate(new int[isotopeNo]),
-allocator(tabSize)
+allocator(isotopeNo, tabSize)
 {
-    int*    initialConf = allocator.makeCopy(mode_conf);
+    int* initialConf = allocator.makeCopy(mode_conf);
 
     pq.push(initialConf);
     visited[initialConf] = 0;
@@ -317,7 +317,7 @@ PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
         int tabSize,
         int hashSize
 ) : Marginal(std::move(m)),
-allocator(tabSize)
+allocator(isotopeNo, tabSize)
 {
     const ConfEqual equalizer(isotopeNo);
     const KeyHasher keyHasher(isotopeNo);
