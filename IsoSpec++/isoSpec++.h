@@ -316,6 +316,7 @@ public:
 	virtual bool advanceToNextConfiguration();
 	virtual inline const double& lprob() const { return partialLProbs[0]; };
 	virtual inline const double& mass() const { return partialMasses[0]; };
+        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
 	inline IsoThresholdGenerator(int _dimNumber,

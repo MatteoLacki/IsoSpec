@@ -754,7 +754,7 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 	counter 	= new unsigned int[dimNumber];
 	partialLProbs 	= new double[dimNumber+1];
 	partialMasses 	= new double[dimNumber+1];
-	maxConfsLPSum 	= new double[dimNumber];
+	maxConfsLPSum 	= new double[dimNumber-1];
 
         marginalResults = new PrecalculatedMarginal*[dimNumber];
 
@@ -784,7 +784,7 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 	}
 
 	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
-	for(int ii=1; ii<dimNumber; ii++)
+	for(int ii=1; ii<dimNumber-1; ii++)
 	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
 	partialLProbs[dimNumber] = 0.0;
@@ -802,7 +802,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 	if(marginalResults[0]->inRange(counter[0]))
 	{
 		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-		if(partialLProbs[0] > Lcutoff)
+		if(partialLProbs[0] >= Lcutoff)
 		{
 			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
 			return true;
@@ -815,13 +815,20 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 
 	while(idx<dimNumber-1)
 	{
+        std::cout << "CARRY " << idx << std::endl;
+        printArray(partialLProbs,dimNumber+1);
+        printArray(maxConfsLPSum, dimNumber-1);
 		counter[idx] = 0;
 		idx++;
 		counter[idx]++;
+                printArray(counter, dimNumber);
 		if(marginalResults[idx]->inRange(counter[idx]))
 		{
+                    std::cout << "IN_RANGE" << std::endl;
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-			if(partialLProbs[idx] + maxConfsLPSum[idx-1] > Lcutoff)
+                        std::cout << partialLProbs[idx] << " + " << maxConfsLPSum[idx-1] << " = " << partialLProbs[idx] + maxConfsLPSum[idx-1] << std::endl;
+                        std::cout << partialLProbs[idx] + maxConfsLPSum[idx-1] << " " << Lcutoff << std::endl;
+			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
 			{
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
 				recalc(idx-1);

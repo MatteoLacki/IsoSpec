@@ -331,7 +331,7 @@ allocator(isotopeNo, tabSize)
 
     std::cout << "MARGINAL_CUTOFF " << lCutOff << std::endl;
 
-    Conf currentConf = mode_conf;
+    Conf currentConf = allocator.makeCopy(mode_conf);
     printArray<int>(mode_conf, isotopeNo);
     printArray<int>(currentConf, isotopeNo);
     printArray<double>(atom_lProbs, isotopeNo);
@@ -367,6 +367,7 @@ allocator(isotopeNo, tabSize)
                 }
     }
 
+    std::cout << "MRG_BEFORE " << logProb(configurations[0], atom_lProbs, isotopeNo) << std::endl;
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);
 
@@ -383,6 +384,8 @@ allocator(isotopeNo, tabSize)
 	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
 
+    std::cout << "MRG_AFTER " << lProbs[0] << std::endl;
+    std::cout << "getMP " << getModeLProb() << std::endl;
     printArray(lProbs, no_confs);
 
 }
