@@ -767,10 +767,6 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
-            std::cout << "LCUTOFF " << Lcutoff << std::endl;
-            std::cout << "MODELP " << modeLProb << std::endl;
-            std::cout << "MRG_>GETMODELP " << marginals[ii]->getModeLProb() << std::endl;
-            std::cout << "RESULT " << Lcutoff - modeLProb + marginals[ii]->getModeLProb() << std::endl;
 
             marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
@@ -778,7 +774,6 @@ void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _
                                                             tabSize, 
                                                             hashSize);
 
-            std::cout << "LENGTH: " << marginalResults[ii]->get_no_confs() << std::endl;
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
 	}
@@ -815,19 +810,12 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 
 	while(idx<dimNumber-1)
 	{
-        std::cout << "CARRY " << idx << std::endl;
-        printArray(partialLProbs,dimNumber+1);
-        printArray(maxConfsLPSum, dimNumber-1);
 		counter[idx] = 0;
 		idx++;
 		counter[idx]++;
-                printArray(counter, dimNumber);
 		if(marginalResults[idx]->inRange(counter[idx]))
 		{
-                    std::cout << "IN_RANGE" << std::endl;
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-                        std::cout << partialLProbs[idx] << " + " << maxConfsLPSum[idx-1] << " = " << partialLProbs[idx] + maxConfsLPSum[idx-1] << std::endl;
-                        std::cout << partialLProbs[idx] + maxConfsLPSum[idx-1] << " " << Lcutoff << std::endl;
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
 			{
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);

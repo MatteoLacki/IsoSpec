@@ -107,7 +107,6 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 	    
     }
-    std::cout << "CONFIGURED" << '\n';
     return res;
 }
 
@@ -160,9 +159,7 @@ atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
-{std::cout << "MARGINAL_CONSTRUCTED" << std::endl;
-printArray<int>(mode_conf, isotopeNo);
-};
+{};
 
 Marginal::Marginal(Marginal&& other) : 
 disowned(false),
@@ -172,7 +169,6 @@ atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
 mode_conf(other.mode_conf)
 {
-    std::cout << "COPIED" << std::endl;
     other.disowned = true;
 }
 
@@ -329,13 +325,7 @@ allocator(isotopeNo, tabSize)
 
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
-    std::cout << "MARGINAL_CUTOFF " << lCutOff << std::endl;
-
     Conf currentConf = allocator.makeCopy(mode_conf);
-    printArray<int>(mode_conf, isotopeNo);
-    printArray<int>(currentConf, isotopeNo);
-    printArray<double>(atom_lProbs, isotopeNo);
-    std::cout << lCutOff << std::endl;
     if(logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
     {
         configurations.push_back(allocator.makeCopy(currentConf));
@@ -367,7 +357,6 @@ allocator(isotopeNo, tabSize)
                 }
     }
 
-    std::cout << "MRG_BEFORE " << logProb(configurations[0], atom_lProbs, isotopeNo) << std::endl;
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);
 
@@ -383,11 +372,6 @@ allocator(isotopeNo, tabSize)
         lProbs[ii] = logProb(confs[ii], atom_lProbs, isotopeNo);
 	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
-
-    std::cout << "MRG_AFTER " << lProbs[0] << std::endl;
-    std::cout << "getMP " << getModeLProb() << std::endl;
-    printArray(lProbs, no_confs);
-
 }
 
 
@@ -420,7 +404,6 @@ RGTMarginal::RGTMarginal(
 
 unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 {
-    std::cout << "LEVELS: " << mass_table_rows_no << "\tROWLEN: " << mass_table_row_size << std::endl;
     unsigned int* ret = new unsigned int[mass_table_size+4];
     unsigned int step = 1;
     unsigned int stepm1 = 0;
@@ -503,7 +486,6 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             }
         }
 
-    std::cout << "lower/upper" << lower << " " << upper << '\n';
 
     arridx = mass_table_size;
     arrend = mass_table_size;
@@ -555,22 +537,18 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     printArray(mass_table, mass_table_size);
     mask = ~1;
 
-    std::cout << "lower/upper sss " << lower << " " << upper << '\n';
     lower &= mask;
     upper &= mask;
 
     current_level = 0;
     going_up = true;
 
-    std::cout << "lower/upper sss " << lower << " " << upper << '\n';
 }
 
 
 bool RGTMarginal::next()
 {
     // TODO: move to .h and inline this.
-    std::cout << "ARRIDX " << arridx << " ARREND " << arrend << std::endl;
-
     if(arridx < arrend and mass_table[arridx] <= mmax)
     {
         cidx = subintervals[arridx];
