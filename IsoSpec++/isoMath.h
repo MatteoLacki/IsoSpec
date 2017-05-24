@@ -20,7 +20,7 @@
 
 #include <cmath>
 
-static inline double logFactorial(int n) { return lgamma(n+1); };
+static inline double logFactorial(int n) { return lgamma(n+1); }
 double NormalCDFInverse(double p);
 double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);

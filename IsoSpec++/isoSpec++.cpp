@@ -180,7 +180,7 @@ std::vector<const double*> isotope_probabilities;
 dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
 
 setupMarginals(isotope_masses.data(), isotope_probabilities.data());
-};
+}
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
@@ -971,7 +971,7 @@ void IsoOrderedGenerator::IsoOrderedGenerator_init(const double    _cutOff)
 }
 
 
-IsoOrderedGenerator::~IsoOrderedGenerator(){};
+IsoOrderedGenerator::~IsoOrderedGenerator(){}
 
 bool IsoOrderedGenerator::advanceToNextConfiguration()
 {

@@ -159,7 +159,7 @@ atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
-{};
+{}
 
 Marginal::Marginal(Marginal&& other) : 
 disowned(false),
