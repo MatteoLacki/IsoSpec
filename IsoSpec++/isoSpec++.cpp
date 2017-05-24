@@ -49,22 +49,33 @@ Iso::Iso(
     const int*      _isotopeNumbers,
     const int*      _atomCounts,
     const double**  _isotopeMasses,
-    const double**  _isotopeProbabilities,
-    int             _tabSize,
-    int             _hashSize
+    const double**  _isotopeProbabilities
 ) :
+embedded(false),
 dimNumber(_dimNumber),
 isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
 marginals(nullptr),
-tabSize(_tabSize),
-hashSize(_hashSize),
 modeLProb(0.0)
 {
 	setupMarginals(_isotopeMasses, _isotopeProbabilities);
 }
+
+Iso::Iso(Iso&& other) :
+embedded(false),
+dimNumber(other.dimNumber),
+isotopeNumbers(other.isotopeNumbers),
+atomCounts(other.atomCounts),
+confSize(other.confSize),
+allDim(other.allDim),
+marginals(other.marginals),
+modeLProb(other.modeLProb)
+{
+    other.embedded = true;
+}
+
 
 inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities)
 {
@@ -74,13 +85,11 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
         for(int i=0; i<dimNumber;i++) 
         {
 	    allDim += isotopeNumbers[i];
-	    marginals[i] = new MarginalTrek(
+	    marginals[i] = new Marginal(
                 _isotopeMasses[i],
                 _isotopeProbabilities[i],
                 isotopeNumbers[i],
-                atomCounts[i],
-                tabSize,
-                hashSize
+                atomCounts[i]
              );
              modeLProb += marginals[i]->getModeLProb();
         }
@@ -90,10 +99,13 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
 
 Iso::~Iso()
 {
+    if(not embedded)
+    {
 	if (marginals != nullptr)
 	    dealloc_table(marginals, dimNumber);
 	delete[] isotopeNumbers;
 	delete[] atomCounts;
+    }
 }
 
 
@@ -114,6 +126,7 @@ double Iso::getHeaviestPeakMass() const
 }
 
 
+
 IsoSpec::IsoSpec(
     int             _dimNumber,
     const int*      _isotopeNumbers,
@@ -123,7 +136,7 @@ IsoSpec::IsoSpec(
     const double    _cutOff,
     int             tabSize,
     int             hashSize
-) : Iso(_dimNumber, _isotopeNumbers, _atomCounts, isotopeMasses, isotopeProbabilities, tabSize, hashSize),
+) : Iso(_dimNumber, _isotopeNumbers, _atomCounts, isotopeMasses, isotopeProbabilities),
 cutOff(_cutOff),
 allocator(_dimNumber, tabSize),
 cnt(0),
@@ -168,10 +181,9 @@ inline int str_to_int(const string& s)
 	return ret;
 }
 
-Iso::Iso(const char* formula, int _tabsize, int _hashsize) :
+Iso::Iso(const char* formula) :
+embedded(false),
 marginals(nullptr),
-tabSize(_tabsize),
-hashSize(_hashsize),
 modeLProb(0.0)
 {
 std::vector<const double*> isotope_masses;
@@ -749,7 +761,8 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 
 
 
-void IsoThresholdGenerator::IsoThresholdGenerator_init(double _threshold, bool _absolute)
+IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
+: IsoGenerator(std::move(iso))
 {
 	counter 	= new unsigned int[dimNumber];
 	partialLProbs 	= new double[dimNumber+1];
@@ -837,7 +850,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 
 
 
-
+#if 0
 void IsoThresholdGeneratorMultithreaded::IsoThresholdGeneratorMultithreaded_init(unsigned int _total_threads, unsigned int _thread_offset, double _threshold, bool _absolute)
 {
 	total_threads   = _total_threads;
@@ -931,11 +944,11 @@ bool IsoThresholdGeneratorMultithreaded::advanceToNextConfiguration()
 	return false;
 }
 
-
+#endif
 /*
  * ------------------------------------------------------------------------------------------------------------------------
  */
-
+#if 0
 
 void IsoOrderedGenerator::IsoOrderedGenerator_init(const double    _cutOff)
 {
@@ -1018,7 +1031,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     return true;
 }
-
+#endif
 #ifndef BUILDING_R
 
 void printConfigurations(
