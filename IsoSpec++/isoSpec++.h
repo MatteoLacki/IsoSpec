@@ -238,18 +238,7 @@ public:
 
 
         inline IsoGenerator(Iso&& iso) : Iso(std::move(iso)) {};
-
-/*	inline IsoGenerator(int _dimNumber,
-            	const int*      _isotopeNumbers,
-            	const int*      _atomCounts,
-            	const double**  _isotopeMasses,
-            	const double**  _isotopeProbabilities,
-            	int             _tabSize,
-            	int             _hashSize) : 
-	    Iso(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize) {};
-	inline IsoGenerator(const char* formula, int _tabsize, int _hashsize) :
-		Iso(formula, _tabsize, _hashsize) {}
-*/	inline virtual ~IsoGenerator() {};
+	inline virtual ~IsoGenerator() {};
 
 };
 
@@ -318,24 +307,6 @@ public:
         virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
-/*        inline IsoThresholdGenerator(Iso&& iso, double _threshold, bool absolute = true;);
-	inline IsoThresholdGenerator(int _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double**  _isotopeMasses,
-                const double**  _isotopeProbabilities,
-		double          _threshold,
-		bool            _absolute = true,
-                int             _tabSize = 1000,
-                int             _hashSize = 1000) : IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize)
-						{ IsoThresholdGenerator_init(_threshold, _absolute); };
-
-	inline IsoThresholdGenerator(const char* formula, 
-	        double 	_threshold,
-		bool 	_absolute = true,
-		int 	_tabSize  = 1000,
-		int 	_hashSize = 1000) : IsoGenerator(formula, _tabSize, _hashSize) { IsoThresholdGenerator_init(_threshold, _absolute); };
-*/
         IsoThresholdGenerator(Iso&& iso, double  _threshold, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
 	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
