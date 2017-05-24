@@ -628,6 +628,38 @@ bool RGTMarginal::hard_next()
 
 }
 
+#define INF std::numeric_limits<double>::infinity()
+#define MIN(a, b) std::min<double>(a, b)
+
+double RGTMarginal::min_mass_above_lProb(double prob)
+{
+    setup_search(prob, INF, -INF, INF);
+    double acc = INF;
+    for(;arridx < arrend; arridx++)
+        acc = MIN(acc, mass_table[arridx]);
+    while(next())
+    {
+        acc = MIN(acc, mass_table[arridx]);
+        arridx = arrend;
+    }
+    return acc;
+}
+
+#define MAX(a, b) std::max<double>(a, b)
+double RGTMarginal::max_mass_above_lProb(double prob)
+{
+    setup_search(prob, INF, -INF, INF);
+    double acc = -INF;
+    for(;arridx < arrend; arridx++)
+        acc = MAX(acc, mass_table[arridx]);
+    while(next())
+    {
+        acc = MAX(acc, mass_table[arrend-1]);
+        arridx = arrend;
+    }
+    return acc;
+}
+
 
 void RGTMarginal::terminate_search()
 {

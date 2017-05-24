@@ -190,6 +190,8 @@ public:
     inline const double& current_lProb() const { return lProbs[cidx]; };
     inline const double& current_mass() const { return masses[cidx]; };
     inline const Conf& current_conf() const { return confs[cidx]; };
+    double min_mass_above_lProb(double prob);
+    double max_mass_above_lProb(double prob);
 
 private:
     unsigned int* alloc_and_setup_subintervals();
