@@ -761,6 +761,123 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 
 
 
+IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double _threshold, double _min_mass, double _max_mass, bool _absolute, int tabSize, int hashSize)
+: IsoGenerator(std::move(iso)),
+min_mass(_min_mass),
+max_mass(_max_mass)
+{
+	counter 	= new unsigned int[dimNumber];
+	partialLProbs 	= new double[dimNumber+1];
+	partialMasses 	= new double[dimNumber+1];
+	maxConfsLPSum 	= new double[dimNumber-1];
+
+        marginalResults = new RGTMarginal*[dimNumber];
+
+        Lcutoff = log(_threshold);
+        if(not _absolute)
+            Lcutoff += modeLProb;
+
+
+        bool empty = false;
+	for(int ii=0; ii<dimNumber; ii++)
+	{
+	    counter[ii] = 0;
+
+            marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])), 
+                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                            tabSize, 
+                                                            hashSize);
+
+            if(not marginalResults[ii]->inRange(0))
+                empty = true;
+	}
+
+	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+	for(int ii=1; ii<dimNumber-1; ii++)
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+
+	partialLProbs[dimNumber] = 0.0;
+	partialMasses[dimNumber] = 0.0;
+
+        if(not empty)
+            recalc(dimNumber-1);
+
+	counter[0]--;
+}
+
+bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
+{
+        bool inRange = marginalResults[0]->next();
+	if(inRange)
+	{
+		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->current_lProb();
+		if(partialLProbs[0] >= Lcutoff)
+		{
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->current_mass();
+			return true;
+		}
+	}
+
+	// If we reached this point, a carry is needed
+	
+	int idx = 0;
+
+	while(idx<dimNumber-1)
+	{
+//                marginalResults[idx]->reset();
+//		counter[idx] = 0;
+		idx++;
+                inRange = marginalResults[idx]->next();
+//		counter[idx]++;
+		if(inRange)
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
+			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+			{
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
+				recalc(idx-1);
+                                break;
+			}
+		}
+	}
+
+
+	return false;
+}
+
+
+bool IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
+{
+    double lower_min = min_mass - partialMasses[idx+1];
+    double lower_max = max_mass - partialMasses[idx+1];
+
+    double rem_prob = Lcutoff - partialLProbs[idx+1];
+    if(idx > 0)
+        rem_prob -= maxConfsLPSum[idx]; 
+
+    for(unsigned int ii=0; ii < idx-1; ii++)
+    {
+        lower_min -= marginalResults[ii]->min_mass_above_lProb(rem_prob);
+        lower_max -= marginalResults[ii]->max_mass_above_lProb(rem_prob);
+    }
+
+    //marginalResults[idx]->setup_search(std::numeric_limits<double>::infinity());
+
+    
+}
+
+/*
+ * ----------------------------------------------------------------------------------------------------------
+ */
+
+
+
+
+
+
+
+
+
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso))
 {
@@ -839,7 +956,6 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 	}
 	return false;
 }
-
 /*
  * ----------------------------------------------------------------------------------------------------------
  */

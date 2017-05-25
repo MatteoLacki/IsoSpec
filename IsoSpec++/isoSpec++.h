@@ -298,8 +298,6 @@ private:
 	double Lcutoff;
         PrecalculatedMarginal** marginalResults;
 
-	void IsoThresholdGenerator_init(double _threshold, bool _absolute);
-
 public:
 	virtual bool advanceToNextConfiguration();
 	virtual inline const double& lprob() const { return partialLProbs[0]; };
@@ -325,6 +323,44 @@ private:
 	
 
 };
+
+
+class IsoThresholdGeneratorBoundMass : public IsoGenerator
+{
+private:
+	unsigned int* counter;
+	double* partialLProbs;
+	double* partialMasses;
+	double* maxConfsLPSum;
+	double Lcutoff;
+        double min_mass, max_mass;
+        RGTMarginal** marginalResults;
+
+public:
+	virtual bool advanceToNextConfiguration();
+	virtual inline const double& lprob() const { return partialLProbs[0]; };
+	virtual inline const double& mass() const { return partialMasses[0]; };
+        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//	virtual const int* const & conf() const;
+
+        IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+
+	inline virtual ~IsoThresholdGeneratorBoundMass() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
+                                                    dealloc_table(marginalResults, dimNumber);};
+
+private:
+	inline void recalc(int idx)
+	{
+	    for(; idx >=0; idx--)
+	        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+	}
+
+	bool setup_ith_marginal_range(unsigned int idx);
+
+
+};
+
+
 
 #if 0
 class IsoThresholdGeneratorMultithreaded : public IsoGenerator
@@ -389,9 +425,12 @@ private:
 };
 #endif
 
+#ifndef BUILDING_R
+
  void printConfigurations(
      const   std::tuple<double*,double*,int*,int>& results,
      int     dimNumber,
      int*    isotopeNumbers
  );
 #endif
+#endif /* ISOSPEC_PLUS_PLUS_HPP */

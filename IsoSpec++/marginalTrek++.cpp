@@ -633,6 +633,7 @@ bool RGTMarginal::hard_next()
 
 double RGTMarginal::min_mass_above_lProb(double prob)
 {
+    // TODO: precalculate 'em bastards. And USE THEM!
     setup_search(prob, INF, -INF, INF);
     double acc = INF;
     for(;arridx < arrend; arridx++)
@@ -648,6 +649,7 @@ double RGTMarginal::min_mass_above_lProb(double prob)
 #define MAX(a, b) std::max<double>(a, b)
 double RGTMarginal::max_mass_above_lProb(double prob)
 {
+    // TODO: same as above.
     setup_search(prob, INF, -INF, INF);
     double acc = -INF;
     for(;arridx < arrend; arridx++)
