@@ -5,7 +5,7 @@ TESTFLAGS=-fsanitize=leak,undefined
 TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
 LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
-CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++
+CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic
 SRCFILES=`ls ../../IsoSpec++/*.cpp`
 
 all: testcc
@@ -22,5 +22,8 @@ test:
 	g++-5.4.0 $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-gcc-5.4.0
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) test.cpp -o ./test-valgrind 
 
-titin:
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
+ti:
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
+
+rt: 
+	$(CXX) $(DEBUGFLAGS) $(CXXFLAGS) ../../IsoSpec++/unity-build.cpp rangetree.cpp -o ./rangetree

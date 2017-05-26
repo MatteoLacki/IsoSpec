@@ -10,8 +10,8 @@ int main()
     SSummator s;
     unsigned int cnt_tot = 0;
     int total_t = 10;
-    double threshold = 0.8;
-    for (int ii=0; ii<total_t; ii++)
+    double threshold = 0.5;
+/*    for (int ii=0; ii<total_t; ii++)
     {
         IsoThresholdGeneratorMultithreaded* iso = new IsoThresholdGeneratorMultithreaded(total_t, ii, "C169719H270464N45688O52237S911", threshold, false);
 	std::cout << exp(iso->lprob()) << std::endl;
@@ -31,19 +31,27 @@ int main()
     }
 
     std::cout <<  "The isotopologue set containing at least 0.9 probability has " << cnt_tot << " element(s)" << std::endl;
-
+*/
     IsoThresholdGenerator* iso = new IsoThresholdGenerator("C169719H270464N45688O52237S911", threshold, false);
 
+    unsigned int confsig[5];
+    double cnt = 1.0;
     cnt_tot = 0;
-    do
+    while(iso->advanceToNextConfiguration())
     {
+    //    cnt *= 1.000000001;
     	cnt_tot++;
-    }while(iso->advanceToNextConfiguration());
+//        s.add(exp(iso->lprob()));
+//        std::cout << "Lprob: " << iso->lprob() << std::endl;
+//        iso->get_conf_signature(confsig);
+//        printArray(confsig, 5);
+    }
     delete iso;
 
     std::cout <<  "The isotopologue set containing at least 0.9 probability has " << cnt_tot << " element(s)" << std::endl;
+    std::cout << s.get() << cnt << std::endl;
 
-    IsoThresholdGenerator* isosp = new IsoThresholdGenerator("C169719H270464N45688O52237S911", threshold, false);
-    Spectrum sp(*isosp, 0.01);
-    delete isosp;
+    //IsoThresholdGenerator* isosp = new IsoThresholdGenerator("C169719H270464N45688O52237S911", threshold, false);
+    //Spectrum sp(*isosp, 0.01);
+    //delete isosp;
 }
