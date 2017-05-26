@@ -331,7 +331,7 @@ private:
 	unsigned int* counter;
 	double* partialLProbs;
 	double* partialMasses;
-	double* maxConfsLPSum;
+	double* maxConfsLPSum, *minMassCSum, *maxMassCSum;
 	double Lcutoff;
         double min_mass, max_mass;
         RGTMarginal** marginalResults;
@@ -349,13 +349,14 @@ public:
                                                     dealloc_table(marginalResults, dimNumber);};
 
 private:
-	inline void recalc(int idx)
-	{
-	    for(; idx >=0; idx--)
-	        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
-	}
+	void setup_ith_marginal_range(unsigned int idx);
+        inline void recalc(int idx)
+        {
+            for(; idx >=0; idx--)
+                partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        }
+        
 
-	bool setup_ith_marginal_range(unsigned int idx);
 
 
 };
