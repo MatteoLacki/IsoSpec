@@ -394,8 +394,9 @@ RGTMarginal::RGTMarginal(
         TOV_NP2(next_pow2(no_confs)),
         TOV_NP2M1(TOV_NP2/2),
         mass_table_rows_no(floor_log2(TOV_NP2M1)),
-        mass_table_row_size(TOV_NP2),
-	mass_table_size(TOV_NP2 * mass_table_rows_no),
+//        mass_table_row_size(TOV_NP2),
+        mass_table_row_size(no_confs),
+	mass_table_size(mass_table_row_size * mass_table_rows_no),
 	subintervals(alloc_and_setup_subintervals()),
         mass_table(alloc_and_setup_mass_table())
 {terminate_search();}
@@ -454,10 +455,13 @@ double* RGTMarginal::alloc_and_setup_mass_table()
 
 void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double _mmax)
 {
+        std::cout << "setup_search" << std::endl;
 	pmin = _pmin;
 	pmax = _pmax;
 	mmin = _mmin;
 	mmax = _mmax;
+        mask = ~1;
+
 
 
         if(std::isinf(pmin) and std::signbit(pmin))
@@ -468,6 +472,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             lower = std::lower_bound(lProbs, lProbs+no_confs, pmin)-lProbs;
             if(lower == no_confs)
             {
+                std::cout << "TERMINATE1" << std::endl;
                 terminate_search();
                 return;
             }
@@ -496,7 +501,10 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     }
 
     if(lower == upper)
+    {
+        std::cout << "bomb out" << std::endl;
         return;
+    }
 
     if(mmin <= masses[upper] and masses[upper] <= mmax)
     {
@@ -504,6 +512,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         arrend++;
     }
 
+    std::cout << "still in" << std::endl;
 
     if((lower & 1) == 0)
     {
@@ -536,6 +545,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
     printArray(mass_table, mass_table_size);
     mask = ~1;
+    std::cout << "mask initd" << std::endl;
 
     lower &= mask;
     upper &= mask;
@@ -562,6 +572,7 @@ bool RGTMarginal::next()
 
 bool RGTMarginal::hard_next()
 {
+    std::cout << mask << endl;
     std::cout << "HARD\n" << "lower: " << lower << "\t upper: " << upper << " MASK: " << std::bitset<sizeof(unsigned int)*8>(mask) << "\n";
     unsigned int nextmask = mask << 1;
     if(upper == lower)
@@ -665,6 +676,7 @@ double RGTMarginal::max_mass_above_lProb(double prob)
 
 void RGTMarginal::terminate_search()
 {
+std::cout << "TERMINATE" << std::endl;
 arridx = arrend = lower = upper = 0;
 pmin = pmax = mmin = mmax = 0.0;
 }
