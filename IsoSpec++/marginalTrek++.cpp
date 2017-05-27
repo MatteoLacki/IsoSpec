@@ -461,6 +461,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 	mmin = _mmin;
 	mmax = _mmax;
         mask = ~1;
+        gap = 2;
 
 
 
@@ -496,6 +497,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     arrend = mass_table_size;
     if(mmin <= masses[lower] and masses[lower] <= mmax)
     {
+        std::cout << "SPECIAL1" << std::endl;
         subintervals[arrend] = lower;
         arrend++;
     }
@@ -508,6 +510,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
     if(mmin <= masses[upper] and masses[upper] <= mmax)
     {
+    std::cout << "SPECIAL2" << std::endl;
         subintervals[arrend] = upper;
         arrend++;
     }
@@ -523,6 +526,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         
         if(mmin <= masses[lower] and masses[lower] <= mmax)
         {
+        std::cout << "SPECIAL3" << std::endl;
             subintervals[arrend] = lower;
             arrend++;
         }
@@ -534,7 +538,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         upper--;
 
         if(mmin <= masses[upper] and masses[upper] <= mmax)
-        {
+        {std::cout << "SPECIAL4" << std::endl;
             subintervals[arrend] = upper;
             arrend++;
         }
@@ -544,13 +548,11 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         mass_table[ii] = masses[subintervals[ii]];
 
     printArray(mass_table, mass_table_size);
-    mask = ~1;
-    std::cout << "mask initd" << std::endl;
 
     lower &= mask;
     upper &= mask;
 
-    current_level = 0;
+    current_level = -mass_table_row_size;
     going_up = true;
 
 }
@@ -572,7 +574,6 @@ bool RGTMarginal::next()
 
 bool RGTMarginal::hard_next()
 {
-    std::cout << mask << endl;
     std::cout << "HARD\n" << "lower: " << lower << "\t upper: " << upper << " MASK: " << std::bitset<sizeof(unsigned int)*8>(mask) << "\n";
     unsigned int nextmask = mask << 1;
     if(upper == lower)
@@ -584,7 +585,8 @@ bool RGTMarginal::hard_next()
     {
         going_up = false;
         current_level += mass_table_row_size;
-        if((upper & (nextmask<<1)) == (lower & (nextmask<<1)))
+        gap <<= 1;
+        if((upper & (nextmask)) == (lower & (nextmask)))
         {
             terminate_search();
             return false;
@@ -599,6 +601,7 @@ bool RGTMarginal::hard_next()
             cout << "bpunds on bounds: " << current_level+upper << " " << arrend << std::endl;
             cout << upper << " " << arrend - current_level << '\n';
             printArray(mass_table+current_level+upper, (mass_table+arrend) - (mass_table+current_level+upper));
+            cout << "searching" << upper << '\t' << lower << std::endl;
             arridx = std::lower_bound(mass_table+current_level+upper, mass_table+arrend, mmin) - mass_table;
             cout << arridx << std::endl;
             return next();
@@ -627,9 +630,13 @@ bool RGTMarginal::hard_next()
         else
         {
         std::cout << "branch 4" << std::endl;
-            arrend = lower + (~mask) - ((~mask)>>1) + current_level;
-            printArray(mass_table+current_level+lower, (mass_table+arrend) - (mass_table+current_level+lower));
-            arridx = std::lower_bound(mass_table+current_level+lower, mass_table+arrend, mmin) - mass_table;
+        unsigned int search_start = lower+(gap/2);
+            arrend = lower + current_level + gap;
+            std::cout << "searching: " << search_start << '\t' << arrend - current_level << std::endl;
+            std::cout << "level: " << current_level << std::endl;
+            printArray(mass_table+current_level+search_start, (mass_table+arrend) - (mass_table+current_level+lower));
+            arridx = std::lower_bound(mass_table+current_level+search_start, mass_table+arrend, mmin) - mass_table;
+            std::cout << "end: " << arridx -current_level << std::endl;
             lower &= nextmask;
             mask <<= 1;
             return next();

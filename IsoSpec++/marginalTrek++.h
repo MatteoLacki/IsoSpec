@@ -174,7 +174,7 @@ private:
     unsigned int* subintervals;
     double* mass_table;
     double pmin, pmax, mmin, mmax;
-    unsigned int lower, upper, arridx, arrend, mask, current_level, cidx;
+    unsigned int lower, upper, arridx, arrend, mask, current_level, cidx, gap;
     bool goingleft, going_up;
 public:
     RGTMarginal(
