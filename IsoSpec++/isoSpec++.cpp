@@ -51,7 +51,7 @@ Iso::Iso(
     const double**  _isotopeMasses,
     const double**  _isotopeProbabilities
 ) :
-embedded(false),
+disowned(false),
 dimNumber(_dimNumber),
 isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
@@ -64,7 +64,7 @@ modeLProb(0.0)
 }
 
 Iso::Iso(Iso&& other) :
-embedded(false),
+disowned(other.disowned),
 dimNumber(other.dimNumber),
 isotopeNumbers(other.isotopeNumbers),
 atomCounts(other.atomCounts),
@@ -73,7 +73,7 @@ allDim(other.allDim),
 marginals(other.marginals),
 modeLProb(other.modeLProb)
 {
-    other.embedded = true;
+    other.disowned = true;
 }
 
 
@@ -99,7 +99,7 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
 
 Iso::~Iso()
 {
-    if(not embedded)
+    if(not disowned)
     {
 	if (marginals != nullptr)
 	    dealloc_table(marginals, dimNumber);

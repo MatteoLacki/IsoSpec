@@ -162,14 +162,13 @@ mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
 {}
 
 Marginal::Marginal(Marginal&& other) : 
-disowned(false),
+disowned(other.disowned),
 isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
 atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
 mode_conf(other.mode_conf)
 {
-    this->disowned = other.disowned;
     other.disowned = true;
 }
 
