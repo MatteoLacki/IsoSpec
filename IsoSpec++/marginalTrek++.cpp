@@ -470,8 +470,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         lower = 0;
     else
     {
-        lower = std::lower_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs;
-        std::cout << "lower_after_search: " << lower << std::endl;
+        lower = std::lower_bound(lProbs, lProbs+no_confs, pmax, rev_ord)-lProbs;
+        std::cout << "lower_after_search: " << lower << " " << lProbs[lower] <<  std::endl;
         if(lower == no_confs)
         {
             std::cout << "TERMINATE1" << std::endl;
@@ -494,8 +494,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         upper = no_confs - 1;
     else
     {
-        upper = (std::upper_bound(lProbs, lProbs+no_confs, pmax, rev_ord)-lProbs);
-        std::cout << "UPPER after search: " << upper << std::endl;
+        upper = (std::upper_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs);
+        std::cout << "UPPER after search: " << upper << " " << lProbs[upper] << std::endl;
 
         if(upper == no_confs or upper == lower)
         {
@@ -571,6 +571,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
 bool RGTMarginal::next()
 {
+    std::cout << "EASY\narridx/arrend: " << arridx << " " << arrend << std::endl;
     // TODO: move to .h and inline this.
     if(arridx < arrend and mass_table[arridx] <= mmax)
     {
