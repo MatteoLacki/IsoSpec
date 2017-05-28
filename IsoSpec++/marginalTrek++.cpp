@@ -513,6 +513,9 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         arrend++;
     }
 
+    if(upper == lower)
+        return;
+
     if(mmin <= masses[upper] and masses[upper] <= mmax)
     {
     std::cout << "SPECIAL2" << std::endl;
