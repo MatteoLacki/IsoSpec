@@ -487,6 +487,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     {
         std::cout << "SPECIAL1" << std::endl;
         subintervals[arrend] = lower;
+        mass_table[arrend] = masses[lower];
         arrend++;
     }
 
@@ -495,7 +496,10 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     else
     {
         upper = (std::upper_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs);
-        std::cout << "UPPER after search: " << upper << " " << lProbs[upper] << std::endl;
+        std::cout << "UPPER after search: " << upper;
+        if(upper < no_confs)
+            std::cout << " " << lProbs[upper];
+        std::cout << std::endl;
 
         if(upper == no_confs or upper == lower)
         {
@@ -517,6 +521,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     {
     std::cout << "SPECIAL2" << std::endl;
         subintervals[arrend] = upper;
+        mass_table[arrend] = masses[upper];
         arrend++;
     }
 
@@ -539,6 +544,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         {
         std::cout << "SPECIAL3" << std::endl;
             subintervals[arrend] = lower;
+            mass_table[arrend] = masses[lower];
             arrend++;
         }
     }
@@ -551,6 +557,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         if(mmin <= masses[upper] and masses[upper] <= mmax)
         {std::cout << "SPECIAL4" << std::endl;
             subintervals[arrend] = upper;
+            mass_table[arrend] = masses[upper];
             arrend++;
         }
     }
@@ -573,6 +580,10 @@ bool RGTMarginal::next()
 {
     std::cout << "EASY\narridx/arrend: " << arridx << " " << arrend << std::endl;
     // TODO: move to .h and inline this.
+    std::cout << "arridx: " << arridx << std::endl;
+    std::cout << "arrend: " << arrend << std::endl;
+    if(arridx < arrend)
+        std::cout << "mass_table: " << mass_table[arridx] << std::endl;
     if(arridx < arrend and mass_table[arridx] <= mmax)
     {
         cidx = subintervals[arridx];
@@ -588,7 +599,7 @@ bool RGTMarginal::hard_next()
 {
     std::cout << "HARD\n" << "lower: " << lower << "\t upper: " << upper << " MASK: " << std::bitset<sizeof(unsigned int)*8>(mask) << "\n";
     unsigned int nextmask = mask << 1;
-    if(upper == lower)
+    if(upper == lower or (upper & mask) == lower)
     {
         terminate_search();
         return false;
@@ -648,7 +659,7 @@ bool RGTMarginal::hard_next()
             std::cout << "level: " << current_level << std::endl;
             printArray(mass_table+current_level+search_start, (mass_table+arrend) - (mass_table+current_level+lower));
             arridx = std::lower_bound(mass_table+current_level+search_start, mass_table+arrend, mmin) - mass_table;
-            std::cout << "end: " << arridx -current_level << std::endl;
+            std::cout << "end: " << arridx - current_level << std::endl;
             lower &= nextmask;
             mask <<= 1;
             return next();
