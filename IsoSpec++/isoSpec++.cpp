@@ -769,9 +769,9 @@ max_mass(_max_mass)
 	counter 	= new unsigned int[dimNumber];
 	partialLProbs 	= new double[dimNumber+1];
 	partialMasses 	= new double[dimNumber+1];
-	maxConfsLPSum 	= new double[dimNumber-1];
-        minMassCSum     = new double[dimNumber-1];
-        maxMassCSum     = new double[dimNumber-1];
+	maxConfsLPSum 	= new double[dimNumber];
+        minMassCSum     = new double[dimNumber];
+        maxMassCSum     = new double[dimNumber];
 
         marginalResults = new RGTMarginal*[dimNumber];
 
@@ -780,6 +780,7 @@ max_mass(_max_mass)
             Lcutoff += modeLProb;
 
 
+        std::cout << "Lcutoff: " << Lcutoff << std::endl;
         bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)
 	{
@@ -793,12 +794,12 @@ max_mass(_max_mass)
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
 	}
-
+        std::cout << "empty: " << empty << std::endl;
 	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
         minMassCSum[0] = marginalResults[0]->getLightestConfMass();
         maxMassCSum[0] = marginalResults[0]->getHeaviestConfMass();
 
-	for(int ii=1; ii<dimNumber-1; ii++)
+	for(int ii=1; ii<dimNumber; ii++)
         {
 	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
             minMassCSum[ii] = minMassCSum[ii-1] + marginalResults[ii]->getLightestConfMass();
@@ -809,17 +810,18 @@ max_mass(_max_mass)
 	partialLProbs[dimNumber] = 0.0;
 	partialMasses[dimNumber] = 0.0;
 
-        if(not empty)
-            recalc(dimNumber-1);
+        setup_ith_marginal_range(dimNumber-1);
 
 	counter[0]--;
 }
 
 bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 {
+        std::cout << "Advance" << std::endl;
         bool inRange = marginalResults[0]->next();
 	if(inRange)
 	{
+                std::cout << "inRange" << std::endl;
 		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->current_lProb();
 		if(partialLProbs[0] >= Lcutoff)
 		{
@@ -832,6 +834,8 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 	
 	int idx = 1;
 
+        std::cout << "Carry" << std::endl;
+
 	while(idx<dimNumber)
 	{
 //                marginalResults[idx]->reset();
@@ -843,6 +847,7 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
 			{
+
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
                                 break;
 			}
