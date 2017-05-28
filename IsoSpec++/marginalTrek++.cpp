@@ -462,6 +462,8 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     mmax = _mmax;
     mask = ~1;
     gap = 2;
+    arridx = mass_table_size;
+    arrend = mass_table_size;
 
 
 
@@ -480,16 +482,6 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         }
     }
 
-    arridx = mass_table_size;
-    arrend = mass_table_size;
-
-    if(mmin <= masses[lower] and masses[lower] <= mmax)
-    {
-        std::cout << "SPECIAL1" << std::endl;
-        subintervals[arrend] = lower;
-        mass_table[arrend] = masses[lower];
-        arrend++;
-    }
 
     if (pmax >= 0.0)
         upper = no_confs - 1;
@@ -506,10 +498,19 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
     std::cout << "At start: lower: " << lower << " upper: " << upper << std::endl;
 
-    if(lower == upper)
-    {
+    if(lower > upper)
+    {   
+        terminate_search();
         std::cout << "bomb out" << std::endl;
         return;
+    }
+    
+    if(mmin <= masses[lower] and masses[lower] <= mmax)
+    {
+        std::cout << "SPECIAL1" << std::endl;
+        subintervals[arrend] = lower;
+        mass_table[arrend] = masses[lower];
+        arrend++;
     }
 
     if(mmin <= masses[upper] and masses[upper] <= mmax)
