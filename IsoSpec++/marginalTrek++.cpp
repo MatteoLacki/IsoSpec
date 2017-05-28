@@ -455,52 +455,57 @@ double* RGTMarginal::alloc_and_setup_mass_table()
 
 void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double _mmax)
 {
-        std::cout << "setup_search" << std::endl;
-	pmin = _pmin;
-	pmax = _pmax;
-	mmin = _mmin;
-	mmax = _mmax;
-        mask = ~1;
-        gap = 2;
+    std::cout << "setup_search" << std::endl;
+    pmin = _pmin;
+    pmax = _pmax;
+    mmin = _mmin;
+    mmax = _mmax;
+    mask = ~1;
+    gap = 2;
 
 
 
-        if(std::isinf(pmin) and std::signbit(pmin))
-            // Negative infinity
-            lower = 0;
-        else
+    if(std::isinf(pmin) and std::signbit(pmin))
+        // Negative infinity
+        lower = 0;
+    else
+    {
+        lower = std::lower_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs;
+        std::cout << "lower_after_search: " << lower << std::endl;
+        if(lower == no_confs)
         {
-            lower = std::lower_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs;
-            if(lower == no_confs)
-            {
-                std::cout << "TERMINATE1" << std::endl;
-                terminate_search();
-                return;
-            }
+            std::cout << "TERMINATE1" << std::endl;
+            terminate_search();
+            return;
         }
+    }
 
-        if (pmax >= 0.0)
-            upper = no_confs - 1;
-        else
-        {
-            upper = (std::upper_bound(lProbs, lProbs+no_confs, pmax, rev_ord)-lProbs);
-
-            if(upper == no_confs)
-            {
-                terminate_search();
-                return;
-            }
-        }
-
-    std::cout << "At start: lower: " << lower << " upper: " << upper << std::endl;
     arridx = mass_table_size;
     arrend = mass_table_size;
+
     if(mmin <= masses[lower] and masses[lower] <= mmax)
     {
         std::cout << "SPECIAL1" << std::endl;
         subintervals[arrend] = lower;
         arrend++;
     }
+
+    if (pmax >= 0.0)
+        upper = no_confs - 1;
+    else
+    {
+        upper = (std::upper_bound(lProbs, lProbs+no_confs, pmax, rev_ord)-lProbs);
+        std::cout << "UPPER after search: " << upper << std::endl;
+
+        if(upper == no_confs or upper == lower)
+        {
+            std::cout << "TERMINATE 2" << std::endl;
+            return;
+        }
+        upper--;
+    }
+
+    std::cout << "At start: lower: " << lower << " upper: " << upper << std::endl;
 
     if(lower == upper)
     {
@@ -516,6 +521,12 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     }
 
     std::cout << "still in" << std::endl;
+
+    if((upper & ~1) == lower)
+    {
+        std::cout << "bomb out2" << std::endl;
+        return;
+    }
 
     if((lower & 1) == 0)
     {
