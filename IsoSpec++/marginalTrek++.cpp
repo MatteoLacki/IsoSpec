@@ -501,11 +501,6 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             std::cout << " " << lProbs[upper];
         std::cout << std::endl;
 
-        if(upper == no_confs or upper == lower)
-        {
-            std::cout << "TERMINATE 2" << std::endl;
-            return;
-        }
         upper--;
     }
 
@@ -608,6 +603,7 @@ bool RGTMarginal::hard_next()
     {
         going_up = false;
         current_level += mass_table_row_size;
+        std::cout << "current_level/mass_t_rows_no/mass_t_size: " << current_level << " " << mass_table_rows_no << " " << mass_table_size << std::endl;
         gap <<= 1;
         if((upper & (nextmask)) == (lower & (nextmask)))
         {
@@ -623,9 +619,11 @@ bool RGTMarginal::hard_next()
             upper &= nextmask; 
             cout << "bpunds on bounds: " << current_level+upper << " " << arrend << std::endl;
             cout << upper << " " << arrend - current_level << '\n';
-            printArray(mass_table+current_level+upper, (mass_table+arrend) - (mass_table+current_level+upper));
-            cout << "searching" << upper << '\t' << lower << std::endl;
-            arridx = std::lower_bound(mass_table+current_level+upper, mass_table+arrend, mmin) - mass_table;
+            unsigned int dstart = current_level+upper;
+            unsigned int dend   = arrend;
+            printArray(mass_table+dstart, dend-dstart);
+            cout << "searching" << dstart << '\t' << dend << std::endl;
+            arridx = std::lower_bound(mass_table+dstart, mass_table+dend, mmin) - mass_table;
             cout << arridx << std::endl;
             return next();
         }
