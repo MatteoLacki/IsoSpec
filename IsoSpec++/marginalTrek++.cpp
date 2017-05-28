@@ -169,6 +169,7 @@ atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
 mode_conf(other.mode_conf)
 {
+    this->disowned = other.disowned;
     other.disowned = true;
 }
 
