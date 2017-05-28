@@ -182,7 +182,7 @@ inline int str_to_int(const string& s)
 }
 
 Iso::Iso(const char* formula) :
-embedded(false),
+disowned(false),
 marginals(nullptr),
 modeLProb(0.0)
 {
