@@ -470,7 +470,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             lower = 0;
         else
         {
-            lower = std::lower_bound(lProbs, lProbs+no_confs, pmin)-lProbs;
+            lower = std::lower_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs;
             if(lower == no_confs)
             {
                 std::cout << "TERMINATE1" << std::endl;
@@ -483,7 +483,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             upper = no_confs - 1;
         else
         {
-            upper = (std::upper_bound(lProbs, lProbs+no_confs, pmax)-lProbs);
+            upper = (std::upper_bound(lProbs, lProbs+no_confs, pmax, rev_ord)-lProbs);
 
             if(upper == no_confs)
             {
@@ -492,7 +492,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
             }
         }
 
-
+    std::cout << "At start: lower: " << lower << " upper: " << upper << std::endl;
     arridx = mass_table_size;
     arrend = mass_table_size;
     if(mmin <= masses[lower] and masses[lower] <= mmax)

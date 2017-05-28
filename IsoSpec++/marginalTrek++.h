@@ -132,6 +132,8 @@ public:
     inline bool inRange(unsigned int idx) const { return idx < no_confs; };
     inline const double& get_lProb(unsigned int idx) const { return lProbs[idx]; };
     inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
+    inline const double* get_lProbs_ptr() const { return lProbs; };
+    inline const double* get_masses_ptr() const { return masses; };
     inline const Conf& get_conf(unsigned int idx) const { return confs[idx]; };
     inline unsigned int get_no_confs() const { return no_confs; };
 };
@@ -176,6 +178,7 @@ private:
     double pmin, pmax, mmin, mmax;
     unsigned int lower, upper, arridx, arrend, mask, current_level, cidx, gap;
     bool goingleft, going_up;
+    ReverseOrder<double> rev_ord;
 public:
     RGTMarginal(
         Marginal&& m,

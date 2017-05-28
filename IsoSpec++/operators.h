@@ -97,6 +97,12 @@ public:
     };
 };
 
+template<typename T> class ReverseOrder
+{
+public:
+    inline ReverseOrder() {};
+    inline bool operator()(const T a,const T b) const { return a > b; };
+};
 
 template<typename T> class TableOrder
 {
