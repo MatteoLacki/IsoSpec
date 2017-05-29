@@ -28,7 +28,11 @@ for(unsigned int ii = 0; ii < PC.get_no_confs(); ii++)
                 unsigned int hard = 0;
                 RGTM->setup_search(pmin, pmax, mmin, mmax);
                 while(RGTM->next())
+                {
+                    if(not (pmin <= RGTM->current_lProb() and pmax >= RGTM->current_lProb() and mmin <= RGTM->current_mass() and mmax >= RGTM->current_mass()))
+                        std::cout << "ERROR" << std::endl;
                     hard++;
+                }
                 if (simple == hard)
                     matches += 1;
                 else
