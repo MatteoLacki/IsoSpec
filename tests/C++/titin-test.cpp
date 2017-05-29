@@ -10,10 +10,9 @@ int main()
     SSummator s;
     unsigned int cnt_tot = 0;
     int total_t = 10;
-    double threshold = 0.5;
-    double mmin = 100.0;
-    double mmax = 100000000000000000000.0;
-    double thr = 0.5;
+    double threshold = 0.8;
+    double mmin = -1000000000000000000000000000000000000000000000000000000000000.0;
+    double mmax = 1000000000000000000000000000000000000000000000000000000000000.0;
     {
         IsoThresholdGenerator* iso = new IsoThresholdGenerator("C169719H270464N45688O52237S911", threshold, false);
 	std::cout << exp(iso->lprob()) << std::endl;
@@ -35,7 +34,7 @@ int main()
 
     std::cout <<  "The isotopologue set containing at least 0.9 probability has " << cnt_tot << " element(s)" << std::endl;
 
-    IsoThresholdGeneratorBoundMass* isob = new IsoThresholdGeneratorBoundMass("C169719H270464N45688O52237S911", thr, mmin, mmax, false);
+    IsoThresholdGeneratorBoundMass* isob = new IsoThresholdGeneratorBoundMass("C169719H270464N45688O52237S911", threshold, mmin, mmax, false);
     std::cout << isob->getModeLProb() << std::endl;
 
     unsigned int confsig[5];

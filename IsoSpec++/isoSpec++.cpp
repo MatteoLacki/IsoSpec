@@ -811,6 +811,8 @@ max_mass(_max_mass)
 	partialMasses[dimNumber] = 0.0;
 
         setup_ith_marginal_range(dimNumber-1);
+        for(int ii=0; ii<dimNumber-1; ii++)
+            marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
 	counter[0]--;
 }
@@ -861,7 +863,7 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 
         idx--;
 
-        while(idx >= 0 and idx < dimNumber)
+        while(idx >= 0 and idx < dimNumber-1)
         {
             std::cout << "while2, idx: " << idx << std::endl;
             setup_ith_marginal_range(idx);
@@ -879,7 +881,7 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
         if(idx == dimNumber)
             return false;
         else
-            return advanceToNextConfiguration();
+            return true;
 
         
 }
@@ -891,7 +893,7 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
     double lower_max = max_mass;
     double rem_prob  = Lcutoff - partialLProbs[idx+1] - maxConfsLPSum[idx];
 
-    std::cout << "setup_ith_marginal_range: idx: " << idx << "rem_prob: " << rem_prob << std::endl;
+    std::cout << "setup_ith_marginal_range: idx: " << idx << "rem_prob: " << rem_prob << " maxConfsLPSum " << maxConfsLPSum[idx] << std::endl;
     if(idx > 0)
     {
         lower_min -= maxMassCSum[idx-1];
@@ -904,6 +906,9 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
         lower_min -= marginalResults[ii]->max_mass_above_lProb(p);
         lower_max -= marginalResults[ii]->min_mass_above_lProb(p);
     }
+
+    std::cout << "setup_ith_marginal_range: idx: " << idx << rem_prob+marginalResults[idx]->getModeLProb() << " " <<lower_min << " " << lower_max  << std::endl;
+    std::cout << "setup_ith_marginal_range: idx: " << idx << " rem_prob: " << rem_prob << " " << " marginalResults[idx]->getModeLProb(): " << marginalResults[idx]->getModeLProb() << std::endl;
 
     marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
 
@@ -940,6 +945,8 @@ IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool 
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
+            std::cout << "Normal, marg: " << ii <<  " prob: " << Lcutoff - modeLProb + marginals[ii]->getModeLProb() << std::endl;
+            std::cout << "Normal, marg: " << ii <<  " Lcutoff: " << Lcutoff << " modeLProb: " << modeLProb << " marginals[ii]->getModeLProb(): " << marginals[ii]->getModeLProb() << std::endl;
 
             marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
@@ -996,6 +1003,8 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 				return true;
 			}
 		}
+                if(idx==dimNumber-2)
+                    std::cout << "BLABLABLA" << std::endl;
 	}
 	return false;
 }
