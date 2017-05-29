@@ -766,7 +766,6 @@ IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double
 min_mass(_min_mass),
 max_mass(_max_mass)
 {
-	counter 	= new unsigned int[dimNumber];
 	partialLProbs 	= new double[dimNumber+1];
 	partialMasses 	= new double[dimNumber+1];
 	maxConfsLPSum 	= new double[dimNumber];
@@ -784,8 +783,6 @@ max_mass(_max_mass)
         bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)
 	{
-	    counter[ii] = 0;
-
             marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                             tabSize, 
@@ -814,12 +811,10 @@ max_mass(_max_mass)
         for(int ii=0; ii<dimNumber-1; ii++)
             marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
-	counter[0]--;
 }
 
 IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass() 
 { 
-    delete[] counter; 
     delete[] partialLProbs; 
     delete[] partialMasses; 
     delete[] maxConfsLPSum;
@@ -857,9 +852,7 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 	{
                 std::cout << "while, idx: " << idx << std::endl;
 //                marginalResults[idx]->reset();
-//		counter[idx] = 0;
                 inRange = marginalResults[idx]->next();
-//		counter[idx]++;
 		if(inRange)
 		{
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();

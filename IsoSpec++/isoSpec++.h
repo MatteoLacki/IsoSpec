@@ -328,7 +328,6 @@ private:
 class IsoThresholdGeneratorBoundMass : public IsoGenerator
 {
 private:
-	unsigned int* counter;
 	double* partialLProbs;
 	double* partialMasses;
 	double* maxConfsLPSum, *minMassCSum, *maxMassCSum;
@@ -340,7 +339,7 @@ public:
 	virtual bool advanceToNextConfiguration();
 	virtual inline const double& lprob() const { return partialLProbs[0]; };
 	virtual inline const double& mass() const { return partialMasses[0]; };
-        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//        virtual inline void get_conf_signature(unsigned int* target);
 //	virtual const int* const & conf() const;
 
         IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
@@ -352,7 +351,7 @@ private:
         inline void recalc(int idx)
         {
             for(; idx >=0; idx--)
-                partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+                partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
         }
         
 
