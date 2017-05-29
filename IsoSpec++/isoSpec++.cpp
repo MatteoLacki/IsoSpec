@@ -766,7 +766,6 @@ IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double
 min_mass(_min_mass),
 max_mass(_max_mass)
 {
-	counter 	= new unsigned int[dimNumber];
 	partialLProbs 	= new double[dimNumber+1];
 	partialMasses 	= new double[dimNumber+1];
 	maxConfsLPSum 	= new double[dimNumber];
@@ -784,8 +783,6 @@ max_mass(_max_mass)
         bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)
 	{
-	    counter[ii] = 0;
-
             marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                             tabSize, 
@@ -814,7 +811,16 @@ max_mass(_max_mass)
         for(int ii=0; ii<dimNumber-1; ii++)
             marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
-	counter[0]--;
+}
+
+IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass() 
+{ 
+    delete[] partialLProbs; 
+    delete[] partialMasses; 
+    delete[] maxConfsLPSum;
+    dealloc_table(marginalResults, dimNumber);
+    delete[] minMassCSum;
+    delete[] maxMassCSum;
 }
 
 bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
@@ -830,6 +836,10 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 			partialMasses[0] = partialMasses[1] + marginalResults[0]->current_mass();
 			return true;
 		}
+		else
+		{
+			std::cout << "FAIL!!!" << std::endl;
+		}
 	}
 
 	// If we reached this point, a carry is needed
@@ -842,9 +852,7 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 	{
                 std::cout << "while, idx: " << idx << std::endl;
 //                marginalResults[idx]->reset();
-//		counter[idx] = 0;
                 inRange = marginalResults[idx]->next();
-//		counter[idx]++;
 		if(inRange)
 		{
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
@@ -854,6 +862,8 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
                                 break;
 			}
+			else
+				std::cout << "FAIL2!!!" << std::endl;
 		}
                 idx++;
 	}
