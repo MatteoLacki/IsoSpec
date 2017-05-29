@@ -817,6 +817,17 @@ max_mass(_max_mass)
 	counter[0]--;
 }
 
+IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass() 
+{ 
+    delete[] counter; 
+    delete[] partialLProbs; 
+    delete[] partialMasses; 
+    delete[] maxConfsLPSum;
+    dealloc_table(marginalResults, dimNumber);
+    delete[] minMassCSum;
+    delete[] maxMassCSum;
+}
+
 bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 {
         std::cout << "Advance" << std::endl;
@@ -829,6 +840,10 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 		{
 			partialMasses[0] = partialMasses[1] + marginalResults[0]->current_mass();
 			return true;
+		}
+		else
+		{
+			std::cout << "FAIL!!!" << std::endl;
 		}
 	}
 
@@ -854,6 +869,8 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
                                 break;
 			}
+			else
+				std::cout << "FAIL2!!!" << std::endl;
 		}
                 idx++;
 	}

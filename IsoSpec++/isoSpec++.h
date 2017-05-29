@@ -345,8 +345,7 @@ public:
 
         IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
-	inline virtual ~IsoThresholdGeneratorBoundMass() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
-                                                    dealloc_table(marginalResults, dimNumber);};
+	virtual ~IsoThresholdGeneratorBoundMass();
 
 private:
 	void setup_ith_marginal_range(unsigned int idx);
