@@ -11,33 +11,37 @@ int main()
     unsigned int cnt_tot = 0;
     int total_t = 10;
     double threshold = 0.5;
-/*    for (int ii=0; ii<total_t; ii++)
+    double mmin = 100.0;
+    double mmax = 100000000000000000000.0;
+    double thr = 0.5;
     {
-        IsoThresholdGeneratorMultithreaded* iso = new IsoThresholdGeneratorMultithreaded(total_t, ii, "C169719H270464N45688O52237S911", threshold, false);
+        IsoThresholdGenerator* iso = new IsoThresholdGenerator("C169719H270464N45688O52237S911", threshold, false);
 	std::cout << exp(iso->lprob()) << std::endl;
 	double last = 0.0;
         unsigned int cnt = 0;
-        do
+        while(iso->advanceToNextConfiguration())
         {
-    	    cnt++;
+            if(iso->mass() >= mmin and mmax >= iso->mass())
+                cnt++;
 	    s.add(exp(iso->lprob()));
 	    if(cnt % 10000000 == 0)
 		std::cout << cnt << "	" << s.get() << "\t" << exp(iso->lprob()) << '\n';
 	    last = exp(iso->lprob());
-        } while (iso->advanceToNextConfiguration());
+        }
 	delete iso;
 	cnt_tot += cnt;
 	std::cout <<  "Slice: " << cnt << " element(s), last: " << last << std::endl;
     }
 
     std::cout <<  "The isotopologue set containing at least 0.9 probability has " << cnt_tot << " element(s)" << std::endl;
-*/
-    IsoThresholdGenerator* iso = new IsoThresholdGenerator("C169719H270464N45688O52237S911", threshold, false);
+
+    IsoThresholdGeneratorBoundMass* isob = new IsoThresholdGeneratorBoundMass("C169719H270464N45688O52237S911", thr, mmin, mmax, false);
+    std::cout << isob->getModeLProb() << std::endl;
 
     unsigned int confsig[5];
     double cnt = 1.0;
     cnt_tot = 0;
-    while(iso->advanceToNextConfiguration())
+    while(isob->advanceToNextConfiguration())
     {
     //    cnt *= 1.000000001;
     	cnt_tot++;
@@ -46,7 +50,7 @@ int main()
 //        iso->get_conf_signature(confsig);
 //        printArray(confsig, 5);
     }
-    delete iso;
+    delete isob;
 
     std::cout <<  "The isotopologue set containing at least 0.9 probability has " << cnt_tot << " element(s)" << std::endl;
     std::cout << s.get() << cnt << std::endl;
