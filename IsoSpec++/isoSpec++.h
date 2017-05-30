@@ -350,8 +350,8 @@ private:
 	void setup_ith_marginal_range(unsigned int idx);
         inline void recalc(int idx)
         {
-            for(; idx >=0; idx--)
-                partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
         }
         
 

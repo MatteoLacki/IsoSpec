@@ -796,6 +796,8 @@ max_mass(_max_mass)
         minMassCSum[0] = marginalResults[0]->getLightestConfMass();
         maxMassCSum[0] = marginalResults[0]->getHeaviestConfMass();
 
+        std::cout << "masses: " << minMassCSum[0] << " " << maxMassCSum[0] << std::endl;
+
 	for(int ii=1; ii<dimNumber; ii++)
         {
 	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
@@ -810,6 +812,7 @@ max_mass(_max_mass)
         std::cout << "ctor 1" << std::endl;
 
         setup_ith_marginal_range(dimNumber-1);
+//        recalc(dimNumber-1);
         std::cout << "ctor 2" << std::endl;
         for(int ii=0; ii<dimNumber-1; ii++)
             marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
@@ -829,13 +832,10 @@ IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass()
 
 bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 {
-        std::cout << "Advance" << std::endl;
         bool inRange = marginalResults[0]->next();
 	if(inRange)
 	{
-                std::cout << "inRange, marg_lP: " << marginalResults[0]->current_lProb() << std::endl;
 		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->current_lProb();
-                std::cout << "totalLP: " << partialLProbs[0] << " cutoff: " << Lcutoff << std::endl;
 		if(partialLProbs[0] >= Lcutoff)
 		{
 			partialMasses[0] = partialMasses[1] + marginalResults[0]->current_mass();
@@ -848,15 +848,47 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 	}
 
 	// If we reached this point, a carry is needed
+        std::cout << "carry" << std::endl;
 	
 	int idx = 1;
+        bool frombelow = true;
 
-        std::cout << "Carry" << std::endl;
 
+        while(idx >= 0 and idx < dimNumber)
+        {
+            std::cout << "idx: " << idx << " frombelow: " << frombelow << std::endl;
+            if(frombelow)
+            {
+                if(marginalResults[idx]->next())
+                {
+                    std::cout << "NEXT" << std::endl;
+                    recalc(idx);
+                    frombelow = false;
+                    idx--;
+                }
+                else
+                    idx++;
+            }
+            else
+            {
+                setup_ith_marginal_range(idx);
+                if(marginalResults[idx]->next())
+                {
+                    recalc(idx);
+                    idx--;
+                }
+                else
+                {
+                    idx++;
+                    frombelow = true;
+                }
+            }
+        }
+        std::cout << "end" << std::endl;
+                
+#if 0
 	while(idx<dimNumber)
 	{
-                std::cout << "while, idx: " << idx << std::endl;
-//                marginalResults[idx]->reset();
                 inRange = marginalResults[idx]->next();
 		if(inRange)
 		{
@@ -880,19 +912,25 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 
         while(idx >= 0 and idx < dimNumber-1)
         {
-            std::cout << "while2, idx: " << idx << std::endl;
-            setup_ith_marginal_range(idx);
-            if(marginalResults[idx]->next())
+            std::cout << idx << std::endl;
+            if(not marginalResults[idx]->next())
             {
-                std::cout << "NEXT success" << std::endl;
-                partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
-                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
-                idx--;
+                setup_ith_marginal_range(idx);
+                if(marginalResults[idx]->next())
+                {
+                std::cout << "if" << std::endl;
+                    partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
+                    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
+                    idx--;
+                }
+                else
+                    idx++;
             }
             else
-                idx++;
+                idx--;
         }
-
+        std::cout << "END" << std::endl;
+#endif
         if(idx == dimNumber)
             return false;
         else
@@ -904,16 +942,18 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 
 void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 {
-    double lower_min = min_mass;
-    double lower_max = max_mass;
+//    if (idx > 2)
+//        std::cout << idx << std::endl;
+    double lower_min = min_mass - partialMasses[idx+1];
+    double lower_max = max_mass - partialMasses[idx+1];
     double rem_prob  = Lcutoff - partialLProbs[idx+1] - maxConfsLPSum[idx];
 
-    std::cout << "setup_ith_marginal_range: idx: " << idx << "rem_prob: " << rem_prob << " maxConfsLPSum " << maxConfsLPSum[idx] << std::endl;
-    if(idx > 0)
+//    std::cout << "setup_ith_marginal_range: idx: " << idx << "rem_prob: " << rem_prob << " maxConfsLPSum " << maxConfsLPSum[idx] << std::endl;
+/*    if(idx > 0)
     {
         lower_min -= maxMassCSum[idx-1];
         lower_max -= minMassCSum[idx-1];
-    }
+    }*/
 
     for(unsigned int ii=0; ii < idx; ii++)
     {
@@ -922,12 +962,18 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
         lower_max -= marginalResults[ii]->min_mass_above_lProb(p);
     }
 
+//    std::cout << "setup_ith_marginal_range: idx: " << idx << rem_prob+marginalResults[idx]->getModeLProb() << " " <<lower_min << " " << lower_max  << std::endl;
+//    std::cout << "setup_ith_marginal_range: idx: " << idx << " rem_prob: " << rem_prob << " " << " marginalResults[idx]->getModeLProb(): " << marginalResults[idx]->getModeLProb() << std::endl;
+
+    marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
+    if(idx>2){
+    unsigned int cou = 0;
+    std::cout << "COU_START" << std::endl;
+    while(marginalResults[idx]->next())
+        cou++;
+    std::cout << "COUNT: " << cou << std::endl;
     std::cout << "setup_ith_marginal_range: idx: " << idx << rem_prob+marginalResults[idx]->getModeLProb() << " " <<lower_min << " " << lower_max  << std::endl;
-    std::cout << "setup_ith_marginal_range: idx: " << idx << " rem_prob: " << rem_prob << " " << " marginalResults[idx]->getModeLProb(): " << marginalResults[idx]->getModeLProb() << std::endl;
-
-    printArray<double>(partialLProbs, dimNumber+1);
-    printArray<double>(maxConfsLPSum, dimNumber-1);
-
+    }
     marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
 
 }
@@ -1021,8 +1067,6 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 				return true;
 			}
 		}
-                if(idx==dimNumber-2)
-                    std::cout << "BLABLABLA" << std::endl;
 	}
 	return false;
 }
