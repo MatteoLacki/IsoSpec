@@ -462,8 +462,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
 
 
-    if(std::isinf(pmin) and std::signbit(pmin))
-        // Negative infinity
+    if(pmax >= 0.0)
         lower = 0;
     else
     {
@@ -475,12 +474,16 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         }
     }
 
-
-    if (pmax >= 0.0)
-        upper = no_confs - 1;
+    if(std::isinf(pmin) and std::signbit(pmin))
+        upper = no_confs-1;
     else
     {
         upper = (std::upper_bound(lProbs, lProbs+no_confs, pmin, rev_ord)-lProbs);
+        if(upper == 0)
+        {
+            terminate_search();
+            return;
+        }
         upper--;
     }
 
@@ -501,7 +504,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
     if(upper == lower)
         return;
 
-    if(mmin <= masses[upper] and masses[upper] <= mmax)
+    if(mmin <= masses[upper] and masses[upper] <= mmax and lProbs[upper] >= pmin)
     {
         subintervals[arrend] = upper;
         mass_table[arrend] = masses[upper];
@@ -533,7 +536,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         // Is a right child: add left child
         upper--;
 
-        if(mmin <= masses[upper] and masses[upper] <= mmax)
+        if(mmin <= masses[upper] and masses[upper] <= mmax and lProbs[upper] >= pmin)
         {
             subintervals[arrend] = upper;
             mass_table[arrend] = masses[upper];
@@ -634,7 +637,7 @@ bool RGTMarginal::hard_next()
 
 double RGTMarginal::min_mass_above_lProb(double prob)
 {
-    // TODO: precalculate 'em bastards. And USE THEM!
+    // TODO: precalculate 'em bastards!
     setup_search(prob, INF, -INF, INF);
     double acc = INF;
     for(;arridx < arrend; arridx++)
