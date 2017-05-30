@@ -361,6 +361,49 @@ private:
 
 
 
+class IsoThresholdGeneratorMT : public IsoGenerator
+{
+private:
+	unsigned int* counter;
+	double* partialLProbs;
+	double* partialMasses;
+	double* maxConfsLPSum;
+	const double Lcutoff;
+        SyncMarginal* last_marginal;
+        bool last_marg_owner;
+        PrecalculatedMarginal** marginalResults;
+
+public:
+	virtual bool advanceToNextConfiguration();
+	virtual inline const double& lprob() const { return partialLProbs[0]; };
+	virtual inline const double& mass() const { return partialMasses[0]; };
+        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//	virtual const int* const & conf() const;
+
+        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, SyncMarginal** _last_marginal, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+
+	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
+                                                    dealloc_table(marginalResults, dimNumber-1); if(last_marg_owner) delete last_marginal;};
+
+private:
+        SyncMarginal* get_last_marginal(SyncMarginal** _last_marginal, int tabSize, int hashSize);
+
+	inline void recalc(int idx)
+	{
+		for(; idx >=0; idx--)
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+		}
+	}
+
+	
+
+};
+
+
+
+
 
 #ifndef BUILDING_R
 

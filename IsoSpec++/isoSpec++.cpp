@@ -906,6 +906,129 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 
 
 
+SyncMarginal* IsoThresholdGeneratorMT::get_last_marginal(SyncMarginal** _last_marginal, int tabSize, int hashSize)
+{
+    if(_last_marginal != nullptr)
+        return *_last_marginal;
+
+    const unsigned int ii = dimNumber - 1;
+
+    return new SyncMarginal(std::move(*(marginals[ii])),
+                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                            tabSize,
+                            hashSize);
+}
+
+
+
+
+IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, SyncMarginal** _last_marginal, bool _absolute, int tabSize, int hashSize)
+: IsoGenerator(std::move(iso)),
+Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
+last_marginal(get_last_marginal(_last_marginal, tabSize, hashSize))
+{
+	counter 	= new unsigned int[dimNumber];
+	partialLProbs 	= new double[dimNumber+1];
+	partialMasses 	= new double[dimNumber+1];
+	maxConfsLPSum 	= new double[dimNumber-1];
+
+        marginalResults = new PrecalculatedMarginal*[dimNumber];
+
+        if(_last_marginal == nullptr)
+        {
+            last_marg_owner = true;
+            *_last_marginal = last_marginal;
+        }
+        else
+            last_marg_owner = false;
+
+        bool empty = false;
+	for(int ii=0; ii<dimNumber; ii++)
+	{
+	    counter[ii] = 0;
+
+            if(ii+1 < dimNumber)
+                marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
+                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                            true,
+                                                            tabSize, 
+                                                            hashSize);
+            else
+                marginalResults[ii] = last_marginal;
+
+            if(not marginalResults[ii]->inRange(0))
+                empty = true;
+	}
+
+	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+	for(int ii=1; ii<dimNumber-1; ii++)
+	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+
+	partialLProbs[dimNumber] = 0.0;
+	partialMasses[dimNumber] = 0.0;
+
+        if(not empty)
+            recalc(dimNumber-1);
+
+	counter[0]--;
+}
+
+bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
+{
+	counter[0]++;
+	if(marginalResults[0]->inRange(counter[0]))
+	{
+		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+		if(partialLProbs[0] >= Lcutoff)
+		{
+			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+			return true;
+		}
+	}
+
+	// If we reached this point, a carry is needed
+	
+	int idx = 0;
+
+	while(idx<dimNumber-2)
+	{
+		counter[idx] = 0;
+		idx++;
+		counter[idx]++;
+		if(marginalResults[idx]->inRange(counter[idx]))
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+			{
+				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+				recalc(idx-1);
+				return true;
+			}
+		}
+	}
+
+        idx++;
+        counter[idx] = last_marginal->getNextConfIdx();
+        if(last_marginal->inRange(counter[idx]))
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + last_marginal->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + last_marginal->get_mass(counter[idx]);
+                recalc(idx-1);
+                return true;
+            }
+        }
+	return false;
+}
+/*
+ * ----------------------------------------------------------------------------------------------------------
+ */
+
+
+
+
+
 
 
 
@@ -988,7 +1111,6 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 /*
  * ----------------------------------------------------------------------------------------------------------
  */
-
 
 
 
