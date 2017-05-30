@@ -572,12 +572,12 @@ bool RGTMarginal::next()
 
 bool RGTMarginal::hard_next()
 {
-    unsigned int nextmask = mask << 1;
     if(upper == lower or (upper & mask) == lower)
     {
         terminate_search();
         return false;
     }
+    unsigned int nextmask = mask << 1;
     if(going_up)
     {
         going_up = false;
