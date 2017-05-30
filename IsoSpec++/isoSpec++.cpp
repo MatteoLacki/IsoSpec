@@ -912,7 +912,8 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
-: IsoGenerator(std::move(iso))
+: IsoGenerator(std::move(iso)),
+Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 {
 	counter 	= new unsigned int[dimNumber];
 	partialLProbs 	= new double[dimNumber+1];
@@ -920,11 +921,6 @@ IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool 
 	maxConfsLPSum 	= new double[dimNumber-1];
 
         marginalResults = new PrecalculatedMarginal*[dimNumber];
-
-        Lcutoff = log(_threshold);
-        if(not _absolute)
-            Lcutoff += modeLProb;
-
 
         bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)

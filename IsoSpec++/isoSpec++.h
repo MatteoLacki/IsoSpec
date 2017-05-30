@@ -295,7 +295,7 @@ private:
 	double* partialLProbs;
 	double* partialMasses;
 	double* maxConfsLPSum;
-	double Lcutoff;
+	const double Lcutoff;
         PrecalculatedMarginal** marginalResults;
 
 public:
