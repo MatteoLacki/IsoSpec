@@ -227,19 +227,26 @@ public:
      void processConfigurationsAboveThreshold();
  };
 
-
+// Be very absolutely safe vs. false-sharing cache lines between threads...
+#define PADDING 64
 
 class IsoGenerator : public Iso
 {
+protected:
+        double* partialLProbs;
+        double* partialMasses;
+        double* partialExpProbs;
+
 public:
 	virtual bool advanceToNextConfiguration() = 0;
-	virtual const double& lprob() const = 0;
-	virtual const double& mass() const = 0;
+        inline const double& lprob() const { return partialLProbs[0]; };
+        inline const double& mass() const { return partialMasses[0]; };
+        inline const double& eprob() const { return partialExpProbs[0]; };
 //	virtual const int* const & conf() const = 0;
 
 
-        inline IsoGenerator(Iso&& iso) : Iso(std::move(iso)) {};
-	inline virtual ~IsoGenerator() {};
+        inline IsoGenerator(Iso&& iso);
+	inline virtual ~IsoGenerator() { delete[] partialLProbs; delete[] partialMasses; delete[] partialExpProbs; };
 
 };
 
@@ -293,22 +300,18 @@ class IsoThresholdGenerator : public IsoGenerator
 {
 private:
 	unsigned int* counter;
-	double* partialLProbs;
-	double* partialMasses;
 	double* maxConfsLPSum;
 	const double Lcutoff;
         PrecalculatedMarginal** marginalResults;
 
 public:
 	virtual bool advanceToNextConfiguration();
-	virtual inline const double& lprob() const { return partialLProbs[0]; };
-	virtual inline const double& mass() const { return partialMasses[0]; };
         virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
         IsoThresholdGenerator(Iso&& iso, double  _threshold, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
-	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
+	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum; 
                                                     dealloc_table(marginalResults, dimNumber);};
 
 private:
@@ -318,6 +321,7 @@ private:
 		{
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
 			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 		}
 	}
 
@@ -338,8 +342,6 @@ private:
 
 public:
 	virtual bool advanceToNextConfiguration();
-	virtual inline const double& lprob() const { return partialLProbs[0]; };
-	virtual inline const double& mass() const { return partialMasses[0]; };
 //        virtual inline void get_conf_signature(unsigned int* target);
 //	virtual const int* const & conf() const;
 
@@ -353,6 +355,7 @@ private:
         {
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->current_eProb();
         }
         
 
@@ -392,6 +395,7 @@ private:
 		{
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
 			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 		}
 	}
 

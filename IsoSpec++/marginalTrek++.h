@@ -119,6 +119,7 @@ protected:
     unsigned int no_confs;
     double* masses;
     double* lProbs;
+    double* eProbs;
     Allocator<int> allocator;
 public: 
     PrecalculatedMarginal(
@@ -131,6 +132,7 @@ public:
     virtual ~PrecalculatedMarginal();
     inline bool inRange(unsigned int idx) const { return idx < no_confs; };
     inline const double& get_lProb(unsigned int idx) const { return lProbs[idx]; };
+    inline const double& get_eProb(unsigned int idx) const { return eProbs[idx]; };
     inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
     inline const double* get_lProbs_ptr() const { return lProbs; };
     inline const double* get_masses_ptr() const { return masses; };
@@ -195,6 +197,7 @@ public:
     void terminate_search();
     inline const double& current_lProb() const { return lProbs[cidx]; };
     inline const double& current_mass() const { return masses[cidx]; };
+    inline const double& current_eProb() const { return eProbs[cidx]; };
     inline const Conf& current_conf() const { return confs[cidx]; };
     double min_mass_above_lProb(double prob);
     double max_mass_above_lProb(double prob);

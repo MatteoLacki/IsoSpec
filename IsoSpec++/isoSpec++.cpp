@@ -755,7 +755,16 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 
 
 
-
+IsoGenerator::IsoGenerator(Iso&& iso) : 
+    Iso(std::move(iso)), 
+    partialLProbs(new double[dimNumber+1+PADDING]), 
+    partialMasses(new double[dimNumber+1+PADDING]),
+    partialExpProbs(new double[dimNumber+1+PADDING])
+{
+    partialLProbs[dimNumber] = 0.0;
+    partialMasses[dimNumber] = 0.0;
+    partialExpProbs[dimNumber] = 1.0;
+}
 
 
 
@@ -766,8 +775,6 @@ IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double
 min_mass(_min_mass),
 max_mass(_max_mass)
 {
-	partialLProbs 	= new double[dimNumber+1];
-	partialMasses 	= new double[dimNumber+1];
 	maxConfsLPSum 	= new double[dimNumber];
         minMassCSum     = new double[dimNumber];
         maxMassCSum     = new double[dimNumber];
@@ -814,8 +821,6 @@ max_mass(_max_mass)
 
 IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass() 
 { 
-    delete[] partialLProbs; 
-    delete[] partialMasses; 
     delete[] maxConfsLPSum;
     dealloc_table(marginalResults, dimNumber);
     delete[] minMassCSum;
@@ -916,8 +921,6 @@ SyncMarginal* Iso::get_last_marginal(int tabSize, int hashSize, double Lcutoff)
                             hashSize);
 }
 
-// Be very absolutely safe vs. false-sharing cache lines between threads...
-#define PADDING 64
 
 IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, SyncMarginal* _last_marginal, bool _absolute, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
@@ -925,8 +928,6 @@ Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
 last_marginal(_last_marginal)
 {
 	counter 	= new unsigned int[dimNumber+PADDING];
-	partialLProbs 	= new double[dimNumber+1+PADDING];
-	partialMasses 	= new double[dimNumber+1+PADDING];
 	maxConfsLPSum 	= new double[dimNumber-1];
 
         marginalResults = new PrecalculatedMarginal*[dimNumber];
@@ -1031,8 +1032,6 @@ IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool 
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 {
 	counter 	= new unsigned int[dimNumber];
-	partialLProbs 	= new double[dimNumber+1];
-	partialMasses 	= new double[dimNumber+1];
 	maxConfsLPSum 	= new double[dimNumber-1];
 
         marginalResults = new PrecalculatedMarginal*[dimNumber];

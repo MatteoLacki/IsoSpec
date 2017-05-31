@@ -364,12 +364,14 @@ allocator(isotopeNo, tabSize)
     confs  = &configurations[0];
     no_confs = configurations.size();
     lProbs = new double[no_confs];
+    eProbs = new double[no_confs];
     masses = new double[no_confs];
 
 
     for(unsigned int ii=0; ii < no_confs; ii++)
     {
         lProbs[ii] = logProb(confs[ii], atom_lProbs, isotopeNo);
+        eProbs[ii] = exp(lProbs[ii]);
 	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
 }
@@ -381,6 +383,8 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
     	delete[] lProbs;
     if(masses != nullptr)
     	delete[] masses;
+    if(eProbs != nullptr)
+        delete[] eProbs;
 }
 
 
