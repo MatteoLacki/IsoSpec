@@ -906,11 +906,8 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 
 
 
-SyncMarginal* IsoThresholdGeneratorMT::get_last_marginal(SyncMarginal** _last_marginal, int tabSize, int hashSize)
+SyncMarginal* Iso::get_last_marginal(int tabSize, int hashSize, double Lcutoff)
 {
-    if(_last_marginal != nullptr)
-        return *_last_marginal;
-
     const unsigned int ii = dimNumber - 1;
 
     return new SyncMarginal(std::move(*(marginals[ii])),
@@ -919,46 +916,40 @@ SyncMarginal* IsoThresholdGeneratorMT::get_last_marginal(SyncMarginal** _last_ma
                             hashSize);
 }
 
+// Be very absolutely safe vs. false-sharing cache lines between threads...
+#define PADDING 64
 
-
-
-IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, SyncMarginal** _last_marginal, bool _absolute, int tabSize, int hashSize)
+IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, SyncMarginal* _last_marginal, bool _absolute, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
-last_marginal(get_last_marginal(_last_marginal, tabSize, hashSize))
+last_marginal(_last_marginal)
 {
-	counter 	= new unsigned int[dimNumber];
-	partialLProbs 	= new double[dimNumber+1];
-	partialMasses 	= new double[dimNumber+1];
+	counter 	= new unsigned int[dimNumber+PADDING];
+	partialLProbs 	= new double[dimNumber+1+PADDING];
+	partialMasses 	= new double[dimNumber+1+PADDING];
 	maxConfsLPSum 	= new double[dimNumber-1];
 
         marginalResults = new PrecalculatedMarginal*[dimNumber];
 
-        if(_last_marginal == nullptr)
-        {
-            last_marg_owner = true;
-            *_last_marginal = last_marginal;
-        }
-        else
-            last_marg_owner = false;
-
         bool empty = false;
-	for(int ii=0; ii<dimNumber; ii++)
+	for(int ii=0; ii<dimNumber-1; ii++)
 	{
 	    counter[ii] = 0;
 
-            if(ii+1 < dimNumber)
-                marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
+            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                             true,
                                                             tabSize, 
                                                             hashSize);
-            else
-                marginalResults[ii] = last_marginal;
 
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
 	}
+
+        marginalResults[dimNumber-1] = last_marginal;
+        counter[dimNumber-1] = last_marginal->getNextConfIdx();
+        if(not last_marginal->inRange(counter[dimNumber-1]))
+            empty = true;
 
 	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
 	for(int ii=1; ii<dimNumber-1; ii++)
@@ -1007,6 +998,7 @@ bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
 		}
 	}
 
+        counter[idx] = 0;
         idx++;
         counter[idx] = last_marginal->getNextConfIdx();
         if(last_marginal->inRange(counter[idx]))

@@ -141,7 +141,9 @@ public:
 class SyncMarginal : public PrecalculatedMarginal
 {
 private:
+    char padding[64]; // against fake-sharing cache lines...
     std::atomic<unsigned int> counter;
+    char padding2[64]; /// likewise...
 public:
     inline SyncMarginal(
         Marginal&& m,
@@ -165,6 +167,7 @@ public:
 	    local = counter.fetch_add(1, std::memory_order_relaxed);
 	return local;
     }
+
 
 };
 
