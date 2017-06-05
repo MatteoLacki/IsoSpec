@@ -911,12 +911,14 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 
 
 
-SyncMarginal* Iso::get_last_marginal(int tabSize, int hashSize, double Lcutoff)
+SyncMarginal* Iso::get_last_marginal(int tabSize, int hashSize, double Lcutoff, bool absolute)
 {
     const unsigned int ii = dimNumber - 1;
+    if(absolute)
+        Lcutoff -= modeLProb;
 
     return new SyncMarginal(std::move(*(marginals[ii])),
-                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                            Lcutoff + marginals[ii]->getModeLProb(),
                             tabSize,
                             hashSize);
 }
@@ -942,15 +944,16 @@ last_marginal(_last_marginal)
                                                             true,
                                                             tabSize, 
                                                             hashSize);
-
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
+
 	}
 
         marginalResults[dimNumber-1] = last_marginal;
         counter[dimNumber-1] = last_marginal->getNextConfIdx();
         if(not last_marginal->inRange(counter[dimNumber-1]))
             empty = true;
+
 
 	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
 	for(int ii=1; ii<dimNumber-1; ii++)

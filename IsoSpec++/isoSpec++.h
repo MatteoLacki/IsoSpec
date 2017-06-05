@@ -72,7 +72,7 @@ public:
 	double getLightestPeakMass() const;
 	double getHeaviestPeakMass() const;
         inline double getModeLProb() const { return modeLProb; };
-        SyncMarginal* get_last_marginal(int tabSize, int hashSize, double Lcutoff);
+        SyncMarginal* get_last_marginal(int tabSize, int hashSize, double Lcutoff, bool absolute);
 
 };
 
@@ -369,8 +369,6 @@ class IsoThresholdGeneratorMT : public IsoGenerator
 {
 private:
 	unsigned int* counter;
-	double* partialLProbs;
-	double* partialMasses;
 	double* maxConfsLPSum;
 	const double Lcutoff;
         SyncMarginal* last_marginal;
@@ -378,14 +376,12 @@ private:
 
 public:
 	virtual bool advanceToNextConfiguration();
-	virtual inline const double& lprob() const { return partialLProbs[0]; };
-	virtual inline const double& mass() const { return partialMasses[0]; };
         virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
         IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, SyncMarginal* _last_marginal, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
-	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] partialLProbs; delete[] partialMasses; delete[] maxConfsLPSum; 
+	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum; 
                                                     dealloc_table(marginalResults, dimNumber-1);};
 
 private:
