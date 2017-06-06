@@ -18,7 +18,9 @@ n_buckets(static_cast<unsigned int>(ceil(I.getHeaviestPeakMass()-lowest_mass)/bu
 absolute(_absolute),
 thread_idxes(0)
 {
-        SM = I.get_last_marginal(1024, 1024, log(cutoff), absolute);
+        std::cout << "PTR do: " << iso.disowned << std::endl;
+        
+        PMs = I.get_MT_marginal_set(log(cutoff), absolute, 1024, 1024);
 	double prob;
 	long pagesize = sysconf(_SC_PAGESIZE);
 	unsigned long mmap_len = n_buckets * sizeof(double);
@@ -43,6 +45,7 @@ void Spectrum::run(unsigned int nthreads, bool sync)
     threads = new pthread_t[n_threads];
     thread_storages = new double*[n_threads];
     thread_partials = new double[n_threads];
+    thread_numbers = new unsigned int[n_threads];
 
     for(unsigned int ii = 0; ii < n_threads; ii++)
         pthread_create(&threads[ii], NULL, wrapper_func_thr, this);
@@ -63,28 +66,36 @@ void Spectrum::wait()
 
 void Spectrum::calc_sum()
 {
+    total_confs = 0;
     for(unsigned int ii = 0; ii < n_threads; ii++)
-    {};
+    {
+        total_confs += thread_numbers[ii];
+    };
 }
 
 
 void Spectrum::worker_thread()
 {
     unsigned int thread_id = thread_idxes.fetch_add(1);
-    IsoThresholdGeneratorMT isoMT(std::move(iso), cutoff, SM, absolute);
+    IsoThresholdGeneratorMT* isoMT = new IsoThresholdGeneratorMT(std::move(iso), cutoff, PMs, absolute);
     double* local_storage = reinterpret_cast<double*>(mmap(NULL, n_buckets*sizeof(double), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
     unsigned int diff = static_cast<unsigned int>(floor(lowest_mass/bucket_width));
     ofset_store = local_storage - diff;
     double prob;
     Summator sum;
-    while(isoMT.advanceToNextConfiguration())
+    unsigned int cnt = 0;
+    while(isoMT->advanceToNextConfiguration())
     {
-        prob = isoMT.eprob();
-        ofset_store[static_cast<unsigned int>(floor(isoMT.mass()/bucket_width))] += prob;
+        prob = isoMT->eprob();
+        ofset_store[static_cast<unsigned int>(floor(isoMT->mass()/bucket_width))] += prob;
         sum.add(prob);
+        cnt++;
     }
     thread_storages[thread_id] = storage;
     thread_partials[thread_id] = sum.get();
+    thread_numbers[thread_id] = cnt;
+    std::cout << "finishing worker thread" << std::endl;
+    delete isoMT;
 }
 
 Spectrum::~Spectrum()

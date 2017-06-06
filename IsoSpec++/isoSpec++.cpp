@@ -77,6 +77,18 @@ modeLProb(other.modeLProb)
 }
 
 
+Iso::Iso(const Iso& other, bool fullcopy) : 
+disowned(fullcopy ? throw std::logic_error("Not implemented") : true),
+dimNumber(other.dimNumber),
+isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : other.isotopeNumbers),
+atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
+confSize(other.confSize),
+allDim(other.allDim),
+marginals(fullcopy ? throw std::logic_error("Not implemented") : other.marginals),
+modeLProb(other.modeLProb)
+{}
+
+
 inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities)
 {
     if (marginals == nullptr)
@@ -99,6 +111,7 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
 
 Iso::~Iso()
 {
+    std::cout << "ISO dtor: disowned: " << disowned << std::endl;
     if(not disowned)
     {
 	if (marginals != nullptr)
@@ -911,39 +924,51 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 
 
 
-SyncMarginal* Iso::get_last_marginal(int tabSize, int hashSize, double Lcutoff, bool absolute)
+PrecalculatedMarginal** Iso::get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize)
 {
-    const unsigned int ii = dimNumber - 1;
+    PrecalculatedMarginal** ret = new PrecalculatedMarginal*[dimNumber];
+
     if(absolute)
         Lcutoff -= modeLProb;
 
-    return new SyncMarginal(std::move(*(marginals[ii])),
+    for(int ii = 0; ii<dimNumber - 1; ii++)
+        ret[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
+                                            Lcutoff + marginals[ii]->getModeLProb(),
+                                            true,
+                                            tabSize,
+                                            hashSize);
+
+
+    const unsigned int ii = dimNumber - 1;
+    ret[ii] = new SyncMarginal(std::move(*(marginals[ii])),
                             Lcutoff + marginals[ii]->getModeLProb(),
                             tabSize,
                             hashSize);
+    return ret;
 }
 
 
-IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, SyncMarginal* _last_marginal, bool _absolute, int tabSize, int hashSize)
-: IsoGenerator(std::move(iso)),
+IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, PrecalculatedMarginal** PMs, bool _absolute, int tabSize, int hashSize)
+: IsoGenerator(Iso(iso, false)),
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
-last_marginal(_last_marginal)
+last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 {
+        std::cout << "CTOR" << std::endl;
 	counter 	= new unsigned int[dimNumber+PADDING];
 	maxConfsLPSum 	= new double[dimNumber-1];
 
-        marginalResults = new PrecalculatedMarginal*[dimNumber];
+        marginalResults = PMs;
 
         bool empty = false;
 	for(int ii=0; ii<dimNumber-1; ii++)
 	{
 	    counter[ii] = 0;
 
-            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
-                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                            true,
-                                                            tabSize, 
-                                                            hashSize);
+//            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
+//                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+//                                                            true,
+///                                                            tabSize, 
+////                                                          hashSize);
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
 
@@ -963,9 +988,18 @@ last_marginal(_last_marginal)
 	partialMasses[dimNumber] = 0.0;
 
         if(not empty)
+        {
+            std::cout << "NONEMPTY" << std::endl;
             recalc(dimNumber-1);
+            counter[0]--;
 
-	counter[0]--;
+        }
+        else 
+        {
+
+            std::cout << "EMPTY" << std::endl;
+            terminate_search();
+        }
 }
 
 bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
@@ -1015,8 +1049,16 @@ bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
                 return true;
             }
         }
+        terminate_search();
 	return false;
 }
+
+void IsoThresholdGeneratorMT::terminate_search()
+{
+    for(int ii=0; ii<dimNumber; ii++)
+        counter[ii] = marginalResults[ii]->get_no_confs();
+}
+
 /*
  * ----------------------------------------------------------------------------------------------------------
  */
@@ -1062,9 +1104,14 @@ Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 	partialMasses[dimNumber] = 0.0;
 
         if(not empty)
+        {
             recalc(dimNumber-1);
+            counter[0]--;
+        }
+        else
+            terminate_search();
+            
 
-	counter[0]--;
 }
 
 bool IsoThresholdGenerator::advanceToNextConfiguration()
@@ -1100,8 +1147,17 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 			}
 		}
 	}
+
+        terminate_search();
 	return false;
 }
+
+void IsoThresholdGenerator::terminate_search()
+{
+    for(int ii=0; ii<dimNumber; ii++)
+        counter[ii] = marginalResults[ii]->get_no_confs();
+}
+
 /*
  * ----------------------------------------------------------------------------------------------------------
  */

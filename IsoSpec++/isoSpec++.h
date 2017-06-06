@@ -44,6 +44,7 @@ class IsoThresholdGenerator;
 class Iso {
 private:
 	void setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities);
+public:
         bool disowned;
 protected:
 	int 			dimNumber;
@@ -67,12 +68,14 @@ public:
 
         Iso(Iso&& other);
 
+        Iso(const Iso& other, bool fullcopy);
+
 	virtual ~Iso();
 
 	double getLightestPeakMass() const;
 	double getHeaviestPeakMass() const;
         inline double getModeLProb() const { return modeLProb; };
-        SyncMarginal* get_last_marginal(int tabSize, int hashSize, double Lcutoff, bool absolute);
+        PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
 
 };
 
@@ -314,6 +317,8 @@ public:
 	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum; 
                                                     dealloc_table(marginalResults, dimNumber);};
 
+        void terminate_search();
+
 private:
 	inline void recalc(int idx)
 	{
@@ -379,10 +384,10 @@ public:
         virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
-        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, SyncMarginal* _last_marginal, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** _last_marginal, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
-	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum; 
-                                                    dealloc_table(marginalResults, dimNumber-1);};
+	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
+        void terminate_search();
 
 private:
 	inline void recalc(int idx)
