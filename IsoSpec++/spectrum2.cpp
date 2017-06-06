@@ -13,15 +13,12 @@ Spectrum::Spectrum(Iso&& I, double _bucket_width, double _cutoff, bool _absolute
 iso(std::move(I)),
 lowest_mass(I.getLightestPeakMass()),
 bucket_width(_bucket_width),
-cutoff(_cutoff),
 n_buckets(static_cast<unsigned int>(ceil(I.getHeaviestPeakMass()-lowest_mass)/bucket_width)),
+cutoff(_cutoff),
 absolute(_absolute),
 thread_idxes(0)
 {
-        std::cout << "PTR do: " << iso.disowned << std::endl;
-        
         PMs = I.get_MT_marginal_set(log(cutoff), absolute, 1024, 1024);
-	double prob;
 	long pagesize = sysconf(_SC_PAGESIZE);
 	unsigned long mmap_len = n_buckets * sizeof(double);
 	mmap_len += pagesize - mmap_len%pagesize;
@@ -94,7 +91,6 @@ void Spectrum::worker_thread()
     thread_storages[thread_id] = storage;
     thread_partials[thread_id] = sum.get();
     thread_numbers[thread_id] = cnt;
-    std::cout << "finishing worker thread" << std::endl;
     delete isoMT;
 }
 

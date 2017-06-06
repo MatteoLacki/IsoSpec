@@ -103,8 +103,7 @@ public:
          const double**  _isotopeMasses,
          const double**  _isotopeProbabilities,
          const double    _cutOff,
-         int             tabSize = 1000,
-         int             hashSize = 1000
+         int             tabSize = 1000
      );
 
      static IsoThresholdGenerator* IsoFromFormula(
@@ -194,7 +193,6 @@ public:
          const double**  _isotopeProbabilities,
          const double    _cutOff,
          int             tabSize = 1000,
-         int             hashSize = 1000,
          double          layerStep = 0.3,
          bool            _estimateThresholds = false,
 	 bool            trim = true
@@ -220,8 +218,7 @@ public:
          const double**  _isotopeProbabilities,
          double          _threshold,
          bool            _absolute = true,
-         int             tabSize = 1000,
-         int             hashSize = 1000
+         int             tabSize = 1000
      );
 
      virtual ~IsoSpecThreshold();
@@ -384,7 +381,7 @@ public:
         virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
-        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** _last_marginal, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** _last_marginal, bool _absolute = true);
 
 	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
         void terminate_search();

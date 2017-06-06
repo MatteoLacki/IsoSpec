@@ -5,7 +5,6 @@
 class Spectrum
 {
 private:
-        Iso* isoptr;
         Iso&& iso;
 	double lowest_mass;
 	const double bucket_width;

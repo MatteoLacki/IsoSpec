@@ -147,8 +147,7 @@ IsoSpec::IsoSpec(
     const double**  isotopeMasses,
     const double**  isotopeProbabilities,
     const double    _cutOff,
-    int             tabSize,
-    int             hashSize
+    int             tabSize
 ) : Iso(_dimNumber, _isotopeNumbers, _atomCounts, isotopeMasses, isotopeProbabilities),
 cutOff(_cutOff),
 allocator(_dimNumber, tabSize),
@@ -410,7 +409,6 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
                                 const double**  _isotopeProbabilities,
                                 const double    _cutOff,
                                 int             tabSize,
-                                int             hashSize,
                                 double          layerStep,
                                 bool            _estimateThresholds,
 				bool            trim
@@ -420,8 +418,7 @@ IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
              _isotopeMasses,
              _isotopeProbabilities,
              _cutOff,
-             tabSize = 1000,
-             hashSize = 1000
+             tabSize = 1000
 ),
 estimateThresholds(_estimateThresholds),
 do_trim(trim),
@@ -665,16 +662,14 @@ IsoSpecThreshold::IsoSpecThreshold( int             _dimNumber,
                                     const double**  _isotopeProbabilities,
                                     double          _threshold,
                                     bool            _absolute,
-                                    int             tabSize,
-                                    int             hashSize
+                                    int             tabSize
 ) : IsoSpec( _dimNumber,
              _isotopeNumbers,
              _atomCounts,
              _isotopeMasses,
              _isotopeProbabilities,
              0.0,
-             tabSize = 1000,
-             hashSize = 1000
+             tabSize = 1000
 )
 {
     current.push_back(initialConf);
@@ -948,12 +943,11 @@ PrecalculatedMarginal** Iso::get_MT_marginal_set(double Lcutoff, bool absolute, 
 }
 
 
-IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, PrecalculatedMarginal** PMs, bool _absolute, int tabSize, int hashSize)
+IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, PrecalculatedMarginal** PMs, bool _absolute)
 : IsoGenerator(Iso(iso, false)),
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
 last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 {
-        std::cout << "CTOR" << std::endl;
 	counter 	= new unsigned int[dimNumber+PADDING];
 	maxConfsLPSum 	= new double[dimNumber-1];
 
@@ -964,14 +958,8 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 	{
 	    counter[ii] = 0;
 
-//            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
-//                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-//                                                            true,
-///                                                            tabSize, 
-////                                                          hashSize);
             if(not marginalResults[ii]->inRange(0))
                 empty = true;
-
 	}
 
         marginalResults[dimNumber-1] = last_marginal;
