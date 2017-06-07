@@ -1,4 +1,3 @@
-#include "cwrapper.cpp"
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
 #include "isoSpec++.cpp"
