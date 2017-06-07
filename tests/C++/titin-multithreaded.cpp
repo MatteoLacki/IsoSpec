@@ -5,22 +5,28 @@
 #include <pthread.h>
 
 
-#define n_threads 4
+#define n_threads 6
 
 void* thread(void* nr);
 
 double fin_probs[n_threads];
 Spectrum* spectra[n_threads];
 SyncMarginal* SM = nullptr;
-const double threshold = 0.2;
+const double threshold = 0.8;
 
 int main()
 {
     pthread_t threads[n_threads];
     int threadargs[n_threads];
 
-    Iso I("C169719H270464N45688O52237S911");
-    SM = I.get_last_marginal(1000, 1000, log(threshold)+I.getModeLProb());
+    Iso* I = new Iso("C169719H270464N45688O52237S911");
+    Spectrum s(std::move(*I), 0.1, threshold, false);
+    s.run(n_threads);
+    std::cout << "no confs: " << s.get_total_confs() << std::endl;
+
+    delete I;
+
+/*    SM = I.get_last_marginal(1000, 1000, log(threshold)+I.getModeLProb());
     std::cout << SM << std::endl;
 //    SM->reset();
 
@@ -36,7 +42,8 @@ int main()
     for(int  index = 0; index < n_threads; ++index )
     	total += fin_probs[index];
 
-    std::cout << "Final summary: prob: " << total << '\n';
+    std::cout << "Final summary: prob: " << total << '\n';*/
+
 /*
     for(int ii=1; ii<n_threads; ii++)
     {
@@ -48,8 +55,7 @@ int main()
 */}
 
 
-
-
+#if 0
 
 void* thread(void* nr)
 {
@@ -80,3 +86,4 @@ void* thread(void* nr)
 	fin_probs[numer] = spctr->sum.get();*/
 	return NULL;
 }
+#endif
