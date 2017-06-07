@@ -21,6 +21,8 @@ private:
         double* thread_partials;
         unsigned int* thread_numbers;
         unsigned int total_confs;
+        double total_prob;
+
 public:
 	Spectrum(Iso&& I, double bucket_width, double cutoff, bool _absolute);
 	~Spectrum();
@@ -29,7 +31,8 @@ public:
         void worker_thread();
         void wait();
         void calc_sum();
-	inline unsigned int get_total_confs() { return total_confs; };
+	inline unsigned int get_total_confs() const { return total_confs; };
+        inline double get_total_prob() const { return total_prob; };
 	void print(std::ostream& o = std::cout);
 
 };

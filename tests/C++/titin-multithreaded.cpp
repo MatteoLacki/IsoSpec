@@ -23,6 +23,7 @@ int main()
     Spectrum s(std::move(*I), 0.1, threshold, false);
     s.run(n_threads);
     std::cout << "no confs: " << s.get_total_confs() << std::endl;
+    std::cout << "prob: " << s.get_total_prob() << std::endl;
 
     delete I;
 
