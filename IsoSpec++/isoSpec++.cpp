@@ -111,7 +111,6 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
 
 Iso::~Iso()
 {
-    std::cout << "ISO dtor: disowned: " << disowned << std::endl;
     if(not disowned)
     {
 	if (marginals != nullptr)
@@ -977,17 +976,12 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 
         if(not empty)
         {
-            std::cout << "NONEMPTY" << std::endl;
             recalc(dimNumber-1);
             counter[0]--;
 
         }
         else 
-        {
-
-            std::cout << "EMPTY" << std::endl;
             terminate_search();
-        }
 }
 
 bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
