@@ -335,8 +335,6 @@ private:
 class IsoThresholdGeneratorBoundMass : public IsoGenerator
 {
 private:
-	double* partialLProbs;
-	double* partialMasses;
 	double* maxConfsLPSum, *minMassCSum, *maxMassCSum;
 	double Lcutoff;
         double min_mass, max_mass;

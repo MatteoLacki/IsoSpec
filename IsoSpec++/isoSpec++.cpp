@@ -815,10 +815,6 @@ max_mass(_max_mass)
         }
 
 
-	partialLProbs[dimNumber] = 0.0;
-	partialMasses[dimNumber] = 0.0;
-
-
         setup_ith_marginal_range(dimNumber-1);
 
         for(int ii=0; ii<dimNumber-1; ii++)
@@ -971,14 +967,11 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 	for(int ii=1; ii<dimNumber-1; ii++)
 	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
-	partialLProbs[dimNumber] = 0.0;
-	partialMasses[dimNumber] = 0.0;
 
         if(not empty)
         {
             recalc(dimNumber-1);
             counter[0]--;
-
         }
         else 
             terminate_search();
@@ -993,6 +986,7 @@ bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
 		if(partialLProbs[0] >= Lcutoff)
 		{
 			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+                        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
 			return true;
 		}
 	}
@@ -1012,6 +1006,7 @@ bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
 			{
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 				recalc(idx-1);
 				return true;
 			}
@@ -1027,6 +1022,7 @@ bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
             {
                 partialMasses[idx] = partialMasses[idx+1] + last_marginal->get_mass(counter[idx]);
+                partialExpProbs[idx] = partialExpProbs[idx+1] * last_marginal->get_eProb(counter[idx]);
                 recalc(idx-1);
                 return true;
             }
@@ -1082,9 +1078,6 @@ Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 	for(int ii=1; ii<dimNumber-1; ii++)
 	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
-	partialLProbs[dimNumber] = 0.0;
-	partialMasses[dimNumber] = 0.0;
-
         if(not empty)
         {
             recalc(dimNumber-1);
@@ -1105,6 +1098,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 		if(partialLProbs[0] >= Lcutoff)
 		{
 			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+                        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
 			return true;
 		}
 	}
@@ -1124,6 +1118,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
 			{
 				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 				recalc(idx-1);
 				return true;
 			}
