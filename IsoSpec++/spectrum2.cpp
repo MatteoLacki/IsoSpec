@@ -64,9 +64,12 @@ void Spectrum::wait()
 void Spectrum::calc_sum()
 {
     total_confs = 0;
+    total_prob = 0;
+
     for(unsigned int ii = 0; ii < n_threads; ii++)
     {
         total_confs += thread_numbers[ii];
+        total_prob += thread_partials[ii];
     };
 }
 
@@ -77,18 +80,18 @@ void Spectrum::worker_thread()
     IsoThresholdGeneratorMT* isoMT = new IsoThresholdGeneratorMT(std::move(iso), cutoff, PMs, absolute);
     double* local_storage = reinterpret_cast<double*>(mmap(NULL, n_buckets*sizeof(double), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
     unsigned int diff = static_cast<unsigned int>(floor(lowest_mass/bucket_width));
-    ofset_store = local_storage - diff;
+    double* local_ofset_store = local_storage - diff;
     double prob;
     Summator sum;
     unsigned int cnt = 0;
     while(isoMT->advanceToNextConfiguration())
     {
         prob = isoMT->eprob();
-        ofset_store[static_cast<unsigned int>(floor(isoMT->mass()/bucket_width))] += prob;
+        local_ofset_store[static_cast<unsigned int>(floor(isoMT->mass()/bucket_width))] += prob;
         sum.add(prob);
         cnt++;
     }
-    thread_storages[thread_id] = storage;
+    thread_storages[thread_id] = local_storage;
     thread_partials[thread_id] = sum.get();
     thread_numbers[thread_id] = cnt;
     delete isoMT;
