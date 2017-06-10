@@ -9,11 +9,11 @@
 #
 #   IsoSpec is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 #   You should have received a copy of the Simplified BSD Licence
 #   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
-# 
+#
 
 import cffi
 import itertools
@@ -25,6 +25,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from kahan import Summator
 from collections import defaultdict
+import numpy as np
 
 try:
     xrange
@@ -120,7 +121,7 @@ sure you want to do that, edit the source and disable this check.''')
             pass
 
         prebuilt =  ['', 'prebuilt-']
-        
+
         def cprod(ll1, ll2):
             res = []
             for l1 in ll1:
@@ -138,7 +139,7 @@ sure you want to do that, edit the source and disable this check.''')
         paths_to_check = dpc
 
         paths_to_check = sum(map(glob.glob, paths_to_check), [])
-        
+
         self.clib = None
         for libpath in set(paths_to_check):
             try:
@@ -335,12 +336,23 @@ class IsoSpec:
 
     def getConfs(self):
         masses, logProbs, isoCounts = self.getConfsRaw()
-        return [(
-                masses[i],
-                logProbs[i],
-                self.get_conf_by_no(isoCounts, i))
-                for i in xrange(len(masses))]
+        rows_no = len(masses)
+        cols_no = len(isoCounts)/len(masses)
+        masses  = list(masses)
+        logprobs= list(logprobs)
+        confs = []
+        for i in xrange(rows_no-1):
+            confs.append(list(isoCounts[i*cols_no:(i+1)*cols_no]))
+        return masses, logprobs, confs
 
+    def getConfsNumpy(self):
+        masses, logProbs, isoCounts = self.getConfsRaw()
+        rows_no = len(masses)
+        cols_no = len(configurations)/len(masses)
+        masses  = np.array(list(masses))
+        logprobs= np.array(list(logprobs))
+        configurations = np.array(list(configurations)).reshape((rows_no,cols_no))
+        return masses, logprobs, configurations
 
     def splitConf(self, l, offset = 0):
         conf = []
@@ -366,8 +378,6 @@ class IsoSpec:
 
 
 
-
-
 class IsoPlot(dict):
     def __init__(self, iso, bin_w):
         self.iso = iso
@@ -381,4 +391,4 @@ class IsoPlot(dict):
 
 
 
-version = '1.0.3'
+version = '1.0.4'
