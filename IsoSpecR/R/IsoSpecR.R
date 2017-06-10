@@ -23,10 +23,6 @@ NULL
   library.dynam.unload("IsoSpecR", libpath)
 }
 
-# molecule <- c(C=2000,H=3000,N=300,O=300,S=20)
-# cutOff <- .9999
-# data(isotopicData)
-
 
 #' Calculate the isotopic fine structure peaks.
 #'
@@ -46,10 +42,10 @@ NULL
 #' @param step      The percent of the the percentile of isotopologues in the current isolayer, specyfying the cutoff for the next isolayer. It has been optimised and better not change the default value.
 #' @param tabSize   A technical parameter: the initial size of the \code{C++} dynamic table containing the results. Better not change the default value.
 #' @return A numeric matrix containing the masses, the logarithms of probability, and, optionally, counts of isotopologues. Attention: this matrix does not have to be sorted. Sorting it would also compromise the linear complexity of our algorithm.
-#' @export
 #' @examples
 #' res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
 #' print(res)
+#' @export
 IsoSpecify <- function(
         molecule,
         stopCondition,
