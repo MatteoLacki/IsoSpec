@@ -40,7 +40,6 @@ void* setupIsoLayered( int      _dimNumber,
                         const double*   _isotopeProbabilities,
                         const double    _cutOff,
                         int             tabSize,
-                        int             hashSize,
                         double          step,
                         bool            estimate,
                         bool            trim
@@ -65,7 +64,6 @@ void* setupIsoLayered( int      _dimNumber,
         IP,
         _cutOff,
         tabSize,
-        hashSize,
         step,
 	estimate,
 	trim
@@ -131,53 +129,6 @@ void* setupIsoOrdered( int             _dimNumber,
     return reinterpret_cast<void*>(iso);
 }
 
-void* setupIsoThreshold(    int      _dimNumber,
-                            const int*      _isotopeNumbers,
-                            const int*      _atomCounts,
-                            const double*   _isotopeMasses,
-                            const double*   _isotopeProbabilities,
-                            const double    _threshold,
-                            int             _absolute,
-                            int             tabSize,
-                            int             hashSize
-)
-{
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
-    int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
-    {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
-    }
-
-
-    IsoSpecThreshold* iso = new IsoSpecThreshold(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP,
-        _threshold,
-        _absolute,
-        tabSize,
-        hashSize
-    );
-
-    try {
-        iso->processConfigurationsAboveThreshold();
-    }
-    catch (std::bad_alloc& ba) {
-        delete iso;
-	iso = NULL;
-    }
-
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
-}
 
 void* setupIso( int             _dimNumber,
                 const int*      _isotopeNumbers,
@@ -196,23 +147,23 @@ void* setupIso( int             _dimNumber,
     {
         case ALGO_LAYERED:
             return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, false, trim);
+                                    _isotopeProbabilities, _StopCondition, tabSize, step, false, trim);
             break;
 	case ALGO_LAYERED_ESTIMATE:
 	    return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, true, trim);
+                                    _isotopeProbabilities, _StopCondition, tabSize, step, true, trim);
 
         case ALGO_ORDERED:
             return setupIsoOrdered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
                                     _isotopeProbabilities, _StopCondition, tabSize, hashSize);
             break;
         case ALGO_THRESHOLD_ABSOLUTE:
-            return setupIsoThreshold(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                        _isotopeProbabilities, _StopCondition, true, tabSize, hashSize);
+            return NULL;
+
             break;
         case ALGO_THRESHOLD_RELATIVE:
-            return setupIsoThreshold(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                        _isotopeProbabilities, _StopCondition, false, tabSize, hashSize);
+            return NULL;
+
             break;
     }
     return NULL;
@@ -223,24 +174,6 @@ int getIsotopesNo(void* iso)
 {
     return reinterpret_cast<IsoSpec*>(iso)->getNoIsotopesTotal();
 }
-
-/*
-void* IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
-{
-return NULL;
-    IsoSpec* iso;
-    try{
-        iso = IsoSpec::IsoFromFormula<IsoSpecLayered>(
-            formula, cutoff,
-                tabsize, hashsize);
-    }
-    catch (const std::invalid_argument& e)
-    {
-        return NULL;
-    }
-
-    return reinterpret_cast<void*>(iso);
-} */
 
 int getIsoConfNo(void* iso)
 {

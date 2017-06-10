@@ -43,7 +43,6 @@ void* setupIsoLayered( int             _dimNumber,
                        const double*   _isotopeProbabilities,
                        const double    _cutOff,
                        int             tabSize,
-                       int             hashSize,
                        double          step,
                        bool            estimate,
                        bool            trim

@@ -7,3 +7,4 @@
 #include "element_tables.cpp"
 #include "misc.cpp"
 #include "spectrum2.cpp"
+#include "cwrapper.cpp"
