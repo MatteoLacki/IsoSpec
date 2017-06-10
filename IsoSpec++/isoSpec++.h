@@ -205,29 +205,6 @@ public:
  };
 
 
- class IsoSpecThreshold : public IsoSpec
- {
- protected:
-     std::vector<void*>          current;
-     double                      lprobThr;
- public:
-     IsoSpecThreshold(
-         int             _dimNumber,
-         const int*      _isotopeNumbers,
-         const int*      _atomCounts,
-         const double**  _isotopeMasses,
-         const double**  _isotopeProbabilities,
-         double          _threshold,
-         bool            _absolute = true,
-         int             tabSize = 1000
-     );
-
-     virtual ~IsoSpecThreshold();
-
-     bool advanceToNextConfiguration();
-     void processConfigurationsAboveThreshold();
- };
-
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define PADDING 64
 
