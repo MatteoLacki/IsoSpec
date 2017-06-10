@@ -34,7 +34,7 @@ void* setupIso( int      _dimNumber,
                 const int*      _isotopeNumbers,
                 const int*      _atomCounts,
                 const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities)
+                const double*   _isotopeProbabilities);
 
 
 
