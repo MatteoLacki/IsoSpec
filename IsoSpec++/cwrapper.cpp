@@ -91,7 +91,6 @@ void* setupIso( int             _dimNumber,
                 const double    _StopCondition,
                 int             algo,
                 int             tabSize,
-                int             hashSize,
                 double          step,
                 bool            trim
 )
