@@ -32,27 +32,6 @@ extern "C" {
 
 
 
-void* setupMarginal(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
-    int tabSize,
-    int hashSize
-);
-
-int probeConfigurationIdx(void* MT, int idx);
-
-int getConfMT(void* MT, int idx, double* mass, double* logProb, int* configuration);
-
-int processMTUntilCutoff(void* MT, double cutoff);
-
-int getConfNo(void* marginals);
-
-void getConfs(int howmany, void* marginals, double* masses, double* logprobs, int* configurations);
-
-void destroyConf(void* marginals);
-
 
 // ================================================================
 
