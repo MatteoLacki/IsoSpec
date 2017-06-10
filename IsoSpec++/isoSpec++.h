@@ -21,6 +21,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
+#include <limits>
 #include "lang.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -34,15 +35,54 @@
 #endif /* BUILDING_R */
 
 
-class IsoSpecLayered;
 
- class IsoSpec{
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
+
+class IsoSpecLayered;
+class IsoThresholdGenerator;
+
+class Iso {
+private:
+	void setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities);
+public:
+        bool disowned;
+protected:
+	int 			dimNumber;
+	int*			isotopeNumbers;
+	int*			atomCounts;
+	unsigned int		confSize;
+	int			allDim;
+	Marginal**              marginals;
+        double                  modeLProb;
+
+public:
+	Iso(
+	    int             _dimNumber,
+	    const int*      _isotopeNumbers,
+	    const int*      _atomCounts,
+	    const double**  _isotopeMasses,
+	    const double**  _isotopeProbabilities
+	);
+
+	Iso(const char* formula);
+
+        Iso(Iso&& other);
+
+        Iso(const Iso& other, bool fullcopy);
+
+	virtual ~Iso();
+
+	double getLightestPeakMass() const;
+	double getHeaviestPeakMass() const;
+        inline double getModeLProb() const { return modeLProb; };
+        PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
+
+};
+
+ class IsoSpec : public Iso {
  protected:
-     const int               dimNumber;
-     int*                    isotopeNumbers;
-     int*                    atomCounts;
+     MarginalTrek** marginalResults;
      const double            cutOff;
-     MarginalTrek**          marginalResults;
      const std::vector<double>**     logProbs;
      const std::vector<double>**     masses;
      const std::vector<int*>**       marginalConfs;
@@ -50,7 +90,6 @@ class IsoSpecLayered;
      std::vector<void*>      newaccepted;
      Summator                totalProb;
      unsigned int            cnt;
-     const unsigned int      confSize;
      int*                    candidate;
      void*                   topConf;
      int                     allDim;
@@ -64,11 +103,10 @@ class IsoSpecLayered;
          const double**  _isotopeMasses,
          const double**  _isotopeProbabilities,
          const double    _cutOff,
-         int             tabSize = 1000,
-         int             hashSize = 1000
+         int             tabSize = 1000
      );
 
-     template<typename T = IsoSpecLayered> static T* IsoFromFormula(
+     static IsoThresholdGenerator* IsoFromFormula(
          const char* formula,
          double cutoff,
          int tabsize = 1000,
@@ -81,8 +119,6 @@ class IsoSpecLayered;
      void processConfigurationsUntilCutoff();
      int getNoVisitedConfs();
      int getNoIsotopesTotal();
-     double getLightestPeakMass();
-     double getHeaviestPeakMass();
 
 
      void getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts);
@@ -157,7 +193,6 @@ class IsoSpecLayered;
          const double**  _isotopeProbabilities,
          const double    _cutOff,
          int             tabSize = 1000,
-         int             hashSize = 1000,
          double          layerStep = 0.3,
          bool            _estimateThresholds = false,
 	 bool            trim = true
@@ -183,8 +218,7 @@ class IsoSpecLayered;
          const double**  _isotopeProbabilities,
          double          _threshold,
          bool            _absolute = true,
-         int             tabSize = 1000,
-         int             hashSize = 1000
+         int             tabSize = 1000
      );
 
      virtual ~IsoSpecThreshold();
@@ -193,7 +227,183 @@ class IsoSpecLayered;
      void processConfigurationsAboveThreshold();
  };
 
+// Be very absolutely safe vs. false-sharing cache lines between threads...
+#define PADDING 64
 
+class IsoGenerator : public Iso
+{
+protected:
+        double* partialLProbs;
+        double* partialMasses;
+        double* partialExpProbs;
+
+public:
+	virtual bool advanceToNextConfiguration() = 0;
+        inline const double& lprob() const { return partialLProbs[0]; };
+        inline const double& mass() const { return partialMasses[0]; };
+        inline const double& eprob() const { return partialExpProbs[0]; };
+//	virtual const int* const & conf() const = 0;
+
+
+        inline IsoGenerator(Iso&& iso);
+	inline virtual ~IsoGenerator() { delete[] partialLProbs; delete[] partialMasses; delete[] partialExpProbs; };
+
+};
+
+#if 0
+class IsoOrderedGenerator : public IsoGenerator
+{
+private:
+        MarginalTrek** marginalResults;
+	double cutOff;
+	std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
+	void IsoOrderedGenerator_init(double _cutoff);
+	void* 				topConf;
+	DirtyAllocator          	allocator;
+        const std::vector<double>**     logProbs;
+        const std::vector<double>**     masses;
+        const std::vector<int*>**       marginalConfs;
+	double 				currentLProb;
+	double 				currentMass;
+	int*				candidate;
+
+public:
+	virtual bool advanceToNextConfiguration();
+	virtual const double& lprob() const { return currentLProb; };
+	virtual const double& mass() const { return currentMass; };
+
+	inline IsoOrderedGenerator(int             _dimNumber,
+                                   const int*      _isotopeNumbers,
+                                   const int*      _atomCounts,
+                                   const double**  _isotopeMasses,
+                                   const double**  _isotopeProbabilities,
+                                   const double    _cutOff   = -std::numeric_limits<double>::infinity(),
+                                   int             _tabSize  = 1000,
+                                   int             _hashSize = 1000) : 
+			IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize),
+			allocator(dimNumber, _tabSize)
+			{ IsoOrderedGenerator_init(_cutOff); };
+
+	inline IsoOrderedGenerator(const char* formula,
+                		   double  _cutOff   = std::numeric_limits<double>::infinity(),
+		                   int     _tabSize  = 1000,
+                		   int     _hashSize = 1000) : IsoGenerator(formula, _tabSize, _hashSize),
+				   			       allocator(dimNumber, _tabSize)
+				   			       { IsoOrderedGenerator_init(_cutOff); };
+
+	virtual ~IsoOrderedGenerator();
+
+};
+#endif
+
+class IsoThresholdGenerator : public IsoGenerator
+{
+private:
+	unsigned int* counter;
+	double* maxConfsLPSum;
+	const double Lcutoff;
+        PrecalculatedMarginal** marginalResults;
+
+public:
+	virtual bool advanceToNextConfiguration();
+        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//	virtual const int* const & conf() const;
+
+        IsoThresholdGenerator(Iso&& iso, double  _threshold, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+
+	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum; 
+                                                    dealloc_table(marginalResults, dimNumber);};
+
+        void terminate_search();
+
+private:
+	inline void recalc(int idx)
+	{
+		for(; idx >=0; idx--)
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+		}
+	}
+
+	
+
+};
+
+
+class IsoThresholdGeneratorBoundMass : public IsoGenerator
+{
+private:
+	double* maxConfsLPSum, *minMassCSum, *maxMassCSum;
+	double Lcutoff;
+        double min_mass, max_mass;
+        RGTMarginal** marginalResults;
+
+public:
+	virtual bool advanceToNextConfiguration();
+//        virtual inline void get_conf_signature(unsigned int* target);
+//	virtual const int* const & conf() const;
+
+        IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+
+	virtual ~IsoThresholdGeneratorBoundMass();
+
+private:
+	void setup_ith_marginal_range(unsigned int idx);
+        inline void recalc(int idx)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->current_eProb();
+        }
+        
+
+
+
+};
+
+
+
+class IsoThresholdGeneratorMT : public IsoGenerator
+{
+private:
+	unsigned int* counter;
+	double* maxConfsLPSum;
+	const double Lcutoff;
+        SyncMarginal* last_marginal;
+        PrecalculatedMarginal** marginalResults;
+
+public:
+	virtual bool advanceToNextConfiguration();
+        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//	virtual const int* const & conf() const;
+
+        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** _last_marginal, bool _absolute = true);
+
+	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
+        void terminate_search();
+
+private:
+	inline void recalc(int idx)
+	{
+		for(; idx >=0; idx--)
+		{
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+		}
+	}
+
+	
+
+};
+
+
+
+
+
+#ifndef BUILDING_R
 
  void printConfigurations(
      const   std::tuple<double*,double*,int*,int>& results,
@@ -201,3 +411,4 @@ class IsoSpecLayered;
      int*    isotopeNumbers
  );
 #endif
+#endif /* ISOSPEC_PLUS_PLUS_HPP */

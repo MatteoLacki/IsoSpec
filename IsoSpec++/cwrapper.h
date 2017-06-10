@@ -104,7 +104,7 @@ void* setupIso( int             _dimNumber,
                 bool            trim
 );
 
-void* IsoFromFormula(const char* formula, double cutoff, int tabSize, int hashSize);
+//void* IsoFromFormula(const char* formula, double cutoff, int tabSize, int hashSize);
 
 int getIsotopesNo(void* iso);
 

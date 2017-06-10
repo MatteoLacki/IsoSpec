@@ -23,7 +23,6 @@ NULL
   library.dynam.unload("IsoSpecR", libpath)
 }
 
-
 #' Calculate the isotopic fine structure peaks.
 #'
 #' \code{IsoSpecify} is a wrapper around \code{Rinterface} that calls the C++ implementation of the IsoSpec algorithm. Given a molecular formula, it will calculate the smallest set of infinitely resolved peaks (isotopologues) that jointly is \code{p} probable, where \code{p} is provided by the user.
@@ -46,6 +45,7 @@ NULL
 #' res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
 #' print(res)
 #' @export
+
 IsoSpecify <- function(
         molecule,
         stopCondition,
