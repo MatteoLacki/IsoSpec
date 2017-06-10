@@ -30,6 +30,11 @@
 extern "C" {
 #endif
 
+void* setupIso( int      _dimNumber,
+                const int*      _isotopeNumbers,
+                const int*      _atomCounts,
+                const double*   _isotopeMasses,
+                const double*   _isotopeProbabilities)
 
 
 
@@ -58,20 +63,6 @@ void* setupIsoThreshold( int             _dimNumber,
                          int             tabSize,
                          int             hashSize
 );
-
-void* setupIso( int             _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities,
-                const double    _StopCondition,
-                int             algo,
-                int             tabSize,
-                double          step,
-                bool            trim
-);
-
-//void* IsoFromFormula(const char* formula, double cutoff, int tabSize, int hashSize);
 
 int getIsotopesNo(void* iso);
 

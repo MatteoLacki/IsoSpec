@@ -29,6 +29,36 @@
 extern "C"
 {
 
+void* setupIso( int      _dimNumber,
+                const int*      _isotopeNumbers,
+                const int*      _atomCounts,
+                const double*   _isotopeMasses,
+                const double*   _isotopeProbabilities)
+{
+    const double** IM = new const double*[_dimNumber];
+    const double** IP = new const double*[_dimNumber];
+    int idx = 0;
+    for(int i=0; i<_dimNumber; i++)
+    {
+        IM[i] = &_isotopeMasses[idx];
+        IP[i] = &_isotopeProbabilities[idx];
+        idx += _isotopeNumbers[i];
+    }
+
+    Iso* iso = new Iso(
+        _dimNumber,
+        _isotopeNumbers,
+        _atomCounts,
+        IM,
+        IP
+    );
+
+    delete[] IM;
+    delete[] IP;
+
+    return reinterpret_cast<void*>(iso);
+
+}
 
 
 // =================================================================================
@@ -81,44 +111,6 @@ void* setupIsoLayered( int      _dimNumber,
     delete[] IP;
 
     return reinterpret_cast<void*>(iso);
-}
-
-void* setupIso( int             _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities,
-                const double    _StopCondition,
-                int             algo,
-                int             tabSize,
-                double          step,
-                bool            trim
-)
-{
-    switch(algo)
-    {
-        case ALGO_LAYERED:
-            return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, step, false, trim);
-            break;
-	case ALGO_LAYERED_ESTIMATE:
-	    return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, step, true, trim);
-
-        case ALGO_ORDERED:
-            return NULL;
-
-            break;
-        case ALGO_THRESHOLD_ABSOLUTE:
-            return NULL;
-
-            break;
-        case ALGO_THRESHOLD_RELATIVE:
-            return NULL;
-
-            break;
-    }
-    return NULL;
 }
 
 
