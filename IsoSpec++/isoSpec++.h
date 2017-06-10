@@ -75,6 +75,7 @@ public:
 	double getLightestPeakMass() const;
 	double getHeaviestPeakMass() const;
         inline double getModeLProb() const { return modeLProb; };
+        inline int getDimNumber() const { return dimNumber; };
         PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
 
 };
@@ -379,7 +380,7 @@ public:
         virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //	virtual const int* const & conf() const;
 
-        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** _last_marginal, bool _absolute = true);
+        IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
 
 	inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
         void terminate_search();

@@ -22,6 +22,8 @@ private:
         unsigned int* thread_numbers;
         unsigned int total_confs;
         double total_prob;
+        const unsigned long ptr_diff;
+        const unsigned long mmap_len;
 
 public:
 	Spectrum(Iso&& I, double bucket_width, double cutoff, bool _absolute);

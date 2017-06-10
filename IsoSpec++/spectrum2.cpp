@@ -8,6 +8,13 @@
 
 
 
+inline static unsigned long get_mmap_len(unsigned long n_buckets)
+{
+    unsigned long pagesize = sysconf(_SC_PAGESIZE);
+    unsigned long ret = n_buckets * sizeof(double);
+    ret += pagesize - ret%pagesize;
+    return ret;
+}
 
 Spectrum::Spectrum(Iso&& I, double _bucket_width, double _cutoff, bool _absolute) : 
 iso(std::move(I)),
@@ -16,15 +23,13 @@ bucket_width(_bucket_width),
 n_buckets(static_cast<unsigned int>(ceil(I.getHeaviestPeakMass()-lowest_mass)/bucket_width)),
 cutoff(_cutoff),
 absolute(_absolute),
-thread_idxes(0)
+thread_idxes(0),
+ptr_diff(static_cast<unsigned int>(floor(lowest_mass/bucket_width))),
+mmap_len(get_mmap_len(n_buckets))
 {
         PMs = I.get_MT_marginal_set(log(cutoff), absolute, 1024, 1024);
-	long pagesize = sysconf(_SC_PAGESIZE);
-	unsigned long mmap_len = n_buckets * sizeof(double);
-	mmap_len += pagesize - mmap_len%pagesize;
-	storage = reinterpret_cast<double*>(mmap(NULL, n_buckets*sizeof(double), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
-	unsigned int diff = static_cast<unsigned int>(floor(lowest_mass/bucket_width));
-	ofset_store = storage - diff;
+	storage = reinterpret_cast<double*>(mmap(NULL, mmap_len, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+	ofset_store = storage - ptr_diff;
 }
 
 void* wrapper_func_thr(void* spc)
@@ -57,6 +62,7 @@ void Spectrum::wait()
         pthread_join(threads[ii], NULL);
 
     delete[] threads;
+    dealloc_table<PrecalculatedMarginal*>(PMs, iso.getDimNumber());
 
     calc_sum();
 }
@@ -70,7 +76,12 @@ void Spectrum::calc_sum()
     {
         total_confs += thread_numbers[ii];
         total_prob += thread_partials[ii];
+        munmap(thread_storages[ii]+ptr_diff, mmap_len);
     };
+
+    delete[] thread_numbers;
+    delete[] thread_partials;
+    delete[] thread_storages;
 }
 
 
@@ -79,8 +90,7 @@ void Spectrum::worker_thread()
     unsigned int thread_id = thread_idxes.fetch_add(1);
     IsoThresholdGeneratorMT* isoMT = new IsoThresholdGeneratorMT(std::move(iso), cutoff, PMs, absolute);
     double* local_storage = reinterpret_cast<double*>(mmap(NULL, n_buckets*sizeof(double), PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
-    unsigned int diff = static_cast<unsigned int>(floor(lowest_mass/bucket_width));
-    double* local_ofset_store = local_storage - diff;
+    double* local_ofset_store = local_storage - ptr_diff;
     double prob;
     Summator sum;
     unsigned int cnt = 0;
