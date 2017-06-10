@@ -5,7 +5,7 @@ TESTFLAGS=-fsanitize=leak,undefined
 TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
 LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
-CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic
+CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic -lpthread
 SRCFILES=`ls ../../IsoSpec++/*.cpp`
 
 all: testcc
@@ -29,4 +29,4 @@ rt:
 	$(CXX) $(OPTFLAGS) $(CXXFLAGS) ../../IsoSpec++/unity-build.cpp rangetree.cpp -o ./rangetree
 
 mt: 
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-multithreaded.cpp -o ./multithreaded -lpthread
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp titin-multithreaded.cpp -o ./multithreaded -lpthread
