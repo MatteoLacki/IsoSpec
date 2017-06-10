@@ -1,10 +1,10 @@
 Encoding: UTF-8
 Package: IsoSpecR
 Type: Package
-Title: An R Interface to the IsoSpec Algorithm
+Title: The IsoSpec Algorithm
 Version: 1.0.3
 Date: 2017-01-10
-Author: Mateusz Krzysztof Łącki and Michał Startek
+Author: Mateusz Krzysztof Lacki and Michal Startek
 Maintainer: Matteo Lacki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most
     probable masses of a chemical compound given the frequencies of the composing
