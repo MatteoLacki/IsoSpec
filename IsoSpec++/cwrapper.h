@@ -48,16 +48,6 @@ void* setupIsoLayered( int             _dimNumber,
                        bool            trim
 );
 
-void* setupIsoOrdered( int             _dimNumber,
-                       const int*      _isotopeNumbers,
-                       const int*      _atomCounts,
-                       const double*   _isotopeMasses,
-                       const double*   _isotopeProbabilities,
-                       const double    _cutOff,
-                       int             tabSize,
-                       int             hashSize
-);
-
 void* setupIsoThreshold( int             _dimNumber,
                          const int*      _isotopeNumbers,
                          const int*      _atomCounts,

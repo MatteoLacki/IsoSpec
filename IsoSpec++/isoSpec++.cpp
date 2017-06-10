@@ -288,22 +288,6 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
 }
 
-//Iso* getIso(int type = int dimnr, const int* isonr, const int* atcnts, const double** imasses, const double** iprobs, double cutoff = 0.5, bool abs = true, int ts = 1000, int hs = 1000)
-//{
-	
-/*
-template  IsoSpecOrdered*
-IsoSpec::IsoFromFormula<IsoSpecOrdered>(const char* formula,
-                                        double cutoff,
-                                        int tabsize,
-                                        int hashsize);
-template  IsoSpecLayered*
-IsoSpec::IsoFromFormula<IsoSpecLayered>(const char* formula,
-                                        double cutoff,
-                                        int tabsize,
-                                        int hashsize);
-*/
-
 
 void IsoSpec::processConfigurationsUntilCutoff()
 {

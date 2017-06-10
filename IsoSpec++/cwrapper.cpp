@@ -83,53 +83,6 @@ void* setupIsoLayered( int      _dimNumber,
     return reinterpret_cast<void*>(iso);
 }
 
-void* setupIsoOrdered( int             _dimNumber,
-                        const int*      _isotopeNumbers,
-                        const int*      _atomCounts,
-                        const double*   _isotopeMasses,
-                        const double*   _isotopeProbabilities,
-                        const double    _cutOff,
-                        int             tabSize,
-                        int             hashSize
-)
-{
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
-    int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
-    {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
-    }
-
-
-    IsoSpec* iso = new IsoSpecOrdered(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP,
-        _cutOff,
-        tabSize,
-        hashSize
-    );
-
-    try {
-        iso->processConfigurationsUntilCutoff();
-    }
-    catch (std::bad_alloc& ba) {
-        delete iso;
-        iso = NULL;
-    }
-
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
-}
-
-
 void* setupIso( int             _dimNumber,
                 const int*      _isotopeNumbers,
                 const int*      _atomCounts,
@@ -154,8 +107,8 @@ void* setupIso( int             _dimNumber,
                                     _isotopeProbabilities, _StopCondition, tabSize, step, true, trim);
 
         case ALGO_ORDERED:
-            return setupIsoOrdered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize);
+            return NULL;
+
             break;
         case ALGO_THRESHOLD_ABSOLUTE:
             return NULL;
