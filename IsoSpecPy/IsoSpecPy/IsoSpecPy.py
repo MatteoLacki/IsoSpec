@@ -281,7 +281,7 @@ class IsoSpec:
 
 
     @staticmethod
-    def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'layered', step = 0.25, trim = True):
+    def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'layered_estimating', step = 0.25, trim = True):
         # It's much easier to just parse it in python than to use the C parsing function
         # and retrieve back into Python the relevant object sizes
         symbols = re.findall("\D+", formula)
@@ -339,20 +339,20 @@ class IsoSpec:
         rows_no = len(masses)
         cols_no = len(isoCounts)/len(masses)
         masses  = list(masses)
-        logprobs= list(logprobs)
+        logProbs= list(logProbs)
         confs = []
         for i in xrange(rows_no-1):
             confs.append(list(isoCounts[i*cols_no:(i+1)*cols_no]))
-        return masses, logprobs, confs
+        return masses, logProbs, confs
 
     def getConfsNumpy(self):
-        masses, logProbs, isoCounts = self.getConfsRaw()
+        masses, logProbs, configurations = self.getConfsRaw()
         rows_no = len(masses)
         cols_no = len(configurations)/len(masses)
         masses  = np.array(list(masses))
-        logprobs= np.array(list(logprobs))
+        logProbs= np.array(list(logProbs))
         configurations = np.array(list(configurations)).reshape((rows_no,cols_no))
-        return masses, logprobs, configurations
+        return masses, logProbs, configurations
 
     def splitConf(self, l, offset = 0):
         conf = []
@@ -390,5 +390,105 @@ class IsoPlot(dict):
             self[key] = val.get()
 
 
+def IsoSpecify( formula,
+                cutoff,
+                method= 'layered',
+                output_format = 'numpy_arrays',
+                trim  = True,
+                _step = 0.25,
+                _trim = True,
+                _tabSize  = 1000,
+                _hashSize = 1000    ):
+    """
+    Call IsoSpec on a formula with a given cutoff.
+
+    This function wraps around the IsoSpec class.
+
+    Parameters
+    ----------
+    formula : char
+        a string of a form '< Element Tag 1 >< Count 1 > ... ',
+        e.g. 'C100H202'. Using IUPAC conventions to name elements.
+
+    cutoff : float
+        The cutoff value. See description of the method argument.
+
+    method : char
+        Can take one of the following values: 'layered',
+        'layered_estimating', 'threshold_absolute',
+        'threshold_relative', 'ordered'.
+
+        The threshold versions of the algorithm rely on user
+        providing a precise lower bound on the reported peak heights.
+        This can be specified in absolute terms ('threshold_absolute'),
+        i.e. in terms of the limiting probability of the isotopologue,
+        or as a percentage of the heighest peak ('threshold_relative').
+
+        The layered versions of the algorithm rely on calculating
+        consecutive values of peak thresholds on flight.
+        The ultimate goal is to reach a peak probability that assures
+        that the sum of probabilities of the more probable isotopologues
+        exceeds the provided cutoff value.
+        The sequence of consecutive thresholds can be generated in
+        two ways. The default way, 'layered_estimating', estimates
+        the threshold to joint probability function by a progressive
+        linear spline, check Anal Chem. 2017 Mar 21;89(6):3272-3277.
+        doi: 10.1021/acs.analchem.6b01459. Epub 2017 Mar 8.
+        The other way, 'layered', estimates a threshold as a 30%%
+        quantile of the probabilities gathered in the fringe set, i.e.
+        isotopologues that are direct neighbours of the previously
+        accepted layer. Finally, choosing the 'ordered' version will
+        provide a loglinear version of the algorithm that relies on
+        the priority queue. This version automatically sorts
+        the configurations by their probability.
+
+    trim
+        while using a layered method, should one discard superfluously
+        obtained isotopologues, i.e. such that without them the set of
+        reported isotopologues already is an optimal p-set.
+
+    output_format
+        Should the output be presented as lists ('lists'),
+        or as numpy arrays ('numpy_arrays').
+
+    Returns
+    -------
+    masses
+        masses of isotopologues, either a list or a numpy array.
+
+    logProbs
+        logarithms of probabilities (theoretical heights) of isotopologues,
+        either a list or a numpy array.
+
+    confs
+        counts of isotopologues (extended chemical formulas that
+        include counts of isotopes of elements)
+        """
+
+
+    assert output_format in ('lists', 'numpy_arrays'), "Wrong value of output_format. Should be either 'lists' or 'numpy_arrays'."
+
+    assert method in ('layered', 'ordered', 'threshold_absolute', 'threshold_relative', 'layered_estimating'), "Wrong value of method. Should be among 'layered', 'ordered', 'threshold_absolute', 'threshold_relative', or 'layered_estimating'."
+
+    assert isinstance(cutoff, float), "Provided cut off ain't a float."
+
+    assert isinstance(formula, str), "Provided formula off ain't a string."
+
+    iso = IsoSpec.IsoFromFormula(   formula,
+                                    cutoff,
+                                    tabSize = 1000,
+                                    hashSize = 1000,
+                                    classId = None,
+                                    method = method,
+                                    step = 0.25,
+                                    trim = trim )
+
+    if output_format == 'lists':
+        masses, logProbs, confs = iso.getConfs()
+    else:
+        masses, logProbs, confs = iso.getConfsNumpy()
+
+    # print 'Rev Startek is a silly old chump and his mother dresses up silly.'
+    return masses, logProbs, confs
 
 version = '1.0.4'
