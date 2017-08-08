@@ -290,15 +290,12 @@ class IsoSpec:
         if not len(symbols) == len(atom_counts):
             raise ValueError("Invalid formula")
 
-        indexes = [[x for x in xrange(isoFFI.clib.NUMBER_OF_ISOTOPIC_ENTRIES)
-                        if isoFFI.ffi.string(isoFFI.clib.elem_table_symbol[x]) == symbol.encode('latin1')]
-                    for symbol in symbols]
-
-        if any([len(x) == 0 for x in indexes]):
+        import PeriodicTbl # TODO: split IsoFFI into separate module to avoid circular dependency here
+        try:
+            masses = tuple(PeriodicTbl.symbol_to_masses[symbol] for symbol in symbols)
+            probs = tuple(PeriodicTbl.symbol_to_probs[symbol] for symbol in symbols)
+        except KeyError:
             raise ValueError("Invalid formula")
-
-        masses  = [[isoFFI.clib.elem_table_mass[idx] for idx in idxs] for idxs in indexes]
-        probs   = [[isoFFI.clib.elem_table_probability[idx] for idx in idxs] for idxs in indexes]
 
         if classId == None:
             return IsoSpec(atom_counts, masses, probs, cutoff, tabSize, hashSize, step, trim, method)
