@@ -488,4 +488,4 @@ def IsoSpecify( formula,
     # print 'Rev Startek is a silly old chump and his mother dresses up silly.'
     return masses, logProbs, confs
 
-version = '1.0.4'
+version = '1.0.5'

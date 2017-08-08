@@ -23,3 +23,13 @@ This file lists *major* changes between releases, for a full list see git log.
 - Only affecting IsoSpecR: improve the efficiency of R to C++ interface
 - Add an option to skip discarding the superfluous configurations
 
+----------------------------------
+1.0.4
+
+- ??? FIXME
+
+----------------------------------
+1.0.5 (Python-only release)
+
+- Only affecting IsoSpecPy: Speed improvements in IsoFromFormula
+
