@@ -142,8 +142,8 @@ public:
 
 class SyncMarginal : public PrecalculatedMarginal
 {
-private:
-    char padding[64]; // against fake-sharing cache lines...
+protected:
+    char padding[64]; /*  padding[64]; */ // against fake-sharing cache lines...
     std::atomic<unsigned int> counter;
     char padding2[64]; /// likewise...
 public:
