@@ -83,10 +83,7 @@ private:
 
 public:
     MarginalTrek(
-        const double* masses,   // masses size = logProbs size = isotopeNo
-        const double* probs,
-        int isotopeNo,                  // No of isotope configurations.
-        int atomCnt,
+        Marginal&& m,
         int tabSize = 1000,
         int hashSize = 1000
     );

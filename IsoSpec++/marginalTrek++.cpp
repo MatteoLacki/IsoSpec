@@ -207,14 +207,11 @@ double Marginal::getModeLProb() const
 }
 
 MarginalTrek::MarginalTrek(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
+    Marginal&& m,
     int tabSize,
     int hashSize
 ) : 
-Marginal(masses, probs, isotopeNo, atomCnt),
+Marginal(std::move(m)),
 current_count(0),
 keyHasher(isotopeNo),
 equalizer(isotopeNo),
