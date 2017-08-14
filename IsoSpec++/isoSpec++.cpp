@@ -1030,10 +1030,15 @@ void IsoThresholdGenerator::terminate_search()
 /*
  * ------------------------------------------------------------------------------------------------------------------------
  */
-#if 0
 
-void IsoOrderedGenerator::IsoOrderedGenerator_init(const double    _cutOff)
+IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, double _cutOff, int _tabSize, int _hashSize) :
+IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
 {
+    marginalResults = new MarginalTrek*[dimNumber];
+
+    for(int i = 0; i<dimNumber; i++)
+        marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
+    
     logProbs        = new const vector<double>*[dimNumber];
     masses          = new const vector<double>*[dimNumber];
     marginalConfs   = new const vector<int*>*[dimNumber];
@@ -1066,7 +1071,10 @@ void IsoOrderedGenerator::IsoOrderedGenerator_init(const double    _cutOff)
 }
 
 
-IsoOrderedGenerator::~IsoOrderedGenerator(){}
+IsoOrderedGenerator::~IsoOrderedGenerator()
+{
+    dealloc_table<MarginalTrek*>(marginalResults, dimNumber);
+}
 
 bool IsoOrderedGenerator::advanceToNextConfiguration()
 {
@@ -1113,7 +1121,6 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     return true;
 }
-#endif
 #ifndef BUILDING_R
 
 void printConfigurations(

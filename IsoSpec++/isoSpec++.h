@@ -228,14 +228,12 @@ public:
 
 };
 
-#if 0
 class IsoOrderedGenerator : public IsoGenerator
 {
 private:
         MarginalTrek** marginalResults;
 	double cutOff;
 	std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
-	void IsoOrderedGenerator_init(double _cutoff);
 	void* 				topConf;
 	DirtyAllocator          	allocator;
         const std::vector<double>**     logProbs;
@@ -250,29 +248,11 @@ public:
 	virtual const double& lprob() const { return currentLProb; };
 	virtual const double& mass() const { return currentMass; };
 
-	inline IsoOrderedGenerator(int             _dimNumber,
-                                   const int*      _isotopeNumbers,
-                                   const int*      _atomCounts,
-                                   const double**  _isotopeMasses,
-                                   const double**  _isotopeProbabilities,
-                                   const double    _cutOff   = -std::numeric_limits<double>::infinity(),
-                                   int             _tabSize  = 1000,
-                                   int             _hashSize = 1000) : 
-			IsoGenerator(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses, _isotopeProbabilities, _tabSize, _hashSize),
-			allocator(dimNumber, _tabSize)
-			{ IsoOrderedGenerator_init(_cutOff); };
-
-	inline IsoOrderedGenerator(const char* formula,
-                		   double  _cutOff   = std::numeric_limits<double>::infinity(),
-		                   int     _tabSize  = 1000,
-                		   int     _hashSize = 1000) : IsoGenerator(formula, _tabSize, _hashSize),
-				   			       allocator(dimNumber, _tabSize)
-				   			       { IsoOrderedGenerator_init(_cutOff); };
+        IsoOrderedGenerator(Iso&& iso, double _cutOff = std::numeric_limits<double>::infinity(), int _tabSize  = 1000, int _hashSize = 1000);
 
 	virtual ~IsoOrderedGenerator();
 
 };
-#endif
 
 class IsoThresholdGenerator : public IsoGenerator
 {
