@@ -1031,7 +1031,7 @@ void IsoThresholdGenerator::terminate_search()
  * ------------------------------------------------------------------------------------------------------------------------
  */
 
-IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, double _cutOff, int _tabSize, int _hashSize) :
+IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
 IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
 {
     marginalResults = new MarginalTrek*[dimNumber];
@@ -1066,7 +1066,6 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
     );
 
     pq.push(topConf);
-    cutOff = _cutOff;
 
 }
 
@@ -1104,15 +1103,12 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
             double candidateLProb = combinedSum(candidate, logProbs, dimNumber);
 
-            if (candidateLProb > cutOff)
-	    {
-                void*       acceptedCandidate                       = allocator.newConf();
-                int*        acceptedCandidateIsoCounts      = getConf(acceptedCandidate);
-                memcpy(     acceptedCandidateIsoCounts, candidate, confSize);
+            void* acceptedCandidate = allocator.newConf();
+            int* acceptedCandidateIsoCounts = getConf(acceptedCandidate);
+            memcpy(acceptedCandidateIsoCounts, candidate, confSize);
 
-                *(reinterpret_cast<double*>(acceptedCandidate)) = candidateLProb;
-                pq.push(acceptedCandidate);
-	    }
+            *(reinterpret_cast<double*>(acceptedCandidate)) = candidateLProb;
+            pq.push(acceptedCandidate);
         }
         if(topConfIsoCounts[j] > 0)
             break;

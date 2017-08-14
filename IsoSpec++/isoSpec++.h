@@ -232,7 +232,6 @@ class IsoOrderedGenerator : public IsoGenerator
 {
 private:
         MarginalTrek** marginalResults;
-	double cutOff;
 	std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
 	void* 				topConf;
 	DirtyAllocator          	allocator;
@@ -248,7 +247,7 @@ public:
 	virtual const double& lprob() const { return currentLProb; };
 	virtual const double& mass() const { return currentMass; };
 
-        IsoOrderedGenerator(Iso&& iso, double _cutOff = std::numeric_limits<double>::infinity(), int _tabSize  = 1000, int _hashSize = 1000);
+        IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
 
 	virtual ~IsoOrderedGenerator();
 
