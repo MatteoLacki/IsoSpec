@@ -45,14 +45,12 @@ public:
 
     inline T* newConf()
     {
-        unsigned int idx = (currentId++) * dim;
+        currentId++;
 
         if (currentId >= tabSize)
-        {
             shiftTables();
-        }
 
-        return &currentTab[ idx ];
+        return &(currentTab[ currentId * dim ]);
     }
 
     inline T* makeCopy(const T* conf)
