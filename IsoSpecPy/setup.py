@@ -16,7 +16,7 @@ import glob
 import shutil
 
 if not os.path.exists("IsoSpec++"):
-    try: 
+    try:
         os.symlink("../IsoSpec++", "IsoSpec++")
     except: # OS doesn't support symlinks
         shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
@@ -35,7 +35,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 #    long_description = f.read()
 
 cmodule = Extension('IsoSpecCppPy',
-                    sources = glob.glob('IsoSpec++/*.cpp'), 
+                    sources = glob.glob('IsoSpec++/*.cpp'),
                     extra_compile_args = '-mtune=native -march=native -O3 -std=c++11'.split() #+ ['-DDEBUG']
                     )
 
@@ -46,7 +46,7 @@ setup_args = {
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    'version' : '1.0.3',
+    'version' : '1.0.5',
 
     'description' : 'Python interface to IsoSpec++ isotopic envelope calculator library',
     'long_description' : 'Python interface to IsoSpec++ isotopic envelope calculator library',
@@ -165,6 +165,5 @@ elif 'CYGWIN' in platform.system():
     setup(**setup_args)
 else:
     # Assuming UNIX with a working compiler.
+    setup_args['install_requires']=['numpy']
     setup(**setup_args)
-
-
