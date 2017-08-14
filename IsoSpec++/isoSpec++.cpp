@@ -1091,34 +1091,42 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     int* topConfIsoCounts = getConf(topConf);
 
-    // newaccepted.push_back(topConf);
     currentLProb = *(reinterpret_cast<double*>(topConf));
     currentMass = combinedSum( topConfIsoCounts, masses, dimNumber );
 
-    // totalProb.add( exp(*reinterpret_cast<double*>(topConf) ));
-
+    int ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
     {
         // candidate cannot refer to a position that is
         // out of range of the stored marginal distribution.
         if(marginalResults[j]->probeConfigurationIdx(topConfIsoCounts[j] + 1))
         {
-            memcpy(candidate, topConfIsoCounts, confSize);
-            candidate[j]++;
+            if(ccount == -1)
+            {
+                topConfIsoCounts[j]++;
+                *(reinterpret_cast<double*>(topConf)) = combinedSum(topConfIsoCounts, logProbs, dimNumber);
+                pq.push(topConf);
+                topConfIsoCounts[j]--;
+                ccount = j;
+            }
+            else
+            {
+                void* acceptedCandidate = allocator.newConf();
+                int* acceptedCandidateIsoCounts = getConf(acceptedCandidate);
+                memcpy(acceptedCandidateIsoCounts, topConfIsoCounts, confSize);
 
-            double candidateLProb = combinedSum(candidate, logProbs, dimNumber);
+                acceptedCandidateIsoCounts[j]++;
 
-            void* acceptedCandidate = allocator.newConf();
-            int* acceptedCandidateIsoCounts = getConf(acceptedCandidate);
-            memcpy(acceptedCandidateIsoCounts, candidate, confSize);
+                *(reinterpret_cast<double*>(acceptedCandidate)) = combinedSum(acceptedCandidateIsoCounts, logProbs, dimNumber);
 
-            *(reinterpret_cast<double*>(acceptedCandidate)) = candidateLProb;
-            pq.push(acceptedCandidate);
+                pq.push(acceptedCandidate);
+            }
         }
         if(topConfIsoCounts[j] > 0)
             break;
     }
-
+    if(ccount >=0)
+        topConfIsoCounts[ccount]++;
 
     return true;
 }

@@ -42,7 +42,7 @@ void Allocator<T>::shiftTables()
 {
     prevTabs.push_back(currentTab);
     currentTab      = new T[dim * tabSize];
-    currentId       = -1;
+    currentId       = 0;
 }
 
 template class Allocator<int>;
