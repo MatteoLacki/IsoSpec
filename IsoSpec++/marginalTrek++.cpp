@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -78,7 +78,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
     }
 
     // What we computed so far will be very close to the mode: hillclimb the rest of the way
-    
+
     bool modified = true;
     double LP = logProb(res, lprobs, isotopeNo);
     double NLP;
@@ -105,7 +105,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 		    }
 		}
 
-	    
+
     }
     return res;
 }
@@ -150,9 +150,9 @@ double* getMLogProbs(const double* probs, int isoNo)
 Marginal::Marginal(
     const double* _masses,
     const double* _probs,
-    int _isotopeNo,  
+    int _isotopeNo,
     int _atomCnt
-) : 
+) :
 disowned(false),
 isotopeNo(_isotopeNo),
 atomCnt(_atomCnt),
@@ -161,7 +161,7 @@ atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
 {}
 
-Marginal::Marginal(Marginal&& other) : 
+Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),
 isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
@@ -210,7 +210,7 @@ MarginalTrek::MarginalTrek(
     Marginal&& m,
     int tabSize,
     int hashSize
-) : 
+) :
 Marginal(std::move(m)),
 current_count(0),
 keyHasher(isotopeNo),
@@ -308,7 +308,7 @@ MarginalTrek::~MarginalTrek()
 
 
 
-PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m, 
+PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
 	double lCutOff,
 	bool sort,
         int tabSize,
@@ -390,7 +390,7 @@ RGTMarginal::RGTMarginal(
         Marginal&& m,
         double lCutOff,
         int tabSize,
-        int hashSize) : 
+        int hashSize) :
 	PrecalculatedMarginal(std::move(m), lCutOff, true, tabSize, hashSize),
         TOV_NP2(next_pow2(no_confs)),
         TOV_NP2M1(TOV_NP2/2),
@@ -436,7 +436,7 @@ unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 
 double* RGTMarginal::alloc_and_setup_mass_table()
 {
-	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency. Hopefully. Possibly. 
+	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency. Hopefully. Possibly.
 	double* ret = new double[mass_table_size+4];
         for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
 	    for(unsigned int ii=level; ii<no_confs+level; ii++)
@@ -490,11 +490,11 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
 
 
     if(lower > upper)
-    {   
+    {
         terminate_search();
         return;
     }
-    
+
     if(mmin <= masses[lower] and masses[lower] <= mmax)
     {
         subintervals[arrend] = lower;
@@ -523,7 +523,7 @@ void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double 
         lower++;
         if(lower == upper)
             return;
-        
+
         if(mmin <= masses[lower] and masses[lower] <= mmax)
         {
             subintervals[arrend] = lower;
@@ -594,7 +594,7 @@ bool RGTMarginal::hard_next()
             // Coming from right child
             // Add left sibling
             arrend = upper+current_level;
-            upper &= nextmask; 
+            upper &= nextmask;
             unsigned int dstart = current_level+upper;
             unsigned int dend   = arrend;
             arridx = std::lower_bound(mass_table+dstart, mass_table+dend, mmin) - mass_table;
@@ -608,7 +608,7 @@ bool RGTMarginal::hard_next()
             return hard_next();
         }
     }
-    else 
+    else
     {
         going_up = true;
         if((lower & ~nextmask) != 0)
@@ -679,4 +679,98 @@ RGTMarginal::~RGTMarginal()
     delete[] mass_table;
     delete[] subintervals;
 }
+
+
+
+LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
+: Marginal(std::move(m)), current_threshold(1.0), allocator(tabSize), sorted_up_to_idx(0),
+equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
+{
+    fringe.push_back(mode_conf);
+}
+
+void LayeredMarginal::extend(double new_threshold)
+{
+    // TODO: Make sorting optional (controlled by argument?)
+    std::vector<Conf> new_fringe;
+    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+
+    double lpc;
+
+    Conf currentConf;
+    while(not fringe.empty())
+    {
+        currentConf = fringe.back();
+        fringe.pop_back();
+
+        for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                if( ii != jj and currentConf[jj] > 0)
+                {
+                    currentConf[ii]++;
+                    currentConf[jj]--;
+
+                    lpc = logProb(currentConf, atom_lProbs, isotopeNo);
+
+                    if (visited.count(currentConf) == 0 and lpc < current_threshold)
+                    {
+                        visited.insert(currentConf);
+                        if(lpc >= new_threshold)
+                            configurations.push_back(allocator.makeCopy(currentConf));
+                        else
+                            new_fringe.push_back(allocator.makeCopy(currentConf));
+                    }
+
+                    currentConf[ii]--;
+                    currentConf[jj]++;
+
+                }
+    }
+
+    current_threshold = new_threshold;
+    fringe.swap(new_fringe);
+
+    std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
+
+
+    for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
+    {
+        lProbs.push_back(logProb(configurations[ii], atom_lProbs, isotopeNo));
+        eProbs.push_back(exp(lProbs.back()));
+        masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
+    }
+
+    sorted_up_to_idx = configurations.size();
+#if 0
+    std::unordered_set<Conf> visited;
+
+    Conf current;
+    double current_lProb;
+    while(not fringe.empty())
+    {
+        current = fringe.back();
+        fringe.pop_back();
+
+        if(visited.find(current) == visited.end())
+            continue;
+
+        visited.insert(current);
+
+        current_lProb = logProb(current, atom_lProbs, isotopeNo);
+
+        if(current_lProb < new_threshold)
+            new_fringe.push_back(current);
+        else
+        {
+
+        }
+    }
+
+
+
+
+    }
+#endif
+}
+
 

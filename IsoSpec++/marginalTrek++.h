@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -43,7 +43,7 @@ protected:
     const double* atom_masses;
     const double* atom_lProbs;
     const Conf mode_conf;
-    
+
 public:
     Marginal(
         const double* _masses,   // masses size = logProbs size = isotopeNo
@@ -55,7 +55,7 @@ public:
     Marginal& operator= (const Marginal& other) = delete;
     Marginal(Marginal&& other);
     virtual ~Marginal();
-    
+
     inline int get_isotopeNo() const { return isotopeNo; };
     double getLightestConfMass() const;
     double getHeaviestConfMass() const;
@@ -91,7 +91,7 @@ public:
     inline bool probeConfigurationIdx(int idx)
     {
         while(current_count <= idx)
-            if(not add_next_conf()) 
+            if(not add_next_conf())
                 return false;
         return true;
     }
@@ -118,7 +118,7 @@ protected:
     double* lProbs;
     double* eProbs;
     Allocator<int> allocator;
-public: 
+public:
     PrecalculatedMarginal(
         Marginal&& m,
 	double lCutOff,
@@ -204,12 +204,27 @@ private:
     unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
     double* alloc_and_setup_mass_table();
     bool hard_next();
+};
 
+class LayeredMarginal : public Marginal
+{
+    double current_threshold;
+    std::vector<Conf> configurations;
+    std::vector<Conf> fringe;
+    Allocator<int> allocator;
+    unsigned int sorted_up_to_idx;
+    const ConfEqual equalizer;
+    const KeyHasher keyHasher;
+    const ConfOrderMarginalDescending orderMarginal;
+    std::vector<double> lProbs;
+    std::vector<double> eProbs;
+    std::vector<double> masses;
+    const int hashSize;
 
-
-
-
-
+public:
+    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
+    void extend(double new_threshold);
+    unsigned int length();
 };
 
 #endif
