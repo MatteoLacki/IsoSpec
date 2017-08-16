@@ -35,7 +35,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 #    long_description = f.read()
 
 cmodule = Extension('IsoSpecCppPy',
-                    sources = glob.glob('IsoSpec++/*.cpp'),
+                    sources = glob.glob('IsoSpec++/unity-build.cpp'),
                     extra_compile_args = '-mtune=native -march=native -O3 -std=c++11'.split() #+ ['-DDEBUG']
                     )
 
