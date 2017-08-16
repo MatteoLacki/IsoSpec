@@ -224,7 +224,12 @@ class LayeredMarginal : public Marginal
 public:
     LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
     void extend(double new_threshold);
-    unsigned int length();
+    inline const double& get_lProb(unsigned int idx) const { return lProbs[idx]; };
+    inline const double& get_eProb(unsigned int idx) const { return eProbs[idx]; };
+    inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
+    inline const Conf& get_conf(unsigned int idx) const { return configurations[idx]; };
+    inline unsigned int get_no_confs() const { return configurations.size(); };
+
 };
 
 #endif
