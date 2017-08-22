@@ -158,7 +158,8 @@ isotopeNo(_isotopeNo),
 atomCnt(_atomCnt),
 atom_masses(array_copy<double>(_masses, isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
-mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs))
+mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
+mode_lprob(logProb(mode_conf, atom_lProbs, isotopeNo))
 {}
 
 Marginal::Marginal(Marginal&& other) :
@@ -167,7 +168,8 @@ isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
 atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
-mode_conf(other.mode_conf)
+mode_conf(other.mode_conf),
+mode_lprob(logProb(mode_conf, atom_lProbs, isotopeNo))
 {
     other.disowned = true;
 }
@@ -201,10 +203,6 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
-double Marginal::getModeLProb() const
-{
-    return logProb(mode_conf, atom_lProbs, isotopeNo);
-}
 
 MarginalTrek::MarginalTrek(
     Marginal&& m,

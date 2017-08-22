@@ -43,6 +43,7 @@ protected:
     const double* atom_masses;
     const double* atom_lProbs;
     const Conf mode_conf;
+    const double mode_lprob;
 
 public:
     Marginal(
@@ -59,7 +60,7 @@ public:
     inline int get_isotopeNo() const { return isotopeNo; };
     double getLightestConfMass() const;
     double getHeaviestConfMass() const;
-    double getModeLProb() const;
+    inline double getModeLProb() const { return mode_lprob; };
 };
 
 class MarginalTrek : public Marginal
