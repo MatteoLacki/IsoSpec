@@ -685,6 +685,8 @@ LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
 equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
 {
     fringe.push_back(mode_conf);
+    lProbs.push_back(std::numeric_limits<double>::infinity());
+    guarded_lProbs = lProbs.data()+1;
 }
 
 void LayeredMarginal::extend(double new_threshold)
@@ -739,6 +741,7 @@ void LayeredMarginal::extend(double new_threshold)
     }
 
     sorted_up_to_idx = configurations.size();
+    guarded_lProbs = lProbs.data()+1;
 #if 0
     std::unordered_set<Conf> visited;
 
