@@ -689,8 +689,11 @@ equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo
     guarded_lProbs = lProbs.data()+1;
 }
 
-void LayeredMarginal::extend(double new_threshold)
+bool LayeredMarginal::extend(double new_threshold)
 {
+    if(fringe.empty())
+        return false;
+
     // TODO: Make sorting optional (controlled by argument?)
     std::vector<Conf> new_fringe;
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
@@ -742,36 +745,8 @@ void LayeredMarginal::extend(double new_threshold)
 
     sorted_up_to_idx = configurations.size();
     guarded_lProbs = lProbs.data()+1;
-#if 0
-    std::unordered_set<Conf> visited;
 
-    Conf current;
-    double current_lProb;
-    while(not fringe.empty())
-    {
-        current = fringe.back();
-        fringe.pop_back();
-
-        if(visited.find(current) == visited.end())
-            continue;
-
-        visited.insert(current);
-
-        current_lProb = logProb(current, atom_lProbs, isotopeNo);
-
-        if(current_lProb < new_threshold)
-            new_fringe.push_back(current);
-        else
-        {
-
-        }
-    }
-
-
-
-
-    }
-#endif
+    return true;
 }
 
 
