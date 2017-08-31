@@ -93,7 +93,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 		    res[ii]--;
 		    res[jj]++;
 		    NLP = logProb(res, lprobs, isotopeNo);
-		    if(NLP>LP)
+		    if(NLP>LP or (NLP==LP and ii>jj))
 		    {
 		    	modified = true;
 			LP = NLP;
@@ -698,7 +698,10 @@ bool LayeredMarginal::extend(double new_threshold)
     std::vector<Conf> new_fringe;
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
-    double lpc;
+    for(unsigned int ii = 0; ii<fringe.size(); ii++)
+        visited.insert(fringe[ii]);
+
+    double lpc, opc;
 
     Conf currentConf;
     while(not fringe.empty())
@@ -706,22 +709,29 @@ bool LayeredMarginal::extend(double new_threshold)
         currentConf = fringe.back();
         fringe.pop_back();
 
+        opc = logProb(currentConf, atom_lProbs, isotopeNo);
+        if(opc >= new_threshold)
+            configurations.push_back(currentConf);
+
+
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                if( ii != jj and currentConf[jj] > 0)
+                if( ii != jj and currentConf[jj] > 0 )
                 {
                     currentConf[ii]++;
                     currentConf[jj]--;
 
                     lpc = logProb(currentConf, atom_lProbs, isotopeNo);
 
-                    if (visited.count(currentConf) == 0 and lpc < current_threshold)
+                    if (visited.count(currentConf) == 0 and lpc < current_threshold and 
+                        (opc > lpc or (opc == lpc and ii > jj)))
                     {
-                        visited.insert(currentConf);
+                        Conf nc = allocator.makeCopy(currentConf);
+                        visited.insert(nc);
                         if(lpc >= new_threshold)
-                            configurations.push_back(allocator.makeCopy(currentConf));
+                            fringe.push_back(nc);
                         else
-                            new_fringe.push_back(allocator.makeCopy(currentConf));
+                            new_fringe.push_back(nc);
                     }
 
                     currentConf[ii]--;
