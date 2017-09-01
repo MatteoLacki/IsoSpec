@@ -47,7 +47,11 @@ void* wrapper_func_thr(void* spc)
 void Spectrum::run(unsigned int nthreads, bool sync)
 {
     if(nthreads == 0)
-        nthreads = get_nprocs();
+        #ifdef __APPLE__
+            nthreads = sysconf(_SC_NPROCESSORS_ONLN);
+        #else
+            nthreads = get_nprocs();
+        #endif
     n_threads = nthreads;
 
     threads = new pthread_t[n_threads];
