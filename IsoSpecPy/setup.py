@@ -35,31 +35,31 @@ here = os.path.abspath(os.path.dirname(__file__))
 #    long_description = f.read()
 
 cmodule = Extension('IsoSpecCppPy',
-                    sources = glob.glob('IsoSpec++/unity-build.cpp'),
+                    sources = ['IsoSpec++/unity-build.cpp'],
                     extra_compile_args = '-mtune=native -march=native -O3 -std=c++11'.split() #+ ['-DDEBUG']
                     )
 
 setup_args = {
 #setup(
-    'name' : 'IsoSpecPy',
+    'name': 'IsoSpecPy',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    'version' : '1.0.5',
+    'version': '1.0.5',
 
-    'description' : 'Python interface to IsoSpec++ isotopic envelope calculator library',
-    'long_description' : 'Python interface to IsoSpec++ isotopic envelope calculator library',
+    'description': 'Python interface to IsoSpec++ isotopic envelope calculator library',
+    'long_description': 'Python interface to IsoSpec++ isotopic envelope calculator library',
 
     # The project's main homepage.
-    'url' : 'http://matteolacki.github.io/IsoSpec/',
+    'url': 'http://matteolacki.github.io/IsoSpec/',
 
     # Author details
-    'author' : 'Mateusz Lacki & Michal Startek',
-    'author_email' : 'matteo.lacki@gmail.com',
+    'author': 'Mateusz Lacki & Michal Startek',
+    'author_email': 'matteo.lacki@gmail.com',
 
     # Choose your license
-    'license' : '2-clause BSD',
+    'license': '2-clause BSD',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     'classifiers' : [
@@ -98,7 +98,7 @@ setup_args = {
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    'install_requires' : ['cffi'],
+    'install_requires' : ['cffi', 'numpy'],
 
     'zip_safe' : False,
 
@@ -165,5 +165,5 @@ elif 'CYGWIN' in platform.system():
     setup(**setup_args)
 else:
     # Assuming UNIX with a working compiler.
-    setup_args['install_requires']=['numpy']
+    # setup_args['install_requires']=['numpy']
     setup(**setup_args)

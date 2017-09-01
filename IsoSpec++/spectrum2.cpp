@@ -4,19 +4,25 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <sys/sysinfo.h>
 
+#ifndef __APPLE__
+    #include <sys/sysinfo.h>
+#endif
 
 
 inline static unsigned long get_mmap_len(unsigned long n_buckets)
 {
-    unsigned long pagesize = sysconf(_SC_PAGESIZE);
+    #ifdef __APPLE__
+        unsigned long pagesize = getpagesize();
+    #else
+        unsigned long pagesize = sysconf(_SC_PAGESIZE);
+    #endif
     unsigned long ret = n_buckets * sizeof(double);
     ret += pagesize - ret%pagesize;
     return ret;
 }
 
-Spectrum::Spectrum(Iso&& I, double _bucket_width, double _cutoff, bool _absolute) : 
+Spectrum::Spectrum(Iso&& I, double _bucket_width, double _cutoff, bool _absolute) :
 iso(std::move(I)),
 lowest_mass(I.getLightestPeakMass()),
 bucket_width(_bucket_width),
@@ -41,7 +47,11 @@ void* wrapper_func_thr(void* spc)
 void Spectrum::run(unsigned int nthreads, bool sync)
 {
     if(nthreads == 0)
-        nthreads = get_nprocs();
+        #ifdef __APPLE__
+            nthreads = sysconf(_SC_NPROCESSORS_ONLN);
+        #else
+            nthreads = get_nprocs();
+        #endif
     n_threads = nthreads;
 
     threads = new pthread_t[n_threads];
