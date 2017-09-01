@@ -72,7 +72,23 @@ class IsoFFI:
                         extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
                         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
 
+                        void* setupIsoThresholdGenerator(int dimNumber,
+                                 const int* isotopeNumbers,
+                                 const int* atomCounts,
+                                 const double* isotopeMasses,
+                                 const double* isotopeProbabilities,
+                                 const double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize);
 
+                        double get_mass_from_IsoThresholdGenerator(void* generator);
+
+                        double get_lprob_from_IsoThresholdGenerator(void* generator);
+
+                        const unsigned int* get_conf_from_IsoThresholdGenerator(void* generator);
+
+                        void delete_IsoThresholdGenerator(void* generator);
                         ''');
 
         mod_dir = os.path.dirname(os.path.abspath(__file__))

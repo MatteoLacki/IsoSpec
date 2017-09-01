@@ -72,6 +72,31 @@ void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoC
 
 void destroyIso(void* iso);
 
+// ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
+// BEAR IN MIND THAT THE ABOVE COMMENT WAS ALSO WRITTEN BY MATTEO
+// AND THAT HE IS REALLY STRETCHING HIS ABILITY TO MAKE JOKES ABOUT
+// HIMSELF TO THE LIMIT.
+
+void* setupIsoThresholdGenerator(int dimNumber,
+                                 const int* isotopeNumbers,
+                                 const int* atomCounts,
+                                 const double* isotopeMasses,
+                                 const double* isotopeProbabilities,
+                                 const double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize);
+
+double get_mass_from_IsoThresholdGenerator(void* generator);
+
+double get_lprob_from_IsoThresholdGenerator(void* generator);
+
+const unsigned int* get_conf_from_IsoThresholdGenerator(void* generator);
+
+void delete_IsoThresholdGenerator(void* generator);
+
+bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator);
+
 #ifdef __cplusplus
 }
 #endif

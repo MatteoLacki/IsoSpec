@@ -165,5 +165,4 @@ elif 'CYGWIN' in platform.system():
     setup(**setup_args)
 else:
     # Assuming UNIX with a working compiler.
-    # setup_args['install_requires']=['numpy']
     setup(**setup_args)

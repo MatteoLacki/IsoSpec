@@ -263,12 +263,12 @@ private:
 
 public:
 	virtual bool advanceToNextConfiguration();
-        virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+        virtual inline const unsigned int* get_conf_signature() { return counter; };
 //	virtual const int* const & conf() const;
 
         IsoThresholdGenerator(Iso&& iso, double  _threshold, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
-	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum; 
+	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum;
                                                     dealloc_table(marginalResults, dimNumber);};
 
         void terminate_search();
@@ -278,13 +278,13 @@ private:
 	{
 		for(; idx >=0; idx--)
 		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
 			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                         partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 		}
 	}
 
-	
+
 
 };
 
@@ -298,6 +298,7 @@ private:
         RGTMarginal** marginalResults;
 
 public:
+    //TODO work on virtuals
 	virtual bool advanceToNextConfiguration();
 //        virtual inline void get_conf_signature(unsigned int* target);
 //	virtual const int* const & conf() const;
@@ -314,7 +315,7 @@ private:
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->current_eProb();
         }
-        
+
 
 
 
@@ -346,13 +347,13 @@ private:
 	{
 		for(; idx >=0; idx--)
 		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]); 
+			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
 			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                         partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 		}
 	}
 
-	
+
 
 };
 
