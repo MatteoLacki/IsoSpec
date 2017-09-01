@@ -15,156 +15,30 @@
 #   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
 #
 
-import cffi
 import itertools
-import math
+import math  # better do it in numpy
 import re
-import os
-import glob
-import sys
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from kahan import Summator
 from collections import defaultdict
 import numpy as np
+from isoFFI import isoFFI
+import PeriodicTbl
 
 try:
     xrange
 except NameError:
     xrange = range
 
-class IsoFFI:
-    def __init__(self):
-        self.ffi = cffi.FFI()
-        self.ffi.cdef('''void* setupMarginal(
-                                const double* masses,
-                                const double* probs,
-                                int isotopeNo,
-                                int atomCnt,
-                                const int tabSize,
-                                const int hashSize
-                                );
-                        int probeConfigurationIdx(void* MT, int idx);
-                        int getConfNo(void* marginals);
-                        int getIsotopesNo(void* iso);
-
-                        void getConfs(
-                                        int howmany,
-                                        void* marginals,
-                                        double* masses,
-                                        double* logprobs,
-                                        int* configurations
-                                      );
-                        void destroyConf(void* marginals);
-
-                        void* setupIso( int             _dimNumber,
-                                        const int*      _isotopeNumbers,
-                                        const int*      _atomCounts,
-                                        const double*   _isotopeMasses,
-                                        const double*   _isotopeProbabilities,
-                                        const double    _StopCondition,
-                                        int             algo,
-                                        int             tabSize,
-                                        int             hashSize,
-                                        double          step,
-                                        bool            trim
-                        );
-
-
-                        void* IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize);
-
-                        int processMTUntilCutoff(void* MT, double cutoff);
-
-                        int getConfMT(void* MT, int idx, double* mass, double* logProb, int* configuration);
-
-                        int getIsoConfNo(void* iso);
-
-                        void getIsoConfs(   void* iso,
-                                            double* res_mass,
-                                            double* res_logProb,
-                                            int* res_isoCounts
-                                        );
-
-                        void destroyIso(void* iso);
-
-
-                        #define NUMBER_OF_ISOTOPIC_ENTRIES 288
-
-                        extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const double elem_table_mass[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const int elem_table_massNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const int elem_table_extraNeutrons[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const char* elem_table_element[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
-
-
-                        ''');
-
-        mod_dir = os.path.dirname(os.path.abspath(__file__))
-
-        if os.path.exists(os.path.join(mod_dir, '..', 'setup.py')):
-            raise Exception('''Attempted to load IsoSpecPy module from its build directory. This usually
-won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
-sure you want to do that, edit the source and disable this check.''')
-
-        libnames =  ['IsoSpecCppPy*', 'IsoSpec++*']
-        libprefix = ['', 'lib', 'Lib']
-        extension = ['.so', '.dylib', '.dll']
-        try:
-            import platform
-            if platform.system() == 'Linux':
-                extension = ['.so']
-            elif platform.system == 'Windows':
-                extension = ['.dll']
-        except:
-            pass
-
-        prebuilt =  ['', 'prebuilt-']
-
-        def cprod(ll1, ll2):
-            res = []
-            for l1 in ll1:
-                for l2 in ll2:
-                    res.append(l1+l2)
-            return res
-
-        paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
-
-        dpc = []
-
-        for dirpath in [mod_dir, mod_dir + '/..']:
-            dpc.extend([os.path.join(dirpath, p) for p in paths_to_check])
-
-        paths_to_check = dpc
-
-        paths_to_check = sum(map(glob.glob, paths_to_check), [])
-
-        self.clib = None
-        for libpath in set(paths_to_check):
-            try:
-                self.clib = self.ffi.dlopen(libpath)
-                break
-            except (IndexError, OSError) as e:
-                pass
-
-        if self.clib == None:
-            raise Exception("Cannot find or load the C++ part of the library")
-
-
-
-isoFFI = IsoFFI()
-
 
 
 class MarginalDistribution:
-    def __init__(
-                    self,
+    def __init__(   self,
                     masses,
                     probs,
                     atomCnt,
-                    tabSize = 1000,
-                    hashSize = 1000,
+                    tabSize=1000,
+                    hashSize=1000,
                 ):
         self.clib = isoFFI.clib #because you can't use global vars in destructor, which is UTTERLY STUPID
         self.masses = masses
@@ -285,12 +159,12 @@ class IsoSpec:
         # It's much easier to just parse it in python than to use the C parsing function
         # and retrieve back into Python the relevant object sizes
         symbols = re.findall("\D+", formula)
-        atom_counts = [int(x) for x in re.findall("\d+", formula)]
+        atom_counts = [int(x) for x in re.findall("\d+", formula)] #TODO: eliminate this (use precompiled)
 
         if not len(symbols) == len(atom_counts):
             raise ValueError("Invalid formula")
 
-        import PeriodicTbl # TODO: split IsoFFI into separate module to avoid circular dependency here
+        import PeriodicTbl  #TODO: split IsoFFI into separate module to avoid circular dependency here
         try:
             masses = tuple(PeriodicTbl.symbol_to_masses[symbol] for symbol in symbols)
             probs = tuple(PeriodicTbl.symbol_to_probs[symbol] for symbol in symbols)
