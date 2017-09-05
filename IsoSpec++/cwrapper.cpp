@@ -137,5 +137,64 @@ void destroyIso(void* iso)
     }
 }
 
+// ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
+void* setupIsoThresholdGenerator(int dimNumber,
+                                 const int* isotopeNumbers,
+                                 const int* atomCounts,
+                                 const double* isotopeMasses,
+                                 const double* isotopeProbabilities,
+                                 const double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize)
+{
+    const double** IM = new const double*[dimNumber];
+    const double** IP = new const double*[dimNumber];
+    int idx = 0;
+    for(int i=0; i<dimNumber; i++)
+    {
+        IM[i] = &isotopeMasses[idx];
+        IP[i] = &isotopeProbabilities[idx];
+        idx += isotopeNumbers[i];
+    }
+    //TODO in place (maybe pass a numpy matrix??)
 
+    IsoThresholdGenerator* iso = new IsoThresholdGenerator(
+        Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
+        threshold,
+        false,
+        _tabSize,
+        _hashSize);
+
+    delete[] IM;
+    delete[] IP;
+
+    return reinterpret_cast<void*>(iso);
 }
+
+double get_mass_from_IsoThresholdGenerator(void* generator)
+{
+    return reinterpret_cast<IsoThresholdGenerator*>(generator)->mass();
+}
+
+double get_lprob_from_IsoThresholdGenerator(void* generator)
+{
+    return reinterpret_cast<IsoThresholdGenerator*>(generator)->lprob();
+}
+
+const unsigned int* get_conf_from_IsoThresholdGenerator(void* generator)
+{
+    return reinterpret_cast<IsoThresholdGenerator*>(generator)->get_conf_signature();
+}
+
+void delete_IsoThresholdGenerator(void* generator)
+{
+    delete reinterpret_cast<IsoThresholdGenerator*>(generator);
+}
+
+bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator)
+{
+    return reinterpret_cast<IsoThresholdGenerator*>(generator)->advanceToNextConfiguration();
+}
+
+}  //extern "C" ends here

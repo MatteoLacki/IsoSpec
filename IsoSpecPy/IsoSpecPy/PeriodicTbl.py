@@ -1,9 +1,7 @@
-from IsoSpecPy import isoFFI
+from isoFFI import isoFFI
 from collections import defaultdict
 
-
-
-try: 
+try:
     xrange
 except NameError:
     xrange = range
@@ -20,4 +18,3 @@ for i in xrange(number_of_isotopic_entries):
 
 symbol_to_masses = dict(symbol_to_masses)
 symbol_to_probs = dict(symbol_to_probs)
-
