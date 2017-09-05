@@ -138,6 +138,9 @@ void destroyIso(void* iso)
 }
 
 // ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
+
+
+//______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(int dimNumber,
                                  const int* isotopeNumbers,
                                  const int* atomCounts,
@@ -162,7 +165,7 @@ void* setupIsoThresholdGenerator(int dimNumber,
     IsoThresholdGenerator* iso = new IsoThresholdGenerator(
         Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
         threshold,
-        false,
+        _absolute,
         _tabSize,
         _hashSize);
 
@@ -182,7 +185,7 @@ double get_lprob_from_IsoThresholdGenerator(void* generator)
     return reinterpret_cast<IsoThresholdGenerator*>(generator)->lprob();
 }
 
-const unsigned int* get_conf_from_IsoThresholdGenerator(void* generator)
+const int* get_conf_from_IsoThresholdGenerator(void* generator)
 {
     return reinterpret_cast<IsoThresholdGenerator*>(generator)->get_conf_signature();
 }
@@ -196,5 +199,86 @@ bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator)
 {
     return reinterpret_cast<IsoThresholdGenerator*>(generator)->advanceToNextConfiguration();
 }
+
+double eprob_IsoThresholdGenerator(void* generator)
+{
+    return reinterpret_cast<IsoThresholdGenerator*>(generator)->eprob();
+}
+
+//______________________________________________________ORDERED GENERATOR
+void* setupIsoOrderedGenerator(int dimNumber,
+                               const int* isotopeNumbers,
+                               const int* atomCounts,
+                               const double* isotopeMasses,
+                               const double* isotopeProbabilities,
+                               int _tabSize,
+                               int _hashSize)
+{
+    const double** IM = new const double*[dimNumber];
+    const double** IP = new const double*[dimNumber];
+    int idx = 0;
+    for(int i=0; i<dimNumber; i++)
+    {
+        IM[i] = &isotopeMasses[idx];
+        IP[i] = &isotopeProbabilities[idx];
+        idx += isotopeNumbers[i];
+    }
+    //TODO in place (maybe pass a numpy matrix??)
+
+    IsoOrderedGenerator* iso = new IsoOrderedGenerator(
+        Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
+        _tabSize,
+        _hashSize);
+
+    delete[] IM;
+    delete[] IP;
+
+    return reinterpret_cast<void*>(iso);
+}
+
+// double get_mass_from_IsoOrderedGenerator(void* generator)
+// {
+//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->mass();
+// }
+//
+// double get_lprob_from_IsoOrderedGenerator(void* generator)
+// {
+//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->lprob();
+// }
+//
+// const int* get_conf_from_IsoOrderedGenerator(void* generator)
+// {
+//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->get_conf_signature();
+// }
+//
+// void delete_IsoOrderedGenerator(void* generator)
+// {
+//     delete reinterpret_cast<IsoOrderedGenerator*>(generator);
+// }
+//
+// bool advanceToNextConfiguration_IsoOrderedGenerator(void* generator)
+// {
+//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->advanceToNextConfiguration();
+// }
+//
+// double eprob_IsoOrderedGenerator(void* generator)
+// {
+//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->eprob();
+// }
+
+
+#define C_CODE(generatorType, dataType, method)\
+dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
+
+#define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
+
+#define C_CODES(generatorType)\
+C_CODE(generatorType, double, mass) \
+C_CODE(generatorType, double, lprob) \
+C_CODE(generatorType, const int*, get_conf_signature) \
+C_CODE(generatorType, bool, advanceToNextConfiguration) \
+DELETE(generatorType)
+
+C_CODES(IsoOrderedGenerator)
 
 }  //extern "C" ends here

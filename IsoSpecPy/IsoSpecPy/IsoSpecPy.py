@@ -31,86 +31,21 @@ except NameError:
     xrange = range
 
 
-
-class MarginalDistribution:
-    def __init__(   self,
-                    masses,
-                    probs,
-                    atomCnt,
-                    tabSize=1000,
-                    hashSize=1000,
-                ):
-        self.clib = isoFFI.clib #because you can't use global vars in destructor, which is UTTERLY STUPID
-        self.masses = masses
-        self.probs = probs
-        self.isotopeNo = len(masses)
-        self.atomCnt = atomCnt
-        self.tabSize = tabSize
-        self.hashSize = hashSize
-        self.marginal = isoFFI.clib.setupMarginal(
-                                masses,
-                                probs,
-                                self.isotopeNo,
-                                atomCnt,
-                                tabSize,
-                                hashSize)
-        self.cconf_mass = isoFFI.ffi.new("double[1]")
-        self.cconf_lProb = isoFFI.ffi.new("double[1]")
-        self.cconf = isoFFI.ffi.new("int[{0}]".format(self.isotopeNo))
-        self.cprobs = []
-        self.summator = Summator()
-
-
-    def __del__(self):
-        self.clib.destroyConf(self.marginal)
-
-    def getConfsRaw(self):
-        masses = isoFFI.ffi.new("double[{0}]".format(len(self)))
-        logProbs = isoFFI.ffi.new("double[{0}]".format(len(self)))
-        confs = isoFFI.ffi.new("int[{0}]".format(len(self)*self.isotopeNo))
-        isoFFI.clib.getConfs(len(self), self.marginal, masses, logProbs, confs)
-        return (masses, logProbs, confs)
-
-    def getConfs(self):
-        ret = []
-        masses, logProbs, confs = self.getConfsRaw()
-        for i in xrange(len(masses)):
-            ret.append((masses[i], logProbs[i], list(confs[self.isotopeNo*i:(i+1)*self.isotopeNo])))
-        return ret
-
-    def getConf(self, idx):
-        if isoFFI.clib.getConfMT(self.marginal, idx, self.cconf_mass, self.cconf_lProb, self.cconf) == 1:
-            return (self.cconf_mass[0], self.cconf_lProb[0], tuple(self.cconf))
-        else:
-            raise IndexError
-
-    def probeConf(self, idx):
-        return self.clib.probeConfigurationIdx(self.marginal, idx) > 0
-
-    def CumulativeProb(self, idx):
-        if len(self.cprobs) > idx:
-            return self.cprobs[idx]
-        else:
-            for i in xrange(len(self.cprobs), idx+1):
-                self.summator.add(math.exp(self.getConf(i)[1]))
-                self.cprobs.append(self.summator.get())
-            return self.cprobs[idx]
-
+# class IsoSpecNew(object):
 
 
 class IsoSpec:
-    def __init__(
-                    self,
-                    _atomCounts,
-                    _isotopeMasses,
-                    _isotopeProbabilities,
-                    _stopCondition,
-                    tabSize = 1000,
-                    hashSize = 1000,
-                    step = 0.3,
-                    trim = True,
-                    method = 'layered'
-                ):
+    def __init__(self,
+                 _atomCounts,
+                 _isotopeMasses,
+                 _isotopeProbabilities,
+                 _stopCondition,
+                 tabSize = 1000,
+                 hashSize = 1000,
+                 step = 0.3,
+                 trim = True,
+                 method = 'layered'):
+
         self.clib = isoFFI.clib #can't use global vars in destructor, again...
         self.dimNumber                 = len(_atomCounts)
         self._isotopeNumbers           = [len(x) for x in _isotopeMasses]
@@ -124,28 +59,27 @@ class IsoSpec:
         self.trim                      = trim
 
         try:
-            self.algo = { 'layered' : 0,
-              'ordered' : 1,
-              'threshold_absolute' : 2,
-              'threshold_relative' : 3,
-              'layered_estimating' : 4,
+            self.algo = {'layered': 0,
+                         'ordered': 1,
+              'threshold_absolute': 2,
+              'threshold_relative': 3,
+              'layered_estimating': 4,
             }[method]
         except KeyError:
             raise Exception("Invalid ISO method")
 
         self.iso = isoFFI.clib.setupIso(
-                                self.dimNumber,
-                                self._isotopeNumbers,
-                                _atomCounts,
-                                list(itertools.chain.from_iterable(_isotopeMasses)),
-                                list(itertools.chain.from_iterable(_isotopeProbabilities)),
-                                _stopCondition,
-                                self.algo,
-                                tabSize,
-                                hashSize,
-                                step,
-                                trim
-                            )
+            self.dimNumber,
+            self._isotopeNumbers,
+            _atomCounts,
+            list(itertools.chain.from_iterable(_isotopeMasses)),
+            list(itertools.chain.from_iterable(_isotopeProbabilities)),
+            _stopCondition,
+            self.algo,
+            tabSize,
+            hashSize,
+            step,
+            trim)
         try:
             if not self.iso.__nonzero__():
                 raise MemoryError()
@@ -164,7 +98,6 @@ class IsoSpec:
         if not len(symbols) == len(atom_counts):
             raise ValueError("Invalid formula")
 
-        import PeriodicTbl  #TODO: split IsoFFI into separate module to avoid circular dependency here
         try:
             masses = tuple(PeriodicTbl.symbol_to_masses[symbol] for symbol in symbols)
             probs = tuple(PeriodicTbl.symbol_to_probs[symbol] for symbol in symbols)

@@ -228,45 +228,46 @@ public:
 
 };
 
-class IsoOrderedGenerator : public IsoGenerator
+class IsoOrderedGenerator: public IsoGenerator
 {
 private:
-        MarginalTrek** marginalResults;
+    MarginalTrek** marginalResults;
 	std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
-	void* 				topConf;
-	DirtyAllocator          	allocator;
-        const std::vector<double>**     logProbs;
-        const std::vector<double>**     masses;
-        const std::vector<int*>**       marginalConfs;
-	double 				currentLProb;
-	double 				currentMass;
-	int*				candidate;
+	void* topConf;
+	DirtyAllocator allocator;
+    const std::vector<double>**     logProbs;
+    const std::vector<double>**     masses;
+    const std::vector<int*>**       marginalConfs;
+	double currentLProb;
+	double currentMass;
+	int*   candidate;
 
 public:
 	virtual bool advanceToNextConfiguration();
 	virtual const double& lprob() const { return currentLProb; };
 	virtual const double& mass() const { return currentMass; };
+    virtual inline const int* get_conf_signature() const { return getConf(topConf); };
 
-        IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
+    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
 
 	virtual ~IsoOrderedGenerator();
 
 };
 
-class IsoThresholdGenerator : public IsoGenerator
+class IsoThresholdGenerator: public IsoGenerator
 {
 private:
-	unsigned int* counter;
+	int* counter;
 	double* maxConfsLPSum;
 	const double Lcutoff;
         PrecalculatedMarginal** marginalResults;
 
 public:
 	virtual bool advanceToNextConfiguration();
-        virtual inline const unsigned int* get_conf_signature() { return counter; };
+    virtual inline const int* get_conf_signature() { return counter; };
 //	virtual const int* const & conf() const;
 
-        IsoThresholdGenerator(Iso&& iso, double  _threshold, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute = true, int _tabSize = 1000, int _hashSize = 1000);
 
 	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum;
                                                     dealloc_table(marginalResults, dimNumber);};
@@ -280,7 +281,7 @@ private:
 		{
 			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
 			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
 		}
 	}
 

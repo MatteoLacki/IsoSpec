@@ -77,7 +77,7 @@ modeLProb(other.modeLProb)
 }
 
 
-Iso::Iso(const Iso& other, bool fullcopy) : 
+Iso::Iso(const Iso& other, bool fullcopy) :
 disowned(fullcopy ? throw std::logic_error("Not implemented") : true),
 dimNumber(other.dimNumber),
 isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : other.isotopeNumbers),
@@ -94,7 +94,7 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
     if (marginals == nullptr)
     {
         marginals = new Marginal*[dimNumber];
-        for(int i=0; i<dimNumber;i++) 
+        for(int i=0; i<dimNumber;i++)
         {
 	    allDim += isotopeNumbers[i];
 	    marginals[i] = new Marginal(
@@ -645,9 +645,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
 
 
 
-IsoGenerator::IsoGenerator(Iso&& iso) : 
-    Iso(std::move(iso)), 
-    partialLProbs(new double[dimNumber+1+PADDING]), 
+IsoGenerator::IsoGenerator(Iso&& iso) :
+    Iso(std::move(iso)),
+    partialLProbs(new double[dimNumber+1+PADDING]),
     partialMasses(new double[dimNumber+1+PADDING]),
     partialExpProbs(new double[dimNumber+1+PADDING])
 {
@@ -678,9 +678,9 @@ max_mass(_max_mass)
         bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)
 	{
-            marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])), 
+            marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])),
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                            tabSize, 
+                                                            tabSize,
                                                             hashSize);
 
             if(not marginalResults[ii]->inRange(0))
@@ -705,8 +705,8 @@ max_mass(_max_mass)
 
 }
 
-IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass() 
-{ 
+IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass()
+{
     delete[] maxConfsLPSum;
     dealloc_table(marginalResults, dimNumber);
     delete[] minMassCSum;
@@ -720,10 +720,10 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 	    recalc(0);
             return true;
         }
-            
+
 
 	// If we reached this point, a carry is needed
-	
+
 	int idx = 1;
         bool frombelow = true;
 
@@ -756,13 +756,13 @@ bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
                 }
             }
         }
-                
+
         if(idx == dimNumber)
             return false;
         else
             return true;
 
-        
+
 }
 
 
@@ -856,7 +856,7 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
             recalc(dimNumber-1);
             counter[0]--;
         }
-        else 
+        else
             terminate_search();
 }
 
@@ -875,7 +875,7 @@ bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
 	}
 
 	// If we reached this point, a carry is needed
-	
+
 	int idx = 0;
 
 	while(idx<dimNumber-2)
@@ -937,20 +937,19 @@ IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool 
 : IsoGenerator(std::move(iso)),
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 {
-	counter 	= new unsigned int[dimNumber];
-	maxConfsLPSum 	= new double[dimNumber-1];
+	counter = new int[dimNumber];
+	maxConfsLPSum = new double[dimNumber-1];
+    marginalResults = new PrecalculatedMarginal*[dimNumber];
 
-        marginalResults = new PrecalculatedMarginal*[dimNumber];
-
-        bool empty = false;
+    bool empty = false;
 	for(int ii=0; ii<dimNumber; ii++)
 	{
 	    counter[ii] = 0;
 
-            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])), 
+            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
                                                             Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                             true,
-                                                            tabSize, 
+                                                            tabSize,
                                                             hashSize);
 
             if(not marginalResults[ii]->inRange(0))
@@ -968,7 +967,7 @@ Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
         }
         else
             terminate_search();
-            
+
 
 }
 
@@ -987,7 +986,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
 	}
 
 	// If we reached this point, a carry is needed
-	
+
 	int idx = 0;
 
 	while(idx<dimNumber-1)
@@ -1038,7 +1037,7 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
 
     for(int i = 0; i<dimNumber; i++)
         marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
-    
+
     logProbs        = new const vector<double>*[dimNumber];
     masses          = new const vector<double>*[dimNumber];
     marginalConfs   = new const vector<int*>*[dimNumber];
@@ -1051,7 +1050,7 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
         marginalConfs[i] = &marginalResults[i]->confs();
     }
 
-    topConf     = allocator.newConf();
+    topConf = allocator.newConf();
     memset(
         reinterpret_cast<char*>(topConf) + sizeof(double),
            0,

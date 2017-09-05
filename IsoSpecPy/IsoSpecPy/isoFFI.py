@@ -52,11 +52,10 @@ class IsoFFI:
 
                         int getIsoConfNo(void* iso);
 
-                        void getIsoConfs(   void* iso,
-                                            double* res_mass,
-                                            double* res_logProb,
-                                            int* res_isoCounts
-                                        );
+                        void getIsoConfs(void* iso,
+                                         double* res_mass,
+                                         double* res_logProb,
+                                         int* res_isoCounts);
 
                         void destroyIso(void* iso);
 
@@ -72,6 +71,7 @@ class IsoFFI:
                         extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
                         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
 
+                        //______________________________________________________THRESHOLD GENERATOR
                         void* setupIsoThresholdGenerator(int dimNumber,
                                  const int* isotopeNumbers,
                                  const int* atomCounts,
@@ -86,9 +86,35 @@ class IsoFFI:
 
                         double get_lprob_from_IsoThresholdGenerator(void* generator);
 
-                        const unsigned int* get_conf_from_IsoThresholdGenerator(void* generator);
+                        const int* get_conf_from_IsoThresholdGenerator(void* generator);
 
                         void delete_IsoThresholdGenerator(void* generator);
+
+                        bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator);
+
+                        double eprob_IsoThresholdGenerator(void* generator);
+
+
+                        //______________________________________________________ORDERED GENERATOR
+                        void* setupIsoOrderedGenerator(int dimNumber,
+                                                       const int* isotopeNumbers,
+                                                       const int* atomCounts,
+                                                       const double* isotopeMasses,
+                                                       const double* isotopeProbabilities,
+                                                       int _tabSize,
+                                                       int _hashSize);
+
+                        double get_mass_from_IsoOrderedGenerator(void* generator);
+
+                        double get_lprob_from_IsoOrderedGenerator(void* generator);
+
+                        const int* get_conf_from_IsoOrderedGenerator(void* generator);
+
+                        void delete_IsoOrderedGenerator(void* generator);
+
+                        bool advanceToNextConfiguration_IsoOrderedGenerator(void* generator);
+
+                        double eprob_IsoOrderedGenerator(void* generator);
                         ''');
 
         mod_dir = os.path.dirname(os.path.abspath(__file__))
