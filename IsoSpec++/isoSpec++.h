@@ -80,7 +80,7 @@ public:
 
 };
 
- class IsoSpec : public Iso {
+ class IsoSpec: public Iso {
  protected:
      MarginalTrek** marginalResults;
      const double            cutOff;
@@ -218,12 +218,12 @@ protected:
 public:
 	virtual bool advanceToNextConfiguration() = 0;
         inline const double& lprob() const { return partialLProbs[0]; };
-        inline const double& mass() const { return partialMasses[0]; };
+        inline const double& mass()  const { return partialMasses[0]; };
         inline const double& eprob() const { return partialExpProbs[0]; };
 //	virtual const int* const & conf() const = 0;
 
 
-        inline IsoGenerator(Iso&& iso);
+    inline IsoGenerator(Iso&& iso);
 	inline virtual ~IsoGenerator() { delete[] partialLProbs; delete[] partialMasses; delete[] partialExpProbs; };
 
 };
@@ -260,19 +260,21 @@ private:
 	int* counter;
 	double* maxConfsLPSum;
 	const double Lcutoff;
-        PrecalculatedMarginal** marginalResults;
+    PrecalculatedMarginal** marginalResults;
 
 public:
 	virtual bool advanceToNextConfiguration();
     virtual inline const int* get_conf_signature() { return counter; };
 //	virtual const int* const & conf() const;
 
-    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute = true, int _tabSize = 1000, int _hashSize = 1000);
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true,
+                          int _tabSize=1000, int _hashSize=1000);
 
-	inline virtual ~IsoThresholdGenerator() { delete[] counter; delete[] maxConfsLPSum;
-                                                    dealloc_table(marginalResults, dimNumber);};
+	inline virtual ~IsoThresholdGenerator() { delete[] counter;
+                                              delete[] maxConfsLPSum;
+                                              dealloc_table(marginalResults, dimNumber); };
 
-        void terminate_search();
+    void terminate_search();
 
 private:
 	inline void recalc(int idx)
