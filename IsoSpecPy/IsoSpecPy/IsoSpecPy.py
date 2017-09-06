@@ -40,11 +40,11 @@ class IsoSpec:
                  _isotopeMasses,
                  _isotopeProbabilities,
                  _stopCondition,
-                 tabSize = 1000,
-                 hashSize = 1000,
-                 step = 0.3,
-                 trim = True,
-                 method = 'layered'):
+                 tabSize=1000,
+                 hashSize=1000,
+                 step=0.3,
+                 trim=True,
+                 method='layered'):
 
         self.clib = isoFFI.clib #can't use global vars in destructor, again...
         self.dimNumber                 = len(_atomCounts)
@@ -89,7 +89,9 @@ class IsoSpec:
 
 
     @staticmethod
-    def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'layered_estimating', step = 0.25, trim = True):
+    def IsoFromFormula(formula, cutoff, tabSize=1000, hashSize=1000,
+                       classId=None, method='layered_estimating',
+                       step=0.25, trim=True):
         # It's much easier to just parse it in python than to use the C parsing function
         # and retrieve back into Python the relevant object sizes
         symbols = re.findall("\D+", formula)

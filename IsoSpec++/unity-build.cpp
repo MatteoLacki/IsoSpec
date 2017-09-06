@@ -8,3 +8,4 @@
 #include "misc.cpp"
 #include "spectrum2.cpp"
 #include "cwrapper.cpp"
+#include "array.cpp"

@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-void* setupIso( int      _dimNumber,
+void* setupIso( int             _dimNumber,
                 const int*      _isotopeNumbers,
                 const int*      _atomCounts,
                 const double*   _isotopeMasses,
@@ -109,7 +109,6 @@ void* setupIsoOrderedGenerator(int dimNumber,
                                const double* isotopeProbabilities,
                                int _tabSize,
                                int _hashSize);
-
 C_HEADERS(IsoOrderedGenerator)
 
 
