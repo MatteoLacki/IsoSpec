@@ -77,6 +77,18 @@ void destroyIso(void* iso);
 // AND THAT HE IS REALLY STRETCHING HIS ABILITY TO MAKE JOKES ABOUT
 // HIMSELF TO THE LIMIT.
 
+
+#define C_HEADER(generatorType, dataType, method)\
+dataType method##generatorType(void* generator);
+
+
+#define C_HEADERS(generatorType)\
+C_HEADER(generatorType, double, mass) \
+C_HEADER(generatorType, double, lprob) \
+C_HEADER(generatorType, const int*, get_conf_signature) \
+C_HEADER(generatorType, bool, advanceToNextConfiguration) \
+C_HEADER(generatorType, void, delete)
+
 //______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(int dimNumber,
                                  const int* isotopeNumbers,
@@ -87,21 +99,7 @@ void* setupIsoThresholdGenerator(int dimNumber,
                                  bool _absolute,
                                  int _tabSize,
                                  int _hashSize);
-
-double get_mass_from_IsoThresholdGenerator(void* generator);
-
-double get_lprob_from_IsoThresholdGenerator(void* generator);
-
-const int* get_conf_from_IsoThresholdGenerator(void* generator);
-
-void delete_IsoThresholdGenerator(void* generator);
-
-bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator);
-
-double eprob_IsoThresholdGenerator(void* generator);
-
-
-
+C_HEADERS(IsoThresholdGenerator)
 
 //______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(int dimNumber,
@@ -112,35 +110,11 @@ void* setupIsoOrderedGenerator(int dimNumber,
                                int _tabSize,
                                int _hashSize);
 
-// double get_mass_from_IsoOrderedGenerator(void* generator);
-//
-// double get_lprob_from_IsoOrderedGenerator(void* generator);
-//
-// const int* get_conf_from_IsoOrderedGenerator(void* generator);
-//
-// void delete_IsoOrderedGenerator(void* generator);
-//
-// bool advanceToNextConfiguration_IsoOrderedGenerator(void* generator);
-//
-// double eprob_IsoOrderedGenerator(void* generator);
-
-#define C_HEADER(generatorType, dataType, method)\
-dataType method##generatorType(void* generator);
-
-#define C_HEADERS(generatorType)\
-C_HEADER(generatorType, double, mass) \
-C_HEADER(generatorType, double, lprob) \
-C_HEADER(generatorType, const int*, get_conf_signature) \
-C_HEADER(generatorType, bool, advanceToNextConfiguration) \
-C_HEADER(generatorType, void, delete)
-
 C_HEADERS(IsoOrderedGenerator)
 
 
 #ifdef __cplusplus
 }
 #endif
-
-
 
 #endif

@@ -139,6 +139,18 @@ void destroyIso(void* iso)
 
 // ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
 
+#define C_CODE(generatorType, dataType, method)\
+dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
+
+#define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
+
+#define C_CODES(generatorType)\
+C_CODE(generatorType, double, mass) \
+C_CODE(generatorType, double, lprob) \
+C_CODE(generatorType, const int*, get_conf_signature) \
+C_CODE(generatorType, bool, advanceToNextConfiguration) \
+DELETE(generatorType)
+
 
 //______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(int dimNumber,
@@ -174,36 +186,7 @@ void* setupIsoThresholdGenerator(int dimNumber,
 
     return reinterpret_cast<void*>(iso);
 }
-
-double get_mass_from_IsoThresholdGenerator(void* generator)
-{
-    return reinterpret_cast<IsoThresholdGenerator*>(generator)->mass();
-}
-
-double get_lprob_from_IsoThresholdGenerator(void* generator)
-{
-    return reinterpret_cast<IsoThresholdGenerator*>(generator)->lprob();
-}
-
-const int* get_conf_from_IsoThresholdGenerator(void* generator)
-{
-    return reinterpret_cast<IsoThresholdGenerator*>(generator)->get_conf_signature();
-}
-
-void delete_IsoThresholdGenerator(void* generator)
-{
-    delete reinterpret_cast<IsoThresholdGenerator*>(generator);
-}
-
-bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator)
-{
-    return reinterpret_cast<IsoThresholdGenerator*>(generator)->advanceToNextConfiguration();
-}
-
-double eprob_IsoThresholdGenerator(void* generator)
-{
-    return reinterpret_cast<IsoThresholdGenerator*>(generator)->eprob();
-}
+C_CODES(IsoThresholdGenerator)
 
 //______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(int dimNumber,
@@ -235,50 +218,6 @@ void* setupIsoOrderedGenerator(int dimNumber,
 
     return reinterpret_cast<void*>(iso);
 }
-
-// double get_mass_from_IsoOrderedGenerator(void* generator)
-// {
-//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->mass();
-// }
-//
-// double get_lprob_from_IsoOrderedGenerator(void* generator)
-// {
-//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->lprob();
-// }
-//
-// const int* get_conf_from_IsoOrderedGenerator(void* generator)
-// {
-//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->get_conf_signature();
-// }
-//
-// void delete_IsoOrderedGenerator(void* generator)
-// {
-//     delete reinterpret_cast<IsoOrderedGenerator*>(generator);
-// }
-//
-// bool advanceToNextConfiguration_IsoOrderedGenerator(void* generator)
-// {
-//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->advanceToNextConfiguration();
-// }
-//
-// double eprob_IsoOrderedGenerator(void* generator)
-// {
-//     return reinterpret_cast<IsoOrderedGenerator*>(generator)->eprob();
-// }
-
-
-#define C_CODE(generatorType, dataType, method)\
-dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
-
-#define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
-
-#define C_CODES(generatorType)\
-C_CODE(generatorType, double, mass) \
-C_CODE(generatorType, double, lprob) \
-C_CODE(generatorType, const int*, get_conf_signature) \
-C_CODE(generatorType, bool, advanceToNextConfiguration) \
-DELETE(generatorType)
-
 C_CODES(IsoOrderedGenerator)
 
 }  //extern "C" ends here

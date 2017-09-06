@@ -10,24 +10,22 @@ int main()
     double isotopeMasses[] = {1.0, 2.0, 3.0, 4.0, 5.0};
     double isotopeProbabilities[] = {0.5, 0.5, 0.5, 0.3, 0.2};
 
-    void* p = setupIsoThresholdGenerator(
+    void* p = setupIsoOrderedGenerator(
         2,
         isotopeNumbers,
         atomCounts,
         isotopeMasses,
         isotopeProbabilities,
-        .001,
-        true,
         1000,
         1000);
 
-    while(advanceToNextConfigurationIsoThresholdGenerator(p))
+    while(advanceToNextConfigurationIsoOrderedGenerator(p))
     {
-        cout << "mass="<< massIsoThresholdGenerator(p) << " lprob=" <<
-        lprobIsoThresholdGenerator(p) << std::endl;
+        cout << "mass="<< massIsoOrderedGenerator(p) << " lprob=" <<
+        lprobIsoOrderedGenerator(p) << std::endl;
     }
 
-    deleteIsoThresholdGenerator(p);
+    deleteIsoOrderedGenerator(p);
 
     return 0;
 }

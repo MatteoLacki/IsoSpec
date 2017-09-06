@@ -71,31 +71,23 @@ class IsoFFI:
                         extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
                         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
 
-                        //______________________________________________________THRESHOLD GENERATOR
+                        //_______________________________GENERATORS
+                        
                         void* setupIsoThresholdGenerator(int dimNumber,
-                                 const int* isotopeNumbers,
-                                 const int* atomCounts,
-                                 const double* isotopeMasses,
-                                 const double* isotopeProbabilities,
-                                 const double threshold,
-                                 bool _absolute,
-                                 int _tabSize,
-                                 int _hashSize);
-
-                        double get_mass_from_IsoThresholdGenerator(void* generator);
-
-                        double get_lprob_from_IsoThresholdGenerator(void* generator);
-
-                        const int* get_conf_from_IsoThresholdGenerator(void* generator);
-
-                        void delete_IsoThresholdGenerator(void* generator);
-
-                        bool advanceToNextConfiguration_IsoThresholdGenerator(void* generator);
-
-                        double eprob_IsoThresholdGenerator(void* generator);
+                                                         const int* isotopeNumbers,
+                                                         const int* atomCounts,
+                                                         const double* isotopeMasses,
+                                                         const double* isotopeProbabilities,
+                                                         const double threshold,
+                                                         bool _absolute,
+                                                         int _tabSize,
+                                                         int _hashSize);
+                        double massIsoThresholdGenerator(void* generator);
+                        double lprobIsoThresholdGenerator(void* generator);
+                        const int* get_conf_signatureIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator);
+                        void deleteIsoThresholdGenerator(void* generator);
 
 
-                        //______________________________________________________ORDERED GENERATOR
                         void* setupIsoOrderedGenerator(int dimNumber,
                                                        const int* isotopeNumbers,
                                                        const int* atomCounts,
@@ -104,17 +96,11 @@ class IsoFFI:
                                                        int _tabSize,
                                                        int _hashSize);
 
-                        double get_mass_from_IsoOrderedGenerator(void* generator);
-
-                        double get_lprob_from_IsoOrderedGenerator(void* generator);
-
-                        const int* get_conf_from_IsoOrderedGenerator(void* generator);
-
-                        void delete_IsoOrderedGenerator(void* generator);
-
-                        bool advanceToNextConfiguration_IsoOrderedGenerator(void* generator);
-
-                        double eprob_IsoOrderedGenerator(void* generator);
+                        double massIsoOrderedGenerator(void* generator);
+                        double lprobIsoOrderedGenerator(void* generator);
+                        const int* get_conf_signatureIsoOrderedGenerator(void* generator);
+                        bool advanceToNextConfigurationIsoOrderedGenerator(void* generator);
+                        void deleteIsoOrderedGenerator(void* generator);
                         ''');
 
         mod_dir = os.path.dirname(os.path.abspath(__file__))
@@ -124,7 +110,7 @@ class IsoFFI:
 won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
 sure you want to do that, edit the source and disable this check.''')
 
-        libnames =  ['IsoSpecCppPy*', 'IsoSpec++*']
+        libnames  = ['IsoSpecCppPy*', 'IsoSpec++*']
         libprefix = ['', 'lib', 'Lib']
         extension = ['.so', '.dylib', '.dll']
         try:
