@@ -4,11 +4,11 @@
 extern "C"{
 
 #include <stdlib.h>
-typedef struct DoubleArray DoubleTable;
+typedef struct DoubleArray DoubleArray;
 
-void ArrayConstructor(DoubleTable *a, size_t initialSize);
-void ArrayDestructor(DoubleTable *a);
-void ArrayPush(DoubleTable *a, double element);
+void DoubleArrayConstructor(DoubleArray *a, int initialSize);
+void DoubleArrayDestructor(DoubleArray *a);
+void DoubleArrayPush(DoubleArray *a, double element);
 
 }
 #endif /* __ARRAYC */

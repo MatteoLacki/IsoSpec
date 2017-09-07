@@ -1,3 +1,4 @@
+#include "array.cpp"
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
 #include "isoSpec++.cpp"
@@ -8,4 +9,3 @@
 #include "misc.cpp"
 #include "spectrum2.cpp"
 #include "cwrapper.cpp"
-#include "array.cpp"

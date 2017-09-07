@@ -24,6 +24,7 @@
 #include "misc.h"
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
+#include "array.h"
 
 
 extern "C"
@@ -138,18 +139,45 @@ void destroyIso(void* iso)
 }
 
 // ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
-
 #define C_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
 
 #define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
+
+#include <iostream>
+
+#define C_GENERATOR_TO_ARRAY_CODE(generatorType)\
+void set_tables##generatorType(void* generator,\
+                double** masses, \
+                double** lprobs, \
+                int* config_no, \
+                int init_size) \
+{ \
+    DoubleArray Masses, LogProbs; \
+    DoubleArrayConstructor(&Masses, init_size); \
+    DoubleArrayConstructor(&LogProbs, init_size); \
+    \
+    while(advanceToNextConfiguration##generatorType(generator)) \
+    { \
+        DoubleArrayPush(&Masses, mass##generatorType(generator)); \
+        DoubleArrayPush(&LogProbs, lprob##generatorType(generator)); \
+    } \
+    \
+    *masses = Masses.array; \
+    *lprobs = LogProbs.array; \
+    *config_no = Masses.used; \
+    DoubleArrayDestructor(&Masses); \
+    DoubleArrayDestructor(&LogProbs); \
+}\
 
 #define C_CODES(generatorType)\
 C_CODE(generatorType, double, mass) \
 C_CODE(generatorType, double, lprob) \
 C_CODE(generatorType, const int*, get_conf_signature) \
 C_CODE(generatorType, bool, advanceToNextConfiguration) \
+C_GENERATOR_TO_ARRAY_CODE(generatorType) \
 DELETE(generatorType)
+
 
 
 //______________________________________________________THRESHOLD GENERATOR

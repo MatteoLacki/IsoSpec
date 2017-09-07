@@ -1,3 +1,4 @@
+
 /*
  *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
  *
@@ -18,7 +19,6 @@
 #ifndef CWRAPPER_H
 #define CWRAPPER_H
 
-
 #define ALGO_LAYERED 0
 #define ALGO_ORDERED 1
 #define ALGO_THRESHOLD_ABSOLUTE 2
@@ -29,6 +29,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "array.h"
 
 void* setupIso( int             _dimNumber,
                 const int*      _isotopeNumbers,
@@ -77,16 +79,22 @@ void destroyIso(void* iso);
 // AND THAT HE IS REALLY STRETCHING HIS ABILITY TO MAKE JOKES ABOUT
 // HIMSELF TO THE LIMIT.
 
-
 #define C_HEADER(generatorType, dataType, method)\
 dataType method##generatorType(void* generator);
 
+#define C_GENERATOR_TO_ARRAY_HEADER(generatorType)\
+void set_tables##generatorType(void* generator, \
+                double** masses, \
+                double** lprobs, \
+                int* config_no, \
+                int init_size);
 
 #define C_HEADERS(generatorType)\
 C_HEADER(generatorType, double, mass) \
 C_HEADER(generatorType, double, lprob) \
 C_HEADER(generatorType, const int*, get_conf_signature) \
 C_HEADER(generatorType, bool, advanceToNextConfiguration) \
+C_GENERATOR_TO_ARRAY_HEADER(generatorType) \
 C_HEADER(generatorType, void, delete)
 
 //______________________________________________________THRESHOLD GENERATOR
@@ -110,6 +118,7 @@ void* setupIsoOrderedGenerator(int dimNumber,
                                int _tabSize,
                                int _hashSize);
 C_HEADERS(IsoOrderedGenerator)
+
 
 
 #ifdef __cplusplus

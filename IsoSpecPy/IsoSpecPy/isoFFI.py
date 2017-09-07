@@ -72,35 +72,27 @@ class IsoFFI:
                         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
 
                         //_______________________________GENERATORS
-                        
-                        void* setupIsoThresholdGenerator(int dimNumber,
-                                                         const int* isotopeNumbers,
-                                                         const int* atomCounts,
-                                                         const double* isotopeMasses,
-                                                         const double* isotopeProbabilities,
-                                                         const double threshold,
-                                                         bool _absolute,
-                                                         int _tabSize,
-                                                         int _hashSize);
-                        double massIsoThresholdGenerator(void* generator);
-                        double lprobIsoThresholdGenerator(void* generator);
-                        const int* get_conf_signatureIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator);
-                        void deleteIsoThresholdGenerator(void* generator);
+
+void* setupIsoThresholdGenerator(int dimNumber,
+                                 const int* isotopeNumbers,
+                                 const int* atomCounts,
+                                 const double* isotopeMasses,
+                                 const double* isotopeProbabilities,
+                                 const double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize);
+double massIsoThresholdGenerator(void* generator); double lprobIsoThresholdGenerator(void* generator); const int* get_conf_signatureIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator); void set_tablesIsoThresholdGenerator(void* generator, double** masses, double** lprobs, int* config_no, int init_size); void deleteIsoThresholdGenerator(void* generator);
 
 
-                        void* setupIsoOrderedGenerator(int dimNumber,
-                                                       const int* isotopeNumbers,
-                                                       const int* atomCounts,
-                                                       const double* isotopeMasses,
-                                                       const double* isotopeProbabilities,
-                                                       int _tabSize,
-                                                       int _hashSize);
-
-                        double massIsoOrderedGenerator(void* generator);
-                        double lprobIsoOrderedGenerator(void* generator);
-                        const int* get_conf_signatureIsoOrderedGenerator(void* generator);
-                        bool advanceToNextConfigurationIsoOrderedGenerator(void* generator);
-                        void deleteIsoOrderedGenerator(void* generator);
+void* setupIsoOrderedGenerator(int dimNumber,
+                               const int* isotopeNumbers,
+                               const int* atomCounts,
+                               const double* isotopeMasses,
+                               const double* isotopeProbabilities,
+                               int _tabSize,
+                               int _hashSize);
+double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); const int* get_conf_signatureIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void set_tablesIsoOrderedGenerator(void* generator, double** masses, double** lprobs, int* config_no, int init_size); void deleteIsoOrderedGenerator(void* generator);
                         ''');
 
         mod_dir = os.path.dirname(os.path.abspath(__file__))
