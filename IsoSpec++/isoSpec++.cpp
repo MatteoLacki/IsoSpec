@@ -1031,7 +1031,7 @@ void IsoThresholdGenerator::terminate_search()
  */
 
 IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
-IsoGenerator(std::move(iso)), allocator(allDim, _tabSize)
+IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
 {
     marginalResults = new MarginalTrek*[dimNumber];
 
