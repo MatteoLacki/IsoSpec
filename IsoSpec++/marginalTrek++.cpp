@@ -712,33 +712,31 @@ bool LayeredMarginal::extend(double new_threshold)
         opc = logProb(currentConf, atom_lProbs, isotopeNo);
         if(opc >= new_threshold)
             configurations.push_back(currentConf);
-
-
-        for(unsigned int ii = 0; ii < isotopeNo; ii++ )
-            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                if( ii != jj and currentConf[jj] > 0 )
-                {
-                    currentConf[ii]++;
-                    currentConf[jj]--;
-
-                    lpc = logProb(currentConf, atom_lProbs, isotopeNo);
-
-                    if (visited.count(currentConf) == 0 and lpc < current_threshold and 
-                        (opc > lpc or (opc == lpc and ii > jj)))
+        else
+            for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                    if( ii != jj and currentConf[jj] > 0 )
                     {
-                        Conf nc = allocator.makeCopy(currentConf);
-                        visited.insert(nc);
-                        if(lpc >= new_threshold)
-                            fringe.push_back(nc);
-                        else
-                            new_fringe.push_back(nc);
+                        currentConf[ii]++;
+                        currentConf[jj]--;
+
+                        lpc = logProb(currentConf, atom_lProbs, isotopeNo);
+
+                        if (visited.count(currentConf) == 0 and lpc < current_threshold and 
+                            (opc > lpc or (opc == lpc and ii > jj)))
+                        {
+                            Conf nc = allocator.makeCopy(currentConf);
+                            visited.insert(nc);
+                            if(lpc >= new_threshold)
+                                fringe.push_back(nc);
+                            else
+                                new_fringe.push_back(nc);
+                        }
+
+                        currentConf[ii]--;
+                        currentConf[jj]++;
+
                     }
-
-                    currentConf[ii]--;
-                    currentConf[jj]++;
-
-                }
-    }
 
     current_threshold = new_threshold;
     fringe.swap(new_fringe);
