@@ -362,7 +362,7 @@ allocator(isotopeNo, tabSize)
 
     confs  = &configurations[0];
     no_confs = configurations.size();
-    lProbs = new double[no_confs];
+    lProbs = new double[no_confs+1];
     eProbs = new double[no_confs];
     masses = new double[no_confs];
 
@@ -373,6 +373,7 @@ allocator(isotopeNo, tabSize)
         eProbs[ii] = exp(lProbs[ii]);
 	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
+    lProbs[no_confs] = -std::numeric_limits<double>::infinity();
 }
 
 
