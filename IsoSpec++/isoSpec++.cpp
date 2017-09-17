@@ -96,14 +96,14 @@ inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _i
         marginals = new Marginal*[dimNumber];
         for(int i=0; i<dimNumber;i++)
         {
-	    allDim += isotopeNumbers[i];
-	    marginals[i] = new Marginal(
+        allDim += isotopeNumbers[i];
+        marginals[i] = new Marginal(
                 _isotopeMasses[i],
                 _isotopeProbabilities[i],
                 isotopeNumbers[i],
                 atomCounts[i]
-             );
-             modeLProb += marginals[i]->getModeLProb();
+            );
+            modeLProb += marginals[i]->getModeLProb();
         }
     }
 
@@ -113,10 +113,10 @@ Iso::~Iso()
 {
     if(not disowned)
     {
-	if (marginals != nullptr)
-	    dealloc_table(marginals, dimNumber);
-	delete[] isotopeNumbers;
-	delete[] atomCounts;
+    if (marginals != nullptr)
+        dealloc_table(marginals, dimNumber);
+    delete[] isotopeNumbers;
+    delete[] atomCounts;
     }
 }
 
@@ -184,12 +184,12 @@ allDim(0)
 
 inline int str_to_int(const string& s)
 {
-	char* endptr[1];
-	const char* c_s = s.c_str();
-	int ret = (int) strtol(c_s, endptr, 10);
-	if (c_s == endptr[0])
-		throw invalid_argument("Invalid formula");
-	return ret;
+    char* endptr[1];
+    const char* c_s = s.c_str();
+    int ret = (int) strtol(c_s, endptr, 10);
+    if (c_s == endptr[0])
+        throw invalid_argument("Invalid formula");
+    return ret;
 }
 
 Iso::Iso(const char* formula) :
@@ -207,7 +207,7 @@ setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
-// This function is NOT guaranteed to be secure againt malicious input. It should be used only for debugging.
+// This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
 
     string cpp_formula(formula);
     int last_modeswitch = 0;
@@ -338,26 +338,26 @@ void IsoSpec::getCurrentProduct(double* res_mass, double* res_logProb, int* res_
     {
         int* curr_conf  = getConf(newaccepted[na_idx]);
 
-	if(res_mass != NULL)
-        	res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
+        if(res_mass != NULL)
+            res_mass[i]     = combinedSum( curr_conf, masses, dimNumber );
 
-	if(res_logProb != NULL)
-        	res_logProb[i]  = getLProb(newaccepted[na_idx]);
+        if(res_logProb != NULL)
+            res_logProb[i]  = getLProb(newaccepted[na_idx]);
 
-	if(res_isoCounts != NULL)
-	{
+        if(res_isoCounts != NULL)
+        {
             for(int isotopeNumber=0; isotopeNumber<dimNumber; isotopeNumber++)
             {
                 int currentConfIndex = curr_conf[isotopeNumber];
                 int locIsoNo = isotopeNumbers[isotopeNumber];
                 memcpy(
-                    &res_isoCounts[j],
-                    (*marginalConfs[isotopeNumber])[currentConfIndex],
+                        &res_isoCounts[j],
+                        (*marginalConfs[isotopeNumber])[currentConfIndex],
                         sizeof(int)*locIsoNo
                 );
                 j += locIsoNo;
             }
-	}
+        }
         i++;
     }
 }
@@ -973,36 +973,36 @@ Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 
 bool IsoThresholdGenerator::advanceToNextConfiguration()
 {
-	counter[0]++;
-	partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-	if(partialLProbs[0] >= Lcutoff)
-	{
-		partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+    counter[0]++;
+    partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+    if(partialLProbs[0] >= Lcutoff)
+    {
+        partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
                 partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
-		return true;
-	}
+        return true;
+    }
 
-	// If we reached this point, a carry is needed
+    // If we reached this point, a carry is needed
 
-	int idx = 0;
+    int idx = 0;
 
-	while(idx<dimNumber-1)
-	{
-		counter[idx] = 0;
-		idx++;
-		counter[idx]++;
-		partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-		if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
-		{
-			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+    while(idx<dimNumber-1)
+    {
+        counter[idx] = 0;
+        idx++;
+        counter[idx]++;
+        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+        {
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                         partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-			recalc(idx-1);
-			return true;
-		}
-	}
+            recalc(idx-1);
+            return true;
+        }
+    }
 
         terminate_search();
-	return false;
+    return false;
 }
 
 void IsoThresholdGenerator::terminate_search()
