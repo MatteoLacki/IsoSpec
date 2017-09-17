@@ -737,6 +737,7 @@ bool LayeredMarginal::extend(double new_threshold)
                         currentConf[jj]++;
 
                     }
+    }
 
     current_threshold = new_threshold;
     fringe.swap(new_fringe);
