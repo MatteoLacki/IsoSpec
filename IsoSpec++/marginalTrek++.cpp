@@ -710,9 +710,13 @@ bool LayeredMarginal::extend(double new_threshold)
         fringe.pop_back();
 
         opc = logProb(currentConf, atom_lProbs, isotopeNo);
-        if(opc >= new_threshold)
-            configurations.push_back(currentConf);
+
+        if(opc < new_threshold)
+            new_fringe.push_back(currentConf);
+        
         else
+        {
+            configurations.push_back(currentConf);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
                 for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                     if( ii != jj and currentConf[jj] > 0 )
@@ -737,6 +741,7 @@ bool LayeredMarginal::extend(double new_threshold)
                         currentConf[jj]++;
 
                     }
+        }
     }
 
     current_threshold = new_threshold;
