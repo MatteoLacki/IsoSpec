@@ -27,6 +27,7 @@
 #include <iostream>
 #include <string.h>
 #include <limits>
+#include <fenv.h>
 #include "lang.h"
 #include "marginalTrek++.h"
 #include "conf.h"
@@ -132,6 +133,8 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
+    int curr_method = fegetround();
+    fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
     for(int i = 0; i < isoNo; i++)
     {
@@ -143,6 +146,7 @@ double* getMLogProbs(const double* probs, int isoNo)
                 break;
             }
     }
+    fesetround(curr_method);
     return ret;
 }
 
