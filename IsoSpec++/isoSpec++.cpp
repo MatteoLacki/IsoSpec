@@ -665,43 +665,42 @@ IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double
 min_mass(_min_mass),
 max_mass(_max_mass)
 {
-	maxConfsLPSum 	= new double[dimNumber];
-        minMassCSum     = new double[dimNumber];
-        maxMassCSum     = new double[dimNumber];
+    maxConfsLPSum 	= new double[dimNumber];
+    minMassCSum     = new double[dimNumber];
+    maxMassCSum     = new double[dimNumber];
 
-        marginalResults = new RGTMarginal*[dimNumber];
+    marginalResults = new RGTMarginal*[dimNumber];
 
-        Lcutoff = log(_threshold);
-        if(not _absolute)
-            Lcutoff += modeLProb;
+    Lcutoff = log(_threshold);
+    if(not _absolute)
+        Lcutoff += modeLProb;
 
-        bool empty = false;
-	for(int ii=0; ii<dimNumber; ii++)
-	{
-            marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])),
-                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                            tabSize,
-                                                            hashSize);
+    bool empty = false;
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])),
+                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                        tabSize,
+                                                        hashSize);
 
-            if(not marginalResults[ii]->inRange(0))
-                empty = true;
-	}
-	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
-        minMassCSum[0] = marginalResults[0]->getLightestConfMass();
-        maxMassCSum[0] = marginalResults[0]->getHeaviestConfMass();
+        if(not marginalResults[ii]->inRange(0))
+            empty = true;
+    }
+    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    minMassCSum[0] = marginalResults[0]->getLightestConfMass();
+    maxMassCSum[0] = marginalResults[0]->getHeaviestConfMass();
 
-	for(int ii=1; ii<dimNumber; ii++)
-        {
-	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
-            minMassCSum[ii] = minMassCSum[ii-1] + marginalResults[ii]->getLightestConfMass();
-            maxMassCSum[ii] = maxMassCSum[ii-1] + marginalResults[ii]->getHeaviestConfMass();
-        }
+    for(int ii=1; ii<dimNumber; ii++)
+    {
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+        minMassCSum[ii] = minMassCSum[ii-1] + marginalResults[ii]->getLightestConfMass();
+        maxMassCSum[ii] = maxMassCSum[ii-1] + marginalResults[ii]->getHeaviestConfMass();
+    }
 
+    setup_ith_marginal_range(dimNumber-1);
 
-        setup_ith_marginal_range(dimNumber-1);
-
-        for(int ii=0; ii<dimNumber-1; ii++)
-            marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
+    for(int ii=0; ii<dimNumber-1; ii++)
+        marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
 }
 
@@ -715,52 +714,52 @@ IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass()
 
 bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
 {
-	if(marginalResults[0]->next())
+    if(marginalResults[0]->next())
+    {
+        recalc(0);
+        return true;
+    }
+
+
+    // If we reached this point, a carry is needed
+
+    int idx = 1;
+    bool frombelow = true;
+
+
+    while(idx >= 0 and idx < dimNumber)
+    {
+        if(frombelow)
         {
-	    recalc(0);
-            return true;
-        }
-
-
-	// If we reached this point, a carry is needed
-
-	int idx = 1;
-        bool frombelow = true;
-
-
-        while(idx >= 0 and idx < dimNumber)
-        {
-            if(frombelow)
+            if(marginalResults[idx]->next())
             {
-                if(marginalResults[idx]->next())
-                {
-                    recalc(idx);
-                    frombelow = false;
-                    idx--;
-                }
-                else
-                    idx++;
+                recalc(idx);
+                frombelow = false;
+                idx--;
+            }
+            else
+                idx++;
+        }
+        else
+        {
+            setup_ith_marginal_range(idx);
+            if(marginalResults[idx]->next())
+            {
+                recalc(idx);
+                idx--;
             }
             else
             {
-                setup_ith_marginal_range(idx);
-                if(marginalResults[idx]->next())
-                {
-                    recalc(idx);
-                    idx--;
-                }
-                else
-                {
-                    idx++;
-                    frombelow = true;
-                }
+                idx++;
+                frombelow = true;
             }
         }
+    }
 
-        if(idx == dimNumber)
-            return false;
-        else
-            return true;
+    if(idx == dimNumber)
+        return false;
+    else
+        return true;
 
 
 }
@@ -826,92 +825,92 @@ IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, P
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
 last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 {
-	counter 	= new unsigned int[dimNumber+PADDING];
-	maxConfsLPSum 	= new double[dimNumber-1];
+    counter 	= new unsigned int[dimNumber+PADDING];
+    maxConfsLPSum 	= new double[dimNumber-1];
 
-        marginalResults = PMs;
+    marginalResults = PMs;
 
-        bool empty = false;
-	for(int ii=0; ii<dimNumber-1; ii++)
-	{
-	    counter[ii] = 0;
+    bool empty = false;
+    for(int ii=0; ii<dimNumber-1; ii++)
+    {
+        counter[ii] = 0;
 
-            if(not marginalResults[ii]->inRange(0))
-                empty = true;
-	}
-
-        marginalResults[dimNumber-1] = last_marginal;
-        counter[dimNumber-1] = last_marginal->getNextConfIdx();
-        if(not last_marginal->inRange(counter[dimNumber-1]))
+        if(not marginalResults[ii]->inRange(0))
             empty = true;
+    }
+
+    marginalResults[dimNumber-1] = last_marginal;
+    counter[dimNumber-1] = last_marginal->getNextConfIdx();
+    if(not last_marginal->inRange(counter[dimNumber-1]))
+        empty = true;
 
 
-	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
-	for(int ii=1; ii<dimNumber-1; ii++)
-	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    for(int ii=1; ii<dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
 
-        if(not empty)
-        {
-            recalc(dimNumber-1);
-            counter[0]--;
-        }
-        else
-            terminate_search();
+    if(not empty)
+    {
+        recalc(dimNumber-1);
+        counter[0]--;
+    }
+    else
+        terminate_search();
 }
 
 bool IsoThresholdGeneratorMT::advanceToNextConfiguration()
 {
-	counter[0]++;
-	if(marginalResults[0]->inRange(counter[0]))
-	{
-		partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-		if(partialLProbs[0] >= Lcutoff)
-		{
-			partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
-                        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
-			return true;
-		}
-	}
+    counter[0]++;
+    if(marginalResults[0]->inRange(counter[0]))
+    {
+        partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+        if(partialLProbs[0] >= Lcutoff)
+        {
+            partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+            partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
+            return true;
+        }
+    }
 
-	// If we reached this point, a carry is needed
+    // If we reached this point, a carry is needed
 
-	int idx = 0;
+    int idx = 0;
 
-	while(idx<dimNumber-2)
-	{
-		counter[idx] = 0;
-		idx++;
-		counter[idx]++;
-		if(marginalResults[idx]->inRange(counter[idx]))
-		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-			if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
-			{
-				partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-				recalc(idx-1);
-				return true;
-			}
-		}
-	}
-
+    while(idx<dimNumber-2)
+    {
         counter[idx] = 0;
         idx++;
-        counter[idx] = last_marginal->getNextConfIdx();
-        if(last_marginal->inRange(counter[idx]))
+        counter[idx]++;
+        if(marginalResults[idx]->inRange(counter[idx]))
         {
-            partialLProbs[idx] = partialLProbs[idx+1] + last_marginal->get_lProb(counter[idx]);
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
             {
-                partialMasses[idx] = partialMasses[idx+1] + last_marginal->get_mass(counter[idx]);
-                partialExpProbs[idx] = partialExpProbs[idx+1] * last_marginal->get_eProb(counter[idx]);
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
                 recalc(idx-1);
                 return true;
             }
         }
-        terminate_search();
-	return false;
+    }
+
+    counter[idx] = 0;
+    idx++;
+    counter[idx] = last_marginal->getNextConfIdx();
+    if(last_marginal->inRange(counter[idx]))
+    {
+        partialLProbs[idx] = partialLProbs[idx+1] + last_marginal->get_lProb(counter[idx]);
+        if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+        {
+            partialMasses[idx] = partialMasses[idx+1] + last_marginal->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * last_marginal->get_eProb(counter[idx]);
+            recalc(idx-1);
+            return true;
+        }
+    }
+    terminate_search();
+    return false;
 }
 
 void IsoThresholdGeneratorMT::terminate_search()
@@ -937,36 +936,37 @@ IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool 
 : IsoGenerator(std::move(iso)),
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
 {
-	counter = new int[dimNumber];
-	maxConfsLPSum = new double[dimNumber-1];
+    counter = new int[dimNumber];
+    maxConfsLPSum = new double[dimNumber-1];
     marginalResults = new PrecalculatedMarginal*[dimNumber];
 
     bool empty = false;
-	for(int ii=0; ii<dimNumber; ii++)
-	{
-	    counter[ii] = 0;
 
-            marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                            Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                            true,
-                                                            tabSize,
-                                                            hashSize);
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        counter[ii] = 0;
 
-            if(not marginalResults[ii]->inRange(0))
-                empty = true;
-	}
+        marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
+                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                        true,
+                                                        tabSize,
+                                                        hashSize);
 
-	maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
-	for(int ii=1; ii<dimNumber-1; ii++)
-	    maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+        if(not marginalResults[ii]->inRange(0))
+            empty = true;
+    }
 
-        if(not empty)
-        {
-            recalc(dimNumber-1);
-            counter[0]--;
-        }
-        else
-            terminate_search();
+    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    for(int ii=1; ii<dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+
+    if(not empty)
+    {
+        recalc(dimNumber-1);
+        counter[0]--;
+    }
+    else
+        terminate_search();
 
 
 }
@@ -1129,6 +1129,151 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     return true;
 }
+
+
+
+/*
+ * ---------------------------------------------------------------------------------------------------
+ */
+
+#if 0
+IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, double _psize, int tabSize, int hashSize)
+: IsoGenerator(std::move(iso)),
+psize(_psize),
+last_layer_lcutoff(0.0)
+{
+    if (psize <= 0.0)
+    {
+        terminate_search();
+        return;
+    }
+
+    counter = new unsigned int[dimNumber];
+    maxConfsLPSum = new double[dimNumber-1];
+
+    marginalResults = new LayeredMarginal*[dimNumber];
+
+    bool empty = false;
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        counter[ii] = 0;
+
+        marginalResults[ii] = new LayeredMarginal(std::move(*(marginals[ii])),
+                                                            tabSize,
+                                                            hashSize);
+    }
+
+    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    for(int ii=1; ii<dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+
+    recalc(dimNumber-1);
+    counter[0]--;
+
+    last_counters = new int[dimNumber];
+}
+
+
+bool IsoLayeredGenerator::nextLayer(double new_logCutoff)
+{
+    bool res = false;
+    for(int ii=0; ii<dimNumber; ii++)
+        res = marginalResults[ii]->extend(new_logCutoff - modeLProb + marginals[ii]->getModeLProb()) or res;
+
+    if(not res)
+        return false;
+
+    bzero(counter, dimNumber * sizeof(unsigned int));
+
+    counter[0] = marginalResults[0]->get_no_confs();
+
+    last_counters[0] = counter[0];
+
+    last_layer_lcutoff = current_layer_lcutoff;
+    current_layer_lcutoff = new_logCutoff;
+
+    return true;
+}
+
+
+bool IsoLayeredGenerator::advanceToNextConfiguration()
+{
+    counter[0]--;
+    double cprob = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+    // TODO use guardian also in threshold iso
+    if(cprob > last_layer_lcutoff)
+    {
+        partialLProbs[0] = cprob;
+        partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
+        return true;
+    }
+
+    // If we reached this point, a carry is needed
+
+    int idx = 0;
+
+    while(idx < dimNumber-1)
+    {
+
+    }
+
+    return; // TODO finish
+}
+
+
+
+bool IsoLayeredGenerator::advanceToNextConfiguration()
+{
+    counter[0]++;
+    if(marginalResults[0]->inRange(counter[0]))
+    {
+        partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+        if(partialLProbs[0] >= Lcutoff)
+        {
+            partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
+                        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
+            return true;
+        }
+    }
+
+    // If we reached this point, a carry is needed
+
+    int idx = 0;
+
+    while(idx<dimNumber-1)
+    {
+        counter[idx] = 0;
+        idx++;
+        counter[idx]++;
+        if(marginalResults[idx]->inRange(counter[idx]))
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+                recalc(idx-1);
+                return true;
+            }
+        }
+    }
+
+    terminate_search();
+    return false;
+}
+#endif
+
+void IsoLayeredGenerator::terminate_search()
+{
+    for(int ii=0; ii<dimNumber; ii++)
+        counter[ii] = marginalResults[ii]->get_no_confs();
+}
+
+
+
+
+
 #ifndef BUILDING_R
 
 void printConfigurations(

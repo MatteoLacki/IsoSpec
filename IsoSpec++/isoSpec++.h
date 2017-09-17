@@ -376,6 +376,45 @@ private:
 
 
 
+class IsoLayeredGenerator : public IsoGenerator
+{
+private:
+    unsigned int* counter;
+    double* maxConfsLPSum;
+    const double psize;
+    double last_layer_lcutoff, current_layer_lcutoff;
+    Summator current_sum;
+    LayeredMarginal** marginalResults;
+    double* probsExcept;
+    int* last_counters;
+
+public:
+    virtual bool advanceToNextConfiguration();
+    virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//  virtual const int* const & conf() const;
+    bool nextLayer(double new_logCutoff);
+
+
+    IsoLayeredGenerator(Iso&& iso, double psize, int _tabSize  = 1000, int _hashSize = 1000);
+
+//    inline virtual ~IsoLayeredGenerator() { delete[] counter; delete[] maxConfsLPSum;
+//                                                    dealloc_table(marginalResults, dimNumber);};
+
+    void terminate_search();
+
+private:
+    inline void recalc(int idx)
+    {
+        for(; idx >=0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+        }
+    }
+};
+
+
 
 
 #ifndef BUILDING_R
