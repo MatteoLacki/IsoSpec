@@ -40,10 +40,11 @@ private:
 protected:
     const unsigned int isotopeNo;
     const unsigned int atomCnt;
-    const double* atom_masses;
-    const double* atom_lProbs;
+    const double* const atom_masses;
+    const double* const atom_lProbs;
     const Conf mode_conf;
     const double mode_lprob;
+
 
 public:
     Marginal(

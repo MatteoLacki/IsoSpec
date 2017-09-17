@@ -21,6 +21,7 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <fenv.h>
 #include "isoMath.h"
 
 inline double combinedSum(
@@ -51,13 +52,28 @@ inline double logProb(const int* conf, const double* logProbs, int dim)
     int     N = 0;
     double  res = 0.0;
 
+    int curr_method = fegetround();
+
+    fesetround(FE_DOWNWARD);
+
+    for(int i=0; i < dim; i++)
+        res += logFactorial(conf[i]);
+
+    fesetround(FE_UPWARD);
+
+    res = -res;
+
     for(int i=0; i < dim; i++)
     {
         N   += conf[i];
-        res -= logFactorial(conf[i]);
         res += conf[i] * logProbs[i];
     }
-    return res + logFactorial(N);
+
+    res += logFactorial(N);
+
+    fesetround(curr_method);
+
+    return res;
 }
 
 inline double mass(const int* conf, const double* masses, int dim)
