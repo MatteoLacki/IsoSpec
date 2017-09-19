@@ -233,60 +233,74 @@ class IsoOrderedGenerator: public IsoGenerator
 {
 private:
     MarginalTrek** marginalResults;
-	std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
-	void* topConf;
-	DirtyAllocator allocator;
+    std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
+    void* topConf;
+    DirtyAllocator allocator;
     const std::vector<double>**     logProbs;
     const std::vector<double>**     masses;
     const std::vector<int*>**       marginalConfs;
-	double currentLProb;
-	double currentMass;
-	int*   candidate;
+    double currentLProb;
+    double currentMass;
+    int*   candidate;
 
 public:
-	virtual bool advanceToNextConfiguration();
-	virtual const double& lprob() const { return currentLProb; };
-	virtual const double& mass() const { return currentMass; };
-    virtual inline const int* get_conf_signature() const { return getConf(topConf); };
+    virtual bool advanceToNextConfiguration();
+    virtual const double& lprob() const { return currentLProb; };
+    virtual const double& mass() const { return currentMass; };
+    virtual inline void get_conf_signature(int* space) const 
+    { 
+        const int* c = getConf(topConf);
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
 
     IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
 
-	virtual ~IsoOrderedGenerator();
+    virtual ~IsoOrderedGenerator();
 
 };
 
 class IsoThresholdGenerator: public IsoGenerator
 {
 private:
-	int* counter;
-	double* maxConfsLPSum;
-	const double Lcutoff;
+    int* counter;
+    double* maxConfsLPSum;
+    const double Lcutoff;
     PrecalculatedMarginal** marginalResults;
 
 public:
-	virtual bool advanceToNextConfiguration();
-    virtual inline const int* get_conf_signature() { return counter; };
-//	virtual const int* const & conf() const;
+    virtual bool advanceToNextConfiguration();
+    virtual inline void get_conf_signature(int* space) 
+    {
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
 
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true,
                           int _tabSize=1000, int _hashSize=1000);
 
-	inline virtual ~IsoThresholdGenerator() { delete[] counter;
+    inline virtual ~IsoThresholdGenerator() { delete[] counter;
                                               delete[] maxConfsLPSum;
                                               dealloc_table(marginalResults, dimNumber); };
 
     void terminate_search();
 
 private:
-	inline void recalc(int idx)
+    inline void recalc(int idx)
+    {
+	for(; idx >=0; idx--)
 	{
-		for(; idx >=0; idx--)
-		{
-			partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-			partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+	    partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+	    partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-		}
 	}
+    }
 
 
 
@@ -361,6 +375,45 @@ private:
 
 };
 
+
+
+class IsoLayeredGenerator : public IsoGenerator
+{
+private:
+    unsigned int* counter;
+    double* maxConfsLPSum;
+    const double psize;
+    double last_layer_lcutoff, current_layer_lcutoff;
+    Summator current_sum;
+    LayeredMarginal** marginalResults;
+    double* probsExcept;
+    int* last_counters;
+
+public:
+    virtual bool advanceToNextConfiguration();
+    virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+//  virtual const int* const & conf() const;
+    bool nextLayer(double new_logCutoff);
+
+
+    IsoLayeredGenerator(Iso&& iso, double psize, int _tabSize  = 1000, int _hashSize = 1000);
+
+//    inline virtual ~IsoLayeredGenerator() { delete[] counter; delete[] maxConfsLPSum;
+//                                                    dealloc_table(marginalResults, dimNumber);};
+
+    void terminate_search();
+
+private:
+    inline void recalc(int idx)
+    {
+        for(; idx >=0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+        }
+    }
+};
 
 
 

@@ -17,20 +17,20 @@
 
 #include "operators.h"
 
-KeyHasher::KeyHasher(int dim)
-: dim(dim)
+KeyHasher::KeyHasher(int _dim)
+: dim(_dim)
 {}
 
 ConfEqual::ConfEqual(int dim)
 : size( dim*sizeof(int) )
 {}
 
-ConfOrderMarginal::ConfOrderMarginal(const double* logProbs, int dim)
-: logProbs(logProbs), dim(dim)
+ConfOrderMarginal::ConfOrderMarginal(const double* _logProbs, int _dim)
+: logProbs(_logProbs), dim(_dim)
 {}
 
-ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* logProbs, int dim)
-: logProbs(logProbs), dim(dim)
+ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs, int _dim)
+: logProbs(_logProbs), dim(_dim)
 {}
 
 

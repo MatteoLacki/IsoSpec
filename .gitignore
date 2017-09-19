@@ -1,2 +1,3 @@
 .DS_Store # macOS shit
 *.pyc     # Python shit
+*.h.gch

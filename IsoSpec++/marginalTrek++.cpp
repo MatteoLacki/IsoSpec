@@ -27,6 +27,7 @@
 #include <iostream>
 #include <string.h>
 #include <limits>
+#include <fenv.h>
 #include "lang.h"
 #include "marginalTrek++.h"
 #include "conf.h"
@@ -85,25 +86,25 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
     while(modified)
     {
-    	modified = false;
-    	for(int ii = 0; ii<isotopeNo; ii++)
-	    for(int jj = 0; jj<isotopeNo; jj++)
-	        if(ii != jj and res[ii] > 0)
-		{
-		    res[ii]--;
-		    res[jj]++;
-		    NLP = logProb(res, lprobs, isotopeNo);
-		    if(NLP>LP or (NLP==LP and ii>jj))
-		    {
-		    	modified = true;
-			LP = NLP;
-		    }
-		    else
-		    {
-		    	res[ii]++;
-			res[jj]--;
-		    }
-		}
+        modified = false;
+        for(int ii = 0; ii<isotopeNo; ii++)
+        for(int jj = 0; jj<isotopeNo; jj++)
+            if(ii != jj and res[ii] > 0)
+        {
+            res[ii]--;
+            res[jj]++;
+            NLP = logProb(res, lprobs, isotopeNo);
+            if(NLP>LP or (NLP==LP and ii>jj))
+            {
+                modified = true;
+            LP = NLP;
+            }
+            else
+            {
+                res[ii]++;
+            res[jj]--;
+            }
+        }
 
 
     }
@@ -132,6 +133,8 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
+    int curr_method = fegetround();
+    fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
     for(int i = 0; i < isoNo; i++)
     {
@@ -143,6 +146,7 @@ double* getMLogProbs(const double* probs, int isoNo)
                 break;
             }
     }
+    fesetround(curr_method);
     return ret;
 }
 
@@ -190,7 +194,7 @@ double Marginal::getLightestConfMass() const
     double ret_mass = std::numeric_limits<double>::infinity();
     for(unsigned int ii=0; ii < isotopeNo; ii++)
         if( ret_mass > atom_masses[ii] )
-	    ret_mass = atom_masses[ii];
+            ret_mass = atom_masses[ii];
     return ret_mass*atomCnt;
 }
 
@@ -332,22 +336,22 @@ allocator(isotopeNo, tabSize)
     while(idx < configurations.size())
     {
         memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
-	idx++;
+        idx++;
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                 if( ii != jj and currentConf[jj] > 0)
-		{
-		    currentConf[ii]++;
-		    currentConf[jj]--;
+                {
+                    currentConf[ii]++;
+                    currentConf[jj]--;
 
-		    if (visited.count(currentConf) == 0 and logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
-		    {
-		    	 visited.insert(currentConf);
-                         configurations.push_back(allocator.makeCopy(currentConf));
-	            }
+                    if (visited.count(currentConf) == 0 and logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
+                    {
+                        visited.insert(currentConf);
+                        configurations.push_back(allocator.makeCopy(currentConf));
+                    }
 
-		    currentConf[ii]--;
-		    currentConf[jj]++;
+                    currentConf[ii]--;
+                    currentConf[jj]++;
 
                 }
     }
@@ -358,7 +362,7 @@ allocator(isotopeNo, tabSize)
 
     confs  = &configurations[0];
     no_confs = configurations.size();
-    lProbs = new double[no_confs];
+    lProbs = new double[no_confs+1];
     eProbs = new double[no_confs];
     masses = new double[no_confs];
 
@@ -367,17 +371,18 @@ allocator(isotopeNo, tabSize)
     {
         lProbs[ii] = logProb(confs[ii], atom_lProbs, isotopeNo);
         eProbs[ii] = exp(lProbs[ii]);
-	masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
+        masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
+    lProbs[no_confs] = -std::numeric_limits<double>::infinity();
 }
 
 
 PrecalculatedMarginal::~PrecalculatedMarginal()
 {
     if(lProbs != nullptr)
-    	delete[] lProbs;
+        delete[] lProbs;
     if(masses != nullptr)
-    	delete[] masses;
+        delete[] masses;
     if(eProbs != nullptr)
         delete[] eProbs;
 }
@@ -389,14 +394,14 @@ RGTMarginal::RGTMarginal(
         double lCutOff,
         int tabSize,
         int hashSize) :
-	PrecalculatedMarginal(std::move(m), lCutOff, true, tabSize, hashSize),
+        PrecalculatedMarginal(std::move(m), lCutOff, true, tabSize, hashSize),
         TOV_NP2(next_pow2(no_confs)),
         TOV_NP2M1(TOV_NP2/2),
         mass_table_rows_no(floor_log2(TOV_NP2M1)),
 //        mass_table_row_size(TOV_NP2),
         mass_table_row_size(no_confs),
-	mass_table_size(mass_table_row_size * mass_table_rows_no),
-	subintervals(alloc_and_setup_subintervals()),
+        mass_table_size(mass_table_row_size * mass_table_rows_no),
+        subintervals(alloc_and_setup_subintervals()),
         mass_table(alloc_and_setup_mass_table())
 {terminate_search();}
 
@@ -434,18 +439,18 @@ unsigned int* RGTMarginal::alloc_and_setup_subintervals()
 
 double* RGTMarginal::alloc_and_setup_mass_table()
 {
-	// Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency. Hopefully. Possibly.
-	double* ret = new double[mass_table_size+4];
-        for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
-	    for(unsigned int ii=level; ii<no_confs+level; ii++)
-		ret[ii] = masses[subintervals[ii]];
+    // Trading off memory for speed here... One less pointer dereference per conf, and better cache coherency. Hopefully. Possibly.
+    double* ret = new double[mass_table_size+4];
+    for(unsigned int level = 0; level < mass_table_size; level += mass_table_row_size)
+        for(unsigned int ii=level; ii<no_confs+level; ii++)
+            ret[ii] = masses[subintervals[ii]];
 
-	return ret;
+    return ret;
 }
 
 /*
- * -------- end of constructor -------------
- */
+* -------- end of constructor -------------
+*/
 
 
 void RGTMarginal::setup_search(double _pmin, double _pmax, double _mmin, double _mmax)
@@ -710,34 +715,38 @@ bool LayeredMarginal::extend(double new_threshold)
         fringe.pop_back();
 
         opc = logProb(currentConf, atom_lProbs, isotopeNo);
-        if(opc >= new_threshold)
+
+        if(opc < new_threshold)
+            new_fringe.push_back(currentConf);
+
+        else
+        {
             configurations.push_back(currentConf);
-
-
-        for(unsigned int ii = 0; ii < isotopeNo; ii++ )
-            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                if( ii != jj and currentConf[jj] > 0 )
-                {
-                    currentConf[ii]++;
-                    currentConf[jj]--;
-
-                    lpc = logProb(currentConf, atom_lProbs, isotopeNo);
-
-                    if (visited.count(currentConf) == 0 and lpc < current_threshold and 
-                        (opc > lpc or (opc == lpc and ii > jj)))
+            for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                    if( ii != jj and currentConf[jj] > 0 )
                     {
-                        Conf nc = allocator.makeCopy(currentConf);
-                        visited.insert(nc);
-                        if(lpc >= new_threshold)
-                            fringe.push_back(nc);
-                        else
-                            new_fringe.push_back(nc);
+                        currentConf[ii]++;
+                        currentConf[jj]--;
+
+                        lpc = logProb(currentConf, atom_lProbs, isotopeNo);
+
+                        if (visited.count(currentConf) == 0 and lpc < current_threshold and
+                            (opc > lpc or (opc == lpc and ii > jj)))
+                        {
+                            Conf nc = allocator.makeCopy(currentConf);
+                            visited.insert(nc);
+                            if(lpc >= new_threshold)
+                                fringe.push_back(nc);
+                            else
+                                new_fringe.push_back(nc);
+                        }
+
+                        currentConf[ii]--;
+                        currentConf[jj]++;
+
                     }
-
-                    currentConf[ii]--;
-                    currentConf[jj]++;
-
-                }
+        }
     }
 
     current_threshold = new_threshold;
