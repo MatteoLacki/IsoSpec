@@ -27,6 +27,7 @@
 #include <iostream>
 #include <string.h>
 #include <limits>
+#include <cstdlib>
 #include <fenv.h>
 #include "lang.h"
 #include "marginalTrek++.h"
@@ -174,7 +175,13 @@ atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
 mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo))
-{}
+{
+    if(G_FACT_TABLE_SIZE-1 <= atomCnt)
+    {
+        std::cerr << "Subisotopologue too large..." << std::endl;
+        std::abort();
+    }
+}
 
 Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),

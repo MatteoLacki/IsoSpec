@@ -21,6 +21,7 @@
 #include <cmath>
 #include <fenv.h>
 
+#define G_FACT_TABLE_SIZE 1024*1024*10
 extern double* g_lfact_table;
 
 static inline double minuslogFactorial(int n) 
