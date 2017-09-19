@@ -709,6 +709,7 @@ equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo
 {
     fringe.push_back(mode_conf);
     lProbs.push_back(std::numeric_limits<double>::infinity());
+    lProbs.push_back(-std::numeric_limits<double>::infinity());
     guarded_lProbs = lProbs.data()+1;
 }
 
@@ -772,6 +773,7 @@ bool LayeredMarginal::extend(double new_threshold)
 
     std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
 
+    lProbs.pop_back(); // The guardian...
 
     for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
     {
@@ -779,6 +781,8 @@ bool LayeredMarginal::extend(double new_threshold)
         eProbs.push_back(exp(lProbs.back()));
         masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
     }
+
+    lProbs.push_back(-std::numeric_limits<double>::infinity()); // Restore guardian
 
     sorted_up_to_idx = configurations.size();
     guarded_lProbs = lProbs.data()+1;
