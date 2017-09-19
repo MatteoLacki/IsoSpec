@@ -91,7 +91,7 @@ dataType method##generatorType(void* generator);
 #define C_HEADERS(generatorType)\
 C_HEADER(generatorType, double, mass) \
 C_HEADER(generatorType, double, lprob) \
-C_HEADER(generatorType, double, get_conf_signature) \
+C_HEADER(generatorType, const int*, get_conf_signature) \
 C_HEADER(generatorType, bool, advanceToNextConfiguration) \
 C_HEADER(generatorType, void, delete)
 

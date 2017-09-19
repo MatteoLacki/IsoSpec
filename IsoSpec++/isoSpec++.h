@@ -65,10 +65,8 @@ public:
 	);
 
 	Iso(const char* formula);
-
-        Iso(Iso&& other);
-
-        Iso(const Iso& other, bool fullcopy);
+    Iso(Iso&& other);
+    Iso(const Iso& other, bool fullcopy);
 
 	virtual ~Iso();
 
@@ -76,7 +74,7 @@ public:
 	double getHeaviestPeakMass() const;
     inline double getModeLProb() const { return modeLProb; };
     inline int getDimNumber() const { return dimNumber; };
-    inline int getAllDim() const { return allDim; }; 
+    inline int getAllDim() const { return allDim; };
 
     PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
 

@@ -18,11 +18,11 @@ public:
 
     ~Tabulator();
 
-    inline const double* masses()   { return _masses; };
-    inline const double* lprobs()   { return _lprobs; };
-    inline const double* probs()    { return _probs; };
-    inline const int*    confs()    { return _confs; };
-    inline const int     confs_no() { return _confs_no; };
+    inline double*   masses()   { return _masses; };
+    inline double*   lprobs()   { return _lprobs; };
+    inline double*   probs()    { return _probs; };
+    inline int*      confs()    { return _confs; };
+    inline const int confs_no() { return _confs_no; };
 };
 
 #endif  // __TABULATOR_H__

@@ -24,7 +24,7 @@
 #include "misc.h"
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
-#include "array.h"
+#include "tabulator.h"
 
 
 extern "C"
@@ -248,7 +248,7 @@ void* setupTabulator(void* generator,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    Tabulator* tabulator = new Tabulator(generator,
+    Tabulator* tabulator = new Tabulator(reinterpret_cast<IsoThresholdGenerator*>(generator),
                                          get_masses,
                                          get_probs,
                                          get_lprobs,
