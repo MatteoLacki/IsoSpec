@@ -47,29 +47,21 @@ inline double getLProb(void* conf)
 }
 
 
-inline double logProb(const int* conf, const double* logProbs, int dim)
+inline double unnormalized_logProb(const int* conf, const double* logProbs, int dim)
 {
-    int     N = 0;
     double  res = 0.0;
 
     int curr_method = fegetround();
 
-    fesetround(FE_DOWNWARD);
+    fesetround(FE_TOWARDZERO);
 
     for(int i=0; i < dim; i++)
-        res += logFactorial(conf[i]);
+        res += minuslogFactorial(conf[i]);
 
     fesetround(FE_UPWARD);
 
-    res = -res;
-
     for(int i=0; i < dim; i++)
-    {
-        N   += conf[i];
         res += conf[i] * logProbs[i];
-    }
-
-    res += logFactorial(N);
 
     fesetround(curr_method);
 

@@ -79,7 +79,7 @@ public:
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {// Return true if conf1 is less probable than conf2.
-        return logProb(conf1,logProbs,dim) < logProb(conf2,logProbs,dim);
+        return unnormalized_logProb(conf1,logProbs,dim) < unnormalized_logProb(conf2,logProbs,dim);
     };
 };
 
@@ -93,7 +93,7 @@ public:
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {// Return true if conf1 is less probable than conf2.
-        return logProb(conf1,logProbs,dim) > logProb(conf2,logProbs,dim);
+        return unnormalized_logProb(conf1,logProbs,dim) > unnormalized_logProb(conf2,logProbs,dim);
     };
 };
 

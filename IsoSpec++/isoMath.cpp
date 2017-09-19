@@ -7,9 +7,13 @@
  */
 
 #include <cmath>
-
+#include <sys/mman.h>
+#include <unistd.h>
 
 const double pi = 3.14159265358979323846264338328;
+
+// 10M should be enough for everyone, right?
+double* g_lfact_table = reinterpret_cast<double*>(mmap(NULL, sizeof(double)*1024*1024*10, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
 
 double RationalApproximation(double t)
 {

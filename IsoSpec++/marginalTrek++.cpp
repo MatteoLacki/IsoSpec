@@ -81,7 +81,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
     // What we computed so far will be very close to the mode: hillclimb the rest of the way
 
     bool modified = true;
-    double LP = logProb(res, lprobs, isotopeNo);
+    double LP = unnormalized_logProb(res, lprobs, isotopeNo);
     double NLP;
 
     while(modified)
@@ -93,7 +93,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
         {
             res[ii]--;
             res[jj]++;
-            NLP = logProb(res, lprobs, isotopeNo);
+            NLP = unnormalized_logProb(res, lprobs, isotopeNo);
             if(NLP>LP or (NLP==LP and ii>jj))
             {
                 modified = true;
@@ -150,6 +150,15 @@ double* getMLogProbs(const double* probs, int isoNo)
     return ret;
 }
 
+double get_loggamma_nominator(int x)
+{
+    int curr_method = fegetround();
+    fesetround(FE_UPWARD);
+    double ret = lgamma(x+1);
+    fesetround(curr_method);
+    return ret;
+}
+
 
 Marginal::Marginal(
     const double* _masses,
@@ -160,10 +169,11 @@ Marginal::Marginal(
 disowned(false),
 isotopeNo(_isotopeNo),
 atomCnt(_atomCnt),
-atom_masses(array_copy<double>(_masses, isotopeNo)),
+atom_masses(array_copy<double>(_masses, _isotopeNo)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
+loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
-mode_lprob(logProb(mode_conf, atom_lProbs, isotopeNo))
+mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo))
 {}
 
 Marginal::Marginal(Marginal&& other) :
@@ -172,8 +182,9 @@ isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
 atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
+loggamma_nominator(other.loggamma_nominator),
 mode_conf(other.mode_conf),
-mode_lprob(logProb(mode_conf, atom_lProbs, isotopeNo))
+mode_lprob(other.mode_lprob)
 {
     other.disowned = true;
 }
@@ -248,7 +259,7 @@ bool MarginalTrek::add_next_conf()
 
     _confs.push_back(topConf);
     _conf_masses.push_back(mass(topConf, atom_masses, isotopeNo));
-    double logprob = logProb(topConf, atom_lProbs, isotopeNo);
+    double logprob = logProb(topConf);
     _conf_probs.push_back(logprob);
 
 
@@ -325,7 +336,7 @@ allocator(isotopeNo, tabSize)
     std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
 
     Conf currentConf = allocator.makeCopy(mode_conf);
-    if(logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
+    if(logProb(currentConf) >= lCutOff)
     {
         configurations.push_back(allocator.makeCopy(currentConf));
         visited.insert(currentConf);
@@ -344,7 +355,7 @@ allocator(isotopeNo, tabSize)
                     currentConf[ii]++;
                     currentConf[jj]--;
 
-                    if (visited.count(currentConf) == 0 and logProb(currentConf, atom_lProbs, isotopeNo) >= lCutOff)
+                    if (visited.count(currentConf) == 0 and logProb(currentConf) >= lCutOff)
                     {
                         visited.insert(currentConf);
                         configurations.push_back(allocator.makeCopy(currentConf));
@@ -369,7 +380,7 @@ allocator(isotopeNo, tabSize)
 
     for(unsigned int ii=0; ii < no_confs; ii++)
     {
-        lProbs[ii] = logProb(confs[ii], atom_lProbs, isotopeNo);
+        lProbs[ii] = logProb(confs[ii]);
         eProbs[ii] = exp(lProbs[ii]);
         masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
     }
@@ -714,7 +725,7 @@ bool LayeredMarginal::extend(double new_threshold)
         currentConf = fringe.back();
         fringe.pop_back();
 
-        opc = logProb(currentConf, atom_lProbs, isotopeNo);
+        opc = logProb(currentConf);
 
         if(opc < new_threshold)
             new_fringe.push_back(currentConf);
@@ -729,7 +740,7 @@ bool LayeredMarginal::extend(double new_threshold)
                         currentConf[ii]++;
                         currentConf[jj]--;
 
-                        lpc = logProb(currentConf, atom_lProbs, isotopeNo);
+                        lpc = logProb(currentConf);
 
                         if (visited.count(currentConf) == 0 and lpc < current_threshold and
                             (opc > lpc or (opc == lpc and ii > jj)))
@@ -757,7 +768,7 @@ bool LayeredMarginal::extend(double new_threshold)
 
     for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
     {
-        lProbs.push_back(logProb(configurations[ii], atom_lProbs, isotopeNo));
+        lProbs.push_back(logProb(configurations[ii]));
         eProbs.push_back(exp(lProbs.back()));
         masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
     }

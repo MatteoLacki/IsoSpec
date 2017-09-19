@@ -19,8 +19,19 @@
 #define ISOMATH_HPP
 
 #include <cmath>
+#include <fenv.h>
 
-static inline double logFactorial(int n) { return lgamma(n+1); }
+extern double* g_lfact_table;
+
+static inline double minuslogFactorial(int n) 
+{ 
+    if (n < 2) 
+        return 0.0;
+    if (g_lfact_table[n] == 0.0)
+        g_lfact_table[n] = -lgamma(n+1);
+
+    return g_lfact_table[n];
+}
 double NormalCDFInverse(double p);
 double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);

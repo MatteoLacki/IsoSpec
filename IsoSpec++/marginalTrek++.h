@@ -42,6 +42,7 @@ protected:
     const unsigned int atomCnt;
     const double* const atom_masses;
     const double* const atom_lProbs;
+    const double loggamma_nominator;
     const Conf mode_conf;
     const double mode_lprob;
 
@@ -62,6 +63,7 @@ public:
     double getLightestConfMass() const;
     double getHeaviestConfMass() const;
     inline double getModeLProb() const { return mode_lprob; };
+    inline double logProb(Conf conf) { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
 };
 
 class MarginalTrek : public Marginal
@@ -79,7 +81,6 @@ private:
     std::vector<double> _conf_probs;
     std::vector<double> _conf_masses;
     std::vector<int*> _confs;
-
 
     bool add_next_conf();
 
