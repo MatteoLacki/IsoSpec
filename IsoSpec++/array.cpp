@@ -1,7 +1,4 @@
-extern "C"{
-
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include "array.h"
 
 struct DoubleArray
@@ -18,9 +15,9 @@ void DoubleArrayConstructor(DoubleArray *a, int initialSize)
     a->size = initialSize;
 }
 
-void DoubleArrayDestructor(DoubleArray *a)
+void DoubleArrayDestructor(DoubleArray *a, bool free_array = true)
 {
-    free(a->array);
+    if( free_array ){ free(a->array); }
     a->array = NULL;
     a->used = a->size = 0;
 }
@@ -34,7 +31,4 @@ void DoubleArrayPush(DoubleArray *a, double element)
     }
     a->array[a->used] = element;
     a->used++;
-}
-
-
 }

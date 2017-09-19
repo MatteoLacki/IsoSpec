@@ -144,38 +144,30 @@ dataType method##generatorType(void* generator){ return reinterpret_cast<generat
 
 #define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
 
-#include <iostream>
-
-#define C_GENERATOR_TO_ARRAY_CODE(generatorType)\
-void set_tables##generatorType(void* generator,\
-                double** masses, \
-                double** lprobs, \
-                int* config_no, \
-                int init_size) \
-{ \
-    DoubleArray Masses, LogProbs; \
-    DoubleArrayConstructor(&Masses, init_size); \
-    DoubleArrayConstructor(&LogProbs, init_size); \
-    \
-    while(advanceToNextConfiguration##generatorType(generator)) \
-    { \
-        DoubleArrayPush(&Masses, mass##generatorType(generator)); \
-        DoubleArrayPush(&LogProbs, lprob##generatorType(generator)); \
-    } \
-    \
-    *masses = Masses.array; \
-    *lprobs = LogProbs.array; \
-    *config_no = Masses.used; \
-    DoubleArrayDestructor(&Masses); \
-    DoubleArrayDestructor(&LogProbs); \
-}\
+// #define C_GENERATOR_TO_ARRAY_CODE(generatorType)\
+// MassSpectrum set_tables##generatorType(void* generator, int init_size) \
+// { \
+//     DoubleArray Masses, LogProbs; \
+//     DoubleArrayConstructor(&Masses, init_size); \
+//     DoubleArrayConstructor(&LogProbs, init_size); \
+//     \
+//     while(advanceToNextConfiguration##generatorType(generator)) \
+//     { \
+//         DoubleArrayPush(&Masses, mass##generatorType(generator)); \
+//         DoubleArrayPush(&LogProbs, lprob##generatorType(generator)); \
+//     } \
+//     \
+//     MassSpectrum S = { Masses.array, LogProbs.array, Masses.used }; \
+//     DoubleArrayDestructor(&Masses, true); \
+//     DoubleArrayDestructor(&LogProbs, true); \
+//     return S; \
+// }\
 
 #define C_CODES(generatorType)\
 C_CODE(generatorType, double, mass) \
 C_CODE(generatorType, double, lprob) \
 C_CODE(generatorType, const int*, get_conf_signature) \
 C_CODE(generatorType, bool, advanceToNextConfiguration) \
-C_GENERATOR_TO_ARRAY_CODE(generatorType) \
 DELETE(generatorType)
 
 
@@ -247,5 +239,29 @@ void* setupIsoOrderedGenerator(int dimNumber,
     return reinterpret_cast<void*>(iso);
 }
 C_CODES(IsoOrderedGenerator)
+
+//______________________________________________________ Threshold Tabulator 1.0
+
+void* setupTabulator(void* generator,
+                     bool  get_masses,
+                     bool  get_probs,
+                     bool  get_lprobs,
+                     bool  get_confs)
+{
+    Tabulator* tabulator = new Tabulator(generator,
+                                         get_masses,
+                                         get_probs,
+                                         get_lprobs,
+                                         get_confs);
+
+    return reinterpret_cast<void*>(tabulator);
+}
+
+DELETE(Tabulator)
+C_CODE(Tabulator, double*, masses)
+C_CODE(Tabulator, double*, lprobs)
+C_CODE(Tabulator, double*, probs)
+C_CODE(Tabulator, int*,    confs)
+C_CODE(Tabulator, int,     confs_no)
 
 }  //extern "C" ends here

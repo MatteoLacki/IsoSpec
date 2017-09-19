@@ -79,23 +79,22 @@ void destroyIso(void* iso);
 // AND THAT HE IS REALLY STRETCHING HIS ABILITY TO MAKE JOKES ABOUT
 // HIMSELF TO THE LIMIT.
 
+typedef struct MassSpectrum{double* masses; double* logprobs; int confs_no;} MassSpectrum;
+
 #define C_HEADER(generatorType, dataType, method)\
 dataType method##generatorType(void* generator);
 
-#define C_GENERATOR_TO_ARRAY_HEADER(generatorType)\
-void set_tables##generatorType(void* generator, \
-                double** masses, \
-                double** lprobs, \
-                int* config_no, \
-                int init_size);
+// #define C_GENERATOR_TO_ARRAY_HEADER(generatorType)\
+// MassSpectrum set_tables##generatorType(void* generator, int init_size);
 
+// TODO: CHECK get_conf_signature
 #define C_HEADERS(generatorType)\
 C_HEADER(generatorType, double, mass) \
 C_HEADER(generatorType, double, lprob) \
-C_HEADER(generatorType, const int*, get_conf_signature) \
+C_HEADER(generatorType, double, get_conf_signature) \
 C_HEADER(generatorType, bool, advanceToNextConfiguration) \
-C_GENERATOR_TO_ARRAY_HEADER(generatorType) \
 C_HEADER(generatorType, void, delete)
+
 
 //______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(int dimNumber,
@@ -120,6 +119,21 @@ void* setupIsoOrderedGenerator(int dimNumber,
 C_HEADERS(IsoOrderedGenerator)
 
 
+
+// Check if there is bool in CFFI
+void* setupThresholdTabulator(void* generator,
+                              bool  get_masses,
+                              bool  get_probs,
+                              bool  get_lprobs,
+                              bool  get_confs);
+
+void deleteThresholdTabulator(void* tabulator);
+
+const double* massesThresholdTabulator(void* tabulator);
+const double* lprobsThresholdTabulator(void* tabulator);
+const double* probsThresholdTabulator(void* tabulator);
+const int*    confsThresholdTabulator(void* tabulator);
+const int     confs_noThresholdTabulator(void* tabulator);
 
 #ifdef __cplusplus
 }

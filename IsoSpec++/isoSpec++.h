@@ -50,8 +50,8 @@ protected:
 	int 			dimNumber;
 	int*			isotopeNumbers;
 	int*			atomCounts;
-	unsigned int		confSize;
-	int			allDim;
+	unsigned int	confSize;
+	int			    allDim;
 	Marginal**              marginals;
         double                  modeLProb;
 
@@ -74,9 +74,12 @@ public:
 
 	double getLightestPeakMass() const;
 	double getHeaviestPeakMass() const;
-        inline double getModeLProb() const { return modeLProb; };
-        inline int getDimNumber() const { return dimNumber; };
-        PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
+    inline double getModeLProb() const { return modeLProb; };
+    inline int getDimNumber() const { return dimNumber; };
+    inline int getAllDim() const { return allDim; }; 
+
+    PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
+
 
 };
 
