@@ -45,6 +45,8 @@ protected:
     const double loggamma_nominator;
     const Conf mode_conf;
     const double mode_lprob;
+    const double mode_mass;
+    const double mode_eprob;
 
 
 public:
@@ -63,6 +65,8 @@ public:
     double getLightestConfMass() const;
     double getHeaviestConfMass() const;
     inline double getModeLProb() const { return mode_lprob; };
+    inline double getModeMass() const { return mode_mass; };
+    inline double getModeEProb() const { return mode_eprob; };
     inline double logProb(Conf conf) { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
 };
 
@@ -230,7 +234,7 @@ public:
     bool extend(double new_threshold);
     inline const double& get_lProb(unsigned int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
     inline const double& get_eProb(unsigned int idx) const { return eProbs[idx]; };
-    inline const double& get_mass(unsigned int idx) const { return masses[idx]; };
+    inline const double& get_mass(unsigned int idx) const { std::cout << std::endl << "LM: " << masses.size() << std::endl; return masses[idx]; };
     inline const Conf& get_conf(unsigned int idx) const { return configurations[idx]; };
     inline unsigned int get_no_confs() const { return configurations.size(); };
 
