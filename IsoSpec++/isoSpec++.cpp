@@ -1126,7 +1126,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
 IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
-current_layer_lcutoff(std::numeric_limits<double>::max())
+current_layer_lcutoff(nextafter(modeLProb, std::numeric_limits<double>::infinity()))
 {
 
     counter = new int[dimNumber];
@@ -1162,12 +1162,16 @@ current_layer_lcutoff(std::numeric_limits<double>::max())
 }
 
 
-bool IsoLayeredGenerator::nextLayer(double new_logCutoff)
+bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
 {
     bool res = false;
 
+    last_layer_lcutoff = current_layer_lcutoff;
+    current_layer_lcutoff += logCutoff_delta;
+
+
     for(int ii=0; ii<dimNumber; ii++)
-        res = marginalResults[ii]->extend(new_logCutoff - modeLProb + marginals[ii]->getModeLProb()) or res;
+        res = marginalResults[ii]->extend(current_layer_lcutoff - modeLProb + marginals[ii]->getModeLProb()) or res;
 
     if(not res)
         return false;
@@ -1179,9 +1183,7 @@ bool IsoLayeredGenerator::nextLayer(double new_logCutoff)
     for(int ii=0; ii<dimNumber; ii++)
         last_counters[ii] = counter[0];
 
-    last_layer_lcutoff = current_layer_lcutoff;
-    current_layer_lcutoff = new_logCutoff;
-
+    
     return true;
 }
 
@@ -1190,6 +1192,12 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
 {
     counter[0]--;
     double cprob = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+
+    std::cout << "Counter: " << std::endl;
+    printArray(counter, dimNumber);
+    std::cout << "=============" << std::endl;
+    std::cout << "cprob: " << cprob << std::endl;
+
 
     if(cprob <= last_layer_lcutoff)
     {
@@ -1208,6 +1216,10 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
         counter[idx] = 0;
         idx++;
         counter[idx]++;
+        std::cout << "IDX: " << idx << std::endl;
+        std::cout << "CNTR[IDX]: " << counter[idx] << std::endl;
+        std::cout << "MRG: " << marginalResults[idx] << std::endl;
+        std::cout << "MRGR: " << marginalResults[idx]->get_lProb(counter[idx]) << std::endl;
         partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
         if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= current_layer_lcutoff)
         {
