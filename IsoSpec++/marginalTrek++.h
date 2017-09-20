@@ -234,7 +234,7 @@ public:
     bool extend(double new_threshold);
     inline const double& get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
     inline const double& get_eProb(int idx) const { return eProbs[idx]; };
-    inline const double& get_mass(int idx) const { std::cout << std::endl << "LM: " << masses.size() << std::endl; return masses[idx]; };
+    inline const double& get_mass(int idx) const { return masses[idx]; };
     inline const Conf& get_conf(int idx) const { return configurations[idx]; };
     inline unsigned int get_no_confs() const { return configurations.size(); };
 
