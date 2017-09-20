@@ -708,7 +708,7 @@ RGTMarginal::~RGTMarginal()
 
 
 LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
-: Marginal(std::move(m)), current_threshold(1.0), allocator(tabSize), sorted_up_to_idx(0),
+: Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize), sorted_up_to_idx(0),
 equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
 {
     fringe.push_back(mode_conf);
