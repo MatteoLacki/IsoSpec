@@ -392,7 +392,7 @@ public:
     virtual bool advanceToNextConfiguration();
     virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //  virtual const int* const & conf() const;
-    bool nextLayer(double new_logCutoff);
+    bool nextLayer(double logCutoff_delta); // Arg should be negative
 
 
     IsoLayeredGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
