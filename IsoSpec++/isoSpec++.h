@@ -380,9 +380,8 @@ private:
 class IsoLayeredGenerator : public IsoGenerator
 {
 private:
-    unsigned int* counter;
+    int* counter;
     double* maxConfsLPSum;
-    const double psize;
     double last_layer_lcutoff, current_layer_lcutoff;
     Summator current_sum;
     LayeredMarginal** marginalResults;
@@ -396,7 +395,7 @@ public:
     bool nextLayer(double new_logCutoff);
 
 
-    IsoLayeredGenerator(Iso&& iso, double psize, int _tabSize  = 1000, int _hashSize = 1000);
+    IsoLayeredGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
 
 //    inline virtual ~IsoLayeredGenerator() { delete[] counter; delete[] maxConfsLPSum;
 //                                                    dealloc_table(marginalResults, dimNumber);};
@@ -408,6 +407,7 @@ private:
     {
         for(; idx >=0; idx--)
         {
+	std::cout << partialMasses << " " << idx << " " << marginalResults[idx] << " " <<  counter << " " << counter[idx] << marginalResults[idx]->get_mass(counter[idx]) << std::endl;
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);

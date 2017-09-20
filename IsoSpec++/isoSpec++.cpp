@@ -651,6 +651,7 @@ IsoGenerator::IsoGenerator(Iso&& iso) :
     partialMasses(new double[dimNumber+1+PADDING]),
     partialExpProbs(new double[dimNumber+1+PADDING])
 {
+std::cout << "Ctor Ig" << std::endl;
     partialLProbs[dimNumber] = 0.0;
     partialMasses[dimNumber] = 0.0;
     partialExpProbs[dimNumber] = 1.0;
@@ -1124,18 +1125,12 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
  * ---------------------------------------------------------------------------------------------------
  */
 
-IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, double _psize, int tabSize, int hashSize)
+IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
-psize(_psize),
-last_layer_lcutoff(0.0)
+current_layer_lcutoff(std::numeric_limits<double>::max())
 {
-    if (psize <= 0.0)
-    {
-        terminate_search();
-        return;
-    }
 
-    counter = new unsigned int[dimNumber];
+    counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
 
     marginalResults = new LayeredMarginal*[dimNumber];
@@ -1153,8 +1148,16 @@ last_layer_lcutoff(0.0)
     for(int ii=1; ii<dimNumber-1; ii++)
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
-    recalc(dimNumber-1);
-    counter[0]--;
+
+    
+    for(int ii=dimNumber-1; ii>0; ii--)
+    {
+    	partialLProbs[ii] = partialLProbs[ii+1] + marginalResults[ii]->getModeLProb();
+	partialMasses[ii] = partialMasses[ii+1] + marginalResults[ii]->getModeMass();
+	partialExpProbs[ii] = partialExpProbs[ii+1] + marginalResults[ii]->getModeEProb();
+    }
+
+    counter[0]++;
 
     last_counters = new int[dimNumber];
 }
@@ -1163,6 +1166,7 @@ last_layer_lcutoff(0.0)
 bool IsoLayeredGenerator::nextLayer(double new_logCutoff)
 {
     bool res = false;
+
     for(int ii=0; ii<dimNumber; ii++)
         res = marginalResults[ii]->extend(new_logCutoff - modeLProb + marginals[ii]->getModeLProb()) or res;
 
@@ -1200,7 +1204,7 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
 
     int idx = 0;
 
-    while(idx < dimNumber)
+    while(idx < dimNumber-1)
     {
         counter[idx] = 0;
         idx++;
