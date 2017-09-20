@@ -1124,7 +1124,6 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
  * ---------------------------------------------------------------------------------------------------
  */
 
-#if 0
 IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, double _psize, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
 psize(_psize),
@@ -1141,7 +1140,6 @@ last_layer_lcutoff(0.0)
 
     marginalResults = new LayeredMarginal*[dimNumber];
 
-    bool empty = false;
     for(int ii=0; ii<dimNumber; ii++)
     {
         counter[ii] = 0;
@@ -1175,7 +1173,8 @@ bool IsoLayeredGenerator::nextLayer(double new_logCutoff)
 
     counter[0] = marginalResults[0]->get_no_confs();
 
-    last_counters[0] = counter[0];
+    for(int ii=0; ii<dimNumber; ii++)
+        last_counters[ii] = counter[0];
 
     last_layer_lcutoff = current_layer_lcutoff;
     current_layer_lcutoff = new_logCutoff;
@@ -1188,8 +1187,8 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
 {
     counter[0]--;
     double cprob = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-    // TODO use guardian also in threshold iso
-    if(cprob > last_layer_lcutoff)
+
+    if(cprob <= last_layer_lcutoff)
     {
         partialLProbs[0] = cprob;
         partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
@@ -1201,15 +1200,44 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
 
     int idx = 0;
 
-    while(idx < dimNumber-1)
+    while(idx < dimNumber)
     {
+        counter[idx] = 0;
+        idx++;
+        counter[idx]++;
+        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= current_layer_lcutoff)
+        {
+            counter[0] = last_counters[idx];
+            
+            while(partialLProbs[0] < current_layer_lcutoff)
+            {
+                counter[0]--;
+                partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+            }
 
+            last_counters[idx] = counter[0];
+
+            for(int ii=0; ii<idx; ii++)
+                last_counters[ii] = last_counters[idx];
+
+            if(partialLProbs[0] <= last_layer_lcutoff)
+            {
+                idx = 0;
+                continue;
+            }
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+            recalc(idx-1);
+            return true;
+
+        }
     }
 
-    return; // TODO finish
+    return false; // layer switch is needed
 }
 
-
+#if 0
 
 bool IsoLayeredGenerator::advanceToNextConfiguration()
 {
@@ -1250,7 +1278,6 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
     terminate_search();
     return false;
 }
-#endif
 
 void IsoLayeredGenerator::terminate_search()
 {
@@ -1258,7 +1285,7 @@ void IsoLayeredGenerator::terminate_search()
         counter[ii] = marginalResults[ii]->get_no_confs();
 }
 
-
+#endif
 
 
 
