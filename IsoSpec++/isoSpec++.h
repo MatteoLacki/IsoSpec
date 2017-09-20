@@ -397,8 +397,7 @@ public:
 
     IsoLayeredGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
 
-//    inline virtual ~IsoLayeredGenerator() { delete[] counter; delete[] maxConfsLPSum;
-//                                                    dealloc_table(marginalResults, dimNumber);};
+    virtual ~IsoLayeredGenerator();
 
     void terminate_search();
 

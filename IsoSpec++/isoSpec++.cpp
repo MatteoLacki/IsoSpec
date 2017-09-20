@@ -651,7 +651,6 @@ IsoGenerator::IsoGenerator(Iso&& iso) :
     partialMasses(new double[dimNumber+1+PADDING]),
     partialExpProbs(new double[dimNumber+1+PADDING])
 {
-std::cout << "Ctor Ig" << std::endl;
     partialLProbs[dimNumber] = 0.0;
     partialMasses[dimNumber] = 0.0;
     partialExpProbs[dimNumber] = 1.0;
@@ -1239,6 +1238,14 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
     }
 
     return false; // layer switch is needed
+}
+
+IsoLayeredGenerator::~IsoLayeredGenerator()
+{
+    dealloc_table(marginalResults, dimNumber);
+    delete[] counter;
+    delete[] maxConfsLPSum;
+    delete[] last_counters;
 }
 
 #if 0
