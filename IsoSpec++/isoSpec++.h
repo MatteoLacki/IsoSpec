@@ -171,40 +171,6 @@ public:
 
  };
 
- class IsoSpecLayered : public IsoSpec
- {
- protected:
-     std::vector<void*>*         current;
-     std::vector<void*>*         next;
-     double                      lprobThr;
-     double                      percentageToExpand;
-     bool                        estimateThresholds;
-     bool                        do_trim;
-     int layers;
-#ifdef DEBUG
-     int moves = 0;
-     int hits = 0;
-#endif /* DEBUG */
-
- public:
-     IsoSpecLayered(
-         int             _dimNumber,
-         const int*      _isotopeNumbers,
-         const int*      _atomCounts,
-         const double**  _isotopeMasses,
-         const double**  _isotopeProbabilities,
-         const double    _cutOff,
-         int             tabSize = 1000,
-         double          layerStep = 0.3,
-         bool            _estimateThresholds = false,
-	 bool            trim = true
-     );
-
-     virtual ~IsoSpecLayered();
-
-     bool advanceToNextConfiguration();
- };
-
 
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define PADDING 64
