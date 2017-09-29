@@ -1248,55 +1248,6 @@ IsoLayeredGenerator::~IsoLayeredGenerator()
     delete[] last_counters;
 }
 
-#if 0
-
-bool IsoLayeredGenerator::advanceToNextConfiguration()
-{
-    counter[0]++;
-    if(marginalResults[0]->inRange(counter[0]))
-    {
-        partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-        if(partialLProbs[0] >= Lcutoff)
-        {
-            partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
-                        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
-            return true;
-        }
-    }
-
-    // If we reached this point, a carry is needed
-
-    int idx = 0;
-
-    while(idx<dimNumber-1)
-    {
-        counter[idx] = 0;
-        idx++;
-        counter[idx]++;
-        if(marginalResults[idx]->inRange(counter[idx]))
-        {
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
-            {
-                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-                recalc(idx-1);
-                return true;
-            }
-        }
-    }
-
-    terminate_search();
-    return false;
-}
-
-void IsoLayeredGenerator::terminate_search()
-{
-    for(int ii=0; ii<dimNumber; ii++)
-        counter[ii] = marginalResults[ii]->get_no_confs();
-}
-
-#endif
 
 
 
