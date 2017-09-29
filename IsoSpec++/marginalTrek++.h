@@ -27,7 +27,7 @@
 #include "summator.h"
 
 
-Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs);
+Conf initialConfigure(int atomCnt, int isotopeNo, const double* probs);
 
 
 void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim);
@@ -67,13 +67,13 @@ public:
     inline double getModeLProb() const { return mode_lprob; };
     inline double getModeMass() const { return mode_mass; };
     inline double getModeEProb() const { return mode_eprob; };
-    inline double logProb(Conf conf) { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
+    inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
 };
 
 class MarginalTrek : public Marginal
 {
-    int current_count;
 private:
+    int current_count;
     const KeyHasher keyHasher;
     const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
@@ -215,6 +215,7 @@ private:
 
 class LayeredMarginal : public Marginal
 {
+private:
     double current_threshold;
     std::vector<Conf> configurations;
     std::vector<Conf> fringe;
@@ -232,9 +233,9 @@ class LayeredMarginal : public Marginal
 public:
     LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
     bool extend(double new_threshold);
-    inline const double& get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
-    inline const double& get_eProb(int idx) const { return eProbs[idx]; };
-    inline const double& get_mass(int idx) const { return masses[idx]; };
+    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
+    inline double get_eProb(int idx) const { return eProbs[idx]; };
+    inline double get_mass(int idx) const { return masses[idx]; };
     inline const Conf& get_conf(int idx) const { return configurations[idx]; };
     inline unsigned int get_no_confs() const { return configurations.size(); };
 
