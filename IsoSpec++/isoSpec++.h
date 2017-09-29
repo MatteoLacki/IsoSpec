@@ -144,7 +144,7 @@ private:
     PrecalculatedMarginal** marginalResults;
 
 public:
-    virtual bool advanceToNextConfiguration() override final;
+    bool advanceToNextConfiguration() override final;
     inline void get_conf_signature(int* space) const override final
     {
         for(int ii=0; ii<dimNumber; ii++)
@@ -188,8 +188,7 @@ private:
     RGTMarginal** marginalResults;
 
 public:
-    //TODO work on virtuals
-    virtual bool advanceToNextConfiguration();
+    bool advanceToNextConfiguration() override final;
 
     IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
