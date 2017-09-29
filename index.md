@@ -2,6 +2,8 @@
 
 IsoSpec is a **fine structure isotopic calculator**.
 
+It has been presented in a paper in Analytical Chemistry in 2017.
+
 Given a molecular formula and some probability threshold *0 < P < 1*, it will provide you with the smallest possible set of <a href="http://goldbook.iupac.org/I03351.html" target="_self">isotopologues</a> that are jointly *P* probable. 
 
 ### *Example*
@@ -320,3 +322,10 @@ or
 * mist@mimuw.edu.pl
 
 and we might help you in including our software in your project!
+
+Please note, that we are giving you IsoSpec for free.
+Please, be kind-hearted, and if you are to use our software in your research, do not forget to cite us:
+
+Łącki, M. K., Startek, M., Valkenborg, D., & Gambin, A. (2017). IsoSpec: Hyperfast Fine Structure Calculator. Analytical Chemistry, 89(6), 3272-3277.
+
+More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
