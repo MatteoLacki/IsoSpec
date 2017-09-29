@@ -6,6 +6,19 @@ It has been presented in a paper in Analytical Chemistry in 2017.
 
 Given a molecular formula and some probability threshold *0 < P < 1*, it will provide you with the smallest possible set of <a href="http://goldbook.iupac.org/I03351.html" target="_self">isotopologues</a> that are jointly *P* probable. 
 
+### Using IsoSpec? Cite us! 
+
+If you have used IsoSpec in your research, please cite it in your publications.
+
+IsoSpec: Hyperfast Fine Structure Calculator
+Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, and Anna Gambin
+Analytical Chemistry 2017 89 (6), 3272-3277
+DOI: 10.1021/acs.analchem.6b01459
+
+
+More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
+
+
 ### *Example*
 Say, that you happen to be interested in the top 50% probable isotopologues of <a href="http://www.rcsb.org/pdb/explore.do?structureId=2zp6" target="_self">*Bovine Insulin*</a>. We happen to know, that its molecular formula is C<sub>254</sub>H<sub>377</sub>N<sub>65</sub>O<sub>75</sub>S<sub>6</sub>. 
 
@@ -322,13 +335,3 @@ or
 * mist@mimuw.edu.pl
 
 and we will help you in intergrate our software in your project!
-
-If you have used IsoSpec in your research, please cite it in your publications.
-
-IsoSpec: Hyperfast Fine Structure Calculator
-Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, and Anna Gambin
-Analytical Chemistry 2017 89 (6), 3272-3277
-DOI: 10.1021/acs.analchem.6b01459
-
-
-More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
