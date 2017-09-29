@@ -38,7 +38,6 @@
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
 
-class IsoSpecLayered;
 class IsoThresholdGenerator;
 
 class Iso {
@@ -80,97 +79,6 @@ public:
 
 
 };
-
- class IsoSpec: public Iso {
- protected:
-     MarginalTrek** marginalResults;
-     const double            cutOff;
-     const std::vector<double>**     logProbs;
-     const std::vector<double>**     masses;
-     const std::vector<int*>**       marginalConfs;
-     DirtyAllocator          allocator;
-     std::vector<void*>      newaccepted;
-     Summator                totalProb;
-     unsigned int            cnt;
-     int*                    candidate;
-     void*                   topConf;
-     int                     allDim;
-     void*                   initialConf;
-
- public:
-     IsoSpec(
-         int             _dimNumber,
-         const int*      _isotopeNumbers,
-         const int*      _atomCounts,
-         const double**  _isotopeMasses,
-         const double**  _isotopeProbabilities,
-         const double    _cutOff,
-         int             tabSize = 1000
-     );
-
-     static IsoThresholdGenerator* IsoFromFormula(
-         const char* formula,
-         double cutoff,
-         int tabsize = 1000,
-         int hashsize = 1000
-     );
-
-     virtual ~IsoSpec();
-
-     virtual bool advanceToNextConfiguration() = 0;
-     void processConfigurationsUntilCutoff();
-     int getNoVisitedConfs();
-     int getNoIsotopesTotal();
-
-
-     void getCurrentProduct(double* res_mass, double* res_logProb, int* res_isoCounts);
-     void getProduct(double* res_mass, double* res_logProb, int* res_isoCounts);
-     std::tuple<double*,double*,int*,int> getCurrentProduct();
-     std::tuple<double*,double*,int*,int> getProduct();
-
-     #ifdef BUILDING_R
-    // An R friend should be considered the worst enemy.
-    //                              Sun Tzu.
-    friend  NumericMatrix Rinterface(
-         	const IntegerVector&  molecule,
-         	const DataFrame&      isotopes,
-         	double  stopCondition,
-         	int		algo,
-         	int 	tabSize,
-         	int		hashSize,
-         	double 	step,
-         	bool 	showCounts,
-            bool    trim
-        );
-     #endif
-
-     friend class Spectrum;
- };
-
- class IsoSpecOrdered : public IsoSpec
- {
- protected:
-     std::priority_queue<void*,std::vector<void*>,ConfOrder>  pq;
-
- public:
-     IsoSpecOrdered(
-         int             _dimNumber,
-         const int*      _isotopeNumbers,
-         const int*      _atomCounts,
-         const double**  _isotopeMasses,
-         const double**  _isotopeProbabilities,
-         const double    _cutOff,
-         int             tabSize = 1000,
-         int             hashSize = 1000
-     );
-
-     virtual ~IsoSpecOrdered();
-
-     bool advanceToNextConfiguration();
-
-
- };
-
 
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define PADDING 64
