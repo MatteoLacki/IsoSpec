@@ -44,15 +44,15 @@ class Iso {
 private:
     void setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities);
 public:
-        bool disowned;
+    bool disowned;
 protected:
-    int 			dimNumber;
-    int*			isotopeNumbers;
-    int*			atomCounts;
+    int 		dimNumber;
+    int*		isotopeNumbers;
+    int*		atomCounts;
     unsigned int	confSize;
-    int			    allDim;
-    Marginal**              marginals;
-        double                  modeLProb;
+    int			allDim;
+    Marginal**          marginals;
+    double              modeLProb;
 
 public:
     Iso(
@@ -95,13 +95,11 @@ public:
     inline const double& lprob() const { return partialLProbs[0]; };
     inline const double& mass()  const { return partialMasses[0]; };
     inline const double& eprob() const { return partialExpProbs[0]; };
-//	virtual const int* const & conf() const = 0;
-
 
     inline IsoGenerator(Iso&& iso);
     inline virtual ~IsoGenerator() { delete[] partialLProbs; delete[] partialMasses; delete[] partialExpProbs; };
-
 };
+
 
 class IsoOrderedGenerator: public IsoGenerator
 {
@@ -192,8 +190,6 @@ private:
 public:
     //TODO work on virtuals
     virtual bool advanceToNextConfiguration();
-//        virtual inline void get_conf_signature(unsigned int* target);
-//	virtual const int* const & conf() const;
 
     IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
 
@@ -207,10 +203,6 @@ private:
         partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
         partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->current_eProb();
     }
-
-
-
-
 };
 
 
@@ -227,7 +219,6 @@ private:
 public:
     virtual bool advanceToNextConfiguration();
     virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
-//	virtual const int* const & conf() const;
 
     IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
 
@@ -274,7 +265,6 @@ public:
         return true;
     }
     virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
-//  virtual const int* const & conf() const;
     bool nextLayer(double logCutoff_delta); // Arg should be negative
 
     virtual inline const int* get_counter() { return counter; };
