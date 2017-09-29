@@ -282,17 +282,14 @@ max_mass(_max_mass)
     if(not _absolute)
         Lcutoff += modeLProb;
 
-    bool empty = false;
     for(int ii=0; ii<dimNumber; ii++)
     {
         marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])),
                                                         Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                         tabSize,
                                                         hashSize);
-
-        if(not marginalResults[ii]->inRange(0))
-            empty = true;
     }
+
     maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
     minMassCSum[0] = marginalResults[0]->getLightestConfMass();
     maxMassCSum[0] = marginalResults[0]->getHeaviestConfMass();
