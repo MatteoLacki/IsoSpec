@@ -92,9 +92,10 @@ protected:
 
 public:
     virtual bool advanceToNextConfiguration() = 0;
-    inline const double& lprob() const { return partialLProbs[0]; };
-    inline const double& mass()  const { return partialMasses[0]; };
-    inline const double& eprob() const { return partialExpProbs[0]; };
+    inline double lprob() const { return partialLProbs[0]; };
+    inline double mass()  const { return partialMasses[0]; };
+    inline double eprob() const { return partialExpProbs[0]; };
+    virtual void get_conf_signature(int* space) const = 0;
 
     inline IsoGenerator(Iso&& iso);
     inline virtual ~IsoGenerator() { delete[] partialLProbs; delete[] partialMasses; delete[] partialExpProbs; };
@@ -113,13 +114,12 @@ private:
     const std::vector<int*>**       marginalConfs;
     double currentLProb;
     double currentMass;
+    double currentEProb;
     int*   candidate;
 
 public:
-    virtual bool advanceToNextConfiguration();
-    virtual const double& lprob() const { return currentLProb; };
-    virtual const double& mass() const { return currentMass; };
-    virtual inline void get_conf_signature(int* space) const 
+    bool advanceToNextConfiguration() override final;
+    inline void get_conf_signature(int* space) const override final
     { 
         const int* c = getConf(topConf);
         for(int ii=0; ii<dimNumber; ii++)
@@ -144,8 +144,8 @@ private:
     PrecalculatedMarginal** marginalResults;
 
 public:
-    virtual bool advanceToNextConfiguration();
-    virtual inline void get_conf_signature(int* space) 
+    virtual bool advanceToNextConfiguration() override final;
+    inline void get_conf_signature(int* space) const override final
     {
         for(int ii=0; ii<dimNumber; ii++)
         {
@@ -217,8 +217,15 @@ private:
     PrecalculatedMarginal** marginalResults;
 
 public:
-    virtual bool advanceToNextConfiguration();
-    virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
+    bool advanceToNextConfiguration() override final;
+    inline void get_conf_signature(int* space) const override final
+    {
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
 
     IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
 
@@ -255,22 +262,20 @@ private:
     double delta;
 
 public:
-    virtual bool advanceToNextConfiguration_internal();
-    virtual inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
-    virtual inline bool advanceToNextConfiguration()
+    bool advanceToNextConfiguration_internal();
+    inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
+    inline bool advanceToNextConfiguration() override final
     {
         while (not advanceToNextConfiguration_internal())
             if (not nextLayer(delta))
                 return false;
         return true;
     }
-    virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
     bool nextLayer(double logCutoff_delta); // Arg should be negative
 
-    virtual inline const int* get_counter() { return counter; };
     IsoLayeredGenerator(Iso&& iso, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000);
 
-    virtual inline void get_conf_signature(int* space)
+    inline void get_conf_signature(int* space) const override final
     {
         for(int ii=0; ii<dimNumber; ii++)
         {
