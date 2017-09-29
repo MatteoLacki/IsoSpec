@@ -617,6 +617,14 @@ void IsoThresholdGenerator::terminate_search()
 IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
 IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
 {
+    delete[] partialLProbs;
+    delete[] partialMasses;
+    delete[] partialExpProbs;
+
+    partialLProbs = &currentLProb;
+    partialMasses = &currentMass;
+    partialExpProbs = &currentEProb;
+
     marginalResults = new MarginalTrek*[dimNumber];
 
     for(int i = 0; i<dimNumber; i++)
@@ -676,6 +684,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     currentLProb = *(reinterpret_cast<double*>(topConf));
     currentMass = combinedSum( topConfIsoCounts, masses, dimNumber );
+    currentEProb = exp(currentLProb);
 
     int ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
