@@ -321,11 +321,14 @@ or
 
 * mist@mimuw.edu.pl
 
-and we might help you in including our software in your project!
+and we will help you in intergrate our software in your project!
 
-Please note, that we are giving you IsoSpec for free.
-Please, be kind-hearted, and if you are to use our software in your research, do not forget to cite us:
+If you have used IsoSpec in your research, please cite it in your publications.
 
-Łącki, M. K., Startek, M., Valkenborg, D., & Gambin, A. (2017). IsoSpec: Hyperfast Fine Structure Calculator. Analytical Chemistry, 89(6), 3272-3277.
+IsoSpec: Hyperfast Fine Structure Calculator
+Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, and Anna Gambin
+Analytical Chemistry 2017 89 (6), 3272-3277
+DOI: 10.1021/acs.analchem.6b01459
+
 
 More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
