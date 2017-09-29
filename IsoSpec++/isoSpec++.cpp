@@ -154,12 +154,12 @@ disowned(false),
 marginals(nullptr),
 modeLProb(0.0)
 {
-std::vector<const double*> isotope_masses;
-std::vector<const double*> isotope_probabilities;
+    std::vector<const double*> isotope_masses;
+    std::vector<const double*> isotope_probabilities;
 
-dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
+    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
 
-setupMarginals(isotope_masses.data(), isotope_probabilities.data());
+    setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
@@ -384,10 +384,11 @@ void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
 
 
     marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
-    if(idx>2){
-    unsigned int cou = 0;
-    while(marginalResults[idx]->next())
-        cou++;
+    if(idx>2)
+    {
+        unsigned int cou = 0;
+        while(marginalResults[idx]->next())
+            cou++;
     }
     marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
 
@@ -429,8 +430,8 @@ IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, P
 Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
 last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 {
-    counter 	= new unsigned int[dimNumber+PADDING];
-    maxConfsLPSum 	= new double[dimNumber-1];
+    counter = new unsigned int[dimNumber+PADDING];
+    maxConfsLPSum = new double[dimNumber-1];
 
     marginalResults = PMs;
 
@@ -576,7 +577,7 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
     if(partialLProbs[0] >= Lcutoff)
     {
         partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
-                partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
+        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
         return true;
     }
 
@@ -593,13 +594,13 @@ bool IsoThresholdGenerator::advanceToNextConfiguration()
         if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
         {
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
             recalc(idx-1);
             return true;
         }
     }
 
-        terminate_search();
+    terminate_search();
     return false;
 }
 
@@ -608,15 +609,6 @@ void IsoThresholdGenerator::terminate_search()
     for(int ii=0; ii<dimNumber; ii++)
         counter[ii] = marginalResults[ii]->get_no_confs();
 }
-
-/*
- * ----------------------------------------------------------------------------------------------------------
- */
-
-
-
-
-
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------
@@ -644,14 +636,14 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
 
     topConf = allocator.newConf();
     memset(
-        reinterpret_cast<char*>(topConf) + sizeof(double),
-           0,
-           sizeof(int)*dimNumber
+            reinterpret_cast<char*>(topConf) + sizeof(double),
+            0,
+            sizeof(int)*dimNumber
     );
 
     *(reinterpret_cast<double*>(topConf)) =
     combinedSum(
-        getConf(topConf),
+                getConf(topConf),
                 logProbs,
                 dimNumber
     );
@@ -785,7 +777,6 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
     for(int ii=0; ii<dimNumber; ii++)
         last_counters[ii] = counter[0];
 
-    
     return true;
 }
 
