@@ -1124,9 +1124,10 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
  * ---------------------------------------------------------------------------------------------------
  */
 
-IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize)
+IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, double _delta, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
-current_layer_lcutoff(nextafter(modeLProb, std::numeric_limits<double>::infinity()))
+current_layer_lcutoff(nextafter(modeLProb, std::numeric_limits<double>::infinity())),
+delta(_delta)
 {
 
     counter = new int[dimNumber];
@@ -1156,8 +1157,6 @@ current_layer_lcutoff(nextafter(modeLProb, std::numeric_limits<double>::infinity
 	partialExpProbs[ii] = partialExpProbs[ii+1] + marginalResults[ii]->getModeEProb();
     }
 
-    counter[0]++;
-
     last_counters = new int[dimNumber];
 }
 
@@ -1168,7 +1167,6 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
 
     last_layer_lcutoff = current_layer_lcutoff;
     current_layer_lcutoff += logCutoff_delta;
-
 
     for(int ii=0; ii<dimNumber; ii++)
         res = marginalResults[ii]->extend(current_layer_lcutoff - modeLProb + marginals[ii]->getModeLProb()) or res;
@@ -1188,16 +1186,10 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
 }
 
 
-bool IsoLayeredGenerator::advanceToNextConfiguration()
+bool IsoLayeredGenerator::advanceToNextConfiguration_internal()
 {
     counter[0]--;
     double cprob = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-
-    std::cout << "Counter: " << std::endl;
-    printArray(counter, dimNumber);
-    std::cout << "=============" << std::endl;
-    std::cout << "cprob: " << cprob << std::endl;
-
 
     if(cprob <= last_layer_lcutoff)
     {
@@ -1210,20 +1202,18 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
     // If we reached this point, a carry is needed
 
     int idx = 0;
-
     while(idx < dimNumber-1)
     {
         counter[idx] = 0;
         idx++;
         counter[idx]++;
-        std::cout << "IDX: " << idx << std::endl;
-        std::cout << "CNTR[IDX]: " << counter[idx] << std::endl;
-        std::cout << "MRG: " << marginalResults[idx] << std::endl;
-        std::cout << "MRGR: " << marginalResults[idx]->get_lProb(counter[idx]) << std::endl;
         partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
         if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= current_layer_lcutoff)
         {
             counter[0] = last_counters[idx];
+
+            for(int ii=idx-1; ii >=0; ii--)
+                partialLProbs[ii] = partialLProbs[ii+1] + marginalResults[ii]->get_lProb(counter[ii]);
             
             while(partialLProbs[0] < current_layer_lcutoff)
             {
@@ -1237,10 +1227,8 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
                 last_counters[ii] = last_counters[idx];
 
             if(partialLProbs[0] <= last_layer_lcutoff)
-            {
-                idx = 0;
-                continue;
-            }
+                return true;
+
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
             recalc(idx-1);

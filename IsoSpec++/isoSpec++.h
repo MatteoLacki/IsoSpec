@@ -387,15 +387,34 @@ private:
     LayeredMarginal** marginalResults;
     double* probsExcept;
     int* last_counters;
+    double delta;
 
 public:
-    virtual bool advanceToNextConfiguration();
+    virtual bool advanceToNextConfiguration_internal();
+    virtual inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
+    virtual inline bool advanceToNextConfiguration()
+    {
+        while (not advanceToNextConfiguration_internal())
+            if (not nextLayer(delta))
+                return false;
+        return true;
+    }
     virtual inline void get_conf_signature(unsigned int* target) { memcpy(target, counter, sizeof(unsigned int)*dimNumber); };
 //  virtual const int* const & conf() const;
     bool nextLayer(double logCutoff_delta); // Arg should be negative
 
+    virtual inline const int* const get_counter() { return counter; };
+    IsoLayeredGenerator(Iso&& iso, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000);
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
+    virtual inline void get_conf_signature(int* space)
+    {
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
+
 
     virtual ~IsoLayeredGenerator();
 
@@ -406,7 +425,6 @@ private:
     {
         for(; idx >=0; idx--)
         {
-	std::cout << partialMasses << " " << idx << " " << marginalResults[idx] << " " <<  counter << " " << counter[idx] << marginalResults[idx]->get_mass(counter[idx]) << std::endl;
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
