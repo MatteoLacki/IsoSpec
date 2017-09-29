@@ -369,7 +369,7 @@ public:
 //  virtual const int* const & conf() const;
     bool nextLayer(double logCutoff_delta); // Arg should be negative
 
-    virtual inline const int* const get_counter() { return counter; };
+    virtual inline const int* get_counter() { return counter; };
     IsoLayeredGenerator(Iso&& iso, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000);
 
     virtual inline void get_conf_signature(int* space)
