@@ -94,8 +94,7 @@ void* setupIsoLayeredGenerator(int dimNumber,
                                  const int* atomCounts,
                                  const double* isotopeMasses,
                                  const double* isotopeProbabilities,
-                                 const double threshold,
-                                 bool _absolute,
+                                 double _delta,
                                  int _tabSize,
                                  int _hashSize);
 C_HEADERS(IsoLayeredGenerator)
