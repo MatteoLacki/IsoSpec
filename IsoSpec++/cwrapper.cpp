@@ -64,109 +64,22 @@ void* setupIso( int      _dimNumber,
 
 // =================================================================================
 
-void* setupIsoLayered( int      _dimNumber,
-                        const int*      _isotopeNumbers,
-                        const int*      _atomCounts,
-                        const double*   _isotopeMasses,
-                        const double*   _isotopeProbabilities,
-                        const double    _cutOff,
-                        int             tabSize,
-                        double          step,
-                        bool            estimate,
-                        bool            trim
-)
-{
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
-    int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
-    {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
-    }
-
-
-    IsoSpec* iso = new IsoSpecLayered(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP,
-        _cutOff,
-        tabSize,
-        step,
-	estimate,
-	trim
-    );
-
-    try {
-        iso->processConfigurationsUntilCutoff();
-    }
-    catch (std::bad_alloc& ba) {
-        delete iso;
-        iso = NULL;
-    }
-
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
-}
-
-
-int getIsotopesNo(void* iso)
-{
-    return reinterpret_cast<IsoSpec*>(iso)->getNoIsotopesTotal();
-}
-
-int getIsoConfNo(void* iso)
-{
-    return reinterpret_cast<IsoSpec*>(iso)->getNoVisitedConfs();
-}
-
-void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoCounts)
-{
-    reinterpret_cast<IsoSpec*>(iso)->getProduct(res_mass, res_logProb, res_isoCounts);
-}
-
-void destroyIso(void* iso)
-{
-    if (iso != NULL)
-    {
-        delete reinterpret_cast<IsoSpec*>(iso);
-    }
-}
 
 // ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
 #define C_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
 
-#define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
+#define C_CODE_GET_CONF_SIGNATURE(generatorType)\
+void get_conf_signature##generatorType(void* generator, int* space)\
+{ reinterpret_cast<generatorType*>(generator)->get_conf_signature(space); }
 
-// #define C_GENERATOR_TO_ARRAY_CODE(generatorType)\
-// MassSpectrum set_tables##generatorType(void* generator, int init_size) \
-// { \
-//     DoubleArray Masses, LogProbs; \
-//     DoubleArrayConstructor(&Masses, init_size); \
-//     DoubleArrayConstructor(&LogProbs, init_size); \
-//     \
-//     while(advanceToNextConfiguration##generatorType(generator)) \
-//     { \
-//         DoubleArrayPush(&Masses, mass##generatorType(generator)); \
-//         DoubleArrayPush(&LogProbs, lprob##generatorType(generator)); \
-//     } \
-//     \
-//     MassSpectrum S = { Masses.array, LogProbs.array, Masses.used }; \
-//     DoubleArrayDestructor(&Masses, true); \
-//     DoubleArrayDestructor(&LogProbs, true); \
-//     return S; \
-// }\
+
+#define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
 
 #define C_CODES(generatorType)\
 C_CODE(generatorType, double, mass) \
 C_CODE(generatorType, double, lprob) \
-C_CODE(generatorType, const int*, get_conf_signature) \
+C_CODE_GET_CONF_SIGNATURE(generatorType) \
 C_CODE(generatorType, bool, advanceToNextConfiguration) \
 DELETE(generatorType)
 

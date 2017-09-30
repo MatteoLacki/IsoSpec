@@ -35,7 +35,6 @@ Tabulator::Tabulator(IsoThresholdGenerator* generator,
                      bool get_lprobs, bool get_confs  )
 {
     int current_size = INIT_TABLE_SIZE;
-    int current_size_dims = INIT_TABLE_SIZE * generator->getAllDim();
     int confs_tbl_idx = 0;
     int confs_no = 0;
 
@@ -66,7 +65,7 @@ Tabulator::Tabulator(IsoThresholdGenerator* generator,
         if(_probs  != nullptr) _probs[confs_no]  = generator->eprob();
 
         if(_confs  != nullptr){
-            memcpy(_confs + confs_tbl_idx, generator->get_conf_signature(), allDimSizeOfInt);
+            generator->get_conf_signature(_confs + confs_tbl_idx);
             confs_tbl_idx += generator->getAllDim();
         }
 

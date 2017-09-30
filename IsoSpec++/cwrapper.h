@@ -30,8 +30,6 @@
 extern "C" {
 #endif
 
-#include "array.h"
-
 void* setupIso( int             _dimNumber,
                 const int*      _isotopeNumbers,
                 const int*      _atomCounts,
@@ -42,18 +40,6 @@ void* setupIso( int             _dimNumber,
 
 // ================================================================
 
-
-void* setupIsoLayered( int             _dimNumber,
-                       const int*      _isotopeNumbers,
-                       const int*      _atomCounts,
-                       const double*   _isotopeMasses,
-                       const double*   _isotopeProbabilities,
-                       const double    _cutOff,
-                       int             tabSize,
-                       double          step,
-                       bool            estimate,
-                       bool            trim
-);
 
 void* setupIsoThreshold( int             _dimNumber,
                          const int*      _isotopeNumbers,
@@ -66,14 +52,6 @@ void* setupIsoThreshold( int             _dimNumber,
                          int             hashSize
 );
 
-int getIsotopesNo(void* iso);
-
-int getIsoConfNo(void* iso);
-
-void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoCounts);
-
-void destroyIso(void* iso);
-
 // ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
 // BEAR IN MIND THAT THE ABOVE COMMENT WAS ALSO WRITTEN BY MATTEO
 // AND THAT HE IS REALLY STRETCHING HIS ABILITY TO MAKE JOKES ABOUT
@@ -84,14 +62,13 @@ typedef struct MassSpectrum{double* masses; double* logprobs; int confs_no;} Mas
 #define C_HEADER(generatorType, dataType, method)\
 dataType method##generatorType(void* generator);
 
-// #define C_GENERATOR_TO_ARRAY_HEADER(generatorType)\
-// MassSpectrum set_tables##generatorType(void* generator, int init_size);
+#define C_HEADER_GET_CONF_SIGNATURE(generatorType)\
+void method##generatorType(void* generator);
 
-// TODO: CHECK get_conf_signature
 #define C_HEADERS(generatorType)\
 C_HEADER(generatorType, double, mass) \
 C_HEADER(generatorType, double, lprob) \
-C_HEADER(generatorType, const int*, get_conf_signature) \
+C_HEADER_GET_CONF_SIGNATURE(generatorType) \
 C_HEADER(generatorType, bool, advanceToNextConfiguration) \
 C_HEADER(generatorType, void, delete)
 
@@ -133,7 +110,7 @@ const double* massesThresholdTabulator(void* tabulator);
 const double* lprobsThresholdTabulator(void* tabulator);
 const double* probsThresholdTabulator(void* tabulator);
 const int*    confsThresholdTabulator(void* tabulator);
-const int     confs_noThresholdTabulator(void* tabulator);
+int confs_noThresholdTabulator(void* tabulator);
 
 #ifdef __cplusplus
 }

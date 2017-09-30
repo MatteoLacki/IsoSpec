@@ -22,7 +22,7 @@ public:
     inline double*   lprobs()   { return _lprobs; };
     inline double*   probs()    { return _probs; };
     inline int*      confs()    { return _confs; };
-    inline const int confs_no() { return _confs_no; };
+    inline int       confs_no() { return _confs_no; };
 };
 
 #endif  // __TABULATOR_H__
