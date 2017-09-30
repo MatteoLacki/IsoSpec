@@ -124,7 +124,7 @@ C_CODES(IsoThresholdGenerator)
 
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(int dimNumber,
-                                 const int* isotopeNumbers,
+                               const int* isotopeNumbers,
                                  const int* atomCounts,
                                  const double* isotopeMasses,
                                  const double* isotopeProbabilities,
@@ -143,10 +143,9 @@ void* setupIsoLayeredGenerator(int dimNumber,
     }
     //TODO in place (maybe pass a numpy matrix??)
 
-    IsoThresholdGenerator* iso = new IsoThresholdGenerator(
+    IsoThresholdGenerator* iso = new IsoLayeredGenerator(
         Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
-        threshold,
-        _absolute,
+        _delta,
         _tabSize,
         _hashSize);
 
