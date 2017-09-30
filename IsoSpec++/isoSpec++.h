@@ -98,7 +98,7 @@ public:
     virtual void get_conf_signature(int* space) const = 0;
 
     inline IsoGenerator(Iso&& iso);
-    inline virtual ~IsoGenerator() { delete[] partialLProbs; delete[] partialMasses; delete[] partialExpProbs; };
+    inline virtual ~IsoGenerator();
 };
 
 

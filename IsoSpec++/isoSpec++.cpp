@@ -264,6 +264,15 @@ IsoGenerator::IsoGenerator(Iso&& iso) :
 }
 
 
+IsoGenerator::~IsoGenerator() 
+{
+    if(partialLProbs != nullptr)
+        delete[] partialLProbs; 
+    if(partialMasses != nullptr)
+        delete[] partialMasses; 
+    if(partialExpProbs != nullptr)
+        delete[] partialExpProbs; 
+};
 
 
 
@@ -668,8 +677,11 @@ IsoOrderedGenerator::~IsoOrderedGenerator()
     delete[] masses;
     delete[] marginalConfs;
     delete[] candidate;
-
+    partialLProbs = nullptr;
+    partialMasses = nullptr;
+    partialExpProbs = nullptr;
 }
+
 
 bool IsoOrderedGenerator::advanceToNextConfiguration()
 {
