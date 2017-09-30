@@ -89,7 +89,7 @@ C_HEADERS(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
-void* setupIsoLayereddGenerator(int dimNumber,
+void* setupIsoLayeredGenerator(int dimNumber,
                                  const int* isotopeNumbers,
                                  const int* atomCounts,
                                  const double* isotopeMasses,
@@ -98,7 +98,7 @@ void* setupIsoLayereddGenerator(int dimNumber,
                                  bool _absolute,
                                  int _tabSize,
                                  int _hashSize);
-C_HEADERS(IsoLayereddGenerator)
+C_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(int dimNumber,

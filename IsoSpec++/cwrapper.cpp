@@ -123,7 +123,7 @@ C_CODES(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
-void* setupIsoLayereddGenerator(int dimNumber,
+void* setupIsoLayeredGenerator(int dimNumber,
                                  const int* isotopeNumbers,
                                  const int* atomCounts,
                                  const double* isotopeMasses,
@@ -155,7 +155,7 @@ void* setupIsoLayereddGenerator(int dimNumber,
 
     return reinterpret_cast<void*>(iso);
 }
-C_CODES(IsoLayereddGenerator)
+C_CODES(IsoLayeredGenerator)
 
 
 //______________________________________________________ORDERED GENERATOR
