@@ -13,7 +13,7 @@ unitylib:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so
 
 debug:
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) unity-build.cpp -DDEBUG -fPIC -shared -o libIsoSpec++.so
 
 perftest:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so 
