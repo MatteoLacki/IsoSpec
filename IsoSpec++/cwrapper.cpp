@@ -143,7 +143,7 @@ void* setupIsoLayeredGenerator(int dimNumber,
     }
     //TODO in place (maybe pass a numpy matrix??)
 
-    IsoThresholdGenerator* iso = new IsoLayeredGenerator(
+    IsoLayeredGenerator* iso = new IsoLayeredGenerator(
         Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
         _delta,
         _tabSize,
