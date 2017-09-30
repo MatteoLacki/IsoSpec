@@ -8,22 +8,24 @@ int main()
     double isotopeMasses[] = {1.0, 2.0, 3.0, 4.0, 5.0};
     double isotopeProbabilities[] = {0.5, 0.5, 0.5, 0.3, 0.2};
 
-    void* p = setupIsoOrderedGenerator(
+    void* p = setupIsoThresholdGenerator(
         2,
         isotopeNumbers,
         atomCounts,
         isotopeMasses,
         isotopeProbabilities,
+        .5,
+        false,
         1000,
         1000);
 
-    while(advanceToNextConfigurationIsoOrderedGenerator(p))
+    while(advanceToNextConfigurationIsoThresholdGenerator(p))
     {
-        printf("mass:  %f\n", massIsoOrderedGenerator(p));
-        printf("lprob: %f\n", lprobIsoOrderedGenerator(p));
+        printf("mass:  %f\n", massIsoThresholdGenerator(p));
+        printf("lprob: %f\n", lprobIsoThresholdGenerator(p));
     }
 
-    deleteIsoOrderedGenerator(p);
+    deleteIsoThresholdGenerator(p);
 
     return 0;
 }
