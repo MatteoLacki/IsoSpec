@@ -121,6 +121,43 @@ void* setupIsoThresholdGenerator(int dimNumber,
 }
 C_CODES(IsoThresholdGenerator)
 
+
+//______________________________________________________LAYERED GENERATOR
+void* setupIsoLayereddGenerator(int dimNumber,
+                                 const int* isotopeNumbers,
+                                 const int* atomCounts,
+                                 const double* isotopeMasses,
+                                 const double* isotopeProbabilities,
+                                 double _delta,
+                                 int _tabSize,
+                                 int _hashSize)
+{
+    const double** IM = new const double*[dimNumber];
+    const double** IP = new const double*[dimNumber];
+    int idx = 0;
+    for(int i=0; i<dimNumber; i++)
+    {
+        IM[i] = &isotopeMasses[idx];
+        IP[i] = &isotopeProbabilities[idx];
+        idx += isotopeNumbers[i];
+    }
+    //TODO in place (maybe pass a numpy matrix??)
+
+    IsoThresholdGenerator* iso = new IsoThresholdGenerator(
+        Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
+        threshold,
+        _absolute,
+        _tabSize,
+        _hashSize);
+
+    delete[] IM;
+    delete[] IP;
+
+    return reinterpret_cast<void*>(iso);
+}
+C_CODES(IsoLayereddGenerator)
+
+
 //______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(int dimNumber,
                                const int* isotopeNumbers,

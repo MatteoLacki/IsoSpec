@@ -28,6 +28,8 @@
 
 #ifdef __cplusplus
 extern "C" {
+#else
+#include <stdbool.h>
 #endif
 
 void* setupIso( int             _dimNumber,
@@ -84,6 +86,19 @@ void* setupIsoThresholdGenerator(int dimNumber,
                                  int _tabSize,
                                  int _hashSize);
 C_HEADERS(IsoThresholdGenerator)
+
+
+//______________________________________________________LAYERED GENERATOR
+void* setupIsoLayereddGenerator(int dimNumber,
+                                 const int* isotopeNumbers,
+                                 const int* atomCounts,
+                                 const double* isotopeMasses,
+                                 const double* isotopeProbabilities,
+                                 const double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize);
+C_HEADERS(IsoLayereddGenerator)
 
 //______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(int dimNumber,
