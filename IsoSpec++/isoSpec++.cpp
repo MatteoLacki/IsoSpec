@@ -775,6 +775,7 @@ delta(_delta)
     }
 
     last_counters = new int[dimNumber];
+    nextLayer(_delta);
 }
 
 

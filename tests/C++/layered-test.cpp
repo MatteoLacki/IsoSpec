@@ -18,13 +18,11 @@ int main()
     #if 1
 //    IsoLayeredGenerator* iso = new IsoLayeredGenerator("C1600H2700N1000", -100.0);
     IsoLayeredGenerator* iso = new IsoLayeredGenerator("C5H5", -100.0);
-    iso->nextLayer(threshold);
     unsigned int cnt = 0;
     while(iso->advanceToNextConfiguration())
     {
         if(iso->mass() >= mmin and mmax >= iso->mass())
             cnt++;
-        const int* cntr = iso->get_counter();
 //        std::cout << cntr[0] << " " << cntr[1] << " " << cntr[2] << " " << iso->lprob() << std::endl;
         if(cnt%10000 == 0)
             std::cout << cnt << " " << s.get() << std::endl;
