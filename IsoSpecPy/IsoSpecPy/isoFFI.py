@@ -9,90 +9,59 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 class IsoFFI:
     def __init__(self):
         self.ffi = cffi.FFI()
-        self.ffi.cdef('''void* setupMarginal(
-                                const double* masses,
-                                const double* probs,
-                                int isotopeNo,
-                                int atomCnt,
-                                const int tabSize,
-                                const int hashSize
-                                );
-                        int probeConfigurationIdx(void* MT, int idx);
-                        int getConfNo(void* marginals);
-                        int getIsotopesNo(void* iso);
+        self.ffi.cdef('''
+        void * setupIso(int dimNumber,
+                const int* isotopeNumbers,
+                const int* atomCounts,
+                const double* isotopeMasses,
+                const double* isotopeProbabilities);
 
-                        void getConfs(
-                                        int howmany,
-                                        void* marginals,
-                                        double* masses,
-                                        double* logprobs,
-                                        int* configurations
-                                      );
-                        void destroyConf(void* marginals);
+        void deleteIso(void* iso);
 
-                        void* setupIso( int             _dimNumber,
-                                        const int*      _isotopeNumbers,
-                                        const int*      _atomCounts,
-                                        const double*   _isotopeMasses,
-                                        const double*   _isotopeProbabilities,
-                                        const double    _StopCondition,
-                                        int             algo,
-                                        int             tabSize,
-                                        int             hashSize,
-                                        double          step,
-                                        bool            trim
-                        );
+        void* setupIsoThresholdGenerator(void* iso,
+                                         double threshold,
+                                         bool _absolute,
+                                         int _tabSize,
+                                         int _hashSize);
+        double massIsoThresholdGenerator(void* generator); double lprobIsoThresholdGenerator(void* generator); void methodIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator); void deleteIsoThresholdGenerator(void* generator);
 
 
-                        void* IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize);
 
-                        int processMTUntilCutoff(void* MT, double cutoff);
-
-                        int getConfMT(void* MT, int idx, double* mass, double* logProb, int* configuration);
-
-                        int getIsoConfNo(void* iso);
-
-                        void getIsoConfs(void* iso,
-                                         double* res_mass,
-                                         double* res_logProb,
-                                         int* res_isoCounts);
-
-                        void destroyIso(void* iso);
+        void* setupIsoLayeredGenerator(void* iso,
+                                       double _delta,
+                                       int _tabSize,
+                                       int _hashSize);
+        double massIsoLayeredGenerator(void* generator); double lprobIsoLayeredGenerator(void* generator); void methodIsoLayeredGenerator(void* generator); bool advanceToNextConfigurationIsoLayeredGenerator(void* generator); void deleteIsoLayeredGenerator(void* generator);
 
 
-                        #define NUMBER_OF_ISOTOPIC_ENTRIES 288
+        void* setupIsoOrderedGenerator(void* iso,
+                                       int _tabSize,
+                                       int _hashSize);
+        double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator);
 
-                        extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const double elem_table_mass[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const int elem_table_massNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const int elem_table_extraNeutrons[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const char* elem_table_element[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
+        void* setupThresholdTabulator(void* generator,
+                                      bool get_masses,
+                                      bool get_probs,
+                                      bool get_lprobs,
+                                      bool get_confs);
 
-                        //_______________________________GENERATORS
+        void deleteThresholdTabulator(void* tabulator);
 
-void* setupIsoThresholdGenerator(int dimNumber,
-                                 const int* isotopeNumbers,
-                                 const int* atomCounts,
-                                 const double* isotopeMasses,
-                                 const double* isotopeProbabilities,
-                                 const double threshold,
-                                 bool _absolute,
-                                 int _tabSize,
-                                 int _hashSize);
-double massIsoThresholdGenerator(void* generator); double lprobIsoThresholdGenerator(void* generator); const int* get_conf_signatureIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator); void set_tablesIsoThresholdGenerator(void* generator, double** masses, double** lprobs, int* config_no, int init_size); void deleteIsoThresholdGenerator(void* generator);
+        const double* massesThresholdTabulator(void* tabulator);
+        const double* lprobsThresholdTabulator(void* tabulator);
+        const double* probsThresholdTabulator(void* tabulator);
+        const int* confsThresholdTabulator(void* tabulator);
+        int confs_noThresholdTabulator(void* tabulator);
 
-
-void* setupIsoOrderedGenerator(int dimNumber,
-                               const int* isotopeNumbers,
-                               const int* atomCounts,
-                               const double* isotopeMasses,
-                               const double* isotopeProbabilities,
-                               int _tabSize,
-                               int _hashSize);
-double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); const int* get_conf_signatureIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void set_tablesIsoOrderedGenerator(void* generator, double** masses, double** lprobs, int* config_no, int init_size); void deleteIsoOrderedGenerator(void* generator);
+        #define NUMBER_OF_ISOTOPIC_ENTRIES 287
+        extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const double elem_table_mass[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const int elem_table_massNo[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const int elem_table_extraNeutrons[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const char* elem_table_element[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
+        extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
                         ''');
 
         mod_dir = os.path.dirname(os.path.abspath(__file__))

@@ -16,6 +16,11 @@ public:
               bool get_masses, bool get_probs,
               bool get_lprobs, bool get_confs);
 
+    Tabulator(IsoLayeredGenerator* generator,
+            bool get_masses, bool get_probs,
+            bool get_lprobs, bool get_confs);
+
+
     ~Tabulator();
 
     inline double*   masses()   { return _masses; };

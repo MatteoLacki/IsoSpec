@@ -29,43 +29,37 @@
 
 extern "C"
 {
-
-void* setupIso( int      _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities)
+void * setupIso(int             dimNumber,
+                const int*      isotopeNumbers,
+                const int*      atomCounts,
+                const double*   isotopeMasses,
+                const double*   isotopeProbabilities)
 {
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
+    const double** IM = new const double*[dimNumber];
+    const double** IP = new const double*[dimNumber];
     int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
+    for(int i=0; i<dimNumber; i++)
     {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
+        IM[i] = &isotopeMasses[idx];
+        IP[i] = &isotopeProbabilities[idx];
+        idx += isotopeNumbers[i];
     }
+    //TODO in place (maybe pass a numpy matrix??)
 
-    Iso* iso = new Iso(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP
-    );
+    Iso* iso = new Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP);
 
     delete[] IM;
     delete[] IP;
 
     return reinterpret_cast<void*>(iso);
+}
 
+void deleteIso(void* iso)
+{
+    delete reinterpret_cast<Iso*>(iso);
 }
 
 
-// =================================================================================
-
-
-// ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
 #define C_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
 
@@ -86,106 +80,52 @@ DELETE(generatorType)
 
 
 //______________________________________________________THRESHOLD GENERATOR
-void* setupIsoThresholdGenerator(int dimNumber,
-                                 const int* isotopeNumbers,
-                                 const int* atomCounts,
-                                 const double* isotopeMasses,
-                                 const double* isotopeProbabilities,
-                                 const double threshold,
+void* setupIsoThresholdGenerator(void* iso,
+                                 double threshold,
                                  bool _absolute,
                                  int _tabSize,
                                  int _hashSize)
 {
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
-    int idx = 0;
-    for(int i=0; i<dimNumber; i++)
-    {
-        IM[i] = &isotopeMasses[idx];
-        IP[i] = &isotopeProbabilities[idx];
-        idx += isotopeNumbers[i];
-    }
-    //TODO in place (maybe pass a numpy matrix??)
-
-    IsoThresholdGenerator* iso = new IsoThresholdGenerator(
-        Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
+    IsoThresholdGenerator* iso_tmp = new IsoThresholdGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
         threshold,
         _absolute,
         _tabSize,
         _hashSize);
 
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
+    return reinterpret_cast<void*>(iso_tmp);
 }
 C_CODES(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
-void* setupIsoLayeredGenerator(int dimNumber,
-                               const int* isotopeNumbers,
-                                 const int* atomCounts,
-                                 const double* isotopeMasses,
-                                 const double* isotopeProbabilities,
-                                 double _delta,
-                                 int _tabSize,
-                                 int _hashSize)
+void* setupIsoLayeredGenerator(void* iso,
+                               double _delta,
+                               int _tabSize,
+                               int _hashSize)
 {
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
-    int idx = 0;
-    for(int i=0; i<dimNumber; i++)
-    {
-        IM[i] = &isotopeMasses[idx];
-        IP[i] = &isotopeProbabilities[idx];
-        idx += isotopeNumbers[i];
-    }
-    //TODO in place (maybe pass a numpy matrix??)
-
-    IsoLayeredGenerator* iso = new IsoLayeredGenerator(
-        Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
+    IsoLayeredGenerator* iso_tmp = new IsoLayeredGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
         _delta,
         _tabSize,
         _hashSize);
 
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
+    return reinterpret_cast<void*>(iso_tmp);
 }
 C_CODES(IsoLayeredGenerator)
 
 
 //______________________________________________________ORDERED GENERATOR
-void* setupIsoOrderedGenerator(int dimNumber,
-                               const int* isotopeNumbers,
-                               const int* atomCounts,
-                               const double* isotopeMasses,
-                               const double* isotopeProbabilities,
+void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize)
 {
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
-    int idx = 0;
-    for(int i=0; i<dimNumber; i++)
-    {
-        IM[i] = &isotopeMasses[idx];
-        IP[i] = &isotopeProbabilities[idx];
-        idx += isotopeNumbers[i];
-    }
-    //TODO in place (maybe pass a numpy matrix??)
-
-    IsoOrderedGenerator* iso = new IsoOrderedGenerator(
-        Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP),
+    IsoOrderedGenerator* iso_tmp = new IsoOrderedGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
         _tabSize,
         _hashSize);
 
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
+    return reinterpret_cast<void*>(iso_tmp);
 }
 C_CODES(IsoOrderedGenerator)
 

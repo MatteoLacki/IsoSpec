@@ -30,6 +30,7 @@ void reallocate(double **array, int new_size){
     }
 }
 
+// MAKE A TEMPLATE OUT OF THAT SHIT, to accept any type of generator.
 Tabulator::Tabulator(IsoThresholdGenerator* generator,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs  )
@@ -45,7 +46,8 @@ Tabulator::Tabulator(IsoThresholdGenerator* generator,
     _probs  = get_probs  ? (double *) malloc(INIT_TABLE_SIZE * sizeof(double)) : nullptr;
     _confs  = get_confs  ? (int *)    malloc(INIT_TABLE_SIZE * allDimSizeOfInt): nullptr;
 
-    while(advanceToNextConfigurationIsoThresholdGenerator(generator)){
+
+    while(generator->advanceToNextConfiguration()){
         if( confs_no == current_size )
         {
             current_size *= 2;

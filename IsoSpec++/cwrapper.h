@@ -32,34 +32,13 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
-void* setupIso( int             _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities);
+void * setupIso(int             dimNumber,
+                const int*      isotopeNumbers,
+                const int*      atomCounts,
+                const double*   isotopeMasses,
+                const double*   isotopeProbabilities);
 
-
-
-// ================================================================
-
-
-void* setupIsoThreshold( int             _dimNumber,
-                         const int*      _isotopeNumbers,
-                         const int*      _atomCounts,
-                         const double*   _isotopeMasses,
-                         const double*   _isotopeProbabilities,
-                         const double    _threshold,
-                         int             _absolute,
-                         int             tabSize,
-                         int             hashSize
-);
-
-// ATTENTION! BELOW THIS LINE MATTEO WAS CODING AND IT IS BETTER NOT TO COMPILE THAT
-// BEAR IN MIND THAT THE ABOVE COMMENT WAS ALSO WRITTEN BY MATTEO
-// AND THAT HE IS REALLY STRETCHING HIS ABILITY TO MAKE JOKES ABOUT
-// HIMSELF TO THE LIMIT.
-
-typedef struct MassSpectrum{double* masses; double* logprobs; int confs_no;} MassSpectrum;
+void deleteIso(void* iso);
 
 #define C_HEADER(generatorType, dataType, method)\
 dataType method##generatorType(void* generator);
@@ -75,13 +54,11 @@ C_HEADER(generatorType, bool, advanceToNextConfiguration) \
 C_HEADER(generatorType, void, delete)
 
 
+
+
 //______________________________________________________THRESHOLD GENERATOR
-void* setupIsoThresholdGenerator(int dimNumber,
-                                 const int* isotopeNumbers,
-                                 const int* atomCounts,
-                                 const double* isotopeMasses,
-                                 const double* isotopeProbabilities,
-                                 const double threshold,
+void* setupIsoThresholdGenerator(void* iso,
+                                 double threshold,
                                  bool _absolute,
                                  int _tabSize,
                                  int _hashSize);
@@ -89,22 +66,14 @@ C_HEADERS(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
-void* setupIsoLayeredGenerator(int dimNumber,
-                                 const int* isotopeNumbers,
-                                 const int* atomCounts,
-                                 const double* isotopeMasses,
-                                 const double* isotopeProbabilities,
-                                 double _delta,
-                                 int _tabSize,
-                                 int _hashSize);
+void* setupIsoLayeredGenerator(void* iso,
+                               double _delta,
+                               int _tabSize,
+                               int _hashSize);
 C_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR
-void* setupIsoOrderedGenerator(int dimNumber,
-                               const int* isotopeNumbers,
-                               const int* atomCounts,
-                               const double* isotopeMasses,
-                               const double* isotopeProbabilities,
+void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize);
 C_HEADERS(IsoOrderedGenerator)
