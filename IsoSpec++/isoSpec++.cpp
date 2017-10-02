@@ -281,15 +281,13 @@ IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double
 min_mass(_min_mass),
 max_mass(_max_mass)
 {
-    maxConfsLPSum 	= new double[dimNumber];
+    maxConfsLPSum   = new double[dimNumber];
     minMassCSum     = new double[dimNumber];
     maxMassCSum     = new double[dimNumber];
 
     marginalResults = new RGTMarginal*[dimNumber];
 
-    Lcutoff = log(_threshold);
-    if(not _absolute)
-        Lcutoff += modeLProb;
+    Lcutoff = (_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb));
 
     for(int ii=0; ii<dimNumber; ii++)
     {
@@ -436,7 +434,7 @@ PrecalculatedMarginal** Iso::get_MT_marginal_set(double Lcutoff, bool absolute, 
 
 IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, PrecalculatedMarginal** PMs, bool _absolute)
 : IsoGenerator(Iso(iso, false)),
-Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb),
+Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb)),
 last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 {
     counter = new unsigned int[dimNumber+PADDING];
@@ -542,7 +540,7 @@ void IsoThresholdGeneratorMT::terminate_search()
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
-Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
+Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
@@ -553,7 +551,6 @@ Lcutoff(_absolute ? log(_threshold) : log(_threshold) + modeLProb)
     for(int ii=0; ii<dimNumber; ii++)
     {
         counter[ii] = 0;
-
         marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
                                                         Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                         true,
