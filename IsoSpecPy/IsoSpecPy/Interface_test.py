@@ -1,6 +1,7 @@
 import IsoSpecPy
 from isoFFI import isoFFI
 import re
+import types
 import PeriodicTbl
 
 def IsoSpec(method="layered", **args):
@@ -28,39 +29,67 @@ def IsoParamsFromFormula(formula):
     return (len(atomCounts), isotopeNumbers, atomCounts, masses, probs)
 
 class IsoGenerator(object):
-    def __init__(self, cgen, get_confs=False):
+    def __init__(self, src, get_confs=False):
         self.ffi = isoFFI.clib
-        self.cgen = cgen
-        self.get_confs = get_confs
+        self.cgen = src.get_generator()
+        self.src = src
+        if get_confs:
+            self.next = types.MethodType(self.next_confs, self)
 
     def next(self):
-        raise NotImplementedError()
+        cgen = self.cgen
+        if self.advancer(cgen):
+            return (self.mass_getter(cgen), self.lprob_getter(cgen))
+        raise StopIteration()
+
+    def next_confs(self):
+        raise NotImplementedException()
+        
 
 class IsoThresholdGenerator(IsoGenerator):
-    def next(self):
-        self.ffi.advanceToNextConfigurationIsoThresholdGenerator(self.cgen)
-        if self.get_confs:
-            raise NotImplemented()
-        else:
-            return (self.ffi.massIsoThresholdGenerator(self.cgen),
-                    self.ffi.lprobIsoThresholdGenerator(self.cgen))
+    def __init__(self, src, get_confs=False):
+        super(IsoThresholdGenerator, self).__init__(src, get_confs)
+        self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
+        self.lprob_getter = self.ffi.lprobIsoThresholdGenerator
+        self.mass_getter = self.ffi.massIsoThresholdGenerator
 
     def __del__(self):
         self.ffi.deleteIsoThresholdGenerator(self.cgen)
+
+
+class IsoLayeredGenerator(IsoGenerator):
+    def __init__(self, src, get_confs=False):
+        super(IsoLayeredGenerator, self).__init__(src, get_confs)
+        self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
+        self.lprob_getter = self.ffi.lprobIsoLayeredGenerator
+        self.mass_getter = self.ffi.massIsoLayeredGenerator
+
+    def __del__(self):
+        self.ffi.deleteIsoLayeredGenerator(self.cgen)
+
+class IsoOrderedGenerator(IsoGenerator):
+    def __init__(self, src, get_confs=False):
+        super(IsoOrderedGenerator, self).__init__(src, get_confs)
+        self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
+        self.lprob_getter = self.ffi.lprobIsoOrderedGenerator
+        self.mass_getter = self.ffi.massIsoOrderedGenerator
+
+    def __del__(self):
+        self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
 
 class Iso(object):
     def __init__(self, formula=None,
                  get_confs=False,
                  dimNumber=None,
-                 atomCounts=None,
                  isotopeNumbers=None,
+                 atomCounts=None,
                  isotopeMasses=None,
                  isotopeProbabilities=None):
         """Initialize Iso. TODO write it."""
 
         if formula is not None:
-            self.dimNumber, self.atomCounts, self.isotopeNumbers, \
+            self.dimNumber, self.isotopeNumbers, self.atomCounts, \
             self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
 
         if dimNumber is not None:
@@ -81,9 +110,6 @@ class Iso(object):
         self.get_confs = get_confs
         self.ffi = isoFFI.clib
 
-        print(self.atomCounts)
-        print(self.isotopeMasses)
-        print(self.isotopeProbabilities)
         self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
                                      self.atomCounts,
                                      [i for s in self.isotopeMasses for i in s],
@@ -110,11 +136,10 @@ class IsoThreshold(Iso):
                                                    1000)
 
     def __iter__(self):
-        return IsoThresholdGenerator(cgen=self.get_generator(),
-                                     get_confs=self.get_confs)
+        return IsoThresholdGenerator(src=self, get_confs=self.get_confs)
 
     def __del__(self):
-        self.ffi.deleteIsoThresholdGenerator(self.IsoThresholdGenerator)
+        pass
 
 
 
@@ -128,8 +153,12 @@ class IsoLayered(Iso):
                                                 self.delta,
                                                 1000,
                                                 1000)
+
+    def __iter__(self):
+        return IsoLayeredGenerator(src=self, get_confs=self.get_confs)
+
     def __del__(self):
-        self.ffi.deleteIsoOrderedGenerator(self.IsoOrderedGenerator)
+        pass
 
 
 class IsoOrdered(Iso):
@@ -141,9 +170,11 @@ class IsoOrdered(Iso):
                                                  1000,
                                                  1000)
 
+    def __iter__(self):
+        return IsoOrderedGenerator(src=self, get_confs=self.get_confs)
+
     def __del__(self):
-        self.ffi.deleteIsoOrederedGenerator(self.IsoOrderedGenerator)
+        pass
 
 
 
-# IsoSpecPy.threshold(formula="C100H202", )
