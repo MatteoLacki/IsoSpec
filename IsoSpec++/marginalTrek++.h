@@ -47,6 +47,7 @@ protected:
     const double mode_lprob;
     const double mode_mass;
     const double mode_eprob;
+    const double smallest_lprob;
 
 
 public:
@@ -67,6 +68,7 @@ public:
     inline double getModeLProb() const { return mode_lprob; };
     inline double getModeMass() const { return mode_mass; };
     inline double getModeEProb() const { return mode_eprob; };
+    inline double getSmallestLProb() const { return smallest_lprob; };
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
 };
 

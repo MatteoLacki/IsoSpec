@@ -749,6 +749,8 @@ delta(_delta)
 
     marginalResults = new LayeredMarginal*[dimNumber];
 
+    final_cutoff = 0.0;
+
     for(int ii=0; ii<dimNumber; ii++)
     {
         counter[ii] = 0;
@@ -756,6 +758,8 @@ delta(_delta)
         marginalResults[ii] = new LayeredMarginal(std::move(*(marginals[ii])),
                                                             tabSize,
                                                             hashSize);
+
+        final_cutoff += marginalResults[ii]->getSmallestLProb();
     }
 
     maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
@@ -778,18 +782,18 @@ delta(_delta)
 
 bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
 {
-    bool res = false;
-
     last_layer_lcutoff = current_layer_lcutoff;
     current_layer_lcutoff += logCutoff_delta;
 
-    for(int ii=0; ii<dimNumber; ii++)
-        res = marginalResults[ii]->extend(current_layer_lcutoff - modeLProb + marginals[ii]->getModeLProb()) or res;
-
-    if(not res)
+    if(last_layer_lcutoff<final_cutoff)
         return false;
 
+    for(int ii=0; ii<dimNumber; ii++)
+        marginalResults[ii]->extend(current_layer_lcutoff - modeLProb + marginals[ii]->getModeLProb());
+
     bzero(counter, dimNumber * sizeof(unsigned int));
+
+    recalc(dimNumber-1);
 
     counter[0] = marginalResults[0]->get_no_confs();
 

@@ -259,6 +259,7 @@ private:
     double* probsExcept;
     int* last_counters;
     double delta;
+    double final_cutoff;
 
 public:
     bool advanceToNextConfiguration_internal();
@@ -282,7 +283,6 @@ public:
             space += isotopeNumbers[ii];
         }
     };
-
 
     virtual ~IsoLayeredGenerator();
 
