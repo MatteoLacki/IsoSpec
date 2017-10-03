@@ -97,8 +97,8 @@ public:
     inline double eprob() const { return partialExpProbs[0]; };
     virtual void get_conf_signature(int* space) const = 0;
 
-    inline IsoGenerator(Iso&& iso);
-    inline virtual ~IsoGenerator();
+    IsoGenerator(Iso&& iso);
+    virtual ~IsoGenerator();
 };
 
 
