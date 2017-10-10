@@ -17,6 +17,7 @@
 #ifndef SUMMATOR_HPP
 #define SUMMATOR_HPP
 #include <cmath>
+#include <atomic>
 
 class SSummator
 {
@@ -107,6 +108,22 @@ public:
     inline double get()
     {
     	return sum;
+    }
+};
+
+class ThreadSummator
+{
+    // Trivial but thread-safe summator
+    std::atomic<double> sum;
+public:
+    inline void add(double what)
+    {
+        double previous = sum.load(std::memory_order_relaxed);
+        while(not sum.compare_exchange_weak(previous, previous+what, std::memory_order_relaxed)) {};
+    }
+    inline double get()
+    {
+        return sum.load(std::memory_order_relaxed);
     }
 };
 
