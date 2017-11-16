@@ -131,13 +131,13 @@ C_CODES(IsoOrderedGenerator)
 
 //______________________________________________________ Threshold Tabulator 1.0
 
-void* setupTabulator(void* generator,
+void* setupThresholdTabulator(void* generator,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    Tabulator* tabulator = new Tabulator(reinterpret_cast<IsoThresholdGenerator*>(generator),
+    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(reinterpret_cast<IsoThresholdGenerator*>(generator),
                                          get_masses,
                                          get_probs,
                                          get_lprobs,
@@ -146,11 +146,36 @@ void* setupTabulator(void* generator,
     return reinterpret_cast<void*>(tabulator);
 }
 
-DELETE(Tabulator)
-C_CODE(Tabulator, double*, masses)
-C_CODE(Tabulator, double*, lprobs)
-C_CODE(Tabulator, double*, probs)
-C_CODE(Tabulator, int*,    confs)
-C_CODE(Tabulator, int,     confs_no)
+void deleteThresholdTabulator(void* t)
+{
+    delete reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(t);
+}
+
+const double* massesThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->masses();
+}
+
+const double* lprobsThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->lprobs();
+}
+
+const double* probsThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->probs();
+}
+
+const int*    confsThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs();
+}
+
+int confs_noThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs_no();
+}
+
+
 
 }  //extern "C" ends here
