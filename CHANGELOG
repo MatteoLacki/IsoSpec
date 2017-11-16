@@ -1,21 +1,14 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+----------------------------------
+1.0.5 (Python-only release)
+
+- Only affecting IsoSpecPy: Speed improvements in IsoFromFormula
 
 ----------------------------------
-1.0.0
+1.0.4
 
-- Initial release
-
-----------------------------------
-1.0.1
-
-- Only affecting IsoSpecPy: provide prebuilt library
-- Only affecting IsoSpecPy: Improve Python/cygwin functionality
-
-----------------------------------
-1.0.2
-
-- Some further Python+Windows compatibility improvements
+- ??? FIXME
 
 ----------------------------------
 1.0.3
@@ -24,12 +17,18 @@ This file lists *major* changes between releases, for a full list see git log.
 - Add an option to skip discarding the superfluous configurations
 
 ----------------------------------
-1.0.4
+1.0.2
 
-- ??? FIXME
+- Some further Python+Windows compatibility improvements
 
 ----------------------------------
-1.0.5 (Python-only release)
+1.0.1
 
-- Only affecting IsoSpecPy: Speed improvements in IsoFromFormula
+- Only affecting IsoSpecPy: provide prebuilt library
+- Only affecting IsoSpecPy: Improve Python/cygwin functionality
+
+----------------------------------
+1.0.0
+
+- Initial release
 
