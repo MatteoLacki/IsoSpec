@@ -3,7 +3,7 @@
 
 #include "isoSpec++.h"
 
-class Tabulator
+template <typename T> class Tabulator
 {
 private:
     double* _masses;
@@ -12,14 +12,9 @@ private:
     int*    _confs;
     int     _confs_no;
 public:
-    Tabulator(IsoThresholdGenerator* generator,
+    Tabulator(T* generator,
               bool get_masses, bool get_probs,
               bool get_lprobs, bool get_confs);
-
-    Tabulator(IsoLayeredGenerator* generator,
-            bool get_masses, bool get_probs,
-            bool get_lprobs, bool get_confs);
-
 
     ~Tabulator();
 

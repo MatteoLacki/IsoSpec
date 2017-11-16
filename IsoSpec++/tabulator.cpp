@@ -31,13 +31,13 @@ void reallocate(double **array, int new_size){
 }
 
 // MAKE A TEMPLATE OUT OF THAT SHIT, to accept any type of generator.
-Tabulator::Tabulator(IsoThresholdGenerator* generator,
+template <typename T> Tabulator<T>::Tabulator(T* generator,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs  )
 {
     int current_size = INIT_TABLE_SIZE;
     int confs_tbl_idx = 0;
-    int confs_no = 0;
+    _confs_no = 0;
 
     const int allDimSizeOfInt = sizeof(int)*generator->getAllDim();
 
@@ -48,7 +48,7 @@ Tabulator::Tabulator(IsoThresholdGenerator* generator,
 
 
     while(generator->advanceToNextConfiguration()){
-        if( confs_no == current_size )
+        if( _confs_no == current_size )
         {
             current_size *= 2;
             reallocate(&_masses, current_size * sizeof(double));
@@ -60,30 +60,33 @@ Tabulator::Tabulator(IsoThresholdGenerator* generator,
             }
         }
 
-        if(_masses != nullptr) _masses[confs_no] = generator->mass();
+        if(_masses != nullptr) _masses[_confs_no] = generator->mass();
 
-        if(_lprobs != nullptr) _lprobs[confs_no] = generator->lprob();
+        if(_lprobs != nullptr) _lprobs[_confs_no] = generator->lprob();
 
-        if(_probs  != nullptr) _probs[confs_no]  = generator->eprob();
+        if(_probs  != nullptr) _probs[_confs_no]  = generator->eprob();
 
         if(_confs  != nullptr){
             generator->get_conf_signature(_confs + confs_tbl_idx);
             confs_tbl_idx += generator->getAllDim();
         }
 
-        confs_no++;
+        _confs_no++;
     }
 
-    _masses = (double *) realloc(_masses, confs_no * sizeof(double));
-    _lprobs = (double *) realloc(_lprobs, confs_no * sizeof(double));
-    _probs  = (double *) realloc(_probs,  confs_no * sizeof(double));
+    _masses = (double *) realloc(_masses, _confs_no * sizeof(double));
+    _lprobs = (double *) realloc(_lprobs, _confs_no * sizeof(double));
+    _probs  = (double *) realloc(_probs,  _confs_no * sizeof(double));
     _confs  = (int *)    realloc(_confs,  confs_tbl_idx * sizeof(int));
 }
 
-Tabulator::~Tabulator()
+template <typename T> Tabulator<T>::~Tabulator()
 {
     if( _masses != nullptr ) free(_masses);
     if( _lprobs != nullptr ) free(_lprobs);
     if( _probs  != nullptr ) free(_probs);
     if( _confs  != nullptr ) free(_confs);
 }
+
+template class Tabulator<IsoThresholdGenerator>;
+template class Tabulator<IsoLayeredGenerator>;
