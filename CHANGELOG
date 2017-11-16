@@ -19,6 +19,7 @@ This file lists *major* changes between releases, for a full list see git log.
   to get the optimal p-set is still missing
 - THIS IS AN ALPHA RELEASE: IT'S NOT YET EXHAUSTIVELY TESTED AND MAY CRASH OR 
   PRODUCE WRONG RESULTS
+- API is still not yet finalized.
 
 ----------------------------------
 1.0.5 (Python-only release)
