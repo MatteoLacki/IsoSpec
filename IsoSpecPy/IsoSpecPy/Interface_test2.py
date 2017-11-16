@@ -38,6 +38,9 @@ class Iso(object):
                  isotopeProbabilities=None):
         """Initialize Iso. TODO write it."""
 
+        if formula is None and not all([dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities]):
+            raise Exception("Either formula or ALL of: dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities must not be None")
+
         if formula is not None:
             self.dimNumber, self.isotopeNumbers, self.atomCounts, \
             self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
