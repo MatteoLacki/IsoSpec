@@ -177,6 +177,4 @@ class IsoOrderedGenerator(IsoGenerator):
     def __del__(self):
         self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
-for x in IsoLayeredGenerator(formula = "H2O1"):
-    print x
 
