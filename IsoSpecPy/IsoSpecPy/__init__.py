@@ -115,6 +115,9 @@ class IsoThreshold(Iso):
             self.confs = self.ffi.confsThresholdTabulator(self.tabulator)
         self.size = self.ffi.confs_noThresholdTabulator(self.tabulator)
 
+    def __len__(self):
+        return self.size
+
     def __del__(self):
         pass
 
