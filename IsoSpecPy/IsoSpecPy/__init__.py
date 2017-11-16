@@ -91,10 +91,6 @@ class Iso(object):
             for i in xrange(self.size):
                 yield (self.masses[i], self.probs[i])
                 
-
-    def __len__(self):
-        return self.size
-
     def __del__(self):
         self.ffi.deleteIso(self.iso)
         
