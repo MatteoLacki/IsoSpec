@@ -153,11 +153,13 @@ class IsoGenerator(Iso):
         
 
 class IsoThresholdGenerator(IsoGenerator):
-    def __init__(self, get_confs=False, **kwargs):
+    def __init__(self, threshold=0.0001, absolute=False, get_confs=False, **kwargs):
         super(IsoThresholdGenerator, self).__init__(get_confs, **kwargs)
+        self.threshold = threshold
+        self.absolute = absolute
         self.cgen = self.ffi.setupIsoThresholdGenerator(self.iso,
-                                                        self.threshold,
-                                                        self.absolute,
+                                                        threshold,
+                                                        absolute,
                                                         1000,
                                                         1000)
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
@@ -170,6 +172,7 @@ class IsoThresholdGenerator(IsoGenerator):
 
 class IsoLayeredGenerator(IsoGenerator):
     def __init__(self, delta = -10.0, get_confs=False, **kwargs):
+        assert delta < 0.0
         super(IsoLayeredGenerator, self).__init__(get_confs, **kwargs)
         self.delta = delta
         self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso,
