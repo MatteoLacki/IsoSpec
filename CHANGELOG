@@ -1,5 +1,25 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+
+----------------------------------
+1.9.0a1
+
+- Almost complete rewrite of the entire codebase
+- Improvements in the core algorithms, resulting in 10x-1000x speed increase
+  as well as lower memory consumption
+- Reworked API to be more sensible
+- Laying the groundwork for multithreaded operation (not complete yet)
+- Expose generators in Python (enabling processing configurations on the fly,
+  as they are produced without the need to compute and store all of them first
+  (using up memory) and process them later)
+- More modular Python part
+- C/C++ and Python-only release, R will follow soon after
+- Some features from 1.0.5 are not yet (re-)implemented: IsoLayered is only 
+  exposed as a generator, not yet as a fixed table; as a consequence quicktrim
+  to get the optimal p-set is still missing
+- THIS IS AN ALPHA RELEASE: IT'S NOT YET EXHAUSTIVELY TESTED AND MAY CRASH OR 
+  PRODUCE WRONG RESULTS
+
 ----------------------------------
 1.0.5 (Python-only release)
 
