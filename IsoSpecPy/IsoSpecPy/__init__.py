@@ -96,20 +96,26 @@ class Iso(object):
         
 
 
-
 class IsoThreshold(Iso):
     def __init__(self, threshold=.0001, absolute=False, get_confs = False, **kwargs):
         super(IsoThreshold, self).__init__(get_confs = get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
+
         self.generator = self.ffi.setupIsoThresholdGenerator(self.iso, threshold, absolute, 1000, 1000)
         self.tabulator = self.ffi.setupThresholdTabulator(self.generator, True, True, True, get_confs)
-        self.masses = self.ffi.massesThresholdTabulator(self.tabulator)
-        self.lprobs = self.ffi.lprobsThresholdTabulator(self.tabulator)
-        self.probs  = self.ffi.probsThresholdTabulator(self.tabulator)
-        if get_confs:
-            self.confs = self.ffi.confsThresholdTabulator(self.tabulator)
+
         self.size = self.ffi.confs_noThresholdTabulator(self.tabulator)
+
+        def c(typename, what, mult = 1):
+            return isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what)
+
+        self.masses = c("double", self.ffi.massesThresholdTabulator(self.tabulator))
+        self.lprobs = c("double", self.ffi.lprobsThresholdTabulator(self.tabulator))
+        self.probs  = c("double", self.ffi.probsThresholdTabulator(self.tabulator))
+
+        if get_confs:
+            self.confs = c("int", self.ffi.confsThresholdTabulator(self.tabulator), mult = self.dimNumber)
 
     def __len__(self):
         return self.size
