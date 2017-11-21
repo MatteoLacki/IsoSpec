@@ -21,24 +21,25 @@ import types
 import PeriodicTbl
 
 
-
-regex_symbols = re.compile("\D+")
-regex_atom_cnts = re.compile("\d+")
+regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
 
 def IsoParamsFromFormula(formula):
-    global regex_symbols, regex_atom_cnts
-    symbols = regex_symbols.findall(formula)
-    atomCounts = [int(x) for x in regex_atom_cnts.findall(formula)]
+    global regex_pattern
 
-    if not len(symbols) == len(atomCounts):
-        raise ValueError("Invalid formula")
-
+    symbols = []
+    atomCounts = []
+    for elem, cnt in re.findall(regex_pattern, formula):
+        symbols.append(elem)
+        atomCounts.append(int(cnt) if cnt is not '' else 1)
     try:
         masses = tuple(PeriodicTbl.symbol_to_masses[s] for s in symbols)
         probs  = tuple(PeriodicTbl.symbol_to_probs[s]  for s in symbols)
         isotopeNumbers = tuple(len(PeriodicTbl.symbol_to_probs[s]) for s in symbols)
     except KeyError:
         raise ValueError("Invalid formula")
+
+
+    print(symbols, atomCounts, masses, probs, isotopeNumbers, formula)
 
     return (len(atomCounts), isotopeNumbers, atomCounts, masses, probs)
 
