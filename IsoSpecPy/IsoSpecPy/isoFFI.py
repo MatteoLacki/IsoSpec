@@ -4,7 +4,6 @@ import platform
 import sys
 import glob
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 class IsoFFI:
     def __init__(self):

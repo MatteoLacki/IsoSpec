@@ -15,11 +15,16 @@
 #   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
 # 
 
-from isoFFI import isoFFI
+from .isoFFI import isoFFI
 import re
 import types
-import PeriodicTbl
+from . import PeriodicTbl
 
+
+try:
+    xrange
+except NameError:
+    xrange = range
 
 regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
 

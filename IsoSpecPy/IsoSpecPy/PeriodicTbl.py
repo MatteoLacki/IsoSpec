@@ -1,4 +1,4 @@
-from isoFFI import isoFFI
+from .isoFFI import isoFFI
 from collections import defaultdict
 
 try:
