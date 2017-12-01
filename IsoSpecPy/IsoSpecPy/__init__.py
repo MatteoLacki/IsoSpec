@@ -43,9 +43,6 @@ def IsoParamsFromFormula(formula):
     except KeyError:
         raise ValueError("Invalid formula")
 
-
-    print(symbols, atomCounts, masses, probs, isotopeNumbers, formula)
-
     return (len(atomCounts), isotopeNumbers, atomCounts, masses, probs)
 
 
