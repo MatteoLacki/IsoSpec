@@ -116,17 +116,25 @@ private:
     double currentMass;
     double currentEProb;
     int*   candidate;
+    int    ccount;
 
 public:
     bool advanceToNextConfiguration() override final;
     inline void get_conf_signature(int* space) const override final
-    { 
-        const int* c = getConf(topConf);
+    {
+        int* c = getConf(topConf);
+
+        if (ccount >= 0)
+            c[ccount]--;
+
         for(int ii=0; ii<dimNumber; ii++)
         {
             memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
             space += isotopeNumbers[ii];
         }
+
+        if (ccount >= 0)
+            c[ccount]++;
     };
 
     IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);

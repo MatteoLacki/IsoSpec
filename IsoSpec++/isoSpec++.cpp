@@ -695,7 +695,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
     currentMass = combinedSum( topConfIsoCounts, masses, dimNumber );
     currentEProb = exp(currentLProb);
 
-    int ccount = -1;
+    ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
     {
         // candidate cannot refer to a position that is
