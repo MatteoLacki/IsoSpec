@@ -23,7 +23,6 @@ if not os.path.exists("IsoSpec++"):
 
 
 if os.getenv('ISO_USE_DEFAULT_CXX') == None and spawn.find_executable('clang++') != None:
-    os.environ['CC'] = 'clang++'
     os.environ['CXX'] = 'clang++'
 
 
