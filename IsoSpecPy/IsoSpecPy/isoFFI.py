@@ -76,7 +76,7 @@ class IsoFFI:
         try:
             if platform.system() == 'Linux':
                 extension = ['.so']
-            elif platform.system == 'Windows':
+            elif platform.system() == 'Windows':
                 extension = ['.dll']
         except:
             pass
