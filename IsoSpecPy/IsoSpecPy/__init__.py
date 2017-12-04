@@ -163,8 +163,12 @@ class IsoGenerator(Iso):
     def __init__(self, get_confs=False, **kwargs):
         super(IsoGenerator, self).__init__(get_confs = get_confs, **kwargs)
         self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
+        self.firstuse = True
 
     def __iter__(self):
+        if not self.firstuse:
+            raise NotImplementedError("Multiple iterations through the same IsoGenerator object are not supported. Either create a new (identical) generator for a second loop-through, or use one of the non-generator classes, which do support being re-used.")
+        self.firstuse = False
         cgen = self.cgen
         if self.get_confs:
             while self.advancer(cgen):
