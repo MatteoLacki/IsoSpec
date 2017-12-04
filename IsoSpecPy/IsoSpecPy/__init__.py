@@ -140,7 +140,9 @@ class IsoThreshold(Iso):
         return self.size
 
     def __del__(self):
-        pass
+        self.ffi.deleteThresholdTabulator(self.tabulator)
+        self.ffi.deleteIsoThresholdGenerator(self.generator)
+
 
 
 
