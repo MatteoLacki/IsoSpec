@@ -82,6 +82,18 @@ class Iso(object):
         self.get_confs = get_confs
         self.ffi = isoFFI.clib
 
+        offsets = []
+
+        if get_confs:
+            i = 0
+            for j in xrange(self.dimNumber):
+                newl = []
+                for k in xrange(self.isotopeNumbers[j]):
+                    newl.append(i)
+                    i += 1
+                offsets.append(tuple(newl))
+            self.offsets = tuple(offsets)
+
         self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
                                      self.atomCounts,
                                      [i for s in self.isotopeMasses for i in s],
@@ -97,6 +109,10 @@ class Iso(object):
     def __del__(self):
         self.ffi.deleteIso(self.iso)
         
+
+    def parse_conf(self, cptr):
+        return tuple(tuple(cptr[i] for i in o) for o in self.offsets)
+
 
 
 class IsoThreshold(Iso):
@@ -146,11 +162,14 @@ class IsoLayered(Iso):
 class IsoGenerator(Iso):
     def __init__(self, get_confs=False, **kwargs):
         super(IsoGenerator, self).__init__(get_confs = get_confs, **kwargs)
+        self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
 
     def __iter__(self):
         cgen = self.cgen
         if self.get_confs:
-            raise NotImplemented()
+            while self.advancer(cgen):
+                self.conf_getter(cgen, self.conf_space)
+                yield (self.mass_getter(cgen), self.lprob_getter(cgen), self.parse_conf(self.conf_space))
         else:
             while self.advancer(cgen):
                 yield (self.mass_getter(cgen), self.lprob_getter(cgen))
@@ -170,6 +189,7 @@ class IsoThresholdGenerator(IsoGenerator):
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
         self.lprob_getter = self.ffi.lprobIsoThresholdGenerator
         self.mass_getter = self.ffi.massIsoThresholdGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
 
     def __del__(self):
         self.ffi.deleteIsoThresholdGenerator(self.cgen)
@@ -187,6 +207,7 @@ class IsoLayeredGenerator(IsoGenerator):
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.lprob_getter = self.ffi.lprobIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
 
     def __del__(self):
         self.ffi.deleteIsoLayeredGenerator(self.cgen)
@@ -200,6 +221,7 @@ class IsoOrderedGenerator(IsoGenerator):
         self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
         self.lprob_getter = self.ffi.lprobIsoOrderedGenerator
         self.mass_getter = self.ffi.massIsoOrderedGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoOrderedGenerator
 
     def __del__(self):
         self.ffi.deleteIsoLayeredGenerator(self.cgen)
