@@ -791,7 +791,7 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
     for(int ii=0; ii<dimNumber; ii++)
         marginalResults[ii]->extend(current_layer_lcutoff - modeLProb + marginals[ii]->getModeLProb());
 
-    bzero(counter, dimNumber * sizeof(unsigned int));
+	memset(counter, 0, dimNumber * sizeof(unsigned int));
 
     recalc(dimNumber-1);
 

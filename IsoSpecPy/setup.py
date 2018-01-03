@@ -144,7 +144,6 @@ if platform.system() == 'Windows':
     import copy
     win_setup_args = copy.deepcopy(setup_args)
     win_setup_args['ext_modules'] = []
-    win_setup_args['data_files'] = glob.glob('IsoSpecPy/prebuilt-libIsoSpec++*-x??.dll')
     win_setup_args['include_package_data'] = True
     setup(**win_setup_args)
 elif 'CYGWIN' in platform.system():

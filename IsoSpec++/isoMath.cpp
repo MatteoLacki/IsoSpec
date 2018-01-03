@@ -7,8 +7,13 @@
  */
 
 #include <cmath>
-#include <sys/mman.h>
 #include <unistd.h>
+#include "isoMath.h"
+#ifdef __MINGW32__
+	#include "mman.h"
+#else
+	#include <sys/mman.h>
+#endif
 
 const double pi = 3.14159265358979323846264338328;
 
