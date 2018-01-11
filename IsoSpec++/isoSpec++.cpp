@@ -48,8 +48,8 @@ Iso::Iso(
     int             _dimNumber,
     const int*      _isotopeNumbers,
     const int*      _atomCounts,
-    const double**  _isotopeMasses,
-    const double**  _isotopeProbabilities
+    const double* const *  _isotopeMasses,
+    const double* const *  _isotopeProbabilities
 ) :
 disowned(false),
 dimNumber(_dimNumber),
@@ -89,7 +89,7 @@ modeLProb(other.modeLProb)
 {}
 
 
-inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities)
+inline void Iso::setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities)
 {
     if (marginals == nullptr)
     {

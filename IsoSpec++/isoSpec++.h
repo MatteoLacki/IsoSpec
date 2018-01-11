@@ -42,7 +42,7 @@ class IsoThresholdGenerator;
 
 class Iso {
 private:
-    void setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities);
+    void setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities);
 public:
     bool disowned;
 protected:
@@ -59,8 +59,8 @@ public:
         int             _dimNumber,
         const int*      _isotopeNumbers,
         const int*      _atomCounts,
-        const double**  _isotopeMasses,
-        const double**  _isotopeProbabilities
+        const double* const *  _isotopeMasses,
+        const double* const *  _isotopeProbabilities
     );
 
     Iso(const char* formula);
