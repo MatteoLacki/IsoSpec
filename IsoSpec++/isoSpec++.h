@@ -187,33 +187,6 @@ private:
 };
 
 
-class IsoThresholdGeneratorBoundMass : public IsoGenerator
-{
-private:
-    double* maxConfsLPSum, *minMassCSum, *maxMassCSum;
-    double Lcutoff;
-    double min_mass, max_mass;
-    RGTMarginal** marginalResults;
-
-public:
-    bool advanceToNextConfiguration() override final;
-
-    IsoThresholdGeneratorBoundMass(Iso&& iso, double  _threshold, double min_mass, double max_mass, bool _absolute = true, int _tabSize  = 1000, int _hashSize = 1000);
-
-    virtual ~IsoThresholdGeneratorBoundMass();
-
-private:
-    void setup_ith_marginal_range(unsigned int idx);
-    inline void recalc(int idx)
-    {
-        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->current_lProb();
-        partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->current_mass();
-        partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->current_eProb();
-    }
-};
-
-
-
 class IsoThresholdGeneratorMT : public IsoGenerator
 {
 private:
