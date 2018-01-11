@@ -9,6 +9,7 @@
 #include <cmath>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "isoMath.h"
 
 const double pi = 3.14159265358979323846264338328;
 
