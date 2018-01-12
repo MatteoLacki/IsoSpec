@@ -28,7 +28,7 @@ clean:
 	rm -f libIsoSpec++.so
 
 windows:
-	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc *.cpp -o lib.dll
+	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc unity-build.cpp -o ../IsoSpecPy/IsoSpec++.dll
 
 unity:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so

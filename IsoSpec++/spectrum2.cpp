@@ -1,11 +1,16 @@
 #include <cmath>
 #include "spectrum2.h"
 #include <assert.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <stdio.h>
 
-#ifndef __APPLE__
+#ifdef __APPLE__
+	#include <sys/mman.h>
+#elif __MINGW32__
+	#include "mman.h"
+	#include <windows.h>
+#else
+	#include <sys/mman.h>
     #include <sys/sysinfo.h>
 #endif
 
@@ -14,6 +19,10 @@ inline static unsigned long get_mmap_len(unsigned long n_buckets)
 {
     #ifdef __APPLE__
         unsigned long pagesize = getpagesize();
+	#elif __MINGW32__
+		SYSTEM_INFO siSysInfo;
+		GetSystemInfo(&siSysInfo); 
+		unsigned long pagesize = siSysInfo.dwPageSize;
     #else
         unsigned long pagesize = sysconf(_SC_PAGESIZE);
     #endif
@@ -47,11 +56,18 @@ void* wrapper_func_thr(void* spc)
 void Spectrum::run(unsigned int nthreads, bool sync)
 {
     if(nthreads == 0)
-        #ifdef __APPLE__
+	{
+		#ifdef __APPLE__
             nthreads = sysconf(_SC_NPROCESSORS_ONLN);
+		#elif __MINGW32__
+			SYSTEM_INFO siSysInfo;
+			GetSystemInfo(&siSysInfo); 
+			nthreads = siSysInfo.dwNumberOfProcessors;
         #else
             nthreads = get_nprocs();
         #endif
+	}
+
     n_threads = nthreads;
 
     threads = new pthread_t[n_threads];
