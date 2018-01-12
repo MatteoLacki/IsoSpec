@@ -48,8 +48,8 @@ Iso::Iso(
     int             _dimNumber,
     const int*      _isotopeNumbers,
     const int*      _atomCounts,
-    const double**  _isotopeMasses,
-    const double**  _isotopeProbabilities
+    const double* const *  _isotopeMasses,
+    const double* const *  _isotopeProbabilities
 ) :
 disowned(false),
 dimNumber(_dimNumber),
@@ -89,7 +89,7 @@ modeLProb(other.modeLProb)
 {}
 
 
-inline void Iso::setupMarginals(const double** _isotopeMasses, const double** _isotopeProbabilities)
+inline void Iso::setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities)
 {
     if (marginals == nullptr)
     {
@@ -275,131 +275,6 @@ IsoGenerator::~IsoGenerator()
 }
 
 
-
-IsoThresholdGeneratorBoundMass::IsoThresholdGeneratorBoundMass(Iso&& iso, double _threshold, double _min_mass, double _max_mass, bool _absolute, int tabSize, int hashSize)
-: IsoGenerator(std::move(iso)),
-min_mass(_min_mass),
-max_mass(_max_mass)
-{
-    maxConfsLPSum   = new double[dimNumber];
-    minMassCSum     = new double[dimNumber];
-    maxMassCSum     = new double[dimNumber];
-
-    marginalResults = new RGTMarginal*[dimNumber];
-
-    Lcutoff = (_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb));
-
-    for(int ii=0; ii<dimNumber; ii++)
-    {
-        marginalResults[ii] = new RGTMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                        tabSize,
-                                                        hashSize);
-    }
-
-    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
-    minMassCSum[0] = marginalResults[0]->getLightestConfMass();
-    maxMassCSum[0] = marginalResults[0]->getHeaviestConfMass();
-
-    for(int ii=1; ii<dimNumber; ii++)
-    {
-        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
-        minMassCSum[ii] = minMassCSum[ii-1] + marginalResults[ii]->getLightestConfMass();
-        maxMassCSum[ii] = maxMassCSum[ii-1] + marginalResults[ii]->getHeaviestConfMass();
-    }
-
-    setup_ith_marginal_range(dimNumber-1);
-
-    for(int ii=0; ii<dimNumber-1; ii++)
-        marginalResults[0]->setup_search(2.0, 1.0, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
-
-}
-
-IsoThresholdGeneratorBoundMass::~IsoThresholdGeneratorBoundMass()
-{
-    delete[] maxConfsLPSum;
-    dealloc_table(marginalResults, dimNumber);
-    delete[] minMassCSum;
-    delete[] maxMassCSum;
-}
-
-bool IsoThresholdGeneratorBoundMass::advanceToNextConfiguration()
-{
-    if(marginalResults[0]->next())
-    {
-        recalc(0);
-        return true;
-    }
-
-
-    // If we reached this point, a carry is needed
-
-    int idx = 1;
-    bool frombelow = true;
-
-
-    while(idx >= 0 and idx < dimNumber)
-    {
-        if(frombelow)
-        {
-            if(marginalResults[idx]->next())
-            {
-                recalc(idx);
-                frombelow = false;
-                idx--;
-            }
-            else
-                idx++;
-        }
-        else
-        {
-            setup_ith_marginal_range(idx);
-            if(marginalResults[idx]->next())
-            {
-                recalc(idx);
-                idx--;
-            }
-            else
-            {
-                idx++;
-                frombelow = true;
-            }
-        }
-    }
-
-    if(idx == dimNumber)
-        return false;
-    else
-        return true;
-
-
-}
-
-
-void IsoThresholdGeneratorBoundMass::setup_ith_marginal_range(unsigned int idx)
-{
-    double lower_min = min_mass - partialMasses[idx+1];
-    double lower_max = max_mass - partialMasses[idx+1];
-    double rem_prob  = Lcutoff - partialLProbs[idx+1] - maxConfsLPSum[idx];
-
-    for(unsigned int ii=0; ii < idx; ii++)
-    {
-        double p = rem_prob + marginalResults[ii]->getModeLProb();
-        lower_min -= marginalResults[ii]->max_mass_above_lProb(p);
-        lower_max -= marginalResults[ii]->min_mass_above_lProb(p);
-    }
-
-
-    marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
-    if(idx>2)
-    {
-        unsigned int cou = 0;
-        while(marginalResults[idx]->next())
-            cou++;
-    }
-    marginalResults[idx]->setup_search(rem_prob+marginalResults[idx]->getModeLProb(), std::numeric_limits<double>::infinity(), lower_min, lower_max);
-
-}
 
 /*
  * ----------------------------------------------------------------------------------------------------------

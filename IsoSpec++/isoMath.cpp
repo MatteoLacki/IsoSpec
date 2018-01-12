@@ -9,6 +9,7 @@
 #include <cmath>
 #include <unistd.h>
 #include "isoMath.h"
+
 #ifdef __MINGW32__
 	#include "mman.h"
 #else

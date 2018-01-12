@@ -38,42 +38,4 @@ double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 
-inline unsigned int next_pow2(unsigned int base)
-{
-	// Rounds up a number to the next power of 2.
-	// Base has to be >=1.
-	// TODO: replace with one of those magic super-fast
-	// bit operations.
-	unsigned int ret = 1;
-	while (ret <= base)
-	    ret *= 2;
-	return ret;
-}
-
-inline unsigned int prev_pow2(unsigned int arg)
-{
-	// computes the largest power of 2 which is lower than arg. 
-	// Arg has to be > 1.
-	unsigned int prev = 1;
-	unsigned int ret = 1;
-	while(ret <= arg)
-	{
-	    ret *= 2;
-	    prev = ret;
-	}
-	return prev;
-}
-
-inline unsigned int floor_log2(unsigned int arg)
-{
-    // arg must be > 0
-    unsigned int ret = 0;
-    while(arg > 1)
-    {
-        arg /= 2;
-        ret++;
-    }
-    return ret;
-}
-
 #endif /* ISOMATH_HPP */

@@ -179,41 +179,6 @@ public:
 
 };
 
-class RGTMarginal : public PrecalculatedMarginal
-{
-private:
-    const unsigned int TOV_NP2, TOV_NP2M1;
-    const unsigned int mass_table_rows_no, mass_table_row_size, mass_table_size;
-    unsigned int* subintervals;
-    double* mass_table;
-    double pmin, pmax, mmin, mmax;
-    unsigned int lower, upper, arridx, arrend, mask, current_level, cidx, gap;
-    bool goingleft, going_up;
-    ReverseOrder<double> rev_ord;
-public:
-    RGTMarginal(
-        Marginal&& m,
-        double lCutOff,
-        int tabSize = 1000,
-        int hashSize = 1000
-    );
-    ~RGTMarginal();
-    void setup_search(double _pmin, double _pmax, double _mmin, double _mmax);
-    bool next();
-    void terminate_search();
-    inline const double& current_lProb() const { return lProbs[cidx]; };
-    inline const double& current_mass() const { return masses[cidx]; };
-    inline const double& current_eProb() const { return eProbs[cidx]; };
-    inline const Conf& current_conf() const { return confs[cidx]; };
-    double min_mass_above_lProb(double prob);
-    double max_mass_above_lProb(double prob);
-
-private:
-    unsigned int* alloc_and_setup_subintervals();
-    unsigned int setup_subintervals(unsigned int* T, unsigned int idx, bool left);
-    double* alloc_and_setup_mass_table();
-    bool hard_next();
-};
 
 class LayeredMarginal : public Marginal
 {
