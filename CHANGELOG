@@ -22,6 +22,11 @@ This file lists *major* changes between releases, for a full list see git log.
 - API is still not yet finalized.
 
 ----------------------------------
+1.0.6 (Python-only release)
+
+- Compatibility fixes for Python3.6
+
+----------------------------------
 1.0.5 (Python-only release)
 
 - Only affecting IsoSpecPy: Speed improvements in IsoFromFormula

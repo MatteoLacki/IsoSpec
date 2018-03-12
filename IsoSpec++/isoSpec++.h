@@ -187,6 +187,7 @@ private:
 };
 
 
+
 class IsoThresholdGeneratorMT : public IsoGenerator
 {
 private:
@@ -250,6 +251,7 @@ public:
         while (not advanceToNextConfiguration_internal())
             if (not nextLayer(delta))
                 return false;
+        std::cout << "Returning conf: " << counter[0] << " " << counter[1] << " " << partialLProbs[0] << std::endl;
         return true;
     }
     bool nextLayer(double logCutoff_delta); // Arg should be negative

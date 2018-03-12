@@ -17,13 +17,16 @@ int main()
     double mmax = 100000000000.0;
     #if 1
 //    IsoLayeredGenerator* iso = new IsoLayeredGenerator("C1600H2700N1000", -100.0);
-    IsoLayeredGenerator* iso = new IsoLayeredGenerator("C5H5", -100.0);
+    IsoLayeredGenerator* iso = new IsoLayeredGenerator("H2C2", -0.5);
     unsigned int cnt = 0;
+    int cntr[10];
     while(iso->advanceToNextConfiguration())
     {
         if(iso->mass() >= mmin and mmax >= iso->mass())
             cnt++;
-//        std::cout << cntr[0] << " " << cntr[1] << " " << cntr[2] << " " << iso->lprob() << std::endl;
+        iso->get_conf_signature(cntr);
+
+//        std::cout << cntr[0] << " " << cntr[1] << " " << cntr[2] << " " << " " << cntr[3] << " " << cntr[4] << " " << cntr[5] << " " << iso->lprob() << std::endl;
         if(cnt%10000 == 0)
             std::cout << cnt << " " << s.get() << std::endl;
 

@@ -624,7 +624,7 @@ delta(_delta)
 
     marginalResults = new LayeredMarginal*[dimNumber];
 
-    final_cutoff = 0.0;
+    final_cutoff = -100000.0; // FIXME
 
     for(int ii=0; ii<dimNumber; ii++)
     {
@@ -650,7 +650,7 @@ delta(_delta)
 	partialExpProbs[ii] = partialExpProbs[ii+1] + marginalResults[ii]->getModeEProb();
     }
 
-    last_counters = new int[dimNumber];
+    last_counters = new int[dimNumber-1];
     nextLayer(_delta);
 }
 
@@ -660,11 +660,19 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
     last_layer_lcutoff = current_layer_lcutoff;
     current_layer_lcutoff += logCutoff_delta;
 
+    std::cout << "=============================================================================================\nNextLayer\n=============================================================================================\n\n\n";
+
+    std::cout << "nextLayer LLC: " << last_layer_lcutoff << " CCC: " << current_layer_lcutoff << std::endl;
+
     if(last_layer_lcutoff<final_cutoff)
         return false;
 
     for(int ii=0; ii<dimNumber; ii++)
+    {
+        std::cout << "Extending marginal " << ii << std::endl;
         marginalResults[ii]->extend(current_layer_lcutoff - modeLProb + marginals[ii]->getModeLProb());
+        std::cout << "Done extending marginal" << std::endl;
+    }
 
 	memset(counter, 0, dimNumber * sizeof(unsigned int));
 
@@ -672,7 +680,7 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
 
     counter[0] = marginalResults[0]->get_no_confs();
 
-    for(int ii=0; ii<dimNumber; ii++)
+    for(int ii=0; ii<dimNumber-1; ii++)
         last_counters[ii] = counter[0];
 
     return true;
@@ -681,6 +689,7 @@ bool IsoLayeredGenerator::nextLayer(double logCutoff_delta)
 
 bool IsoLayeredGenerator::advanceToNextConfiguration_internal()
 {
+    std::cout << "cntr: " << counter[0] << " " << counter[1] << std::endl;
     counter[0]--;
     double cprob = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
 
@@ -689,29 +698,44 @@ bool IsoLayeredGenerator::advanceToNextConfiguration_internal()
         partialLProbs[0] = cprob;
         partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
         partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
+        std::cout << "carry not needed" << std::endl;
         return true;
     }
 
     // If we reached this point, a carry is needed
+    std::cout << "CARRY, cntr:" << counter[0] << " " << counter[1] << std::endl;
 
     int idx = 0;
     while(idx < dimNumber-1)
     {
+        std::cout << "carry loop" << std::endl;
+	std::cout << "last_counters: ";
+	printArray(last_counters, 1);
         counter[idx] = 0;
+	counter[0] = last_counters[idx];
         idx++;
         counter[idx]++;
+        std::cout << "carry loop, cntr after carry: " << counter[0] << " " << counter[1] << std::endl;
         partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        std::cout << "maxConfsLPSum[idx-1]: " << maxConfsLPSum[idx-1] << std::endl;
+        std::cout << "partialLProbs[idx]: " << partialLProbs[idx] << std::endl;
         if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= current_layer_lcutoff)
         {
             counter[0] = last_counters[idx];
 
             for(int ii=idx-1; ii >=0; ii--)
+            {
+                std::cout << "PLP[i] = PLP[i+1] + MR[i]->LP[c[i]]: " << partialLProbs[ii+1] << " " << marginalResults[ii]->get_lProb(counter[ii]) << std::endl;
+                std::cout << "i: " << ii << std::endl;
+                std::cout << "cntr: " << counter[0] << " " << counter[1] << std::endl;
                 partialLProbs[ii] = partialLProbs[ii+1] + marginalResults[ii]->get_lProb(counter[ii]);
-            
+            }
+            std::cout << "Prob: " << partialLProbs[0] << std::endl;
             while(partialLProbs[0] < current_layer_lcutoff)
             {
                 counter[0]--;
                 partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+                std::cout << "Prob. too low, decreasing to: " << counter[0] << " " << counter[1] << " prob: " << partialLProbs[0] << std::endl;
             }
 
             last_counters[idx] = counter[0];
@@ -725,7 +749,8 @@ bool IsoLayeredGenerator::advanceToNextConfiguration_internal()
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
             recalc(idx-1);
-            return true;
+            std::cout << "XXX" << std::endl;
+//            return true;
 
         }
     }
