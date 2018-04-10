@@ -233,3 +233,6 @@ class IsoOrderedGenerator(IsoGenerator):
         self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
 
+
+
+__version__ = "1.9.0a1"
