@@ -10,7 +10,7 @@ The current functions are implemented in __init__.py, use them instead
 from .__init__ import Iso, IsoThreshold
 import re
 
-class IsoSpec(Iso):
+class IsoSpec():
     def __init__(
                     self,
                     _atomCounts,
