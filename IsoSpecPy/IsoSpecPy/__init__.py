@@ -116,7 +116,7 @@ class Iso(object):
 
 
 class IsoThreshold(Iso):
-    def __init__(self, threshold=.0001, absolute=False, get_confs = False, **kwargs):
+    def __init__(self, threshold, absolute=False, get_confs = False, **kwargs):
         super(IsoThreshold, self).__init__(get_confs = get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
@@ -183,7 +183,7 @@ class IsoGenerator(Iso):
         
 
 class IsoThresholdGenerator(IsoGenerator):
-    def __init__(self, threshold=0.0001, absolute=False, get_confs=False, **kwargs):
+    def __init__(self, threshold, absolute=False, get_confs=False, **kwargs):
         super(IsoThresholdGenerator, self).__init__(get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
