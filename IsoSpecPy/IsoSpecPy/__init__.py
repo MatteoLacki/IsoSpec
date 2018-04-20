@@ -136,7 +136,6 @@ class IsoThreshold(Iso):
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            print sum(self.isotopeNumbers)
             self.raw_confs = c("int", self.ffi.confsThresholdTabulator(self.tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
