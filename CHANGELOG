@@ -1,5 +1,11 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+----------------------------------
+1.9.0a2
+
+- Rudimentary module for backward-compatibility with IsoSpec 1.0.X API
+- Bugfix (and usability improvement) for getting configurations in 
+  IsoThreshold
 
 ----------------------------------
 1.9.0a1
