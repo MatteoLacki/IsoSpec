@@ -19,6 +19,7 @@ from .isoFFI import isoFFI
 import re
 import types
 from . import PeriodicTbl
+from .confs_passthrough import ConfsPassthrough
 
 
 try:
@@ -110,8 +111,8 @@ class Iso(object):
         self.ffi.deleteIso(self.iso)
         
 
-    def parse_conf(self, cptr):
-        return tuple(tuple(cptr[i] for i in o) for o in self.offsets)
+    def parse_conf(self, cptr, starting_with = 0):
+        return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 
 
 
@@ -134,7 +135,14 @@ class IsoThreshold(Iso):
         self.probs  = c("double", self.ffi.probsThresholdTabulator(self.tabulator))
 
         if get_confs:
-            self.confs = c("int", self.ffi.confsThresholdTabulator(self.tabulator), mult = self.dimNumber)
+            self.sum_isotope_numbers = sum(self.isotopeNumbers)
+            print sum(self.isotopeNumbers)
+            self.raw_confs = c("int", self.ffi.confsThresholdTabulator(self.tabulator), mult = self.sum_isotope_numbers)
+            self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+
+
+    def _get_conf(self, idx):
+        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
 
     def __len__(self):
         return self.size
