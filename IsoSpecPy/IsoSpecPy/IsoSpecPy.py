@@ -124,7 +124,7 @@ class IsoSpec():
         logProbs= list(logProbs)
         confs = []
         for i in xrange(rows_no):
-            confs.append(list(isoCounts[i*cols_no:(i+1)*cols_no]))
+            confs.append([x for sublist in isoCounts[i] for x in sublist])
         return masses, logProbs, confs
 
     def splitConf(self, l, offset = 0):
