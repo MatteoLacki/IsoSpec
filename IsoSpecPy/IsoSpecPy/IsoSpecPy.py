@@ -123,7 +123,7 @@ class IsoSpec():
         masses  = list(masses)
         logProbs= list(logProbs)
         confs = []
-        for i in xrange(rows_no-1):
+        for i in xrange(rows_no):
             confs.append(list(isoCounts[i*cols_no:(i+1)*cols_no]))
         return masses, logProbs, confs
 
