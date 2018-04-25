@@ -56,7 +56,9 @@ class Iso(object):
                  atomCounts=None,
                  isotopeMasses=None,
                  isotopeProbabilities=None):
-        """Initialize Iso. TODO write it."""
+        """Initialize Iso."""
+
+        self.iso = None
 
         if formula is None and not all([dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities]):
             raise Exception("Either formula or ALL of: dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities must not be None")
@@ -108,7 +110,8 @@ class Iso(object):
                 yield (self.masses[i], self.probs[i])
                 
     def __del__(self):
-        self.ffi.deleteIso(self.iso)
+        if self.iso is not None:
+            self.ffi.deleteIso(self.iso)
         
 
     def parse_conf(self, cptr, starting_with = 0):
@@ -118,6 +121,8 @@ class Iso(object):
 
 class IsoThreshold(Iso):
     def __init__(self, threshold, absolute=False, get_confs = False, **kwargs):
+        self.tabulator = None
+        self.generator = None
         super(IsoThreshold, self).__init__(get_confs = get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
@@ -136,7 +141,6 @@ class IsoThreshold(Iso):
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            print sum(self.isotopeNumbers)
             self.raw_confs = c("int", self.ffi.confsThresholdTabulator(self.tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
@@ -148,8 +152,10 @@ class IsoThreshold(Iso):
         return self.size
 
     def __del__(self):
-        self.ffi.deleteThresholdTabulator(self.tabulator)
-        self.ffi.deleteIsoThresholdGenerator(self.generator)
+        if self.tabulator is not None:
+            self.ffi.deleteThresholdTabulator(self.tabulator)
+        if self.generator is not None:
+            self.ffi.deleteIsoThresholdGenerator(self.generator)
 
 
 
@@ -171,6 +177,7 @@ class IsoLayered(Iso):
 
 class IsoGenerator(Iso):
     def __init__(self, get_confs=False, **kwargs):
+        self.cgen = None
         super(IsoGenerator, self).__init__(get_confs = get_confs, **kwargs)
         self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
         self.firstuse = True
@@ -206,7 +213,8 @@ class IsoThresholdGenerator(IsoGenerator):
         self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
 
     def __del__(self):
-        self.ffi.deleteIsoThresholdGenerator(self.cgen)
+        if self.cgen is not None:
+            self.ffi.deleteIsoThresholdGenerator(self.cgen)
 
 
 class IsoLayeredGenerator(IsoGenerator):
@@ -224,7 +232,8 @@ class IsoLayeredGenerator(IsoGenerator):
         self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
 
     def __del__(self):
-        self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        if self.cgen is not None:
+            self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
 class IsoOrderedGenerator(IsoGenerator):
     def __init__(self, get_confs=False, **kwargs):
@@ -238,9 +247,11 @@ class IsoOrderedGenerator(IsoGenerator):
         self.conf_getter = self.ffi.get_conf_signatureIsoOrderedGenerator
 
     def __del__(self):
-        self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        if self.cgen is not None:
+            self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
 
 
 
-__version__ = "1.9.0a1"
+__version__ = "1.9.0a2"
+
