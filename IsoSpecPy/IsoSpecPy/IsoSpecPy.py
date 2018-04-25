@@ -24,8 +24,11 @@ with using the old interface...
 The current functions are implemented in __init__.py, use them instead
 '''
 
+try:
+    xrange
+except NameError:
+    xrange = range
 
-from .__init__ import Iso, IsoThreshold
 import re
 
 class IsoSpec():
@@ -60,6 +63,8 @@ class IsoSpec():
         self._isotopeProbabilities     = _isotopeProbabilities
         self._stopCondition            = _stopCondition
 
+        from .__init__ import IsoThreshold
+
         try:
             algo = { # 'layered' : 0, # not implemented yet
               # 'ordered' : 1, # not implemented yet
@@ -90,10 +95,10 @@ class IsoSpec():
         if not len(symbols) == len(atom_counts):
             raise ValueError("Invalid formula")
 
-        import PeriodicTbl # TODO: split IsoFFI into separate module to avoid circular dependency here
+        from .PeriodicTbl import symbol_to_masses, symbol_to_probs
         try:
-            masses = tuple(PeriodicTbl.symbol_to_masses[symbol] for symbol in symbols)
-            probs = tuple(PeriodicTbl.symbol_to_probs[symbol] for symbol in symbols)
+            masses = tuple(symbol_to_masses[symbol] for symbol in symbols)
+            probs = tuple(symbol_to_probs[symbol] for symbol in symbols)
         except KeyError:
             raise ValueError("Invalid formula")
 

@@ -255,3 +255,16 @@ class IsoOrderedGenerator(IsoGenerator):
 
 __version__ = "1.9.0a2"
 
+
+# For compatibility with 1.0.X
+
+class CompatIsoWrapper(object):
+    def __init__(self):
+        from .IsoSpecPy import IsoSpec, IsoSpecify, IsoPlot
+        self.IsoSpec = IsoSpec
+        self.IsoSpecify = IsoSpecify
+        self.IsoPlot = IsoPlot
+
+
+IsoSpecPy = CompatIsoWrapper()
+
