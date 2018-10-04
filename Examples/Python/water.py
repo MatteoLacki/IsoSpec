@@ -33,7 +33,7 @@ oxygen_probs = (0.5, 0.3, 0.2)
 hydrogen_masses = (1.00782503207, 2.0141017778)
 oxygen_masses = (15.99491461956, 16.99913170, 17.9991610)
 
-i = IsoSpecPy.IsoOrderedGenerator(dimNumber = 2, isotopeNumbers = (2, 3), atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), get_confs=True)
+i = IsoSpecPy.IsoOrderedGenerator(atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), get_confs=True)
 
 
 mass, log_prob, conf = i.__iter__().next()
