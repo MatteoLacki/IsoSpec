@@ -38,4 +38,4 @@ la:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp layered-test.cpp -o layered
 
 IsoThresholdGenerator:
-	clang++ -std=c++11 IsoThresholdGenerator.cpp -o IsoThresholdGenerator
+	clang++ -std=c++11 IsoThresholdGenerator.cpp -o IsoThresholdGenerator -lpthread
