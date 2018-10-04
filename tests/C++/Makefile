@@ -6,7 +6,7 @@ TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
 LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
 CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic -lpthread
-SRCFILES=`ls ../../IsoSpec++/*.cpp`
+SRCFILES=../../IsoSpec++/unity-build.cpp
 
 all: testcc
 
@@ -14,7 +14,7 @@ all: testcc
 testcc:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
-	g++-6 $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5.4.0
+	g++-5 $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5
 
 test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-clang
