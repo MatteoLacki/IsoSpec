@@ -36,7 +36,7 @@ using namespace Rcpp;
 
 
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, std::vector<int>& isotopeNumbers, int** atomCounts, unsigned int* confSize);
 
 class IsoThresholdGenerator;
 
@@ -47,7 +47,7 @@ public:
     bool disowned;
 protected:
     int 		dimNumber;
-    int*		isotopeNumbers;
+    std::vector<int> isotopeNumbers;
     int*		atomCounts;
     unsigned int	confSize;
     int			allDim;
