@@ -1,9 +1,15 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 ----------------------------------
+HEAD
+
+- Brought C++/Python examples up to the new API
+- Small change of Python API 
+
+----------------------------------
 1.9.0a2
 
-- Rudimentary module for backward-compatibility with IsoSpec 1.0.X API
+- Rudimentary module for backward-compatibility with IsoSpecPy 1.0.X API
 - Bugfix (and usability improvement) for getting configurations in 
   IsoThreshold
 
