@@ -95,7 +95,7 @@ public:
 
 class TSummator
 {
-    // Tirival algorithm
+    // Trivial algorithm, for testing only
     double sum;
 public:
     inline TSummator()
