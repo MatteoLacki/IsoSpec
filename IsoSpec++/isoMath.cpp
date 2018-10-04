@@ -7,19 +7,28 @@
  */
 
 #include <cmath>
-#include <unistd.h>
 #include "isoMath.h"
 
-#ifdef __MINGW32__
-	#include "mman.h"
+#if defined(__unix__) || defined(__unix) || \
+        (defined(__APPLE__) && defined(__MACH__))
+#include <sys/mman.h>
+#define GOT_MMAP 1
+#elif defined(__MINGW32__) || defined(_WIN32)
+#include "mman.h"
+#define GOT_MMAP 1
 #else
-	#include <sys/mman.h>
+#include <stdlib.h>     /* malloc, free, rand */
 #endif
 
 const double pi = 3.14159265358979323846264338328;
 
 // 10M should be enough for everyone, right?
+# if defined(GOT_MMAP)
 double* g_lfact_table = reinterpret_cast<double*>(mmap(NULL, sizeof(double)*G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+#else
+double* g_lfact_table = reinterpret_cast<double*>(calloc(G_FACT_TABLE_SIZE, sizeof(double)));
+#endif
+
 
 double RationalApproximation(double t)
 {
