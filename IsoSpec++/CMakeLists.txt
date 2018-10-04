@@ -1,7 +1,6 @@
 project("IsoSpec")
 cmake_minimum_required(VERSION 2.6)
 
-
 set(my_sources
 cwrapper.cpp
 allocator.cpp  
@@ -13,7 +12,6 @@ operators.cpp
 element_tables.cpp
 misc.cpp
 )
-SET_SOURCE_FILES_PROPERTIES( ${my_sources} PROPERTIES LANGUAGE CXX )
 
 
 ## platform dependent compiler flags:
@@ -26,6 +24,9 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
 
   # Only add those definitions on non-windows systems
   add_definitions(-std=c++11 -Wall -pedantic -Wextra)
+else()
+  set(my_sources ${my_sources} mman.c)
+  add_definitions(-DMMAN_LIBRARY)
 endif()
 
 add_library(IsoSpec SHARED ${my_sources})
