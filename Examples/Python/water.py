@@ -1,23 +1,29 @@
 # Calculates the isotopic distribution of water in several ways
 
-from IsoSpecPy import IsoSpecPy
+import IsoSpecPy
 from math import exp
 
-i = IsoSpecPy.IsoSpec.IsoFromFormula("H2O1", 0.9)
+try:
+    if IsoSpecPy.__version__[:3] != '1.9':
+        raise AttributeError
+except AttributeError:
+    print "This file is meant to be used with IsoSpecPy version 1.9.X. You seem to have a different version installed on your system."
+    import sys
+    sys.exit(-1)
 
-print "The isotopologue set containing at least 0.9 probability has", len(i), "element(s)"
+i = IsoSpecPy.IsoOrderedGenerator(formula="H2O1", get_confs=True)
 
-confs = i.getConfs()
+print "Calculating isotopic distribution of water. Here's a list of all configurations, in a guaranteed order of nonincreasing probability:"
 
-print "The first configuration has the following parameters:"
-print "Mass:", confs[0][0]
-print "log(probability):", confs[0][1] 
-print "probability:", exp(confs[0][1])
-print "Number of Protium atoms:", confs[0][2][0][0]
-print "Number of Deuterium atoms", confs[0][2][0][1]
-print "Number of O16 atoms:", confs[0][2][1][0]
-print "Number of O17 atoms:", confs[0][2][1][1]
-print "Number of O18 atoms:", confs[0][2][1][2]
+for mass, log_prob, conf in i:
+    print "Mass:", mass
+    print "log(probability):", log_prob
+    print "probability:", exp(log_prob)
+    print "Number of Protium atoms:", conf[0][0]
+    print "Number of Deuterium atoms", conf[0][1]
+    print "Number of O16 atoms:", conf[1][0]
+    print "Number of O17 atoms:", conf[1][1]
+    print "Number of O18 atoms:", conf[1][2]
 
 print
 print "Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?"
@@ -26,23 +32,22 @@ hydrogen_probs = (0.5, 0.5)
 oxygen_probs = (0.5, 0.3, 0.2)
 hydrogen_masses = (1.00782503207, 2.0141017778)
 oxygen_masses = (15.99491461956, 16.99913170, 17.9991610)
-atom_counts = (2, 1)
 
-i = IsoSpecPy.IsoSpec(atom_counts, (hydrogen_masses, oxygen_masses), (hydrogen_probs, oxygen_probs), 0.9)
+i = IsoSpecPy.IsoOrderedGenerator(dimNumber = 2, isotopeNumbers = (2, 3), atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), get_confs=True)
 
-print "The isotopologue set containing at least 0.9 probability has", len(i), "element(s)"
 
-confs = i.getConfs()
+mass, log_prob, conf = i.__iter__().next()
 
 print "The first configuration has the following parameters:"
-print "Mass:", confs[0][0]
-print "log-prob:", confs[0][1]
-print "probability:", exp(confs[0][1])
-print "Number of Protium atoms:", confs[0][2][0][0]
-print "Number of Deuterium atoms", confs[0][2][0][1]
-print "Number of O16 atoms:", confs[0][2][1][0]
-print "Number of O17 atoms:", confs[0][2][1][1]
-print "Number of O18 atoms:", confs[0][2][1][2]
+print "Mass:", mass
+print "log(probability):", log_prob
+print "probability:", exp(log_prob)
+print "Number of Protium atoms:", conf[0][0]
+print "Number of Deuterium atoms", conf[0][1]
+print "Number of O16 atoms:", conf[1][0]
+print "Number of O17 atoms:", conf[1][1]
+print "Number of O18 atoms:", conf[1][2]
+
 
 
 
