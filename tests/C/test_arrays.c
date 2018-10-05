@@ -1,5 +1,5 @@
 #include <iostream>
-#include "/Users/matteo/Documents/IsoSpec/IsoSpec/IsoSpec++/unity-build.cpp"
+#include "../../IsoSpec++/unity-build.cpp"
 
 using std::cout;
 using std::endl;
@@ -12,13 +12,9 @@ int main()
     double isotopeMasses[] = {1.0, 2.0, 3.0, 4.0, 5.0};
     double isotopeProbabilities[] = {0.5, 0.5, 0.5, 0.3, 0.2};
 
-    void* p = setupIsoOrderedGenerator(2,
-                                       isotopeNumbers,
-                                       atomCounts,
-                                       isotopeMasses,
-                                       isotopeProbabilities,
-                                       1000,
-                                       1000);
+    void* iso = setupIso(2, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+
+    void* p = setupIsoOrderedGenerator(iso, 1000, 1000);
 
     MassSpectrum MS = set_tablesIsoOrderedGenerator(p, 100);
 
@@ -31,6 +27,7 @@ int main()
     }
 
     deleteIsoOrderedGenerator(p);
+    deleteIso(iso)
 
     return 0;
 }
