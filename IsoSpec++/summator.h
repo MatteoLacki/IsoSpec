@@ -95,7 +95,7 @@ public:
 
 class TSummator
 {
-    // Tirival algorithm
+    // Trivial algorithm, for testing only
     double sum;
 public:
     inline TSummator()
@@ -119,7 +119,7 @@ public:
     inline void add(double what)
     {
         double previous = sum.load(std::memory_order_relaxed);
-        while(not sum.compare_exchange_weak(previous, previous+what, std::memory_order_relaxed)) {};
+        while(!sum.compare_exchange_weak(previous, previous+what, std::memory_order_relaxed)) {};
     }
     inline double get()
     {

@@ -1,8 +1,6 @@
-In order to compile this example please first build the C++ library (following the instructions
-in INSTALL file in main directory), then copy/link over the resulting libIsoSpec++.so file
-to this directory, next, issue the following command:
+The easiest (if not the most elegant) way to compile the example is:
 
-clang++ -std=c++11 -lIsoSpec++ -L. water.cpp
+clang++ water.cpp ../../IsoSpec++/unity-build.cpp -std=c++11 -lpthread
 
 You may replace clang++ with g++ if you do not have LLVM installed.
 

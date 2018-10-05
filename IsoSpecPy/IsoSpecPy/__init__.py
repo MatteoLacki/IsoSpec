@@ -40,19 +40,16 @@ def IsoParamsFromFormula(formula):
     try:
         masses = tuple(PeriodicTbl.symbol_to_masses[s] for s in symbols)
         probs  = tuple(PeriodicTbl.symbol_to_probs[s]  for s in symbols)
-        isotopeNumbers = tuple(len(PeriodicTbl.symbol_to_probs[s]) for s in symbols)
     except KeyError:
         raise ValueError("Invalid formula")
 
-    return (len(atomCounts), isotopeNumbers, atomCounts, masses, probs)
+    return (atomCounts, masses, probs)
 
 
 
 class Iso(object):
     def __init__(self, formula=None,
                  get_confs=False,
-                 dimNumber=None,
-                 isotopeNumbers=None,
                  atomCounts=None,
                  isotopeMasses=None,
                  isotopeProbabilities=None):
@@ -60,27 +57,26 @@ class Iso(object):
 
         self.iso = None
 
-        if formula is None and not all([dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities]):
-            raise Exception("Either formula or ALL of: dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities must not be None")
+        if formula is None and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
+            raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
 
         if formula is not None:
-            self.dimNumber, self.isotopeNumbers, self.atomCounts, \
-            self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
-
-        if dimNumber is not None:
-            self.dimNumber = dimNumber
+            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
 
         if atomCounts is not None:
             self.atomCounts = atomCounts
 
-        if isotopeNumbers is not None:
-            self.isotopeNumbers = isotopeNumbers
 
         if isotopeMasses is not None:
             self.isotopeMasses = isotopeMasses
 
         if isotopeProbabilities is not None:
             self.isotopeProbabilities = isotopeProbabilities
+        
+        self.isotopeNumbers = tuple(map(len, self.isotopeMasses))
+        assert self.isotopeNumbers == tuple(map(len, self.isotopeProbabilities))
+
+        self.dimNumber = len(self.isotopeNumbers)
 
         self.get_confs = get_confs
         self.ffi = isoFFI.clib
