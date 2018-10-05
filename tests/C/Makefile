@@ -1,3 +1,5 @@
+all: test_IsoThresholdGenerator test_IsoOrderedGenerator
+
 test_IsoThresholdGenerator:
 	clang++ -std=c++11 -x c++ test_IsoThresholdGenerator.c -o isoThreshold -lpthread
 
