@@ -24,7 +24,7 @@ const double pi = 3.14159265358979323846264338328;
 
 // 10M should be enough for everyone, right?
 # if defined(GOT_MMAP)
-double* g_lfact_table = reinterpret_cast<double*>(mmap(NULL, sizeof(double)*G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+double* g_lfact_table = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
 #else
 double* g_lfact_table = reinterpret_cast<double*>(calloc(G_FACT_TABLE_SIZE, sizeof(double)));
 #endif
