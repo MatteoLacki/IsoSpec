@@ -27,6 +27,11 @@ simpletest:
 	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -lIsoSpec++ simpletest.cpp -o ./simpletest-clang $(LINK_FLAGS)
 	g++ $(SHARED_FLAGS) $(CXXFLAGS) -pthread -lIsoSpec++ simpletest.cpp -o ./simpletest-gcc $(LINK_FLAGS)
 
+segfault:
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -lIsoSpec++ segfault.cpp -o ./segfault-clang $(LINK_FLAGS)
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -DPREVENT_SEGFAULT -lIsoSpec++ segfault.cpp -o ./segfault-ok-clang $(LINK_FLAGS)
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -fsanitize=address -lIsoSpec++ segfault.cpp -o ./segfault-ok2-clang $(LINK_FLAGS)
+
 test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-clang
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-gcc
