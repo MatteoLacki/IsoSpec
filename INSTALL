@@ -21,6 +21,8 @@ If you wish to develop software using this library, you will also
 have to place the header files (*.hpp/*.h) somewhere your C/C++
 compiler can find them.
 
+On Windows, you should turn on the MANN_LIBRARY pre-processor directive when
+building the library.
 
 ------------------------------------------
 Building and installing the Python package
