@@ -53,7 +53,7 @@ Iso::Iso(
 ) :
 disowned(false),
 dimNumber(_dimNumber),
-isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
+isotopeNumbers(_isotopeNumbers, _isotopeNumbers + _dimNumber),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
@@ -66,7 +66,7 @@ modeLProb(0.0)
 Iso::Iso(Iso&& other) :
 disowned(other.disowned),
 dimNumber(other.dimNumber),
-isotopeNumbers(other.isotopeNumbers),
+isotopeNumbers(std::move(other.isotopeNumbers)),
 atomCounts(other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
@@ -80,7 +80,7 @@ modeLProb(other.modeLProb)
 Iso::Iso(const Iso& other, bool fullcopy) :
 disowned(fullcopy ? throw std::logic_error("Not implemented") : true),
 dimNumber(other.dimNumber),
-isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : other.isotopeNumbers),
+isotopeNumbers(other.isotopeNumbers),
 atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
@@ -115,7 +115,6 @@ Iso::~Iso()
     {
     if (marginals != nullptr)
         dealloc_table(marginals, dimNumber);
-    delete[] isotopeNumbers;
     delete[] atomCounts;
     }
 }
@@ -158,12 +157,12 @@ modeLProb(0.0)
     std::vector<const double*> isotope_masses;
     std::vector<const double*> isotope_probabilities;
 
-    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
+    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, isotopeNumbers, &atomCounts, &confSize);
 
     setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, std::vector<int>& isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
 // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
 
@@ -238,7 +237,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
     const unsigned int dimNumber = elements.size();
 
-    *isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
+    isotopeNumbers.swap(_isotope_numbers);
     *atomCounts = array_copy<int>(numbers.data(), dimNumber);
     *confSize = dimNumber * sizeof(int);
 
