@@ -39,3 +39,6 @@ la:
 
 IsoThresholdGenerator:
 	clang++ -std=c++11 IsoThresholdGenerator.cpp -o IsoThresholdGenerator -lpthread
+
+nr_conf:
+	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread
