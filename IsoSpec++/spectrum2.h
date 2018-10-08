@@ -18,6 +18,8 @@
 
 #include "isoSpec++.h"
 
+namespace IsoSpec
+{
 class Spectrum
 {
 private:
@@ -54,3 +56,5 @@ public:
 	void print(std::ostream& o = std::cout);
 
 };
+} // namespace IsoSpec
+

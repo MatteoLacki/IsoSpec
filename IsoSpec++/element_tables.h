@@ -16,6 +16,9 @@
 
 #pragma once
 
+namespace IsoSpec
+{
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,4 +40,6 @@ extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIE
 #ifdef __cplusplus
 }
 #endif
+
+} // namespace IsoSpec
 

@@ -39,6 +39,8 @@
 #include "misc.h"
 
 
+namespace IsoSpec
+{
 
 
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
@@ -514,4 +516,6 @@ bool LayeredMarginal::extend(double new_threshold)
     return true;
 }
 
+
+} // namespace IsoSpec
 

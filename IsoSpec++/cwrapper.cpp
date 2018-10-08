@@ -26,6 +26,7 @@
 #include "isoSpec++.h"
 #include "tabulator.h"
 
+using namespace IsoSpec;
 
 extern "C"
 {

@@ -26,6 +26,9 @@
 #include "summator.h"
 
 
+namespace IsoSpec
+{
+
 Conf initialConfigure(int atomCnt, int isotopeNo, const double* probs);
 
 
@@ -206,4 +209,6 @@ public:
     inline unsigned int get_no_confs() const { return configurations.size(); };
 
 };
+
+} // namespace IsoSpec
 

@@ -33,6 +33,8 @@ using namespace Rcpp;
 #endif /* ISOSPEC_BUILDING_R */
 
 
+namespace IsoSpec
+{
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
 
@@ -292,4 +294,6 @@ void printConfigurations(
     int*    isotopeNumbers
 );
 #endif
+
+} // namespace IsoSpec
 

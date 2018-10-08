@@ -16,6 +16,9 @@
 
 #include "element_tables.h"
 
+namespace IsoSpec
+{
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2651,4 +2654,5 @@ const double elem_table_log_probability [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 }
 #endif
 
+} // namespace IsoSpec
 

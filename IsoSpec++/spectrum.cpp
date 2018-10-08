@@ -21,6 +21,9 @@
 #include "isoMath.h"
 #include "isoSpec++.h"
 
+namespace IsoSpec
+{
+
 Kernel::Kernel(double _delta, double* _k, double _bucketsize, double _buckets) : 
 delta(_delta),
 k(_k),
@@ -163,5 +166,5 @@ Spectrum::Spectrum(IsoSpec& iso, FunctionalKernel& kernel, double _bucketsize)
 }
 
 
-
+} // namespace IsoSpec
 

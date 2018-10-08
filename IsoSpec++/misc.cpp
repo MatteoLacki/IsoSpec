@@ -15,7 +15,6 @@
  */
 
 
-
 #include "misc.h"
 #include "lang.h"
 #include <stdlib.h>
@@ -23,6 +22,8 @@
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
 
+namespace IsoSpec
+{
 
 void* quickselect(void** array, int n, int start, int end)
 {
@@ -63,4 +64,6 @@ void* quickselect(void** array, int n, int start, int end)
             start = loweridx+1;
     };
 }
+
+} // namespace IsoSpec
 

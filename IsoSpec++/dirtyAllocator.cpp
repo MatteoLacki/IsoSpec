@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include "dirtyAllocator.h"
 
+namespace IsoSpec
+{
 
 DirtyAllocator::DirtyAllocator(
     const int dim, const int tabSize
@@ -48,3 +50,6 @@ void DirtyAllocator::shiftTables()
     currentConf             = currentTab;
     endOfTablePtr   = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
+
+} // namespace IsoSpec
+

@@ -20,6 +20,10 @@
 #include <fenv.h>
 
 #define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
+
+namespace IsoSpec
+{
+
 extern double* g_lfact_table;
 
 static inline double minuslogFactorial(int n) 
@@ -35,4 +39,6 @@ double NormalCDFInverse(double p);
 double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
+
+} // namespace IsoSpec
 

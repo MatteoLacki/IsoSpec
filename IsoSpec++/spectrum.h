@@ -19,6 +19,8 @@
 #include <math.h>
 #include "isoSpec++.h"
 
+namespace IsoSpec
+{
 
 class Kernel
 {
@@ -119,4 +121,6 @@ public:
 	
 
 };
+
+} // namespace IsoSpec
 

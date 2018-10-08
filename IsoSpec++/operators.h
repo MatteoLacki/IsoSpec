@@ -21,6 +21,9 @@
 #include "isoMath.h"
 #include "misc.h"
 
+namespace IsoSpec
+{
+
 class KeyHasher
 {
 private:
@@ -107,4 +110,6 @@ public:
 	inline TableOrder(const T* _tbl) : tbl(_tbl) {};
 	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
+
+} // namespace IsoSpec
 

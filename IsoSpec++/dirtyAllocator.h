@@ -20,6 +20,9 @@
 #include <iostream>
 #include <string.h>
 
+namespace IsoSpec
+{
+
 class DirtyAllocator{
 private:
     void*   currentTab;
@@ -65,4 +68,6 @@ public:
         return res;
     }
 };
+
+} // namespace IsoSpec
 

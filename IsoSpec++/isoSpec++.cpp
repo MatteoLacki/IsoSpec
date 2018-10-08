@@ -44,6 +44,9 @@
 
 using namespace std;
 
+namespace IsoSpec
+{
+
 Iso::Iso(
     int             _dimNumber,
     const int*      _isotopeNumbers,
@@ -808,3 +811,5 @@ void printConfigurations(
 }
 
 #endif /* ISOSPEC_BUILDING_R */
+
+} // namespace IsoSpec

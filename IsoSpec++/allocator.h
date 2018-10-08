@@ -21,6 +21,8 @@
 #include <string.h>
 #include "conf.h"
 
+namespace IsoSpec
+{
 
 template <typename T> inline void copyConf(
     const T* source, T* destination,
@@ -67,4 +69,6 @@ public:
         return res;
     }
 };
+
+}
 

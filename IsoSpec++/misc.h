@@ -22,6 +22,9 @@
 #include <fenv.h>
 #include "isoMath.h"
 
+namespace IsoSpec
+{
+
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
 ){
@@ -125,4 +128,6 @@ template<typename T> void dealloc_table(T* tbl, int dim)
     }
     delete[] tbl;
 }
+
+} // namespace IsoSpec
 

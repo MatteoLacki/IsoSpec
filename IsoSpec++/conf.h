@@ -16,5 +16,10 @@
 
 #pragma once
 
+namespace IsoSpec
+{
+
 typedef int* Conf;
+
+}
 

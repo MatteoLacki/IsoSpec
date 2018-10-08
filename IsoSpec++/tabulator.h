@@ -4,6 +4,9 @@
 
 #define ISOSPEC_INIT_TABLE_SIZE 1024
 
+namespace IsoSpec
+{
+
 template <typename T> class Tabulator
 {
 private:
@@ -88,4 +91,6 @@ template <typename T> Tabulator<T>::~Tabulator()
     if( _probs  != nullptr ) free(_probs);
     if( _confs  != nullptr ) free(_confs);
 }
+
+} // namespace IsoSpec
 

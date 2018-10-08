@@ -19,6 +19,9 @@
 #include <cmath>
 #include <atomic>
 
+namespace IsoSpec
+{
+
 class SSummator
 {
     // Shewchuk algorithm
@@ -126,4 +129,6 @@ public:
         return sum.load(std::memory_order_relaxed);
     }
 };
+
+} // namespace IsoSpec
 

@@ -20,6 +20,9 @@
 #include <stdlib.h>     /* malloc, free, rand */
 #endif
 
+namespace IsoSpec
+{
+
 const double pi = 3.14159265358979323846264338328;
 
 // 10M should be enough for everyone, right?
@@ -85,4 +88,6 @@ double NormalPDF(double x, double mean, double stdev)
 	double delta = x-mean;
 	return exp( -delta*delta / two_variance )      /     sqrt( two_variance * pi );
 }
+
+} // namespace IsoSpec
 
