@@ -27,6 +27,7 @@
 void reallocate(double **array, int new_size){
     if( *array != nullptr ){
         *array = (double *) realloc(*array, new_size);
+        // TODO: handle allocation failure!
     }
 }
 
