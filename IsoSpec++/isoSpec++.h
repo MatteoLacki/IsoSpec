@@ -83,6 +83,9 @@ public:
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define PADDING 64
 
+#define LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
+#define UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
+
 class IsoGenerator : public Iso
 {
 protected:
@@ -217,52 +220,52 @@ public:
     }
 
     bool advanceToNextConfiguration()
-  {
-      (*counter_first)++; // counter[0]++;
-      *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
-      lProbs_ptr++;
-      mass_ptr++;
-      exp_ptr++;
-      if(*partialLProbs_first >= Lcutoff)
-      {
-          partialMasses[0] = partialMasses[1] + *mass_ptr;
-          partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
-          return true;
-      }
+    {
+        (*counter_first)++; // counter[0]++;
+        *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
+        lProbs_ptr++;
+        mass_ptr++;
+        exp_ptr++;
+        if(LIKELY(*partialLProbs_first >= Lcutoff))
+        {
+            partialMasses[0] = partialMasses[1] + *mass_ptr;
+            partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
+            return true;
+        }
 
-      // If we reached this point, a carry is needed
+        // If we reached this point, a carry is needed
 
-      int idx = 0;
-      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
-      mass_ptr = marginalResults[0]->get_masses_ptr();
-      exp_ptr = marginalResults[0]->get_eProbs_ptr();
-      lProbs_ptr++;
-      mass_ptr++;
-      exp_ptr++;
+        int idx = 0;
+        lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+        mass_ptr = marginalResults[0]->get_masses_ptr();
+        exp_ptr = marginalResults[0]->get_eProbs_ptr();
+        lProbs_ptr++;
+        mass_ptr++;
+        exp_ptr++;
 
-      int * cntr_ptr = counter;
+        int * cntr_ptr = counter;
 
-      while(idx<dimNumber-1)
-      {
-          // counter[idx] = 0;
-          *cntr_ptr = 0;
-          idx++;
-          cntr_ptr++;
-          // counter[idx]++;
-          (*cntr_ptr)++;
-          partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-          if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
-          {
-              partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-              partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-              recalc(idx-1);
-              return true;
-          }
-      }
+        while(idx<dimNumber-1)
+        {
+            // counter[idx] = 0;
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            // counter[idx]++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+                recalc(idx-1);
+                return true;
+            }
+        }
 
-      terminate_search();
-      return false;
-  }
+        terminate_search();
+        return false;
+    }
 
 private:
     inline void recalc(int idx)
@@ -299,7 +302,7 @@ public:
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
         lProbs_ptr++;
-        if(*partialLProbs_first >= Lcutoff)
+        if(LIKELY(*partialLProbs_first >= Lcutoff))
         {
             return true;
         }
