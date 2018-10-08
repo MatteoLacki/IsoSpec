@@ -141,6 +141,7 @@ public:
     inline const double& get_eProb(int idx) const { return eProbs[idx]; };
     inline const double& get_mass(int idx) const { return masses[idx]; };
     inline const double* get_lProbs_ptr() const { return lProbs; };
+    inline const double* get_eProbs_ptr() const { return eProbs; };
     inline const double* get_masses_ptr() const { return masses; };
     inline const Conf& get_conf(int idx) const { return confs[idx]; };
     inline unsigned int get_no_confs() const { return no_confs; };
