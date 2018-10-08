@@ -14,8 +14,8 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-#ifndef SUMMATOR_HPP
-#define SUMMATOR_HPP
+#pragma once
+
 #include <cmath>
 #include <atomic>
 
@@ -126,6 +126,4 @@ public:
         return sum.load(std::memory_order_relaxed);
     }
 };
-
-#endif
 

@@ -14,9 +14,8 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef MARGINALTREK_HPP
-#define MARGINALTREK_HPP
 #include <tuple>
 #include <unordered_map>
 #include <queue>
@@ -208,4 +207,3 @@ public:
 
 };
 
-#endif

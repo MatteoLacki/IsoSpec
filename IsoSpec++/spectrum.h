@@ -14,9 +14,8 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef SPECTRUM_HPP
-#define SPECTRUM_HPP
 #include <math.h>
 #include "isoSpec++.h"
 
@@ -121,5 +120,3 @@ public:
 
 };
 
-
-#endif /* SPECTRUM_HPP */

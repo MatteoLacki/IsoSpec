@@ -14,10 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef CONF_HPP
-#define CONF_HPP
+#pragma once
 
 typedef int* Conf;
 
-#endif

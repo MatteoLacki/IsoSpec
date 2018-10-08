@@ -14,10 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef ELEMENT_TABLES_HPP
-#define ELEMENT_TABLES_HPP
-
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +38,3 @@ extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIE
 }
 #endif
 
-
-
-#endif

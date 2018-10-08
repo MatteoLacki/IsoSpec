@@ -14,9 +14,7 @@
 *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
 */
 
-
-#ifndef ISOSPEC_PLUS_PLUS_HPP
-#define ISOSPEC_PLUS_PLUS_HPP
+#pragma once
 
 #include <tuple>
 #include <unordered_map>
@@ -294,4 +292,4 @@ void printConfigurations(
     int*    isotopeNumbers
 );
 #endif
-#endif /* ISOSPEC_PLUS_PLUS_HPP */
+

@@ -14,16 +14,12 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef OPERATORS_HPP
-#define OPERATORS_HPP
+#pragma once
 
 #include <string.h>
 #include "conf.h"
 #include "isoMath.h"
 #include "misc.h"
-
-
 
 class KeyHasher
 {
@@ -112,4 +108,3 @@ public:
 	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
 
-#endif

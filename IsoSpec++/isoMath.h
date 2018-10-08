@@ -14,9 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef ISOMATH_HPP
-#define ISOMATH_HPP
+#pragma once
 
 #include <cmath>
 #include <fenv.h>
@@ -38,4 +36,3 @@ double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 
-#endif /* ISOMATH_HPP */

@@ -1,4 +1,3 @@
-
 /*
  *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
  *
@@ -15,9 +14,8 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef CWRAPPER_H
-#define CWRAPPER_H
+#ifndef ISOSPEC_CWRAPPER_H
+#define ISOSPEC_CWRAPPER_H
 
 #define ALGO_LAYERED 0
 #define ALGO_ORDERED 1

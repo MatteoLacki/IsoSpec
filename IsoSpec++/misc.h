@@ -14,9 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef MISC_HPP
-#define MISC_HPP
+#pragma once
 
 #include <iostream>
 #include <tuple>
@@ -128,6 +126,3 @@ template<typename T> void dealloc_table(T* tbl, int dim)
     delete[] tbl;
 }
 
-
-
-#endif

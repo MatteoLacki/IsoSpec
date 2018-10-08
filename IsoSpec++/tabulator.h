@@ -1,5 +1,4 @@
-#ifndef __TABULATOR_H__
-#define __TABULATOR_H__
+#pragma once
 
 #include "isoSpec++.h"
 
@@ -90,5 +89,3 @@ template <typename T> Tabulator<T>::~Tabulator()
     if( _confs  != nullptr ) free(_confs);
 }
 
-
-#endif  // __TABULATOR_H__
