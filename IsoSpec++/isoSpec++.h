@@ -145,15 +145,15 @@ public:
 
 class IsoThresholdGenerator: public IsoGenerator
 {
-private:
+protected:
     int* counter;
     double* maxConfsLPSum;
     const double Lcutoff;
     PrecalculatedMarginal** marginalResults;
 
 public:
-    bool advanceToNextConfiguration() override final;
-    inline void get_conf_signature(int* space) const override final
+    bool advanceToNextConfiguration() override;
+    inline void get_conf_signature(int* space) const override
     {
         for(int ii=0; ii<dimNumber; ii++)
         {
@@ -186,7 +186,94 @@ private:
 
 };
 
+/** This is a generator class for fast generation of isotopic probabilities.
+*/
+class IsoThresholdGeneratorFast: public IsoThresholdGenerator
+{
 
+    const double* lProbs_ptr;
+    const double* mass_ptr;
+    const double* exp_ptr;
+    double* partialLProbs_first;
+    double* partialLProbs_second;
+    int* counter_first;
+
+public:
+    virtual void get_conf_signature(int*) const {};
+
+    IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute=true,
+                        int _tabSize=1000, int _hashSize=1000) :
+      IsoThresholdGenerator(std::move(iso), _threshold, _absolute, _tabSize, _hashSize)
+    {
+      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+      mass_ptr = marginalResults[0]->get_masses_ptr();
+      exp_ptr = marginalResults[0]->get_eProbs_ptr();
+
+      counter_first = counter;
+      partialLProbs_first = partialLProbs;
+      partialLProbs_second = partialLProbs;
+      partialLProbs_second++;
+    }
+
+    bool advanceToNextConfiguration()
+  {
+      (*counter_first)++; // counter[0]++;
+      *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
+      lProbs_ptr++;
+      mass_ptr++;
+      exp_ptr++;
+      if(*partialLProbs_first >= Lcutoff)
+      {
+          partialMasses[0] = partialMasses[1] + *mass_ptr;
+          partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
+          return true;
+      }
+
+      // If we reached this point, a carry is needed
+
+      int idx = 0;
+      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+      mass_ptr = marginalResults[0]->get_masses_ptr();
+      exp_ptr = marginalResults[0]->get_eProbs_ptr();
+      lProbs_ptr++;
+      mass_ptr++;
+      exp_ptr++;
+
+      int * cntr_ptr = counter;
+
+      while(idx<dimNumber-1)
+      {
+          // counter[idx] = 0;
+          *cntr_ptr = 0;
+          idx++;
+          cntr_ptr++;
+          // counter[idx]++;
+          (*cntr_ptr)++;
+          partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+          if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+          {
+              partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+              partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+              recalc(idx-1);
+              return true;
+          }
+      }
+
+      terminate_search();
+      return false;
+  }
+
+private:
+    inline void recalc(int idx)
+    {
+        for(; idx >=0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+        }
+    }
+};
 
 class IsoThresholdGeneratorMT : public IsoGenerator
 {
