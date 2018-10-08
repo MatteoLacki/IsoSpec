@@ -114,7 +114,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 
 
-#ifndef BUILDING_R
+#ifndef ISOSPEC_BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){
@@ -140,7 +140,7 @@ double* getMLogProbs(const double* probs, int isoNo)
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
-        for(int j=0; j<NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
             if(elem_table_probability[j] == probs[i])
             {
                 ret[i] = elem_table_log_probability[j];
@@ -179,7 +179,7 @@ mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
 mode_eprob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
-    if(G_FACT_TABLE_SIZE-1 <= atomCnt)
+    if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
     {
         std::cerr << "Subisotopologue too large..." << std::endl;
         std::abort();

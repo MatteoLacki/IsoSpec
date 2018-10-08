@@ -24,17 +24,17 @@ extern "C" {
 #endif
 
 
-#define NUMBER_OF_ISOTOPIC_ENTRIES 288
+#define ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES 288
 
-extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const double elem_table_mass[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const int elem_table_massNo[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const int elem_table_extraNeutrons[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const char* elem_table_element[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const double elem_table_log_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const int elem_table_atomicNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_mass[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const int elem_table_massNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const int elem_table_extraNeutrons[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const char* elem_table_element[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const char* elem_table_symbol[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const bool elem_table_Radioactive[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 
 
 #ifdef __cplusplus

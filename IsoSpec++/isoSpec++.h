@@ -29,10 +29,10 @@
 #include "marginalTrek++.h"
 
 
-#ifdef BUILDING_R
+#ifdef ISOSPEC_BUILDING_R
 #include <Rcpp.h>
 using namespace Rcpp;
-#endif /* BUILDING_R */
+#endif /* ISOSPEC_BUILDING_R */
 
 
 
@@ -81,7 +81,7 @@ public:
 };
 
 // Be very absolutely safe vs. false-sharing cache lines between threads...
-#define PADDING 64
+#define ISOSPEC_PADDING 64
 
 class IsoGenerator : public Iso
 {
@@ -286,7 +286,7 @@ private:
 
 
 
-#ifndef BUILDING_R
+#ifndef ISOSPEC_BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
