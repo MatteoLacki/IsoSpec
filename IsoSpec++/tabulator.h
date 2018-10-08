@@ -10,7 +10,7 @@ private:
     double* _lprobs;
     double* _probs;
     int*    _confs;
-    int     _confs_no;
+    int64_t     _confs_no;
 public:
     Tabulator(T* generator,
               bool get_masses, bool get_probs,
@@ -22,7 +22,7 @@ public:
     inline double*   lprobs()   { return _lprobs; };
     inline double*   probs()    { return _probs; };
     inline int*      confs()    { return _confs; };
-    inline int       confs_no() { return _confs_no; };
+    inline int64_t       confs_no() { return _confs_no; };
 };
 
 #endif  // __TABULATOR_H__
