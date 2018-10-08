@@ -1,6 +1,8 @@
 #include <iostream>
 #include "isoSpec++.h"
 
+using namespace IsoSpec;
+
 
 int main()
 {

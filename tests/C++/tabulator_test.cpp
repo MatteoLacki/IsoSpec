@@ -4,6 +4,8 @@
 using std::cout;
 using std::endl;
 
+using namespace IsoSpec;
+
 int main(void){
     // int isotopeNumbers[] = {2, 3};
     // int config_size = isotopeNumbers[0] + isotopeNumbers[1];
