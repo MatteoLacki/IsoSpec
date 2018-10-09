@@ -1,6 +1,9 @@
-#ifdef __MINGW32__
+#include "platform.h"
+
+#if !ISOSPEC_GOT_SYSTEM_MMAP and ISOSPEC_GOT__MMAP
 	#include "mman.c"
 #endif
+
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
 #include "isoSpec++.cpp"
