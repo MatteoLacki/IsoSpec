@@ -72,14 +72,19 @@ void Spectrum::run(unsigned int nthreads, bool sync)
 
     n_threads = nthreads;
 
-    threads = new pthread_t[n_threads];
     thread_storages = new double*[n_threads];
     thread_partials = new double[n_threads];
     thread_numbers = new unsigned int[n_threads];
 
+#if ISOSPEC_USE_PTHREADS
+    threads = new pthread_t[n_threads];
+
     for(unsigned int ii = 0; ii < n_threads; ii++)
         pthread_create(&threads[ii], NULL, wrapper_func_thr, this);
-
+#else
+    for(unsigned int ii = 0; ii < n_threads; ii++)
+        threads.emplace_back(wrapper_func_thr, this);
+#endif
     if(sync)
         wait();
 }
@@ -87,9 +92,14 @@ void Spectrum::run(unsigned int nthreads, bool sync)
 void Spectrum::wait()
 {
     for(unsigned int ii = 0; ii < n_threads; ii++)
+#if ISOSPEC_USE_PTHREADS
         pthread_join(threads[ii], NULL);
 
     delete[] threads;
+#else
+        threads[ii].join();
+#endif
+
     dealloc_table<PrecalculatedMarginal*>(PMs, iso.getDimNumber());
 
     calc_sum();
