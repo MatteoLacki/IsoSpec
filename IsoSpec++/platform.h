@@ -35,4 +35,10 @@
 #define ISOSPEC_GOT_MMAN false
 #endif
 
+#define ISOSPEC_USE_PTHREADS false /* TODO: possibly put a macro here to detect whether we
+                                    * can/should use pthreads - or rip them out altogether.
+                                    * Investigate whether the performance advantage of pthreads on
+                                    * some platforms (*cough* CYGWIN *cough*) is still large
+                                    * enough to justify keeping both implementations around */
+
 

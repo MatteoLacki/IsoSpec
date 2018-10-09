@@ -16,14 +16,9 @@
 
 #pragma once
 
+#include "platform.h"
 #include "isoSpec++.h"
 
-
-#define ISOSPEC_USE_PTHREADS false /* TODO: possibly put a macro here to detect whether we 
-                                    * can/should use pthreads - or rip them out altogether. 
-                                    * Investigate whether the performance advantage of pthreads on 
-                                    * some platforms (*cough* CYGWIN *cough*) is still large 
-                                    * enough to justify keeping both implementations around */
 
 #if ISOSPEC_USE_PTHREADS
 #include <pthread.h>
