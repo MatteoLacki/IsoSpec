@@ -36,7 +36,7 @@ void* quickselect(void** array, int n, int start, int end)
     {
         // Partition part
         int len = end - start;
-#ifdef ISOSPEC_BUILDING_R
+#if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
 	int pivot = rand() % len + start;
