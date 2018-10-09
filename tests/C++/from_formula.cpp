@@ -1,6 +1,8 @@
 #include <iostream>
 #include "isoSpec++.h"
 
+using namespace IsoSpec;
+
 int main(int argc, char** argv)
 {
 	if(argc < 3)
