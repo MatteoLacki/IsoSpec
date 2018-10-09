@@ -149,33 +149,5 @@ public:
 };
 
 
-class LayeredMarginal : public Marginal
-{
-private:
-    double current_threshold;
-    std::vector<Conf> configurations;
-    std::vector<Conf> fringe;
-    Allocator<int> allocator;
-    unsigned int sorted_up_to_idx;
-    const ConfEqual equalizer;
-    const KeyHasher keyHasher;
-    const ConfOrderMarginalDescending orderMarginal;
-    std::vector<double> lProbs;
-    std::vector<double> eProbs;
-    std::vector<double> masses;
-    double* guarded_lProbs;
-    const int hashSize;
-
-public:
-    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
-    bool extend(double new_threshold);
-    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
-    inline double get_eProb(int idx) const { return eProbs[idx]; };
-    inline double get_mass(int idx) const { return masses[idx]; };
-    inline const Conf& get_conf(int idx) const { return configurations[idx]; };
-    inline unsigned int get_no_confs() const { return configurations.size(); };
-
-};
-
 } // namespace IsoSpec
 

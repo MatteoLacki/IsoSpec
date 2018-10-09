@@ -193,7 +193,7 @@ private:
     double* maxConfsLPSum;
     double last_layer_lcutoff, current_layer_lcutoff;
     Summator current_sum;
-    LayeredMarginal** marginalResults;
+    MarginalTrek** marginalResults;
     double* probsExcept;
     int* last_counters;
     double delta;
