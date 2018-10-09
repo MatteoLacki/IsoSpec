@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 #include "isoSpec++.h"
 
 #define ISOSPEC_INIT_TABLE_SIZE 1024
@@ -14,7 +16,7 @@ private:
     double* _lprobs;
     double* _probs;
     int*    _confs;
-    int64_t     _confs_no;
+    size_t  _confs_no;
 public:
     Tabulator(T* generator,
               bool get_masses, bool get_probs,
@@ -26,7 +28,7 @@ public:
     inline double*   lprobs()   { return _lprobs; };
     inline double*   probs()    { return _probs; };
     inline int*      confs()    { return _confs; };
-    inline int64_t       confs_no() { return _confs_no; };
+    inline size_t    confs_no() { return _confs_no; };
 };
 
 void reallocate(double **array, int new_size){
@@ -39,7 +41,7 @@ template <typename T> Tabulator<T>::Tabulator(T* generator,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs  )
 {
-    int current_size = ISOSPEC_INIT_TABLE_SIZE;
+    size_t current_size = ISOSPEC_INIT_TABLE_SIZE;
     int confs_tbl_idx = 0;
     _confs_no = 0;
 
@@ -55,6 +57,9 @@ template <typename T> Tabulator<T>::Tabulator(T* generator,
         if( _confs_no == current_size )
         {
             current_size *= 2;
+
+	    // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+
             reallocate(&_masses, current_size * sizeof(double));
             reallocate(&_lprobs, current_size * sizeof(double));
             reallocate(&_probs,  current_size * sizeof(double));
