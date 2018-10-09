@@ -1,6 +1,6 @@
 CXX=clang++
 OPTFLAGS=-O3 -march=native -mtune=native
-DEBUGFLAGS=-O0 -g
+DEBUGFLAGS=-O0 -g -Werror
 CXXFLAGS=-std=c++11 -Wall -pedantic -Wextra
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp
 
@@ -14,6 +14,9 @@ unitylib:
 
 debug:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) unity-build.cpp -DDEBUG -fPIC -shared -o libIsoSpec++.so
+
+debug-gcc:
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) unity-build.cpp -DDEBUG -fPIC -shared -o libIsoSpec++.so
 
 perftest:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so 
