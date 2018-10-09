@@ -18,8 +18,22 @@
 
 #include "isoSpec++.h"
 
+
+#define ISOSPEC_USE_PTHREADS false /* TODO: possibly put a macro here to detect whether we 
+                                    * can/should use pthreads - or rip them out altogether. 
+                                    * Investigate whether the performance advantage of pthreads on 
+                                    * some platforms (*cough* CYGWIN *cough*) is still large 
+                                    * enough to justify keeping both implementations around */
+
+#if ISOSPEC_USE_PTHREADS
+#include <pthread.h>
+#else
+#include <thread>
+#endif
+
 namespace IsoSpec
 {
+
 class Spectrum
 {
 private:
@@ -29,7 +43,11 @@ private:
 	unsigned long n_buckets;
 	double* storage;
         double* ofset_store;
+#if ISOSPEC_USE_PTHREADS
         pthread_t* threads;
+#else
+        std::vector<std::thread> threads;
+#endif
         const double cutoff;
         PrecalculatedMarginal** PMs;
         unsigned int n_threads;
