@@ -168,8 +168,7 @@ modeLProb(0.0)
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
-// This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
-
+    // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     string cpp_formula(formula);
     int last_modeswitch = 0;
     int mode = 0;
