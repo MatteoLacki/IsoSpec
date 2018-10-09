@@ -4,6 +4,8 @@
 #include "spectrum2.h"
 #include <pthread.h>
 
+using namespace IsoSpec;
+
 
 #define n_threads 6
 

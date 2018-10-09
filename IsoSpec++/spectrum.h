@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,12 +14,13 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef SPECTRUM_HPP
-#define SPECTRUM_HPP
 #include <math.h>
 #include "isoSpec++.h"
 
+namespace IsoSpec
+{
 
 class Kernel
 {
@@ -121,5 +122,5 @@ public:
 
 };
 
+} // namespace IsoSpec
 
-#endif /* SPECTRUM_HPP */

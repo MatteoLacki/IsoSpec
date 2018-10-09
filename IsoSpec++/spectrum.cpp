@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -20,6 +20,9 @@
 #include "spectrum.h"
 #include "isoMath.h"
 #include "isoSpec++.h"
+
+namespace IsoSpec
+{
 
 Kernel::Kernel(double _delta, double* _k, double _bucketsize, double _buckets) : 
 delta(_delta),
@@ -163,5 +166,5 @@ Spectrum::Spectrum(IsoSpec& iso, FunctionalKernel& kernel, double _bucketsize)
 }
 
 
-
+} // namespace IsoSpec
 

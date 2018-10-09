@@ -14,6 +14,8 @@
     #include <sys/sysinfo.h>
 #endif
 
+namespace IsoSpec
+{
 
 inline static unsigned long get_mmap_len(unsigned long n_buckets)
 {
@@ -153,3 +155,7 @@ void Spectrum::print(std::ostream& o)
 	for(unsigned long ii=0; ii<n_buckets; ii++)
 	    o << lowest_mass + static_cast<double>(ii)*bucket_width << "\t" << storage[ii] << std::endl;
 }
+
+
+} // namespace IsoSpec
+
