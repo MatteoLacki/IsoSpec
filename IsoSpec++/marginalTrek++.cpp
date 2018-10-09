@@ -38,18 +38,21 @@
 #include "element_tables.h"
 #include "misc.h"
 
-
-
-
+//TODO rename to Subisotopologue
+// this is a subisotopologue used in the marginal
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
 {
+    /*!
+    Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
+    We start from the point close to the mean of the underlying multinomial distribution.
+    */
     Conf res = new int[isotopeNo];
 
+    // This approximates the mode (heuristics: the mean is close to the mode).
     for(int i = 0; i < isotopeNo; ++i )
-    {
         res[i] = int( atomCnt * probs[i] ) + 1;
-    }
 
+    // The number of assigned atoms above.
     int s = 0;
 
     for(int i = 0; i < isotopeNo; ++i) s += res[i];
@@ -134,9 +137,16 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
+    /*!
+    Here we order the processor to round the numbers up rather than down.
+    Rounding down could result in the algorithm falling in an infinite loop
+    because of the numerical instability of summing. 
+    */
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
+
+    // here we change the table of probabilities and log it.
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
@@ -153,6 +163,7 @@ double* getMLogProbs(const double* probs, int isoNo)
 
 double get_loggamma_nominator(int x)
 {
+    // calculate log gamma of the nominator calculated in the binomial exression.
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double ret = lgamma(x+1);
@@ -179,6 +190,7 @@ mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
 mode_eprob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
+    // iso_math contains the precalculated bersion of teh log-gamma function.
     if(G_FACT_TABLE_SIZE-1 <= atomCnt)
     {
         std::cerr << "Subisotopologue too large..." << std::endl;
@@ -186,6 +198,7 @@ smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
     }
 }
 
+// the move-constructor: used in the specialization of the marginal.
 Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),
 isotopeNo(other.isotopeNo),
@@ -231,7 +244,7 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
-
+// this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
     Marginal&& m,
     int tabSize,
@@ -263,6 +276,10 @@ allocator(isotopeNo, tabSize)
 
 bool MarginalTrek::add_next_conf()
 {
+    /*!
+    Add next configuration.
+    If visited all, return false.
+    */
     if(pq.size() < 1) return false;
 
     Conf topConf = pq.top();
@@ -380,6 +397,8 @@ allocator(isotopeNo, tabSize)
                 }
     }
 
+    // orderMarginal defines the order of configurations (compares their logprobs)
+    // akin to key in Python sort.
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);
 
