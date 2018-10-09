@@ -1,6 +1,15 @@
 /*
  * sys/mman.h
  * mman-win32
+ *
+ * This file has been included as a part of IsoSpec project, under a MIT licence. It
+ * comes from the repository:
+ *
+ * https://github.com/witwall/mman-win32
+ *
+ * which itself is a mirror of:
+ *
+ * https://code.google.com/archive/p/mman-win32/
  */
 
 #pragma once
