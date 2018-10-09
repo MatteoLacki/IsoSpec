@@ -148,39 +148,6 @@ public:
     inline unsigned int get_no_confs() const { return no_confs; };
 };
 
-class SyncMarginal : public PrecalculatedMarginal
-{
-protected:
-    char padding[64]; /*  padding[64]; */ // against fake-sharing cache lines...
-    std::atomic<unsigned int> counter;
-    char padding2[64]; /// likewise...
-public:
-    inline SyncMarginal(
-        Marginal&& m,
-        double lCutOff,
-        int tabSize = 1000,
-        int hashSize = 1000
-    ) : PrecalculatedMarginal(
-        std::move(m),
-        lCutOff,
-        false,
-        tabSize,
-        hashSize
-    ), counter(0) {};
-
-
-    inline unsigned int getNextConfIdx() { return counter.fetch_add(1, std::memory_order_relaxed); };
-    inline unsigned int getNextConfIdxwMass(double mmin, double mmax)
-    {
-    	unsigned int local = counter.fetch_add(1, std::memory_order_relaxed);
-	while(local < no_confs && (mmin > masses[local] || mmax < masses[local]))
-	    local = counter.fetch_add(1, std::memory_order_relaxed);
-	return local;
-    }
-
-
-};
-
 
 class LayeredMarginal : public Marginal
 {
