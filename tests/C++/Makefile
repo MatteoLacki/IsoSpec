@@ -6,6 +6,9 @@ TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
 LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
 CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic -lpthread
+SHARED_FLAGS=-L../../IsoSpec++
+LINK_FLAGS=-Wl,-rpath,../../IsoSpec++ ../../IsoSpec++/libIsoSpec++.so
+
 SRCFILES=../../IsoSpec++/unity-build.cpp
 
 all: testcc
@@ -15,6 +18,19 @@ testcc:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
 	g++-5 $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5
+
+simpletest-debug:
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) -lIsoSpec++ simpletest.cpp -o ./simpletest-clang-debug $(LINK_FLAGS)
+	g++ $(SHARED_FLAGS) $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) -lIsoSpec++ simpletest.cpp -o ./simpletest-gcc-debug $(LINK_FLAGS)
+
+simpletest:
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -lIsoSpec++ simpletest.cpp -o ./simpletest-clang $(LINK_FLAGS)
+	g++ $(SHARED_FLAGS) $(CXXFLAGS) -pthread -lIsoSpec++ simpletest.cpp -o ./simpletest-gcc $(LINK_FLAGS)
+
+segfault:
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -lIsoSpec++ segfault.cpp -o ./segfault-clang $(LINK_FLAGS)
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -DPREVENT_SEGFAULT -lIsoSpec++ segfault.cpp -o ./segfault-ok-clang $(LINK_FLAGS)
+	clang++ $(SHARED_FLAGS) $(CXXFLAGS) -fsanitize=address -lIsoSpec++ segfault.cpp -o ./segfault-ok2-clang $(LINK_FLAGS)
 
 test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-clang
