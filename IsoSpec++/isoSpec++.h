@@ -80,9 +80,6 @@ public:
 
 };
 
-// Be very absolutely safe vs. false-sharing cache lines between threads...
-#define ISOSPEC_PADDING 64
-
 class IsoGenerator : public Iso
 {
 protected:
@@ -186,47 +183,6 @@ private:
 
 };
 
-
-
-class IsoThresholdGeneratorMT : public IsoGenerator
-{
-private:
-    unsigned int* counter;
-    double* maxConfsLPSum;
-    const double Lcutoff;
-    SyncMarginal* last_marginal;
-    PrecalculatedMarginal** marginalResults;
-
-public:
-    bool advanceToNextConfiguration() override final;
-    inline void get_conf_signature(int* space) const override final
-    {
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
-    };
-
-    IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
-
-    inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
-    void terminate_search();
-
-private:
-    inline void recalc(int idx)
-    {
-        for(; idx >=0; idx--)
-        {
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-        }
-    }
-
-
-
-};
 
 
 
