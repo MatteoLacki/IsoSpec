@@ -6,9 +6,6 @@ SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.
 
 all: unitylib
 
-lib:
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -fPIC -shared -o libIsoSpec++.so 
-
 unitylib:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so
 
@@ -18,21 +15,8 @@ debug:
 debug-gcc:
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) unity-build.cpp -DDEBUG -fPIC -shared -o libIsoSpec++.so
 
-perftest:
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so 
-
-ctest: lib
-	$(CC) -g -L. -lIsoSpec++ test.c -o ctest
-
-tests: lib
-	$(CXX) -std=c++11 -I. -O3 -L. -Wl,-rpath,. -lIsoSpec++ test2.cpp -o test2
-	$(CXX) -std=c++11 -I. -O3 -L. -Wl,-rpath,. -lIsoSpec++ test3.cpp -o test3
 clean:
 	rm -f libIsoSpec++.so
 
 windows:
 	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc unity-build.cpp -o ../IsoSpecPy/IsoSpec++.dll
-
-unity:
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so
-
