@@ -1,6 +1,6 @@
 #include "platform.h"
 
-#if !ISOSPEC_GOT_SYSTEM_MMAP and ISOSPEC_GOT__MMAP
+#if !ISOSPEC_GOT_SYSTEM_MMAN and ISOSPEC_GOT__MMAN
 	#include "mman.c"
 #endif
 
