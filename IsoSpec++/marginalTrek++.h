@@ -166,7 +166,7 @@ public:
         return true;
     }
 
-
+    
     int processUntilCutoff(double cutoff);
 
     inline const std::vector<double>& conf_probs() const { return _conf_probs; };
