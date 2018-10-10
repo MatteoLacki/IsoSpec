@@ -178,17 +178,17 @@ public:
 };
 
 
+//! Precalculated Marginal class
+/*!
+    This class serves to calculate a set of isotopologues that 
+    is defined by the minimal probability threshold.
 
+    This works faster than if you did not know the threshold.
+    If you have no idea about the threshold, you would need to call us,
+    to change encode the layered version of the marginal.
+*/
 class PrecalculatedMarginal : public Marginal
 {
-    /*!
-        This class serves to calculate a set of isotopologues that 
-        is defined by the minimal probability threshold.
-
-        This works faster than if you did not know the threshold.
-        If you have no idea about the threshold, you would need to call us,
-        to change encode the layered version of the marginal.
-    */
 protected:
     std::vector<Conf> configurations;
     Conf* confs;

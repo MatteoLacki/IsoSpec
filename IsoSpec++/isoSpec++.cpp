@@ -396,7 +396,7 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
     for(int i = 0; i<dimNumber; i++)
     {
         masses[i] = &marginalResults[i]->conf_masses();
-        logProbs[i] = &marginalResults[i]->conf_probs();
+        logProbs[i] = &marginalResults[i]->conf_lprobs();
         marginalConfs[i] = &marginalResults[i]->confs();
     }
 
