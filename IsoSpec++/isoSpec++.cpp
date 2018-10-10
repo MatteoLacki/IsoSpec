@@ -31,7 +31,7 @@
 #include <string>
 #include <limits>
 #include <assert.h>
-#include "lang.h"
+#include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
@@ -778,7 +778,7 @@ IsoLayeredGenerator::~IsoLayeredGenerator()
 
 
 
-#ifndef ISOSPEC_BUILDING_R
+#if !ISOSPEC_BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
@@ -809,6 +809,6 @@ void printConfigurations(
     }
 }
 
-#endif /* ISOSPEC_BUILDING_R */
+#endif /* !ISOSPEC_BUILDING_R */
 
 } // namespace IsoSpec

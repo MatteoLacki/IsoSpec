@@ -14,8 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-#ifndef ISOSPEC_CWRAPPER_H
-#define ISOSPEC_CWRAPPER_H
+#pragma once
 
 #define ALGO_LAYERED 0
 #define ALGO_ORDERED 1
@@ -97,4 +96,3 @@ int confs_noThresholdTabulator(void* tabulator);
 }
 #endif
 
-#endif

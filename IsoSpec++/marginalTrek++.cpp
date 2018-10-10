@@ -29,7 +29,7 @@
 #include <limits>
 #include <cstdlib>
 #include <fenv.h>
-#include "lang.h"
+#include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
 #include "allocator.h"
@@ -121,7 +121,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 
 
-#ifndef ISOSPEC_BUILDING_R
+#if !ISOSPEC_BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){

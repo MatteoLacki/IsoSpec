@@ -8,17 +8,7 @@
 
 #include <cmath>
 #include "isoMath.h"
-
-#if defined(__unix__) || defined(__unix) || \
-        (defined(__APPLE__) && defined(__MACH__))
-#include <sys/mman.h>
-#define ISOSPEC_GOT_MMAP 1
-#elif defined(__MINGW32__) || defined(_WIN32)
-#include "mman.h"
-#define ISOSPEC_GOT_MMAP 1
-#else
-#include <stdlib.h>     /* malloc, free, rand */
-#endif
+#include "platform.h"
 
 namespace IsoSpec
 {
@@ -26,7 +16,7 @@ namespace IsoSpec
 const double pi = 3.14159265358979323846264338328;
 
 // 10M should be enough for everyone, right?
-# if defined(ISOSPEC_GOT_MMAP)
+# if ISOSPEC_GOT_MMAN
 double* g_lfact_table = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*ISOSPEC_G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
 #else
 double* g_lfact_table = reinterpret_cast<double*>(calloc(ISOSPEC_G_FACT_TABLE_SIZE, sizeof(double)));

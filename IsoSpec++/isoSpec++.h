@@ -20,14 +20,14 @@
 #include <unordered_map>
 #include <queue>
 #include <limits>
-#include "lang.h"
+#include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
 #include "operators.h"
 #include "marginalTrek++.h"
 
 
-#ifdef ISOSPEC_BUILDING_R
+#if ISOSPEC_BUILDING_R
 #include <Rcpp.h>
 using namespace Rcpp;
 #endif /* ISOSPEC_BUILDING_R */
@@ -341,14 +341,14 @@ private:
 
 
 
-#ifndef ISOSPEC_BUILDING_R
+#if !ISOSPEC_BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
     int     dimNumber,
     int*    isotopeNumbers
 );
-#endif
+#endif /* !ISOSPEC_BUILDING_R */
 
 } // namespace IsoSpec
 
