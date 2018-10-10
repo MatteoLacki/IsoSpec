@@ -111,25 +111,31 @@ public:
     //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; };
 
+    //! Get the marginal distributions of subisotopologues.
+    /*!
+        \param Lcutoff The logarithm of the cut off value.
+        \param absolute Should the cutoff be in terms of absolute height of the peak, or relative to the height/probability of the mode.
+        \param tabSize The size of the extension of the table with configurations.
+        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
+    */
     PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
-
-
 };
 
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define ISOSPEC_PADDING 64
 
 
-//! The Iso class for the calculation of the isotopic distribution.
+
+//! The generator of isotopologues.
 /*!
-    It contains full description of the molecule for which one would like to calculate the isotopic distribution.
+    This class provides the common interface for all isotopic generators.
 */
 class IsoGenerator : public Iso
 {
 protected:
-    double* partialLProbs;
-    double* partialMasses;
-    double* partialExpProbs;
+    double* partialLProbs;      /*! The prefix sum of the log-probabilities of the current isotopologue. */
+    double* partialMasses;      /*! The prefix sum of the masses of the current isotopologue. */
+    double* partialExpProbs;    /*! The prefix product of the probabilities of the current isotopologue. */
 
 public:
     virtual bool advanceToNextConfiguration() = 0;
@@ -143,21 +149,29 @@ public:
 };
 
 
+
+
+//! The generator of isotopologues sorted by their probability of occurrence.
+/*!
+    The subsequent isotopologues are generated with diminishing probability, starting from the mode.
+    This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
+    Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
+*/
 class IsoOrderedGenerator: public IsoGenerator
 {
 private:
-    MarginalTrek** marginalResults;
-    std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
-    void* topConf;
-    DirtyAllocator allocator;
-    const std::vector<double>**     logProbs;
-    const std::vector<double>**     masses;
-    const std::vector<int*>**       marginalConfs;
-    double currentLProb;
-    double currentMass;
-    double currentEProb;
-    int*   candidate;
-    int    ccount;
+    MarginalTrek**              marginalResults;            /*!< Table of pointers to marginal distributions of subisotopologues. */
+    std::priority_queue<void*,std::vector<void*>,ConfOrder> pq; /*!< The priority queue used to generate isotopologues ordered by descending probability. */
+    void*                       topConf;                    /*!< Most probable configuration. */
+    DirtyAllocator              allocator;                  /*!< Structure used for alocating memory for isotopologues. */
+    const std::vector<double>** logProbs;                   /*!< Obtained log-probabilities. */
+    const std::vector<double>** masses;                     /*!< Obtained masses. */
+    const std::vector<int*>**   marginalConfs;              /*!< Obtained counts of isotopes. */
+    double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
+    double                      currentMass;                /*!< The mass of the current isotopologue. */
+    double                      currentEProb;               /*!< The probability of the current isotopologue. */
+    int*                        candidate;                  /*!< The next . */
+    int                         ccount;
 
 public:
     bool advanceToNextConfiguration() override final;
