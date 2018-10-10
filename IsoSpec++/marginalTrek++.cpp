@@ -42,8 +42,15 @@
 namespace IsoSpec
 {
 
-//TODO rename to Subisotopologue
-// this is a subisotopologue used in the marginal
+//! Find one of the most probable subisotopologues.
+/*!
+    The algorithm uses the hill-climbing algorithm.
+    It starts from a subisotopologue close to the mean of the underlying multinomial distribution.
+    There might be more than one modes, in case of which this function will return only one of them, close to the mean.
+
+    \param atomCnt
+
+*/
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
 {
     /*!
@@ -293,7 +300,7 @@ bool MarginalTrek::add_next_conf()
     _confs.push_back(topConf);
     _conf_masses.push_back(mass(topConf, atom_masses, isotopeNo));
     double logprob = logProb(topConf);
-    _conf_probs.push_back(logprob);
+    _conf_lprobs.push_back(logprob);
 
 
     totalProb.add( exp( logprob ) );
@@ -329,9 +336,9 @@ int MarginalTrek::processUntilCutoff(double cutoff)
 {
     Summator s;
     int last_idx = -1;
-    for(unsigned int i=0; i<_conf_probs.size(); i++)
+    for(unsigned int i=0; i<_conf_lprobs.size(); i++)
     {
-        s.add(_conf_probs[i]);
+        s.add(_conf_lprobs[i]);
         if(s.get() >= cutoff)
         {
             last_idx = i;
@@ -342,7 +349,7 @@ int MarginalTrek::processUntilCutoff(double cutoff)
         return last_idx;
 
     while(totalProb.get() < cutoff && add_next_conf()) {}
-    return _conf_probs.size();
+    return _conf_lprobs.size();
 }
 
 

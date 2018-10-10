@@ -145,11 +145,9 @@ public:
 };
 
 
-
-
 //! The generator of isotopologues sorted by their probability of occurrence.
 /*!
-    The subsequent isotopologues are generated with diminishing probability, starting from the mode.
+    Subsequent isotopologues are generated with diminishing probability, starting from the mode.
     This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
     Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
 */
@@ -170,6 +168,10 @@ private:
     int                         ccount;
 
 public:
+    //! Advance to the next, not yet visited, most probable isotopologue.
+    /*!
+        \param space Pointer that will direct to the next configuration.
+    */
     bool advanceToNextConfiguration() override final;
     inline void get_conf_signature(int* space) const override final
     {
@@ -188,12 +190,21 @@ public:
             c[ccount]++;
     };
 
+    //! The move-contstructor.
     IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
 
+    //! Destructor.
     virtual ~IsoOrderedGenerator();
 
 };
 
+
+//! The generator of isotopologues above a given threshold value.
+/*!
+    Attention: the calculated configurations are only partially ordeded and the user should not assume they will be ordered.
+    This algorithm computes N isotopologues in O(N) thanks to storing data in FIFO Queue.
+    It is a considerable advantage w.r.t. the IsoOrderedGenerator.
+*/
 class IsoThresholdGenerator: public IsoGenerator
 {
 private:
@@ -203,6 +214,11 @@ private:
     PrecalculatedMarginal** marginalResults;
 
 public:
+    //! Advance to the next, not yet visited, isotopologue.
+    /*!
+        
+        \param space Pointer that will direct to the next configuration.
+    */
     bool advanceToNextConfiguration() override final;
     inline void get_conf_signature(int* space) const override final
     {
