@@ -1,17 +1,17 @@
-/*
-*   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
-*
-*   This file is part of IsoSpec.
-*
-*   IsoSpec is free software: you can redistribute it and/or modify
-*   it under the terms of the Simplified ("2-clause") BSD licence.
-*
-*   IsoSpec is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-*   You should have received a copy of the Simplified BSD Licence
-*   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
+/*!
+    Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+
+    This file is part of IsoSpec.
+
+    IsoSpec is free software: you can redistribute it and/or modify
+    it under the terms of the Simplified ("2-clause") BSD licence.
+
+    IsoSpec is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    You should have received a copy of the Simplified BSD Licence
+    along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
 */
 
 #pragma once
@@ -36,25 +36,51 @@ using namespace Rcpp;
 namespace IsoSpec
 {
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
+// This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
+unsigned int parse_formula(const char* formula,
+                           std::vector<const double*>& isotope_masses,
+                           std::vector<const double*>& isotope_probabilities,
+                           int** isotopeNumbers,
+                           int** atomCounts,
+                           unsigned int* confSize);
 
-class IsoThresholdGenerator;
 
+//! The Iso class for the calculation of the isotopic distribution.
+/*!
+    It contains full description of the molecule for which one would like to calculate the isotopic distribution.
+*/
 class Iso {
 private:
-    void setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities);
+
+    //! Set up the marginal isotopic envelopes, corresponding to subisotopologues.
+    /*!
+        \param _isotopeMasses A table of masses of isotopes of the elements in the chemical formula,
+                              e.g. {12.0, 13.003355, 1.007825, 2.014102} for C100H202.
+        \param _isotopeProbabilities A table of isotope frequencies of the elements in the chemical formula,
+                                     e.g. {.989212, .010788, .999885, .000115} for C100H202.
+    */
+    void setupMarginals(const double* const * _isotopeMasses,
+                        const double* const * _isotopeProbabilities);
 public:
-    bool disowned;
+    bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
 protected:
-    int 		dimNumber;
-    int*		isotopeNumbers;
-    int*		atomCounts;
-    unsigned int	confSize;
-    int			allDim;
-    Marginal**          marginals;
-    double              modeLProb;
+    int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
+    int*            isotopeNumbers; /*!< A table with numbers of isotopes for each element. */
+    int*            atomCounts;     /*!< A table with numbers of isotopes for each element. */
+    unsigned int    confSize;       /*!< The number of bytes needed to represent the counts of isotopes present in the extended chemical formula. */
+    int             allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H20 it is 2+3=5. */
+    Marginal**      marginals;      /*!< The table of pointers to the distributions of individual subisotopologues. */
+    double          modeLProb;      /*!< The log-probability of the mode of the isotopic distribution. */
 
 public:
+    //! General constructror.
+    /*!
+        \param _dimNumber The number of elements in the formula, e.g. for C100H202 it would be 2, as there are only carbon and hydrogen atoms.
+        \param _isotopeNumbers A table with numbers of isotopes for each element, e.g. for C100H202 it would be {2, 2}, because both C and H have two stable isotopes.
+        \param _atomCounts Number of atoms of each element in the formula, e.g. for C100H202 corresponds to {100, 202}.
+        \param _isotopeMasses A table of masses of isotopes of the elements in the chemical formula, e.g. {12.0, 13.003355, 1.007825, 2.014102} for C100H202.
+        \param _isotopeProbabilities A table of isotope frequencies of the elements in the chemical formula, e.g. {.989212, .010788, .999885, .000115} for C100H202.
+    */
     Iso(
         int             _dimNumber,
         const int*      _isotopeNumbers,
@@ -63,29 +89,49 @@ public:
         const double* const *  _isotopeProbabilities
     );
 
+    //! Constructor from the formula object.
     Iso(const char* formula);
     Iso(Iso&& other);
     Iso(const Iso& other, bool fullcopy);
 
     virtual ~Iso();
 
+    //! Get the mass of the lightest peak in the isotopic distribution.
     double getLightestPeakMass() const;
+
+    //! Get the mass of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakMass() const;
+
+    //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
     inline double getModeLProb() const { return modeLProb; };
+
+    //! Get the number of elements in the chemical formula of the molecule.
     inline int getDimNumber() const { return dimNumber; };
+
+    //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; };
 
+    //! Get the marginal distributions of subisotopologues.
+    /*!
+        \param Lcutoff The logarithm of the cut off value.
+        \param absolute Should the cutoff be in terms of absolute height of the peak, or relative to the height/probability of the mode.
+        \param tabSize The size of the extension of the table with configurations.
+        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
+    */
     PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
-
-
 };
 
+
+//! The generator of isotopologues.
+/*!
+    This class provides the common interface for all isotopic generators.
+*/
 class IsoGenerator : public Iso
 {
 protected:
-    double* partialLProbs;
-    double* partialMasses;
-    double* partialExpProbs;
+    double* partialLProbs;      /*! The prefix sum of the log-probabilities of the current isotopologue. */
+    double* partialMasses;      /*! The prefix sum of the masses of the current isotopologue. */
+    double* partialExpProbs;    /*! The prefix product of the probabilities of the current isotopologue. */
 
 public:
     virtual bool advanceToNextConfiguration() = 0;
@@ -99,21 +145,29 @@ public:
 };
 
 
+
+
+//! The generator of isotopologues sorted by their probability of occurrence.
+/*!
+    The subsequent isotopologues are generated with diminishing probability, starting from the mode.
+    This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
+    Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
+*/
 class IsoOrderedGenerator: public IsoGenerator
 {
 private:
-    MarginalTrek** marginalResults;
-    std::priority_queue<void*,std::vector<void*>,ConfOrder> pq;
-    void* topConf;
-    DirtyAllocator allocator;
-    const std::vector<double>**     logProbs;
-    const std::vector<double>**     masses;
-    const std::vector<int*>**       marginalConfs;
-    double currentLProb;
-    double currentMass;
-    double currentEProb;
-    int*   candidate;
-    int    ccount;
+    MarginalTrek**              marginalResults;            /*!< Table of pointers to marginal distributions of subisotopologues. */
+    std::priority_queue<void*,std::vector<void*>,ConfOrder> pq; /*!< The priority queue used to generate isotopologues ordered by descending probability. */
+    void*                       topConf;                    /*!< Most probable configuration. */
+    DirtyAllocator              allocator;                  /*!< Structure used for alocating memory for isotopologues. */
+    const std::vector<double>** logProbs;                   /*!< Obtained log-probabilities. */
+    const std::vector<double>** masses;                     /*!< Obtained masses. */
+    const std::vector<int*>**   marginalConfs;              /*!< Obtained counts of isotopes. */
+    double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
+    double                      currentMass;                /*!< The mass of the current isotopologue. */
+    double                      currentEProb;               /*!< The probability of the current isotopologue. */
+    int*                        candidate;                  /*!< The next . */
+    int                         ccount;
 
 public:
     bool advanceToNextConfiguration() override final;

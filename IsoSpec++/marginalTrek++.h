@@ -37,6 +37,12 @@ void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim)
 
 class Marginal
 {
+    /*!
+        This class represents the multinomial distribution.
+        In IsoSpec, the Marginal distribution over the given type of element (like carbon) is precisely that.
+
+        The constructor method perform initial hill-climbing to find the most probable sub-isotopologue (the mode).
+    */
 private:
     bool disowned;
 protected:
@@ -59,6 +65,7 @@ public:
         int _isotopeNo,                  // No of isotope configurations.
         int _atomCnt
     );
+
     Marginal(Marginal& other) = delete;
     Marginal& operator= (const Marginal& other) = delete;
     Marginal(Marginal&& other);
@@ -121,6 +128,14 @@ public:
 
 class PrecalculatedMarginal : public Marginal
 {
+    /*!
+        This class serves to calculate a set of isotopologues that 
+        is defined by the minimal probability threshold.
+
+        This works faster than if you did not know the threshold.
+        If you have no idea about the threshold, you would need to call us,
+        to change encode the layered version of the marginal.
+    */
 protected:
     std::vector<Conf> configurations;
     Conf* confs;
