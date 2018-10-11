@@ -66,6 +66,7 @@ public:
         \param _probs A table of natural frequencies of the stable isotopes of the investigated element, see IUPAC at https://iupac.org/isotopesmatter/
         \param _isotopeNo Number of isotopes of a given element.
         \param _atomCnt The number of atoms of the given element, e.g. 10 for C10.
+        \return An instance of the Marginal class.
     */
     Marginal(
         const double* _masses,   // masses size = logProbs size = isotopeNo
@@ -218,29 +219,84 @@ protected:
     double* eProbs;
     Allocator<int> allocator;
 public:
+    //! The move constructor (disowns the Marginal).
+    /*!
+        This constructor memoizes all subisotopologues with log-probability above the provided threshold lCutOff 
+        \param Marginal An instance of the Marginal class this class is about to disown.
+        \param lCutOff The lower limit on the log-probability of the precomputed subisotopologues.
+        \param sort Should the subisotopologues be stored with descending probability ?
+        \return An instance of the PrecalculatedMarginal class.
+    */
     PrecalculatedMarginal(
         Marginal&& m,
-	double lCutOff,
-	bool sort = true,
-	int tabSize = 1000,
-	int hashSize = 1000
+        double lCutOff,
+        bool sort = true,
+        int tabSize = 1000,
+        int hashSize = 1000
     );
+
+    //! Destructor.
     virtual ~PrecalculatedMarginal();
+    
+    //! Is there a subisotopologue with a given number?
+    /*!
+        \return Returns true if idx does not exceed the number of pre-computed configurations. 
+    */
     inline bool inRange(unsigned int idx) const { return idx < no_confs; };
+
+    //! get the log-probability of the idx-th subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The log-probability of the idx-th subisotopologue.
+    */
     inline const double& get_lProb(int idx) const { return lProbs[idx]; };
+
+    //! get the probability of the idx-th subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The probability of the idx-th subisotopologue.
+    */
     inline const double& get_eProb(int idx) const { return eProbs[idx]; };
+
+    //! get the mass of the idx-th subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The mass of the idx-th subisotopologue.
+    */
     inline const double& get_mass(int idx) const { return masses[idx]; };
+
+    //! Get the table of the log-probabilities of subisotopologues.
+    /*!
+        \return Pointer to the first element in the table storing log-probabilities of subisotopologues.
+    */
     inline const double* get_lProbs_ptr() const { return lProbs; };
+
+    //! Get the table of the masses of subisotopologues.
+    /*!
+        \return Pointer to the first element in the table storing masses of subisotopologues.
+    */
     inline const double* get_masses_ptr() const { return masses; };
+
+
+    //! get the counts of isotopes that define the subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The counts of isotopes that define the subisotopologue.
+    */
     inline const Conf& get_conf(int idx) const { return confs[idx]; };
+
+    //! Get the number of precomputed subisotopologues.
+    /*!
+        \return The number of precomputed subisotopologues.
+    */
     inline unsigned int get_no_confs() const { return no_confs; };
 };
 
+
+
+//! Big experiment for multi-threaded version of the algorithm, do not touch.
 class SyncMarginal : public PrecalculatedMarginal
 {
-    /*!
-    Big experiment for multi-threaded version of the algorithm, do not touch.
-    */
 protected:
     char padding[64]; /*  padding[64]; */ // against fake-sharing cache lines...
     std::atomic<unsigned int> counter;
@@ -263,22 +319,23 @@ public:
     inline unsigned int getNextConfIdx() { return counter.fetch_add(1, std::memory_order_relaxed); };
     inline unsigned int getNextConfIdxwMass(double mmin, double mmax)
     {
-    	unsigned int local = counter.fetch_add(1, std::memory_order_relaxed);
-	while(local < no_confs && (mmin > masses[local] || mmax < masses[local]))
-	    local = counter.fetch_add(1, std::memory_order_relaxed);
-	return local;
+        unsigned int local = counter.fetch_add(1, std::memory_order_relaxed);
+    while(local < no_confs && (mmin > masses[local] || mmax < masses[local]))
+        local = counter.fetch_add(1, std::memory_order_relaxed);
+    return local;
     }
 
 
 };
 
 
+
+//! LayeredMarginal class
+/*!
+    An extendable version of the PrecalculatedMarginal, where you can extend the threshold at will.
+*/
 class LayeredMarginal : public Marginal
 {
-    /*!
-        An extendable version of the PrecalculatedMarginal,
-        where you can extend the threshold.
-    */
 private:
     double current_threshold;
     std::vector<Conf> configurations;
@@ -295,14 +352,34 @@ private:
     const int hashSize;
 
 public:
+    //! Move constructor: specializes the Marginal class.
+    /*!
+        \param tabSize The size of the table used to store configurations in the allocator.
+        \param hashSize The size of the hash table used to store visited subisotopologues.
+    */
     LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
-    bool extend(double new_threshold);
-    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
-    inline double get_eProb(int idx) const { return eProbs[idx]; };
-    inline double get_mass(int idx) const { return masses[idx]; };
-    inline const Conf& get_conf(int idx) const { return configurations[idx]; };
-    inline unsigned int get_no_confs() const { return configurations.size(); };
 
+    //! Extend the set of computed subisotopologues to those above the new threshold.
+    /*!
+        \param new_threshold The new log-probability limiting the subisotopologues from below.
+        \return Returns false, if there are no fringe-subisotopologues (subisotopologues that were neighbours of the previously calculated subisotopologues, with log-probability below the previous threshold).  
+    */
+    bool extend(double new_threshold);
+
+    //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
+    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
+    
+    //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
+    inline double get_eProb(int idx) const { return eProbs[idx]; };
+
+    //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
+    inline double get_mass(int idx) const { return masses[idx]; };
+
+    //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
+    inline const Conf& get_conf(int idx) const { return configurations[idx]; };
+
+    //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
+    inline unsigned int get_no_confs() const { return configurations.size(); };
 };
 
 } // namespace IsoSpec
