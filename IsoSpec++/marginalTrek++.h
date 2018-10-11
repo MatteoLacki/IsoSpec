@@ -85,42 +85,57 @@ public:
     virtual ~Marginal();
 
     //! Get the number of isotopes of the investigated element.
+    /*! 
+        \return The integer number of isotopes of the investigated element.
+    */
     inline int get_isotopeNo() const { return isotopeNo; };
 
     //! Get the mass of the lightest subisotopologue.
-    /*! This is trivially obtained by considering all atomNo atoms to be the lightest isotope possible.*/
+    /*! This is trivially obtained by considering all atomNo atoms to be the lightest isotope possible.
+        \return The mass of the lightiest subisotopologue. 
+    */
     double getLightestConfMass() const;
 
     //! Get the mass of the heaviest subisotopologue.
-    /*! This is trivially obtained by considering all atomNo atoms to be the heaviest isotope possible.*/
+    /*! This is trivially obtained by considering all atomNo atoms to be the heaviest isotope possible.
+        \return The mass of the heaviest subisotopologue. 
+    */
     double getHeaviestConfMass() const;
 
     //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue. 
+    */
     inline double getModeLProb() const { return mode_lprob; };
 
     //! The the mass of the mode subisotopologue.
+    /*!
+        \return The mass of one of the most probable subisotopologues. 
+    */
     inline double getModeMass() const { return mode_mass; };
 
     //! The the probability of the mode subisotopologue.
+    /*!
+        \return The probability of a/the most probable subisotopologue. 
+    */
     inline double getModeEProb() const { return mode_eprob; };
 
     //! The the log-probability of the lightest subisotopologue.
+    /*!
+        \return The logarithm of the  smallest non-zero probability of a subisotopologue. 
+    */
     inline double getSmallestLProb() const { return smallest_lprob; };
-
 
     //! Calculate the log-probability of a given subisotopologue.
     /*!
         \param conf A subisotopologue (a table of integers describing subsequent isotope-counts).
+        \return The log-probability of the input subisotopologue.
     */
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
 };
 
 
 //! The marginal distribution class (a subisotopologue).
-/*!
-    This is a class akin to IsoOrderedGenerator.
-    It stores 
-*/
 class MarginalTrek : public Marginal
 {
 private:
@@ -157,6 +172,7 @@ public:
         This function checks if the idx-th most probable subisotopologue was memoized and if not, computes it and memoizes it.
 
         \param idx The number of the idx-th most probable subisotopologue.
+        \return Returns false if it the provided idx exceeds the total number of subisotopologues.
     */
     inline bool probeConfigurationIdx(int idx)
     {
@@ -166,7 +182,11 @@ public:
         return true;
     }
 
-    
+    //! Calculate subisotopologues with probability above or equal to the cut-off.
+    /*!
+        \param cutoff The probability cut-off 
+        \return The number of the last subisotopologue above the cut-off. 
+    */
     int processUntilCutoff(double cutoff);
 
     inline const std::vector<double>& conf_probs() const { return _conf_probs; };
