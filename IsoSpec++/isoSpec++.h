@@ -119,20 +119,7 @@ public:
 
     //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; };
-
-    //! Get the marginal distributions of subisotopologues.
-    /*!
-        \param Lcutoff The logarithm of the cut off value.
-        \param absolute Should the cutoff be in terms of absolute height of the peak, or relative to the height/probability of the mode.
-        \param tabSize The size of the extension of the table with configurations.
-        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
-    */
-    PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
 };
-
-// Be very absolutely safe vs. false-sharing cache lines between threads...
-#define ISOSPEC_PADDING 64
-
 
 
 //! The generator of isotopologues.
@@ -297,53 +284,6 @@ private:
 
 
 };
-
-
-
-//! The multi-threaded version of the generator of isotopologues.
-/*!
-    Attention: this code is experimental.
-*/
-class IsoThresholdGeneratorMT : public IsoGenerator
-{
-private:
-    unsigned int* counter;
-    double* maxConfsLPSum;
-    const double Lcutoff;
-    SyncMarginal* last_marginal;
-    PrecalculatedMarginal** marginalResults;
-
-public:
-    bool advanceToNextConfiguration() override final;
-    inline void get_conf_signature(int* space) const override final
-    {
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
-    };
-
-    IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
-
-    inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
-    void terminate_search();
-
-private:
-    inline void recalc(int idx)
-    {
-        for(; idx >=0; idx--)
-        {
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-        }
-    }
-
-
-
-};
-
 
 
 
