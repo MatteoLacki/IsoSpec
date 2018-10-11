@@ -244,21 +244,21 @@ public:
     */
     inline bool inRange(unsigned int idx) const { return idx < no_confs; };
 
-    //! get the log-probability of the idx-th subisotopologue.
+    //! Get the log-probability of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The log-probability of the idx-th subisotopologue.
     */
     inline const double& get_lProb(int idx) const { return lProbs[idx]; };
 
-    //! get the probability of the idx-th subisotopologue.
+    //! Get the probability of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The probability of the idx-th subisotopologue.
     */
     inline const double& get_eProb(int idx) const { return eProbs[idx]; };
 
-    //! get the mass of the idx-th subisotopologue.
+    //! Get the mass of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The mass of the idx-th subisotopologue.
@@ -278,7 +278,7 @@ public:
     inline const double* get_masses_ptr() const { return masses; };
 
 
-    //! get the counts of isotopes that define the subisotopologue.
+    //! Get the counts of isotopes that define the subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The counts of isotopes that define the subisotopologue.
