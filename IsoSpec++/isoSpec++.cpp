@@ -550,6 +550,9 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 IsoOrderedGenerator::~IsoOrderedGenerator()
 {
     dealloc_table<MarginalTrek*>(marginalResults, dimNumber);
+    delete[] logProbs;
+    delete[] masses;
+    delete[] marginalConfs;
     partialLProbs = nullptr;
     partialMasses = nullptr;
     partialExpProbs = nullptr;
