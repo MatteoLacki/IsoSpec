@@ -202,11 +202,17 @@ private:
     double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                /*!< The mass of the current isotopologue. */
     double                      currentEProb;               /*!< The probability of the current isotopologue. */
-    int*                        candidate;                  //TODO: WTF?
+    int*                        candidate;                  /*!< . */
     int                         ccount;
 
 public:
     bool advanceToNextConfiguration() override final;
+
+    //! Save the counts of isotopes in the space.
+    /*!
+        \param space An array where counts of isotopes shall be written. 
+                     Must be as big as the overall number of isotopes.
+    */
     inline void get_conf_signature(int* space) const override final
     {
         int* c = getConf(topConf);
@@ -261,7 +267,11 @@ public:
     //! The move-constructor.
     /*!
         \param iso An instance of the Iso class.
-        \param _threshold
+        \param _threshold The threshold value.
+        \param _absolute If true, the _threshold is interpreted as the absolute minimal peak height for the isotopologues.
+                         If false, the _threshold is the fraction of the heighest peak's probability.
+        \param tabSize The size of the extension of the table with configurations.
+        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
     */
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true,
                         int _tabSize=1000, int _hashSize=1000);

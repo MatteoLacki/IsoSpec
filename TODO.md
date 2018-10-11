@@ -17,3 +17,4 @@
 		* why does it print out things to the console???
 		* why is advanceToNextConfiguration_internal public, if it's called internal?
 			* it ain't used anywhere else beyond that class anyway.
+
