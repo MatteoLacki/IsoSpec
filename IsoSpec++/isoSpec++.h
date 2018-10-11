@@ -171,7 +171,11 @@ public:
     */
     inline double eprob() const { return partialExpProbs[0]; };
 
-    //TODO: what is this???
+    //! Save the counts of isotopes in the space.
+    /*!
+        \param space An array where counts of isotopes shall be written. 
+                     Must be as big as the overall number of isotopes.
+    */
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
@@ -207,12 +211,6 @@ private:
 
 public:
     bool advanceToNextConfiguration() override final;
-
-    //! Save the counts of isotopes in the space.
-    /*!
-        \param space An array where counts of isotopes shall be written. 
-                     Must be as big as the overall number of isotopes.
-    */
     inline void get_conf_signature(int* space) const override final
     {
         int* c = getConf(topConf);
@@ -248,9 +246,9 @@ public:
 class IsoThresholdGenerator: public IsoGenerator
 {
 private:
-    int*                    counter;
+    int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
     double*                 maxConfsLPSum;
-    const double            Lcutoff;
+    const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
 
 public:
@@ -281,7 +279,7 @@ public:
                                               delete[] maxConfsLPSum;
                                               dealloc_table(marginalResults, dimNumber); };
 
-    // WTF
+    //! Block the subsequent search of isotopologues.
     void terminate_search();
 
 private:
@@ -325,9 +323,13 @@ public:
         }
     };
 
+    //! Move constructor.
     IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
 
+    //! Destructor.
     inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
+    
+    //! Block the subsequent search of isotopologues.
     void terminate_search();
 
 private:
@@ -369,7 +371,13 @@ private:
 
 public:
     bool advanceToNextConfiguration_internal();
-    inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
+
+    //! Calculate a new layer of isotopologues.
+    /*!
+        \param _delta The new difference between the old and the new threshold on the minimal log-probability.
+    */
+    inline void get_next_isotopologues_layer(double _delta) { delta = _delta; nextLayer(delta); };
+
     inline bool advanceToNextConfiguration() override final
     {
         while (!advanceToNextConfiguration_internal())
@@ -378,6 +386,7 @@ public:
         std::cout << "Returning conf: " << counter[0] << " " << counter[1] << " " << partialLProbs[0] << std::endl;
         return true;
     }
+
     bool nextLayer(double logCutoff_delta); // Arg should be negative
 
     IsoLayeredGenerator(Iso&& iso, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000);
@@ -394,6 +403,7 @@ public:
     //! Destructor.
     virtual ~IsoLayeredGenerator();
 
+    //! Block the subsequent search of isotopologues.
     void terminate_search();
 
 private:
