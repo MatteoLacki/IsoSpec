@@ -141,6 +141,9 @@ class ThreadSummator
     // Trivial but thread-safe summator
     std::atomic<double> sum;
 public:
+    //! Constructor (sum defaults to zero).
+    inline ThreadSummator() : sum(0.0) {};
+
     //! Add a number to the existing sum.
     /*!
         \param x A double floating point number to add.
