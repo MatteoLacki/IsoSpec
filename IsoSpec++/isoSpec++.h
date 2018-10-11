@@ -297,21 +297,33 @@ private:
 class IsoLayered : public Iso
 {
 private:
-    int* counter;
-    double last_layer_lcutoff, current_layer_lcutoff;
-    Summator current_sum;
-    LayeredMarginal** marginalResults;
-    double* probsExcept;
-    double delta;
-    double final_cutoff;
-    bool do_trim;
+    Summator                totalProb;
+    std::vector<void*>      newaccepted;
+    DirtyAllocator allocator;
+    int* candidate;
+    const std::vector<double>** logProbs;                   /*!< Obtained log-probabilities. */
+    const std::vector<double>** masses;                     /*!< Obtained masses. */
+    const std::vector<int*>**   marginalConfs;              /*!< Obtained counts of isotopes. */
+    MarginalTrek** marginalResults;
+    std::vector<void*>*         current;
+    std::vector<void*>*         next;
+    double                      lprobThr;
+    double                      percentageToExpand;
+    bool                        estimateThresholds;
+    bool                        do_trim;
+    int layers;
+#ifdef DEBUG
+    int moves = 0;
+    int hits = 0;
+#endif /* DEBUG */
+
 
 public:
     bool advanceToNextConfiguration_internal();
-    inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
-    bool nextLayer(double logCutoff_delta); // Arg should be negative
+//    inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
+    bool advanceToNextLayer(); 
 
-    IsoLayered(Iso&& iso, double _cutOff, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
+    IsoLayered(Iso&& iso, double log_cutOff, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
     virtual ~IsoLayered();
 
     void terminate_search();

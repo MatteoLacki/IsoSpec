@@ -48,26 +48,43 @@ using namespace std;
 
 
 IsoLayered::IsoLayered( Iso&&     iso,
-                        double    _cutOff,
+                        double    log_cutOff,
                         double    _delta,
                         int       _tabSize,
                         int       _hashSize,
                         bool      trim
-) : Iso(std::move(iso),
-cutOff(_cutOff),
-delta(_delta),
-tabSize = _tabSize,
-hashSize = _hashSize,
+) : Iso(std::move(iso)),
+allocator(dimNumber, _tabSize),
+candidate(new int[dimNumber]),
 do_trim(trim),
 layers(0)
 {
+    marginalResults = new MarginalTrek*[dimNumber];
+
+    for(int i = 0; i<dimNumber; i++)
+        marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
+
+    logProbs        = new const vector<double>*[dimNumber];
+    masses          = new const vector<double>*[dimNumber];
+    marginalConfs   = new const vector<int*>*[dimNumber];
+
+    for(int i = 0; i<dimNumber; i++)
+    {
+        masses[i] = &marginalResults[i]->conf_masses();
+        logProbs[i] = &marginalResults[i]->conf_lprobs();
+        marginalConfs[i] = &marginalResults[i]->confs();
+    }
+
+    void* topConf = allocator.newConf();
+    bzero(reinterpret_cast<char*>(topConf) + sizeof(double), sizeof(int)*dimNumber);
+    *(reinterpret_cast<double*>(topConf)) = combinedSum(getConf(topConf), logProbs, dimNumber);
+
     current = new std::vector<void*>();
     next    = new std::vector<void*>();
 
-    current->push_back(initialConf);
+    current->push_back(topConf);
 
-    percentageToExpand = layerStep;
-    lprobThr = (*reinterpret_cast<double*>(initialConf));
+    lprobThr = (*reinterpret_cast<double*>(topConf));
 }
 
 
@@ -77,6 +94,11 @@ IsoLayered::~IsoLayered()
         delete current;
     if(next != nullptr)
         delete next;
+    delete[] logProbs;
+    delete[] masses;
+    delete[] marginalConfs;
+    delete[] candidate;
+    dealloc_table(marginalResults, dimNumber);
 }
 
 bool IsoLayered::advanceToNextLayer()
@@ -89,13 +111,12 @@ bool IsoLayered::advanceToNextLayer()
     int accepted_in_this_layer = 0;
     Summator prob_in_this_layer(totalProb);
 
+    void* topConf;
 
     while(current->size() > 0)
     {
         topConf = current->back();
         current->pop_back();
-
-        cnt++;
 
         double top_lprob = getLProb(topConf);
 
