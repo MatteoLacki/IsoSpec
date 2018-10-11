@@ -86,7 +86,7 @@ public:
     */
     inline bool operator()(const int* conf1, const int* conf2) const
     {
-        return memcmp(conf1, conf2, size) != 0;
+        return memcmp(conf1, conf2, size) == 0;
     }
 };
 
