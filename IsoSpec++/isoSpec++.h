@@ -91,9 +91,18 @@ public:
 
     //! Constructor from the formula object.
     Iso(const char* formula);
+
+    //! The move constructor.
     Iso(Iso&& other);
+
+    //! The copy constructor.
+    /*!
+        \param other The other instance of the Iso class.
+        \param fullcopy If false, copy only the number of atoms in the formula, the size of the configuration, the total number of isotopes, and the probability of the mode isotopologue.
+    */
     Iso(const Iso& other, bool fullcopy);
 
+    //! Destructor.
     virtual ~Iso();
 
     //! Get the mass of the lightest peak in the isotopic distribution.
@@ -121,6 +130,10 @@ public:
     PrecalculatedMarginal** get_MT_marginal_set(double Lcutoff, bool absolute, int tabSize, int hashSize);
 };
 
+// Be very absolutely safe vs. false-sharing cache lines between threads...
+#define ISOSPEC_PADDING 64
+
+
 
 //! The generator of isotopologues.
 /*!
@@ -129,25 +142,50 @@ public:
 class IsoGenerator : public Iso
 {
 protected:
-    double* partialLProbs;      /*! The prefix sum of the log-probabilities of the current isotopologue. */
-    double* partialMasses;      /*! The prefix sum of the masses of the current isotopologue. */
-    double* partialExpProbs;    /*! The prefix product of the probabilities of the current isotopologue. */
+    double* partialLProbs;  /*!< The prefix sum of the log-probabilities of the current isotopologue. */
+    double* partialMasses;  /*!< The prefix sum of the masses of the current isotopologue. */
+    double* partialExpProbs;/*!< The prefix product of the probabilities of the current isotopologue. */
 
 public:
+    //! Advance to the next, not yet visited, most probable isotopologue.
+    /*!
+        \return Return false if it is not possible to advance.
+    */
     virtual bool advanceToNextConfiguration() = 0;
+
+    //! Get the log-probability of the current isotopologue.
+    /*!
+        \return The log-probability of the current isotopologue.
+    */
     inline double lprob() const { return partialLProbs[0]; };
+
+    //! Get the mass of the current isotopologue.
+    /*!
+        \return The mass of the current isotopologue.
+    */
     inline double mass()  const { return partialMasses[0]; };
+
+    //! Get the probability of the current isotopologue.
+    /*!
+        \return The probability of the current isotopologue.
+    */
     inline double eprob() const { return partialExpProbs[0]; };
+
+    //TODO: what is this???
     virtual void get_conf_signature(int* space) const = 0;
 
+    //! Move constructor.
     IsoGenerator(Iso&& iso);
+
+    //! Destructor.
     virtual ~IsoGenerator();
 };
 
 
+
 //! The generator of isotopologues sorted by their probability of occurrence.
 /*!
-    Subsequent isotopologues are generated with diminishing probability, starting from the mode.
+    The subsequent isotopologues are generated with diminishing probability, starting from the mode.
     This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
     Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
 */
@@ -164,15 +202,17 @@ private:
     double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                /*!< The mass of the current isotopologue. */
     double                      currentEProb;               /*!< The probability of the current isotopologue. */
-    int*                        candidate;                  /*!< The next . */
+    int*                        candidate;                  /*!< . */
     int                         ccount;
 
 public:
-    //! Advance to the next, not yet visited, most probable isotopologue.
-    /*!
-        \param space Pointer that will direct to the next configuration.
-    */
     bool advanceToNextConfiguration() override final;
+
+    //! Save the counts of isotopes in the space.
+    /*!
+        \param space An array where counts of isotopes shall be written. 
+                     Must be as big as the overall number of isotopes.
+    */
     inline void get_conf_signature(int* space) const override final
     {
         int* c = getConf(topConf);
@@ -195,8 +235,8 @@ public:
 
     //! Destructor.
     virtual ~IsoOrderedGenerator();
-
 };
+
 
 
 //! The generator of isotopologues above a given threshold value.
@@ -208,17 +248,12 @@ public:
 class IsoThresholdGenerator: public IsoGenerator
 {
 private:
-    int* counter;
-    double* maxConfsLPSum;
-    const double Lcutoff;
+    int*                    counter;
+    double*                 maxConfsLPSum;
+    const double            Lcutoff;
     PrecalculatedMarginal** marginalResults;
 
 public:
-    //! Advance to the next, not yet visited, isotopologue.
-    /*!
-        
-        \param space Pointer that will direct to the next configuration.
-    */
     bool advanceToNextConfiguration() override final;
     inline void get_conf_signature(int* space) const override final
     {
@@ -229,13 +264,70 @@ public:
         }
     };
 
+    //! The move-constructor.
+    /*!
+        \param iso An instance of the Iso class.
+        \param _threshold The threshold value.
+        \param _absolute If true, the _threshold is interpreted as the absolute minimal peak height for the isotopologues.
+                         If false, the _threshold is the fraction of the heighest peak's probability.
+        \param tabSize The size of the extension of the table with configurations.
+        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
+    */
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true,
                         int _tabSize=1000, int _hashSize=1000);
 
+    //! Destructor.
     inline virtual ~IsoThresholdGenerator() { delete[] counter;
-                                            delete[] maxConfsLPSum;
-                                            dealloc_table(marginalResults, dimNumber); };
+                                              delete[] maxConfsLPSum;
+                                              dealloc_table(marginalResults, dimNumber); };
 
+    // WTF
+    void terminate_search();
+
+private:
+    //! Recalculate the current partial log-probabilities, masses, and probabilities.
+    inline void recalc(int idx)
+    {
+        for(; idx >=0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+        }
+    }
+
+
+};
+
+
+
+//! The multi-threaded version of the generator of isotopologues.
+/*!
+    Attention: this code is experimental.
+*/
+class IsoThresholdGeneratorMT : public IsoGenerator
+{
+private:
+    unsigned int* counter;
+    double* maxConfsLPSum;
+    const double Lcutoff;
+    SyncMarginal* last_marginal;
+    PrecalculatedMarginal** marginalResults;
+
+public:
+    bool advanceToNextConfiguration() override final;
+    inline void get_conf_signature(int* space) const override final
+    {
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
+
+    IsoThresholdGeneratorMT(Iso&& iso, double  _threshold, PrecalculatedMarginal** marginals, bool _absolute = true);
+
+    inline virtual ~IsoThresholdGeneratorMT() { delete[] counter; delete[] maxConfsLPSum;};
     void terminate_search();
 
 private:
@@ -255,7 +347,13 @@ private:
 
 
 
-
+//! The generator of isotopologues above a given joint probability value.
+/*!
+    This class generates subsequent isotopologues that ARE NOT GUARANTEED TO BE ORDERED BY probability.
+    The overal set of isotopologues is guaranteed to surpass a given threshold of probability contained in the
+    isotopic distribution.
+    This calculations are performed in O(N) operations, where N is the total number of the output isotopologues.
+*/
 class IsoLayeredGenerator : public IsoGenerator
 {
 private:
@@ -263,7 +361,7 @@ private:
     double* maxConfsLPSum;
     double last_layer_lcutoff, current_layer_lcutoff;
     Summator current_sum;
-    MarginalTrek** marginalResults;
+    LayeredMarginal** marginalResults;
     double* probsExcept;
     int* last_counters;
     double delta;
@@ -293,6 +391,7 @@ public:
         }
     };
 
+    //! Destructor.
     virtual ~IsoLayeredGenerator();
 
     void terminate_search();

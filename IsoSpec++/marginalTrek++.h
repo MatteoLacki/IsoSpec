@@ -66,6 +66,7 @@ public:
         \param _probs A table of natural frequencies of the stable isotopes of the investigated element, see IUPAC at https://iupac.org/isotopesmatter/
         \param _isotopeNo Number of isotopes of a given element.
         \param _atomCnt The number of atoms of the given element, e.g. 10 for C10.
+        \return An instance of the Marginal class.
     */
     Marginal(
         const double* _masses,   // masses size = logProbs size = isotopeNo
@@ -85,42 +86,58 @@ public:
     virtual ~Marginal();
 
     //! Get the number of isotopes of the investigated element.
+    /*! 
+        \return The integer number of isotopes of the investigated element.
+    */
     inline int get_isotopeNo() const { return isotopeNo; };
 
     //! Get the mass of the lightest subisotopologue.
-    /*! This is trivially obtained by considering all atomNo atoms to be the lightest isotope possible.*/
+    /*! This is trivially obtained by considering all atomNo atoms to be the lightest isotope possible.
+        \return The mass of the lightiest subisotopologue. 
+    */
     double getLightestConfMass() const;
 
     //! Get the mass of the heaviest subisotopologue.
-    /*! This is trivially obtained by considering all atomNo atoms to be the heaviest isotope possible.*/
+    /*! This is trivially obtained by considering all atomNo atoms to be the heaviest isotope possible.
+        \return The mass of the heaviest subisotopologue. 
+    */
     double getHeaviestConfMass() const;
 
     //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue. 
+    */
     inline double getModeLProb() const { return mode_lprob; };
 
     //! The the mass of the mode subisotopologue.
+    /*!
+        \return The mass of one of the most probable subisotopologues. 
+    */
     inline double getModeMass() const { return mode_mass; };
 
     //! The the probability of the mode subisotopologue.
+    /*!
+        \return The probability of a/the most probable subisotopologue. 
+    */
     inline double getModeEProb() const { return mode_eprob; };
 
     //! The the log-probability of the lightest subisotopologue.
+    /*!
+        \return The logarithm of the  smallest non-zero probability of a subisotopologue. 
+    */
+
     inline double getSmallestLProb() const { return smallest_lprob; };
 
     //! Calculate the log-probability of a given subisotopologue.
     /*!
         \param conf A subisotopologue (a table of integers describing subsequent isotope-counts).
+        \return The log-probability of the input subisotopologue.
     */
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
 };
 
 
-
 //! The marginal distribution class (a subisotopologue).
-/*!
-    This is a class akin to IsoOrderedGenerator.
-    It stores 
-*/
 class MarginalTrek : public Marginal
 {
 private:
@@ -157,6 +174,7 @@ public:
         This function checks if the idx-th most probable subisotopologue was memoized and if not, computes it and memoizes it.
 
         \param idx The number of the idx-th most probable subisotopologue.
+        \return Returns false if it the provided idx exceeds the total number of subisotopologues.
     */
     inline bool probeConfigurationIdx(int idx)
     {
@@ -167,6 +185,11 @@ public:
     }
 
 
+    //! Calculate subisotopologues with probability above or equal to the cut-off.
+    /*!
+        \param cutoff The probability cut-off 
+        \return The number of the last subisotopologue above the cut-off. 
+    */
     int processUntilCutoff(double cutoff);
 
     inline const std::vector<double>& conf_lprobs() const { return _conf_lprobs; };
@@ -198,24 +221,78 @@ protected:
     double* eProbs;
     Allocator<int> allocator;
 public:
+    //! The move constructor (disowns the Marginal).
+    /*!
+        This constructor memoizes all subisotopologues with log-probability above the provided threshold lCutOff 
+        \param Marginal An instance of the Marginal class this class is about to disown.
+        \param lCutOff The lower limit on the log-probability of the precomputed subisotopologues.
+        \param sort Should the subisotopologues be stored with descending probability ?
+        \return An instance of the PrecalculatedMarginal class.
+    */
     PrecalculatedMarginal(
         Marginal&& m,
-	double lCutOff,
-	bool sort = true,
-	int tabSize = 1000,
-	int hashSize = 1000
+        double lCutOff,
+        bool sort = true,
+        int tabSize = 1000,
+        int hashSize = 1000
     );
+
+    //! Destructor.
     virtual ~PrecalculatedMarginal();
+    
+    //! Is there a subisotopologue with a given number?
+    /*!
+        \return Returns true if idx does not exceed the number of pre-computed configurations. 
+    */
     inline bool inRange(unsigned int idx) const { return idx < no_confs; };
+
+    //! Get the log-probability of the idx-th subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The log-probability of the idx-th subisotopologue.
+    */
     inline const double& get_lProb(int idx) const { return lProbs[idx]; };
+
+    //! Get the probability of the idx-th subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The probability of the idx-th subisotopologue.
+    */
     inline const double& get_eProb(int idx) const { return eProbs[idx]; };
+
+    //! Get the mass of the idx-th subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The mass of the idx-th subisotopologue.
+    */
     inline const double& get_mass(int idx) const { return masses[idx]; };
+
+    //! Get the table of the log-probabilities of subisotopologues.
+    /*!
+        \return Pointer to the first element in the table storing log-probabilities of subisotopologues.
+    */
     inline const double* get_lProbs_ptr() const { return lProbs; };
+
+    //! Get the table of the masses of subisotopologues.
+    /*!
+        \return Pointer to the first element in the table storing masses of subisotopologues.
+    */
     inline const double* get_masses_ptr() const { return masses; };
+
+
+    //! Get the counts of isotopes that define the subisotopologue.
+    /*!
+        \param idx The number of the considered subisotopologue.
+        \return The counts of isotopes that define the subisotopologue.
+    */
     inline const Conf& get_conf(int idx) const { return confs[idx]; };
+
+    //! Get the number of precomputed subisotopologues.
+    /*!
+        \return The number of precomputed subisotopologues.
+    */
     inline unsigned int get_no_confs() const { return no_confs; };
 };
-
 
 } // namespace IsoSpec
 
