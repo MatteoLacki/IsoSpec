@@ -521,7 +521,6 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
     logProbs        = new const vector<double>*[dimNumber];
     masses          = new const vector<double>*[dimNumber];
     marginalConfs   = new const vector<int*>*[dimNumber];
-    candidate	    = new int[dimNumber];
 
     for(int i = 0; i<dimNumber; i++)
     {
@@ -555,7 +554,6 @@ IsoOrderedGenerator::~IsoOrderedGenerator()
     delete[] logProbs;
     delete[] masses;
     delete[] marginalConfs;
-    delete[] candidate;
     partialLProbs = nullptr;
     partialMasses = nullptr;
     partialExpProbs = nullptr;
@@ -580,8 +578,6 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
     ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
     {
-        // candidate cannot refer to a position that is
-        // out of range of the stored marginal distribution.
         if(marginalResults[j]->probeConfigurationIdx(topConfIsoCounts[j] + 1))
         {
             if(ccount == -1)
