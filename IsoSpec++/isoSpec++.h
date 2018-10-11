@@ -202,7 +202,6 @@ private:
     double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                /*!< The mass of the current isotopologue. */
     double                      currentEProb;               /*!< The probability of the current isotopologue. */
-    int*                        candidate;                  /*!< . */
     int                         ccount;
 
 public:
