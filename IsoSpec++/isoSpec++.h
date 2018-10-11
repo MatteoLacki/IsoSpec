@@ -162,7 +162,7 @@ public:
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
-    IsoGenerator(Iso&& iso);
+    IsoGenerator(Iso&& iso, bool alloc_partials = true);
 
     //! Destructor.
     virtual ~IsoGenerator();

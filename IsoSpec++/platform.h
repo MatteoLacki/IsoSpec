@@ -39,8 +39,8 @@
 #endif
 
 #if !defined(ISOSPEC_USE_PTHREADS)
-#define ISOSPEC_USE_PTHREADS false /* TODO: possibly put a macro here to detect whether we
-#endif                              * can/should use pthreads - or rip them out altogether.
+#define ISOSPEC_USE_PTHREADS false /* TODO: possibly put a macro here to detect whether we */
+#endif                             /* can/should use pthreads - or rip them out altogether.
                                     * Investigate whether the performance advantage of pthreads on
                                     * some platforms (*cough* CYGWIN *cough*) is still large
                                     * enough to justify keeping both implementations around */
