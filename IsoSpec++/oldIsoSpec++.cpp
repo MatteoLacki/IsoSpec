@@ -49,7 +49,7 @@ using namespace std;
 
 IsoLayered::IsoLayered( Iso&&     iso,
                         double    _cutOff,
-                        double    _delta,
+                        double    _percentageToExpand,
                         int       _tabSize,
                         int       _hashSize,
                         bool      trim
@@ -57,6 +57,7 @@ IsoLayered::IsoLayered( Iso&&     iso,
 allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
 cutOff(_cutOff),
+percentageToExpand(_percentageToExpand),
 do_trim(trim),
 layers(0)
 {
