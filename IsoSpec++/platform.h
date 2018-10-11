@@ -13,32 +13,52 @@
 #define ISOSPEC_BUILDING_PYTHON false
 #endif
 
+#if !defined(ISOSPEC_BUILDING_OPENMS)
+#define ISOSPEC_BUILDING_OPENMS false
+#endif
 
 #if defined(__unix__) || defined(__unix) || \
         (defined(__APPLE__) && defined(__MACH__))
 #include <sys/mman.h>
-#define ISOSPEC_WE_ARE_ON_UNIX_YAY true
-#define ISOSPEC_WE_ARE_ON_WINDOWS false
-#define ISOSPEC_GOT_SYSTEM_MMAN true
-#define ISOSPEC_GOT_MMAN true
+#define ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY true
+#define ISOSPEC_TEST_WE_ARE_ON_WINDOWS false /* CYGWIN doesn't really count as Windows for our purposes, we'll be using UNIX API anyway */
+#define ISOSPEC_TEST_GOT_SYSTEM_MMAN true
+#define ISOSPEC_TEST_GOT_MMAN true
 #elif defined(__MINGW32__) || defined(_WIN32)
 #include "mman.h"
-#define ISOSPEC_WE_ARE_ON_UNIX_YAY false
-#define ISOSPEC_WE_ARE_ON_WINDOWS true
-#define ISOSPEC_GOT_SYSTEM_MMAN false
-#define ISOSPEC_GOT_MMAN true
+#define ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY false
+#define ISOSPEC_TEST_WE_ARE_ON_WINDOWS true
+#define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
+#define ISOSPEC_TEST_GOT_MMAN true
 #else
 #include <stdlib.h>     /* malloc, free, rand */
-#define ISOSPEC_WE_ARE_ON_UNIX_YAY false /* Well, probably... */
-#define ISOSPEC_WE_ARE_ON_WINDOWS false
-#define ISOSPEC_GOT_SYSTEM_MMAN false
-#define ISOSPEC_GOT_MMAN false
+#define ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY false /* Well, probably... */
+#define ISOSPEC_TEST_WE_ARE_ON_WINDOWS false
+#define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
+#define ISOSPEC_TEST_GOT_MMAN false
 #endif
 
+#if !defined(ISOSPEC_USE_PTHREADS)
 #define ISOSPEC_USE_PTHREADS false /* TODO: possibly put a macro here to detect whether we
-                                    * can/should use pthreads - or rip them out altogether.
+#endif                              * can/should use pthreads - or rip them out altogether.
                                     * Investigate whether the performance advantage of pthreads on
                                     * some platforms (*cough* CYGWIN *cough*) is still large
                                     * enough to justify keeping both implementations around */
+
+#if !defined(ISOSPEC_WE_ARE_ON_UNIX_YAY)
+#define ISOSPEC_WE_ARE_ON_UNIX_YAY ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY
+#endif
+
+#if !defined(ISOSPEC_WE_ARE_ON_WINDOWS)
+#define ISOSPEC_WE_ARE_ON_WINDOWS ISOSPEC_TEST_WE_ARE_ON_WINDOWS
+#endif
+
+#if !defined(ISOSPEC_GOT_SYSTEM_MMAN)
+#define ISOSPEC_GOT_SYSTEM_MMAN ISOSPEC_TEST_GOT_SYSTEM_MMAN
+#endif
+
+#if !defined(ISOSPEC_TEST_GOT_MMAN)
+#define ISOSPEC_GOT_MMAN ISOSPEC_TEST_GOT_MMAN
+#endif
 
 
