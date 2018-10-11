@@ -119,6 +119,8 @@ class ThreadSummator
     // Trivial but thread-safe summator
     std::atomic<double> sum;
 public:
+    inline ThreadSummator() : sum(0.0) {};
+
     inline void add(double what)
     {
         double previous = sum.load(std::memory_order_relaxed);
