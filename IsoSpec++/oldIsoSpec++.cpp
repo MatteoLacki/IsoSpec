@@ -30,7 +30,7 @@
 #include <stdexcept>
 #include <string>
 #include <limits>
-#include "lang.h"
+#include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
@@ -47,27 +47,17 @@ using namespace std;
 
 
 
-IsoSpecLayered::IsoSpecLayered( int             _dimNumber,
-                                const int*      _isotopeNumbers,
-                                const int*      _atomCounts,
-                                const double**  _isotopeMasses,
-                                const double**  _isotopeProbabilities,
-                                const double    _cutOff,
-                                int             tabSize,
-                                int             hashSize,
-                                double          layerStep,
-                                bool            _estimateThresholds,
-				bool            trim
-) : IsoSpec( _dimNumber,
-             _isotopeNumbers,
-             _atomCounts,
-             _isotopeMasses,
-             _isotopeProbabilities,
-             _cutOff,
-             tabSize = 1000,
-             hashSize = 1000
-),
-estimateThresholds(_estimateThresholds),
+IsoLayered::IsoLayered( Iso&&     iso,
+                        double    _cutOff,
+                        double    _delta,
+                        int       _tabSize,
+                        int       _hashSize,
+                        bool      trim
+) : Iso(std::move(iso),
+cutOff(_cutOff),
+delta(_delta),
+tabSize = _tabSize,
+hashSize = _hashSize,
 do_trim(trim),
 layers(0)
 {
@@ -81,20 +71,20 @@ layers(0)
 }
 
 
-IsoSpecLayered::~IsoSpecLayered()
+IsoLayered::~IsoLayered()
 {
-    if(current != NULL)
+    if(current != nullptr)
         delete current;
-    if(next != NULL)
+    if(next != nullptr)
         delete next;
 }
 
-bool IsoSpecLayered::advanceToNextConfiguration()
+bool IsoLayered::advanceToNextLayer()
 {
     layers += 1;
     double maxFringeLprob = -std::numeric_limits<double>::infinity();
 
-    if(current == NULL)
+    if(current == nullptr)
         return false;
     int accepted_in_this_layer = 0;
     Summator prob_in_this_layer(totalProb);
@@ -166,7 +156,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
         }
     }
 
-    if(next == NULL || next->size() < 1)
+    if(next == nullptr || next->size() < 1)
         return false;
     else
     {
@@ -225,9 +215,9 @@ bool IsoSpecLayered::advanceToNextConfiguration()
             std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
 #endif /* DEBUG */
             delete next;
-            next = NULL;
+            next = nullptr;
             delete current;
-            current = NULL;
+            current = nullptr;
             int start = 0;
             int end = accepted_in_this_layer - 1;
             void* swapspace;
