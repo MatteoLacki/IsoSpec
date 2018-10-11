@@ -308,6 +308,7 @@ private:
     std::vector<void*>*         current;
     std::vector<void*>*         next;
     double                      lprobThr;
+    double cutOff;
     double                      percentageToExpand;
     bool                        estimateThresholds;
     bool                        do_trim;

@@ -48,7 +48,7 @@ using namespace std;
 
 
 IsoLayered::IsoLayered( Iso&&     iso,
-                        double    log_cutOff,
+                        double    _cutOff,
                         double    _delta,
                         int       _tabSize,
                         int       _hashSize,
@@ -56,6 +56,7 @@ IsoLayered::IsoLayered( Iso&&     iso,
 ) : Iso(std::move(iso)),
 allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
+cutOff(_cutOff),
 do_trim(trim),
 layers(0)
 {
