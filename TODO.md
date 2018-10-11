@@ -10,9 +10,9 @@
 
 
 * general WTF:
-	* get_conf_signature ??? 
-	* IsoOrderedGenerator::candidate ???
-	* IsoOrderedGenerator::terminate_search ???
+	<!-- * get_conf_signature ???  -->
+	<!-- * IsoOrderedGenerator::candidate ??? -->
+	<!-- * IsoOrderedGenerator::terminate_search ??? -->
 	* IsoLayeredGenerator::advanceToNextConfiguration
 		* why does it print out things to the console???
 		* why is advanceToNextConfiguration_internal public, if it's called internal?
