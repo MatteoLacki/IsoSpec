@@ -491,7 +491,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
  */
 
 
-
+#include "oldIsoSpec++.cpp"
 
 
 #if !ISOSPEC_BUILDING_R

@@ -347,65 +347,36 @@ private:
 
 
 
-//! The generator of isotopologues above a given joint probability value.
+
+//! The class that represents isotopologues above a given joint probability value.
 /*!
     This class generates subsequent isotopologues that ARE NOT GUARANTEED TO BE ORDERED BY probability.
     The overal set of isotopologues is guaranteed to surpass a given threshold of probability contained in the
     isotopic distribution.
     This calculations are performed in O(N) operations, where N is the total number of the output isotopologues.
 */
-class IsoLayeredGenerator : public IsoGenerator
+class IsoLayered : public Iso
 {
 private:
     int* counter;
-    double* maxConfsLPSum;
     double last_layer_lcutoff, current_layer_lcutoff;
     Summator current_sum;
     LayeredMarginal** marginalResults;
     double* probsExcept;
-    int* last_counters;
     double delta;
     double final_cutoff;
+    bool do_trim;
 
 public:
     bool advanceToNextConfiguration_internal();
     inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
-    inline bool advanceToNextConfiguration() override final
-    {
-        while (!advanceToNextConfiguration_internal())
-            if (!nextLayer(delta))
-                return false;
-        std::cout << "Returning conf: " << counter[0] << " " << counter[1] << " " << partialLProbs[0] << std::endl;
-        return true;
-    }
     bool nextLayer(double logCutoff_delta); // Arg should be negative
 
-    IsoLayeredGenerator(Iso&& iso, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000);
-
-    inline void get_conf_signature(int* space) const override final
-    {
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
-    };
-
-    //! Destructor.
-    virtual ~IsoLayeredGenerator();
+    IsoLayered(Iso&& iso, double _cutOff, double _delta = -3.0, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
+    virtual ~IsoLayered();
 
     void terminate_search();
 
-private:
-    inline void recalc(int idx)
-    {
-        for(; idx >=0; idx--)
-        {
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-        }
-    }
 };
 
 
