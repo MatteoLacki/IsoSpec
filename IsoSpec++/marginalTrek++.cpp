@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -29,7 +29,7 @@
 #include <limits>
 #include <cstdlib>
 #include <fenv.h>
-#include "lang.h"
+#include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
 #include "allocator.h"
@@ -39,17 +39,24 @@
 #include "misc.h"
 
 
+namespace IsoSpec
+{
 
-
+//TODO rename to Subisotopologue
+// this is a subisotopologue used in the marginal
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
 {
+    /*!
+    Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
+    We start from the point close to the mean of the underlying multinomial distribution.
+    */
     Conf res = new int[isotopeNo];
 
+    // This approximates the mode (heuristics: the mean is close to the mode).
     for(int i = 0; i < isotopeNo; ++i )
-    {
         res[i] = int( atomCnt * probs[i] ) + 1;
-    }
 
+    // The number of assigned atoms above.
     int s = 0;
 
     for(int i = 0; i < isotopeNo; ++i) s += res[i];
@@ -90,12 +97,12 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
         modified = false;
         for(int ii = 0; ii<isotopeNo; ii++)
         for(int jj = 0; jj<isotopeNo; jj++)
-            if(ii != jj and res[ii] > 0)
+            if(ii != jj && res[ii] > 0)
         {
             res[ii]--;
             res[jj]++;
             NLP = unnormalized_logProb(res, lprobs, isotopeNo);
-            if(NLP>LP or (NLP==LP and ii>jj))
+            if(NLP>LP || (NLP==LP && ii>jj))
             {
                 modified = true;
             LP = NLP;
@@ -114,7 +121,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 
 
-#ifndef BUILDING_R
+#if !ISOSPEC_BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){
@@ -134,13 +141,20 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
+    /*!
+    Here we order the processor to round the numbers up rather than down.
+    Rounding down could result in the algorithm falling in an infinite loop
+    because of the numerical instability of summing. 
+    */
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
+
+    // here we change the table of probabilities and log it.
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
-        for(int j=0; j<NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
             if(elem_table_probability[j] == probs[i])
             {
                 ret[i] = elem_table_log_probability[j];
@@ -153,6 +167,7 @@ double* getMLogProbs(const double* probs, int isoNo)
 
 double get_loggamma_nominator(int x)
 {
+    // calculate log gamma of the nominator calculated in the binomial exression.
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double ret = lgamma(x+1);
@@ -179,13 +194,14 @@ mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
 mode_eprob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
-    if(G_FACT_TABLE_SIZE-1 <= atomCnt)
+    if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
     {
         std::cerr << "Subisotopologue too large..." << std::endl;
         std::abort();
     }
 }
 
+// the move-constructor: used in the specialization of the marginal.
 Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),
 isotopeNo(other.isotopeNo),
@@ -204,7 +220,7 @@ smallest_lprob(other.smallest_lprob)
 
 Marginal::~Marginal()
 {
-    if(not disowned)
+    if(!disowned)
     {
         delete[] atom_masses;
         delete[] atom_lProbs;
@@ -231,7 +247,7 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
-
+// this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
     Marginal&& m,
     int tabSize,
@@ -263,6 +279,10 @@ allocator(isotopeNo, tabSize)
 
 bool MarginalTrek::add_next_conf()
 {
+    /*!
+    Add next configuration.
+    If visited all, return false.
+    */
     if(pq.size() < 1) return false;
 
     Conf topConf = pq.top();
@@ -351,8 +371,11 @@ allocator(isotopeNo, tabSize)
     Conf currentConf = allocator.makeCopy(mode_conf);
     if(logProb(currentConf) >= lCutOff)
     {
-        configurations.push_back(allocator.makeCopy(currentConf));
-        visited.insert(currentConf);
+        // create a copy and store a ptr to the *same* copy in both structures
+        // (save some space and time)
+        auto tmp = allocator.makeCopy(currentConf);
+        configurations.push_back(tmp);
+        visited.insert(tmp);
     }
 
     unsigned int idx = 0;
@@ -363,15 +386,19 @@ allocator(isotopeNo, tabSize)
         idx++;
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                if( ii != jj and currentConf[jj] > 0)
+                if( ii != jj && currentConf[jj] > 0)
                 {
                     currentConf[ii]++;
                     currentConf[jj]--;
 
-                    if (visited.count(currentConf) == 0 and logProb(currentConf) >= lCutOff)
+                    if (visited.count(currentConf) == 0 && logProb(currentConf) >= lCutOff)
                     {
-                        visited.insert(currentConf);
-                        configurations.push_back(allocator.makeCopy(currentConf));
+                        // create a copy and store a ptr to the *same* copy in
+                        // both structures (save some space and time)
+                        auto tmp = allocator.makeCopy(currentConf);
+                        visited.insert(tmp);
+                        configurations.push_back(tmp);
+                        // std::cout << " V: "; for (auto it : visited) std::cout << it << " "; std::cout << std::endl;
                     }
 
                     currentConf[ii]--;
@@ -380,6 +407,8 @@ allocator(isotopeNo, tabSize)
                 }
     }
 
+    // orderMarginal defines the order of configurations (compares their logprobs)
+    // akin to key in Python sort.
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);
 
@@ -438,7 +467,7 @@ bool LayeredMarginal::extend(double new_threshold)
     double lpc, opc;
 
     Conf currentConf;
-    while(not fringe.empty())
+    while(!fringe.empty())
     {
         currentConf = fringe.back();
         fringe.pop_back();
@@ -453,15 +482,15 @@ bool LayeredMarginal::extend(double new_threshold)
             configurations.push_back(currentConf);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
                 for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                    if( ii != jj and currentConf[jj] > 0 )
+                    if( ii != jj && currentConf[jj] > 0 )
                     {
                         currentConf[ii]++;
                         currentConf[jj]--;
 
                         lpc = logProb(currentConf);
 
-                        if (visited.count(currentConf) == 0 and lpc < current_threshold and
-                            (opc > lpc or (opc == lpc and ii > jj)))
+                        if (visited.count(currentConf) == 0 && lpc < current_threshold &&
+                            (opc > lpc || (opc == lpc && ii > jj)))
                         {
                             Conf nc = allocator.makeCopy(currentConf);
                             visited.insert(nc);
@@ -514,4 +543,6 @@ bool LayeredMarginal::extend(double new_threshold)
     return true;
 }
 
+
+} // namespace IsoSpec
 

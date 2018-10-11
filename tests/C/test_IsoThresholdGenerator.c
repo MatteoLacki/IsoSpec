@@ -10,12 +10,10 @@ int main()
     double isotopeMasses[] = {1.0, 2.0, 3.0, 4.0, 5.0};
     double isotopeProbabilities[] = {0.5, 0.5, 0.5, 0.3, 0.2};
 
+    void* iso = setupIso(2, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+
     void* p = setupIsoThresholdGenerator(
-        2,
-        isotopeNumbers,
-        atomCounts,
-        isotopeMasses,
-        isotopeProbabilities,
+        iso,
         .001,
         true,
         1000,
@@ -28,6 +26,7 @@ int main()
     }
 
     deleteIsoThresholdGenerator(p);
+    deleteIso(iso);
 
     return 0;
 }

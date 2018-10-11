@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -611,7 +611,7 @@ bool IsoSpecLayered::advanceToNextConfiguration()
                     // Partition part
 
                     int len = end - start;
-#ifdef BUILDING_R
+#ifdef ISOSPEC_BUILDING_R
             int pivot = len/2 + start;  // We're very definitely NOT switching to R to use a RNG, and if R sees us use C RNG it complains...
 #else
             int pivot = rand() % len + start;
@@ -775,7 +775,7 @@ void IsoSpecThreshold::processConfigurationsAboveThreshold()
 }
 
 
-#ifndef BUILDING_R
+#ifndef ISOSPEC_BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
@@ -806,4 +806,4 @@ void printConfigurations(
     }
 }
 
-#endif /* BUILDING_R */
+#endif /* ISOSPEC_BUILDING_R */

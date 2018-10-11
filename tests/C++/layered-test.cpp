@@ -3,6 +3,8 @@
 #include "summator.h"
 #include "spectrum2.h"
 
+using namespace IsoSpec;
+
 
 int main()
 {

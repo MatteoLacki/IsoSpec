@@ -6,7 +6,7 @@ TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
 LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
 CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic -lpthread
-SRCFILES=`ls ../../IsoSpec++/*.cpp`
+SRCFILES=../../IsoSpec++/unity-build.cpp
 
 all: testcc
 
@@ -14,7 +14,7 @@ all: testcc
 testcc:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
-	g++-6 $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5.4.0
+	g++-5 $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5
 
 test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-clang
@@ -25,14 +25,9 @@ test:
 ti:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
 
-rt:
-	$(CXX) $(OPTFLAGS) $(CXXFLAGS) ../../IsoSpec++/unity-build.cpp rangetree.cpp -o ./rangetree
-
 mt:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp titin-multithreaded.cpp -o ./multithreaded -lpthread
 
-od:
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp iso-oredered-gen-test.cpp -o ./ordered -g
 mr:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp marginal-test.cpp -o marginal -g
 
@@ -43,4 +38,7 @@ la:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp layered-test.cpp -o layered
 
 IsoThresholdGenerator:
-	clang++ -std=c++11 IsoThresholdGenerator.cpp -o IsoThresholdGenerator
+	clang++ -std=c++11 IsoThresholdGenerator.cpp -o IsoThresholdGenerator -lpthread
+
+nr_conf:
+	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread

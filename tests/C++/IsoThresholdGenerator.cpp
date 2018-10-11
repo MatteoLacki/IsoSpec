@@ -1,8 +1,10 @@
 #include <iostream>
-#include "/Users/matteo/Documents/IsoSpec/IsoSpec/IsoSpec++/unity-build.cpp"
+#include "../../IsoSpec++/unity-build.cpp"
 
 using std::cout;
 using std::endl;
+
+using namespace IsoSpec;
 
 int main()
 {

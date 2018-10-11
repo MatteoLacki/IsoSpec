@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -35,7 +35,7 @@ void* quickselect(void** array, int n, int start, int end)
     {
         // Partition part
         int len = end - start;
-#ifdef BUILDING_R
+#ifdef ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
 	int pivot = rand() % len + start;
