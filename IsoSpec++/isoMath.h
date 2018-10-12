@@ -26,6 +26,11 @@ namespace IsoSpec
 
 extern double* g_lfact_table;
 
+//! Calculate \f$-\log(n!)\f$.
+/*!
+    \param n An integer.
+    \return \f$-\log(n!)\f$.
+*/
 static inline double minuslogFactorial(int n) 
 { 
     if (n < 2) 
@@ -35,9 +40,35 @@ static inline double minuslogFactorial(int n)
 
     return g_lfact_table[n];
 }
+
+//! Calculate a quantile of the standard normal distibution.
+/*!
+    \param p A quantile to calculate.
+*/
 double NormalCDFInverse(double p);
+
+//! Calculate a quantile of the standard normal distibution.
+/*!
+    \param p A quantile to calculate.
+    \param mean The mean of the normal distribution.
+    \param stdev The standard deviation of the normal distribution.
+*/
 double NormalCDFInverse(double p, double mean, double stdev);
+
+//! Calculate the distribuant of the standard normal distibution.
+/*!
+    \param x The point at which to calculate the distribuant.
+    \param mean The mean of the normal distribution.
+    \param stdev The standard deviation of the normal distribution.
+*/
 double NormalCDF(double x, double mean, double stdev);
+
+//! Calculate the density of the standard normal distibution.
+/*!
+    \param x The point at which to calculate the density.
+    \param mean The mean of the normal distribution.
+    \param stdev The standard deviation of the normal distribution.
+*/
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 
 } // namespace IsoSpec

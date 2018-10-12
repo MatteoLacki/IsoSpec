@@ -22,20 +22,27 @@
 namespace IsoSpec
 {
 
+//! A class implementing the Shewchuk's summator algorithm for a more numerically stable summation of floating point numbers.
 class SSummator
 {
-    // Shewchuk algorithm
     std::vector<double> partials;
     int maxpart;
 public:
+    //! Constructor (sum defaults to zero).
     inline SSummator()
     { maxpart = 0; }
 
+    //! Copy constructor.
     inline SSummator(SSummator& other)
     {
         this->partials = other.partials;
         this->maxpart = other.maxpart;
     }
+
+    //! Add a number to the existing sum.
+    /*!
+        \param x A double floating point number to add.
+    */
     inline void add(double x)
     {
         unsigned int i=0;
@@ -58,6 +65,8 @@ public:
         partials[i] = x;
         maxpart = i+1;
     }
+
+    //! Get the current value of the sum of the added floating point numbers.
     inline double get()
     {
         double ret = 0.0;
@@ -69,19 +78,21 @@ public:
 
 
 
-
-
-
-
+//! A class implementing the Kahan's summator algorithm for a more numerically stable summation of floating point numbers.
 class Summator{
     // Kahan algorithm
    double sum;
    double c;
 
 public:
+    //! Constructor (sum defaults to zero).
     inline Summator()
     { sum = 0.0; c = 0.0;}
 
+    //! Add a number to the existing sum.
+    /*!
+        \param x A double floating point number to add.
+    */
     inline void add(double what)
     {
         double y = what - c;
@@ -96,34 +107,54 @@ public:
     }
 };
 
+
+//! A class implementing the trivial summator of floating point numbers.
 class TSummator
 {
     // Trivial algorithm, for testing only
     double sum;
 public:
+    //! Constructor (sum defaults to zero).
     inline TSummator()
     { sum = 0.0; }
 
+    //! Add a number to the existing sum.
+    /*!
+        \param x A double floating point number to add.
+    */
     inline void add(double what)
     {
         sum += what;
     }
+
+    //! Get the current value of the sum of the added floating point numbers.
     inline double get()
     {
     	return sum;
     }
 };
 
+
+
 class ThreadSummator
 {
     // Trivial but thread-safe summator
     std::atomic<double> sum;
 public:
+    //! Constructor (sum defaults to zero).
+    inline ThreadSummator() : sum(0.0) {};
+
+    //! Add a number to the existing sum.
+    /*!
+        \param x A double floating point number to add.
+    */
     inline void add(double what)
     {
         double previous = sum.load(std::memory_order_relaxed);
         while(!sum.compare_exchange_weak(previous, previous+what, std::memory_order_relaxed)) {};
     }
+
+    //! Get the current value of the sum of the added floating point numbers.
     inline double get()
     {
         return sum.load(std::memory_order_relaxed);

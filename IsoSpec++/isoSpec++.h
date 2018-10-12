@@ -179,7 +179,7 @@ public:
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
-    IsoGenerator(Iso&& iso);
+    IsoGenerator(Iso&& iso, bool alloc_partials = true);
 
     //! Destructor.
     virtual ~IsoGenerator();
@@ -206,7 +206,6 @@ private:
     double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                /*!< The mass of the current isotopologue. */
     double                      currentEProb;               /*!< The probability of the current isotopologue. */
-    int*                        candidate;                  /*!< . */
     int                         ccount;
 
 public:

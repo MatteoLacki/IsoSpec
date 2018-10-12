@@ -9,6 +9,7 @@
 namespace IsoSpec
 {
 
+//! The class used to store configurations from generators.
 template <typename T> class Tabulator
 {
 private:
@@ -18,19 +19,43 @@ private:
     int*    _confs;
     size_t  _confs_no;
 public:
+    //! Constructor
+    /*!
+        \param generator  An instance of a generator class (or its subclass).
+        \param get_masses If true, the tabulator stores the masses of the isotopologues.
+        \param get_probs  If true, the tabulator stores the probabilities of the isotopologues.
+        \param get_lprobs If true, the tabulator stores the log-probabilities of the isotopologues.
+        \param get_confs  If true, the tabulator stores the counts of isotopes corresponding to each isotopologue.
+    */
     Tabulator(T* generator,
               bool get_masses, bool get_probs,
               bool get_lprobs, bool get_confs);
 
+    //! Destructor.
     ~Tabulator();
 
+    //! Get the masses of the calculated isotopologues.
     inline double*   masses()   { return _masses; };
+
+    //! Get the log-probabilities of the calculated isotopologues.
     inline double*   lprobs()   { return _lprobs; };
+
+    //! Get the probabilities of the calculated isotopologues.
     inline double*   probs()    { return _probs; };
+
+    //! Get the counts of isotopes that make up the calculated isotopologues.
     inline int*      confs()    { return _confs; };
+
+    //! Get the number of calculated isotopologues.
     inline size_t    confs_no() { return _confs_no; };
 };
 
+
+//! Reallocate the array to a bigger one.
+/*!
+    \param array An array of arrays to reallocate.
+    \param new_size The size of the new array.
+*/
 void reallocate(double **array, int new_size){
     if( *array != nullptr ){
         *array = (double *) realloc(*array, new_size);

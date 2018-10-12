@@ -26,14 +26,31 @@ extern "C" {
 
 #define ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES 288
 
+//! Table of atomic numbers.
 extern const int elem_table_atomicNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table of the natural frequencies of the stable isotopes.
 extern const double elem_table_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table of the masses of stable isotopes.
 extern const double elem_table_mass[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table with the mass numbers (total number of protons and neutrons in the atomic core) of stable isotopes.
 extern const int elem_table_massNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table with the number of extra neutrons in the atomic core w.r.t. the number of neutrons in the lightest isotope.
 extern const int elem_table_extraNeutrons[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table with the names of elements the isotope belongs to, e.g. helium.
 extern const char* elem_table_element[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table with the shorthand names of elements the isotope belongs to, e.g. He. 
 extern const char* elem_table_symbol[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table with information, if the given isotope is radioactive.
 extern const bool elem_table_Radioactive[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+//! Table of the logarithms of the natural frequencies of the stable isotopes.
 extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 
 

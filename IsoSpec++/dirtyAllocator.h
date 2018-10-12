@@ -23,20 +23,43 @@
 namespace IsoSpec
 {
 
+//! A class for allocating memory for the calculated configurations.
+/*!
+    We store isotopes in cells.
+    Each cell comprizes enough bytes for the log-probability (needed as a key in the Priority Queue) and
+    the representation of the counts of individual isotopes.
+    Cells are hold in arrays.
+    If there is not enough space in an array, a new one is generated.
+    Pointers to tables are collected in prevTabs vector.
+*/
 class DirtyAllocator{
 private:
-    void*   currentTab;
-    void*   currentConf;
-    void*   endOfTablePtr;
-    const int       tabSize;
-    int     cellSize;
+    void*               currentTab;
+    void*               currentConf;
+    void*               endOfTablePtr;
+    const int           tabSize;
+    int                 cellSize;
     std::vector<void*>  prevTabs;
 public:
+
+    //! Constructor.
+    /*!
+        \param dim The total number of isotopes (the number of integers to be stored in one chunk of memory, 
+        beside the space for log-probability and mass).
+        \tabSize How many 'configurations' are to be stored in one array.
+    */
     DirtyAllocator(const int dim, const int tabSize = 10000);
+    
+    //! Destructor.
     ~DirtyAllocator();
 
+    //! Switch to a new table.
+    /*!
+        Pushes the previous table on prevTabs and allocates new table.
+    */
     void shiftTables();
 
+    //! Return the pointer to the new configuration in the current array. If no place, create a new array.
     inline void* newConf()
     {
         if (currentConf >= endOfTablePtr)
@@ -44,12 +67,16 @@ public:
             shiftTables();
         }
 
-        void*  ret = currentConf;
+        void* ret = currentConf;
         currentConf = reinterpret_cast<char*>(currentConf) + cellSize;
 
         return ret;
     }
 
+    //! Write the conf into the table and return pointer to that chunk.
+    /*!
+        \param conf A configuration (chunk of memory with log-probability and isotope counts).
+    */
     inline void* makeCopy(const void* conf)
     {
         void* currentPlace = newConf();
@@ -59,6 +86,7 @@ public:
         return currentPlace;
     }
 
+    //! Like @ref makeCopy, but you have to remember to deallocate the configuration yourself, externally.
     inline void* makeExternalCopy(const void* conf)
     {
         void* res = malloc(cellSize);
