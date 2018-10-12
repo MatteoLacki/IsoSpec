@@ -536,7 +536,7 @@ targetCoverage(_targetCoverage),
 percentageToExpand(_percentageToExpand),
 do_trim(trim),
 layers(0),
-generator_position(0)
+generator_position(-1)
 {
     marginalResults = new MarginalTrek*[dimNumber];
 
@@ -565,7 +565,7 @@ generator_position(0)
 
     lprobThr = (*reinterpret_cast<double*>(topConf));
 
-    while(advanceToNextConfiguration()) {};
+    while(advanceToNextLayer()) {};
 }
 
 
