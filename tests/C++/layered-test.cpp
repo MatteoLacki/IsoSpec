@@ -1,7 +1,6 @@
 #include <iostream>
 #include "isoSpec++.h"
 #include "summator.h"
-#include "spectrum2.h"
 
 using namespace IsoSpec;
 
@@ -19,7 +18,7 @@ int main()
     double mmax = 100000000000.0;
     #if 1
 //    IsoLayeredGenerator* iso = new IsoLayeredGenerator("C1600H2700N1000", -100.0);
-    IsoLayeredGenerator* iso = new IsoLayeredGenerator("H2C2", -0.5);
+    IsoLayeredGenerator* iso = new IsoLayeredGenerator("H2C2", 0.5, 0.3);
     unsigned int cnt = 0;
     int cntr[10];
     while(iso->advanceToNextConfiguration())

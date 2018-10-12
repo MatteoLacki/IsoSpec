@@ -51,7 +51,14 @@ public:
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
-        return !memcmp(conf1, conf2, size);
+        // The memcmp() function returns zero if the two strings are identical, oth-
+        // erwise returns the difference between the first two differing bytes
+        // (treated as unsigned char values, so that `\200' is greater than `\0',
+        // for example).  Zero-length strings are always identical.  This behavior
+        // is not required by C and portable code should only depend on the sign of
+        // the returned value.
+        //                                          sacred man of memcmp.
+        return memcmp(conf1, conf2, size) == 0;
     }
 };
 

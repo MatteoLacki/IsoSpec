@@ -8,8 +8,12 @@ LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
 CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic -lpthread
 SRCFILES=../../IsoSpec++/unity-build.cpp
 
-all: testcc
+all: formula-dbg
 
+formula-dbg:
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
+	g++-5 $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5
 
 testcc:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
@@ -24,9 +28,6 @@ test:
 
 ti:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
-
-mt:
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp titin-multithreaded.cpp -o ./multithreaded -lpthread
 
 mr:
 	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp marginal-test.cpp -o marginal -g

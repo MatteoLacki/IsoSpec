@@ -3,6 +3,8 @@
 
 using namespace IsoSpec;
 
+#define PRINT_CONFS true
+
 int main(int argc, char** argv)
 {
 	if(argc < 3)
@@ -18,6 +20,15 @@ int main(int argc, char** argv)
 	{
 		target_prob -= i.eprob();
 		no_visited += 1;
+#if PRINT_CONFS
+                std::cout << "EPROB: " << i.eprob() << "  \tMASS: " << i.mass() << "\tCONF: ";
+                int space[5];
+                i.get_conf_signature(space);
+                for(int i=0; i<5; i++)
+                    std::cout << space[i] << " ";
+                std::cout << std::endl;
+
+#endif /* PRINT_CONFS */
 	}
 	std::cout << "The number of visited configurations is:" << no_visited << std::endl;
 

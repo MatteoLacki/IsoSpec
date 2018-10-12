@@ -1,7 +1,6 @@
 #include <iostream>
 #include "isoSpec++.h"
 #include "summator.h"
-#include "spectrum2.h"
 
 using namespace IsoSpec;
 
@@ -9,8 +8,8 @@ int main()
 {
 
     SSummator s;
-    unsigned int cnt_tot = 0;
-    int total_t = 10;
+//    unsigned int cnt_tot = 0;
+//    int total_t = 10;
     double threshold = 0.1;
 //    double mmin = 3815900.0;
 //    double mmax = 3816000.0;
