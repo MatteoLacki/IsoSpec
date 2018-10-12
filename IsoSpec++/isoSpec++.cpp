@@ -529,13 +529,14 @@ IsoLayered::IsoLayered( Iso&&     iso,
                         int       _tabSize,
                         int       _hashSize,
                         bool      trim
-) : Iso(std::move(iso)),
+) : IsoGenerator(std::move(iso)),
 allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
 targetCoverage(_targetCoverage),
 percentageToExpand(_percentageToExpand),
 do_trim(trim),
-layers(0)
+layers(0),
+generator_position(0)
 {
     marginalResults = new MarginalTrek*[dimNumber];
 
@@ -563,6 +564,8 @@ layers(0)
     current->push_back(topConf);
 
     lprobThr = (*reinterpret_cast<double*>(topConf));
+
+    while(advanceToNextConfiguration()) {};
 }
 
 
@@ -789,6 +792,19 @@ bool IsoLayered::advanceToNextLayer()
 
 }
 
+bool IsoLayered::advanceToNextConfiguration()
+{
+    generator_position++;
+    if(generator_position < newaccepted.size())
+    {
+        partialLProbs[0] = getLProb(newaccepted[generator_position]);
+        partialMasses[0] = combinedSum(getConf(newaccepted[generator_position]), masses, dimNumber);
+        partialExpProbs[0] = exp(partialLProbs[0]);
+        return true;
+    }
+    else
+        return false;
+}
 
 
 

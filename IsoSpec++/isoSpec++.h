@@ -293,8 +293,12 @@ private:
     The overal set of isotopologues is guaranteed to surpass a given threshold of probability contained in the
     isotopic distribution.
     This calculations are performed in O(N) operations, where N is the total number of the output isotopologues.
+
+    This class is not a true generator yet - the generator methods have been implemented for compatibility, but
+    the class actually performs all computations during the initialization and stores them, and the generator methods
+    only walk through the array of precomputed values. . It will be reimplemented as a true generator in 2.0.
 */
-class IsoLayered : public Iso
+class IsoLayered : public IsoGenerator
 {
 private:
     Summator                totalProb;
@@ -313,16 +317,27 @@ private:
     bool                        estimateThresholds;
     bool                        do_trim;
     int layers;
+    size_t generator_position;
 #ifdef DEBUG
     int moves = 0;
     int hits = 0;
 #endif /* DEBUG */
 
+    bool advanceToNextLayer(); 
 
 public:
-    bool advanceToNextConfiguration_internal();
-//    inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
-    bool advanceToNextLayer(); 
+    bool advanceToNextConfiguration() override final;
+
+    inline void get_conf_signature(int* space) const override final
+    {
+        int* conf = getConf(newaccepted[generator_position]);
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->confs()[conf[ii]], isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
+
 
     IsoLayered(Iso&& iso, double _targetCoverage, double _percentageToExpand, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
     virtual ~IsoLayered();

@@ -100,20 +100,22 @@ C_CODES(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
-void* setupIsoLayeredGenerator(void* iso,
-                               double _delta,
-                               int _tabSize,
-                               int _hashSize)
+void* setupIsoLayered(void* iso,
+                     double _target_coverage,
+                     double _percentage_to_expand,
+                     int _tabSize,
+                     int _hashSize)
 {
-    IsoLayeredGenerator* iso_tmp = new IsoLayeredGenerator(
+    IsoLayered* iso_tmp = new IsoLayered(
         std::move(*reinterpret_cast<Iso*>(iso)),
-        _delta,
+        _target_coverage,
+        _percentage_to_expand,
         _tabSize,
         _hashSize);
 
     return reinterpret_cast<void*>(iso_tmp);
 }
-C_CODES(IsoLayeredGenerator)
+C_CODES(IsoLayered)
 
 
 //______________________________________________________ORDERED GENERATOR
