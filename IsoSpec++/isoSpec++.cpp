@@ -255,15 +255,18 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
 
 
-IsoGenerator::IsoGenerator(Iso&& iso) :
+IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     Iso(std::move(iso)),
-    partialLProbs(new double[dimNumber+1+ISOSPEC_PADDING]),
-    partialMasses(new double[dimNumber+1+ISOSPEC_PADDING]),
-    partialExpProbs(new double[dimNumber+1+ISOSPEC_PADDING])
+    partialLProbs(alloc_partials ? new double[dimNumber+1+ISOSPEC_PADDING] : nullptr),
+    partialMasses(alloc_partials ? new double[dimNumber+1+ISOSPEC_PADDING] : nullptr),
+    partialExpProbs(alloc_partials ? new double[dimNumber+1+ISOSPEC_PADDING] : nullptr)
 {
-    partialLProbs[dimNumber] = 0.0;
-    partialMasses[dimNumber] = 0.0;
-    partialExpProbs[dimNumber] = 1.0;
+    if(alloc_partials)
+    {
+        partialLProbs[dimNumber] = 0.0;
+        partialMasses[dimNumber] = 0.0;
+        partialExpProbs[dimNumber] = 1.0;
+    }
 }
 
 
@@ -503,12 +506,8 @@ void IsoThresholdGenerator::terminate_search()
  */
 
 IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
-IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
+IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
-    delete[] partialLProbs;
-    delete[] partialMasses;
-    delete[] partialExpProbs;
-
     partialLProbs = &currentLProb;
     partialMasses = &currentMass;
     partialExpProbs = &currentEProb;
@@ -521,7 +520,6 @@ IsoGenerator(std::move(iso)), allocator(dimNumber, _tabSize)
     logProbs        = new const vector<double>*[dimNumber];
     masses          = new const vector<double>*[dimNumber];
     marginalConfs   = new const vector<int*>*[dimNumber];
-    candidate	    = new int[dimNumber];
 
     for(int i = 0; i<dimNumber; i++)
     {
@@ -555,7 +553,6 @@ IsoOrderedGenerator::~IsoOrderedGenerator()
     delete[] logProbs;
     delete[] masses;
     delete[] marginalConfs;
-    delete[] candidate;
     partialLProbs = nullptr;
     partialMasses = nullptr;
     partialExpProbs = nullptr;
@@ -580,8 +577,6 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
     ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
     {
-        // candidate cannot refer to a position that is
-        // out of range of the stored marginal distribution.
         if(marginalResults[j]->probeConfigurationIdx(topConfIsoCounts[j] + 1))
         {
             if(ccount == -1)

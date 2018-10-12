@@ -26,6 +26,7 @@
 #include <utility>
 #include <iostream>
 #include <string.h>
+#include <string>
 #include <limits>
 #include <cstdlib>
 #include <fenv.h>
@@ -195,10 +196,7 @@ mode_eprob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
     if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
-    {
-        std::cerr << "Subisotopologue too large..." << std::endl;
-        std::abort();
-    }
+        throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
 }
 
 // the move-constructor: used in the specialization of the marginal.

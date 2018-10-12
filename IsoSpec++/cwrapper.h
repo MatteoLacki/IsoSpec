@@ -29,12 +29,21 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
+//! A wrapper around the @ref IsoSpec::Iso class: instantiates the C++ Iso Class.
+  /*!
+      \param dimNumber The number of elements in the formula, e.g. for C100H202 it would be 2, as there are only carbon and hydrogen atoms.
+      \param isotopeNumbers A table with numbers of isotopes for each element, e.g. for C100H202 it would be {2, 2}, because both C and H have two stable isotopes.
+      \param atomCounts Number of atoms of each element in the formula, e.g. for C100H202 corresponds to {100, 202}.
+      \param isotopeMasses A table of masses of isotopes of the elements in the chemical formula, e.g. {12.0, 13.003355, 1.007825, 2.014102} for C100H202.
+      \param isotopeProbabilities A table of isotope frequencies of the elements in the chemical formula, e.g. {.989212, .010788, .999885, .000115} for C100H202.
+  */
 void * setupIso(int             dimNumber,
                 const int*      isotopeNumbers,
                 const int*      atomCounts,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities);
 
+//! A wrapper around the desctructor of the C++ Iso class.
 void deleteIso(void* iso);
 
 #define C_HEADER(generatorType, dataType, method)\
@@ -54,6 +63,7 @@ C_HEADER(generatorType, void, delete)
 
 
 //______________________________________________________THRESHOLD GENERATOR
+//! A wrapper around the IsoThresholdGenerator class.
 void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
