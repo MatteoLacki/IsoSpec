@@ -1,5 +1,6 @@
 #include "tabulator.h"
 
+
 namespace IsoSpec
 {
 template class Tabulator<IsoThresholdGenerator>;
