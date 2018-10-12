@@ -523,7 +523,7 @@ void printConfigurations(
 
 
 
-IsoLayered::IsoLayered( Iso&&     iso,
+IsoLayeredGenerator::IsoLayeredGenerator( Iso&&     iso,
                         double    _targetCoverage,
                         double    _percentageToExpand,
                         int       _tabSize,
@@ -569,7 +569,7 @@ generator_position(0)
 }
 
 
-IsoLayered::~IsoLayered()
+IsoLayeredGenerator::~IsoLayeredGenerator()
 {
     if(current != nullptr)
         delete current;
@@ -582,7 +582,7 @@ IsoLayered::~IsoLayered()
     dealloc_table(marginalResults, dimNumber);
 }
 
-bool IsoLayered::advanceToNextLayer()
+bool IsoLayeredGenerator::advanceToNextLayer()
 {
     layers += 1;
     double maxFringeLprob = -std::numeric_limits<double>::infinity();
@@ -792,7 +792,7 @@ bool IsoLayered::advanceToNextLayer()
 
 }
 
-bool IsoLayered::advanceToNextConfiguration()
+bool IsoLayeredGenerator::advanceToNextConfiguration()
 {
     generator_position++;
     if(generator_position < newaccepted.size())

@@ -298,7 +298,7 @@ private:
     the class actually performs all computations during the initialization and stores them, and the generator methods
     only walk through the array of precomputed values. . It will be reimplemented as a true generator in 2.0.
 */
-class IsoLayered : public IsoGenerator
+class IsoLayeredGenerator : public IsoGenerator
 {
 private:
     Summator                totalProb;
@@ -339,8 +339,8 @@ public:
     };
 
 
-    IsoLayered(Iso&& iso, double _targetCoverage, double _percentageToExpand, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
-    virtual ~IsoLayered();
+    IsoLayeredGenerator(Iso&& iso, double _targetCoverage, double _percentageToExpand, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
+    virtual ~IsoLayeredGenerator();
 
     void terminate_search();
 
