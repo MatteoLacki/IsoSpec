@@ -58,7 +58,7 @@ public:
         // is not required by C and portable code should only depend on the sign of
         // the returned value.
         //                                          sacred man of memcmp.
-        return memcmp(conf1, conf2, size) != 0;
+        return memcmp(conf1, conf2, size) == 0;
     }
 };
 
