@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,10 +14,13 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-#ifndef SUMMATOR_HPP
-#define SUMMATOR_HPP
+#pragma once
+
 #include <cmath>
 #include <atomic>
+
+namespace IsoSpec
+{
 
 class SSummator
 {
@@ -127,5 +130,5 @@ public:
     }
 };
 
-#endif
+} // namespace IsoSpec
 

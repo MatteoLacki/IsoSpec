@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -192,7 +192,7 @@ std::tuple<double*,double*,int*,int> getMarginal(
     );
 }
 
-#ifndef BUILDING_R
+#ifndef ISOSPEC_BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){

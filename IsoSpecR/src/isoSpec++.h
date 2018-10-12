@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -28,10 +28,10 @@
 #include "marginalTrek++.h"
 
 
-#ifdef BUILDING_R
+#ifdef ISOSPEC_BUILDING_R
  #include <Rcpp.h>
  using namespace Rcpp;
-#endif /* BUILDING_R */
+#endif /* ISOSPEC_BUILDING_R */
 
 
 class IsoSpecLayered;
@@ -90,7 +90,7 @@ class IsoSpecLayered;
      std::tuple<double*,double*,int*,int> getCurrentProduct();
      std::tuple<double*,double*,int*,int> getProduct();
 
-     #ifdef BUILDING_R
+     #ifdef ISOSPEC_BUILDING_R
     // An R friend should be considered the worst enemy.
     //                              Sun Tzu.
     friend  NumericMatrix Rinterface(

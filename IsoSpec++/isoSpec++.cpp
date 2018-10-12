@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -31,7 +31,7 @@
 #include <string>
 #include <limits>
 #include <assert.h>
-#include "lang.h"
+#include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
@@ -43,6 +43,9 @@
 
 
 using namespace std;
+
+namespace IsoSpec
+{
 
 Iso::Iso(
     int             _dimNumber,
@@ -165,8 +168,7 @@ modeLProb(0.0)
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
-// This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
-
+    // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     string cpp_formula(formula);
     int last_modeswitch = 0;
     int mode = 0;
@@ -201,7 +203,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
     for (unsigned int i=0; i<elements.size(); i++)
     {
         int idx = -1;
-        for(int j=0; j<NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
         {
             if (elements[i].compare(elem_table_symbol[j]) == 0)
             {
@@ -222,7 +224,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         int num = 0;
         int at_idx = *it;
         int atomicNo = elem_table_atomicNo[at_idx];
-        while(at_idx < NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_atomicNo[at_idx] == atomicNo)
+        while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_atomicNo[at_idx] == atomicNo)
         {
             at_idx++;
             num++;
@@ -255,9 +257,9 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
 IsoGenerator::IsoGenerator(Iso&& iso) :
     Iso(std::move(iso)),
-    partialLProbs(new double[dimNumber+1+PADDING]),
-    partialMasses(new double[dimNumber+1+PADDING]),
-    partialExpProbs(new double[dimNumber+1+PADDING])
+    partialLProbs(new double[dimNumber+1+ISOSPEC_PADDING]),
+    partialMasses(new double[dimNumber+1+ISOSPEC_PADDING]),
+    partialExpProbs(new double[dimNumber+1+ISOSPEC_PADDING])
 {
     partialLProbs[dimNumber] = 0.0;
     partialMasses[dimNumber] = 0.0;
@@ -313,7 +315,7 @@ IsoThresholdGeneratorMT::IsoThresholdGeneratorMT(Iso&& iso, double _threshold, P
 Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb)),
 last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
 {
-    counter = new unsigned int[dimNumber+PADDING];
+    counter = new unsigned int[dimNumber+ISOSPEC_PADDING];
     maxConfsLPSum = new double[dimNumber-1];
 
     marginalResults = PMs;
@@ -776,7 +778,7 @@ IsoLayeredGenerator::~IsoLayeredGenerator()
 
 
 
-#ifndef BUILDING_R
+#if !ISOSPEC_BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
@@ -807,4 +809,6 @@ void printConfigurations(
     }
 }
 
-#endif /* BUILDING_R */
+#endif /* !ISOSPEC_BUILDING_R */
+
+} // namespace IsoSpec

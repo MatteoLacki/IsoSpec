@@ -4,6 +4,8 @@
 using std::cout;
 using std::endl;
 
+using namespace IsoSpec;
+
 int main()
 {
     int isotopeNumbers[] = {2, 3};
