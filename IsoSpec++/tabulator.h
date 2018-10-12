@@ -63,7 +63,6 @@ void reallocate(double **array, int new_size){
 }
 
 
-
 template <typename T> Tabulator<T>::Tabulator(T* generator,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs  )
