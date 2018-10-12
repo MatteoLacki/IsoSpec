@@ -524,7 +524,7 @@ void printConfigurations(
 
 
 IsoLayered::IsoLayered( Iso&&     iso,
-                        double    _cutOff,
+                        double    _targetCoverage,
                         double    _percentageToExpand,
                         int       _tabSize,
                         int       _hashSize,
@@ -532,7 +532,7 @@ IsoLayered::IsoLayered( Iso&&     iso,
 ) : Iso(std::move(iso)),
 allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
-cutOff(_cutOff),
+targetCoverage(_targetCoverage),
 percentageToExpand(_percentageToExpand),
 do_trim(trim),
 layers(0)
@@ -659,7 +659,7 @@ bool IsoLayered::advanceToNextLayer()
         return false;
     else
     {
-        if(prob_in_this_layer.get() < cutOff)
+        if(prob_in_this_layer.get() < targetCoverage)
         {
 #ifdef DEBUG
             Summator testDupa(prob_in_this_layer);
@@ -674,7 +674,7 @@ bool IsoLayered::advanceToNextLayer()
 
         // // This was an attempt to merge two methods: layered and layered_estimating
         // // that does not work so good as predicted.
-//             if( estimateThresholds and ( prob_in_this_layer.get() >= cutOff*.99 ) ){
+//             if( estimateThresholds and ( prob_in_this_layer.get() >= targetCoverage*.99 ) ){
 //                 estimateThresholds = false;
 //                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
 // #ifdef DEBUG
@@ -693,8 +693,8 @@ bool IsoLayered::advanceToNextLayer()
             int howmany = floor(current->size()*percentageToExpand);
             if(estimateThresholds){
                 // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
-                // lprobThr += log((1.0-cutOff))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
-                lprobThr += log(1.0-cutOff) + log(1.0-(1.0-percentageToExpand)/pow(layers, 2.0)) - log(1.0 -prob_in_this_layer.get());
+                // lprobThr += log((1.0-targetCoverage))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
+                lprobThr += log(1.0-targetCoverage) + log(1.0-(1.0-percentageToExpand)/pow(layers, 2.0)) - log(1.0 -prob_in_this_layer.get());
                 if(lprobThr > maxFringeLprob){
                     lprobThr = maxFringeLprob;
                     estimateThresholds = false;
@@ -726,7 +726,7 @@ bool IsoLayered::advanceToNextLayer()
                 void** lastLayer = &(newaccepted.data()[newaccepted.size()-accepted_in_this_layer]);
 
                 Summator qsprob(totalProb);
-                while(totalProb.get() < cutOff)
+                while(totalProb.get() < targetCoverage)
                 {
                     if(start == end)
                         break;
@@ -760,7 +760,7 @@ bool IsoLayered::advanceToNextLayer()
                     {
                         leftProb.add(exp(getLProb(lastLayer[i])));
                     }
-                    if(leftProb.get() < cutOff)
+                    if(leftProb.get() < targetCoverage)
                     {
                         start = loweridx+1;
                         qsprob = leftProb;

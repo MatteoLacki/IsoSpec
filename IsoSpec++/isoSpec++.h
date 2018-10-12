@@ -308,7 +308,7 @@ private:
     std::vector<void*>*         current;
     std::vector<void*>*         next;
     double                      lprobThr;
-    double cutOff;
+    double                      targetCoverage;
     double                      percentageToExpand;
     bool                        estimateThresholds;
     bool                        do_trim;
@@ -324,7 +324,7 @@ public:
 //    inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
     bool advanceToNextLayer(); 
 
-    IsoLayered(Iso&& iso, double log_cutOff, double _percentageToExpand, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
+    IsoLayered(Iso&& iso, double _targetCoverage, double _percentageToExpand, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
     virtual ~IsoLayered();
 
     void terminate_search();
