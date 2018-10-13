@@ -271,6 +271,12 @@ public:
     */
     inline const double* get_lProbs_ptr() const { return lProbs; };
 
+    //! Get the table of the probabilities of subisotopologues.
+    /*!
+        \return Pointer to the first element in the table storing probabilities of subisotopologues.
+    */
+    inline const double* get_eProbs_ptr() const { return eProbs; };
+
     //! Get the table of the masses of subisotopologues.
     /*!
         \return Pointer to the first element in the table storing masses of subisotopologues.

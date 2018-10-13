@@ -133,8 +133,22 @@ public:
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define ISOSPEC_PADDING 64
 
-
-
+// Note: __GNUC__ is defined by clang and gcc
+#ifdef __GNUC__
+#define LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
+#define UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
+// For aggressive inlining 
+#define INLINE __attribute__ ((always_inline)) inline
+#elif defined _MSC_VER
+#define LIKELY(condition) condition
+#define UNLIKELY(condition) condition
+#define INLINE __forceinline inline
+#else
+#define LIKELY(condition) condition
+#define UNLIKELY(condition) condition
+#define INLINE inline
+#endif
+    
 //! The generator of isotopologues.
 /*!
     This class provides the common interface for all isotopic generators.
@@ -244,15 +258,15 @@ public:
 */
 class IsoThresholdGenerator: public IsoGenerator
 {
-private:
+protected:
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
     double*                 maxConfsLPSum;
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
 
 public:
-    bool advanceToNextConfiguration() override final;
-    inline void get_conf_signature(int* space) const override final
+    bool advanceToNextConfiguration() override;
+    inline void get_conf_signature(int* space) const override
     {
         for(int ii=0; ii<dimNumber; ii++)
         {
@@ -296,7 +310,164 @@ private:
 
 };
 
+/** This is a generator class for fast generation of isotopic probabilities.
+*/
+class IsoThresholdGeneratorFast: public IsoThresholdGenerator
+{
+  protected:
 
+    const double* lProbs_ptr;
+    const double* mass_ptr;
+    const double* exp_ptr;
+    double* partialLProbs_first;
+    double* partialLProbs_second;
+    int* counter_first;
+
+public:
+    virtual void get_conf_signature(int*) const {};
+
+    IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute=true,
+                        int _tabSize=1000, int _hashSize=1000) :
+      IsoThresholdGenerator(std::move(iso), _threshold, _absolute, _tabSize, _hashSize)
+    {
+      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+      mass_ptr = marginalResults[0]->get_masses_ptr();
+      exp_ptr = marginalResults[0]->get_eProbs_ptr();
+
+      counter_first = counter;
+      partialLProbs_first = partialLProbs;
+      partialLProbs_second = partialLProbs;
+      partialLProbs_second++;
+    }
+
+    // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
+    INLINE bool advanceToNextConfiguration()
+    {
+        (*counter_first)++; // counter[0]++;
+        *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
+        lProbs_ptr++;
+        mass_ptr++;
+        exp_ptr++;
+        if(LIKELY(*partialLProbs_first >= Lcutoff))
+        {
+            partialMasses[0] = partialMasses[1] + *mass_ptr;
+            partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
+            return true;
+        }
+
+        // If we reached this point, a carry is needed
+
+        int idx = 0;
+        lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+        mass_ptr = marginalResults[0]->get_masses_ptr();
+        exp_ptr = marginalResults[0]->get_eProbs_ptr();
+        lProbs_ptr++;
+        mass_ptr++;
+        exp_ptr++;
+
+        int * cntr_ptr = counter;
+
+        while(idx<dimNumber-1)
+        {
+            // counter[idx] = 0;
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            // counter[idx]++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+                recalc(idx-1);
+                return true;
+            }
+        }
+
+        terminate_search();
+        return false;
+    }
+
+private:
+    INLINE void recalc(int idx)
+    {
+        for(; idx >=0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+        }
+    }
+};
+
+/** This is a generator class for counting the number of configurations only,
+ * it will not produce the masses or the exponential probabilities.
+*/
+class IsoThresholdGeneratorCntr: public IsoThresholdGeneratorFast
+{
+
+  private:
+    inline double mass();
+    inline double eprob();
+    virtual void get_conf_signature(int*) const {};
+public:
+
+    IsoThresholdGeneratorCntr(Iso&& iso, double _threshold, bool _absolute=true,
+                        int _tabSize=1000, int _hashSize=1000) :
+      IsoThresholdGeneratorFast(std::move(iso), _threshold, _absolute, _tabSize, _hashSize)
+    {
+    }
+    
+    // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
+    INLINE bool advanceToNextConfiguration()
+    {
+        (*counter_first)++; // counter[0]++;
+        *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
+        lProbs_ptr++;
+        if(LIKELY(*partialLProbs_first >= Lcutoff))
+        {
+            return true;
+        }
+
+        // If we reached this point, a carry is needed
+
+        int idx = 0;
+        lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+        lProbs_ptr++;
+
+        int * cntr_ptr = counter;
+
+        while(idx<dimNumber-1)
+        {
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                recalc(idx-1);
+                return true;
+            }
+        }
+
+        terminate_search();
+        return false;
+    }
+
+private:
+    INLINE void recalc(int idx)
+    {
+        for(; idx >=0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        }
+    }
+
+};
 
 //! The multi-threaded version of the generator of isotopologues.
 /*!
@@ -404,6 +575,7 @@ public:
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
+
 
 private:
     inline void recalc(int idx)
