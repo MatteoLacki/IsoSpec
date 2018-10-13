@@ -330,14 +330,8 @@ public:
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
         lProbs_ptr++;
-//        mass_ptr++;
-//        exp_ptr++;
         if(ISOSPEC_LIKELY(*partialLProbs_first >= Lcutoff))
-        {
-//            partialMasses[0] = partialMasses[1] + *mass_ptr;
-//            partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
             return true;
-        }
 
         // If we reached this point, a carry is needed
 
