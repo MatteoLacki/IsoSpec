@@ -137,6 +137,7 @@ public:
 #ifdef __GNUC__
 #define LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
 #define UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
+// For aggressive inlining 
 #define INLINE __attribute__ ((always_inline)) inline
 #else
 #define LIKELY(condition) condition
@@ -335,6 +336,8 @@ public:
       partialLProbs_second++;
     }
 
+    // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
     INLINE bool advanceToNextConfiguration()
     {
         (*counter_first)++; // counter[0]++;
@@ -412,7 +415,9 @@ public:
       IsoThresholdGeneratorFast(std::move(iso), _threshold, _absolute, _tabSize, _hashSize)
     {
     }
-
+    
+    // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
     INLINE bool advanceToNextConfiguration()
     {
         (*counter_first)++; // counter[0]++;
