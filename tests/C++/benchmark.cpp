@@ -65,4 +65,22 @@ int main()
     std::cout << "Using legacy, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
   }
 
+  // verify that the results are the same
+  if(true)
+  {
+    IsoThresholdGenerator generator_old(formula.c_str(), threshold, absolute, tabSize, hashSize);
+    IsoThresholdGeneratorFast generator_new(formula.c_str(), threshold, absolute, tabSize, hashSize);
+
+    while(generator_new.advanceToNextConfiguration())
+    {
+        assert(generator_old.advanceToNextConfiguration());
+        assert(generator_new.eprob() == generator_old.eprob());
+//        std::cout << generator_new.lprob() << " " << generator_old.lprob() << std::endl;
+        assert(generator_new.lprob() == generator_old.lprob());
+        assert(generator_new.mass()  == generator_old.mass());
+    }
+    assert(!generator_old.advanceToNextConfiguration());
+    std::cout << "Results are the same for old and new!" << std::endl;
+
+  }
 }

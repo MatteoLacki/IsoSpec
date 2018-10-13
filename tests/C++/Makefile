@@ -42,3 +42,7 @@ IsoThresholdGenerator:
 
 nr_conf:
 	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread
+
+benchmark:
+	g++ $(CXXFLAGS) $(OPTFLAGS) benchmark.cpp -o benchmark-gcc
+	clang++ $(CXXFLAGS) $(OPTFLAGS) benchmark.cpp -o benchmark-clang
