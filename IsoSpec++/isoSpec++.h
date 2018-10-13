@@ -138,6 +138,10 @@ public:
 #define LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
 #define UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
 #define INLINE __attribute__ ((always_inline)) inline
+#elif defined _MSC_VER
+#define LIKELY(condition) condition
+#define UNLIKELY(condition) condition
+#define INLINE __forceinline inline
 #else
 #define LIKELY(condition) condition
 #define UNLIKELY(condition) condition
