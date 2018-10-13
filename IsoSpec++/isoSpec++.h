@@ -177,13 +177,13 @@ public:
     /*!
         \return The mass of the current isotopologue.
     */
-    inline double mass()  const { return partialMasses[0]; };
+    virtual inline double mass()  const { return partialMasses[0]; };
 
     //! Get the probability of the current isotopologue.
     /*!
         \return The probability of the current isotopologue.
     */
-    inline double eprob() const { return partialExpProbs[0]; };
+    virtual inline double eprob() const { return partialExpProbs[0]; };
 
     //! Save the counts of isotopes in the space.
     /*!
@@ -307,7 +307,6 @@ private:
         }
     }
 
-
 };
 
 /** This is a generator class for fast generation of isotopic probabilities.
@@ -347,12 +346,12 @@ public:
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
         lProbs_ptr++;
-        mass_ptr++;
-        exp_ptr++;
+//        mass_ptr++;
+//        exp_ptr++;
         if(LIKELY(*partialLProbs_first >= Lcutoff))
         {
-            partialMasses[0] = partialMasses[1] + *mass_ptr;
-            partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
+//            partialMasses[0] = partialMasses[1] + *mass_ptr;
+//            partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
             return true;
         }
 
@@ -390,10 +389,15 @@ public:
         return false;
     }
 
+    inline double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
+    inline double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
+
+
+
 private:
     INLINE void recalc(int idx)
     {
-        for(; idx >=0; idx--)
+        for(; idx > 0; idx--)
         {
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
@@ -409,8 +413,6 @@ class IsoThresholdGeneratorCntr: public IsoThresholdGeneratorFast
 {
 
   private:
-    inline double mass();
-    inline double eprob();
     virtual void get_conf_signature(int*) const {};
 public:
 
