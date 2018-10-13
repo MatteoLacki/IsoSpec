@@ -403,6 +403,7 @@ private:
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
         }
+        partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
     }
 };
 
