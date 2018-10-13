@@ -133,16 +133,16 @@ public:
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define ISOSPEC_PADDING 64
 
+// Note: __GNUC__ is defined by clang and gcc
 #ifdef __GNUC__
 #define LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
 #define UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
+#define INLINE __attribute__ ((always_inline)) inline
 #else
 #define LIKELY(condition) condition
 #define UNLIKELY(condition) condition
+#define INLINE inline
 #endif
-
-    
-    
     
 //! The generator of isotopologues.
 /*!
@@ -335,7 +335,7 @@ public:
       partialLProbs_second++;
     }
 
-    bool advanceToNextConfiguration()
+    INLINE bool advanceToNextConfiguration()
     {
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
@@ -384,7 +384,7 @@ public:
     }
 
 private:
-    inline void recalc(int idx)
+    INLINE void recalc(int idx)
     {
         for(; idx >=0; idx--)
         {
@@ -413,7 +413,7 @@ public:
     {
     }
 
-    bool advanceToNextConfiguration()
+    INLINE bool advanceToNextConfiguration()
     {
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
@@ -450,7 +450,7 @@ public:
     }
 
 private:
-    inline void recalc(int idx)
+    INLINE void recalc(int idx)
     {
         for(; idx >=0; idx--)
         {
