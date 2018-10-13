@@ -26,6 +26,8 @@ int main()
 
   threshold = 1e-95; 
 
+  int64_t tsize;
+
   if (true)
   {
     clock_t begin = std::clock();
@@ -36,6 +38,7 @@ int main()
     std::cout << size << std::endl;
     clock_t end = std::clock();
     std::cout << "Using IsoThresholdGeneratorCntr, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+    tsize = size;
   }
 
   // fast
@@ -64,6 +67,49 @@ int main()
     clock_t end = std::clock();
     std::cout << "Using legacy, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
   }
+
+  // fast, calculating a (meaningless) sum of masses
+  if (true)
+  {
+    clock_t begin = std::clock();
+    Iso iso(formula.c_str());
+    IsoThresholdGeneratorFast generator (std::move(iso), threshold, absolute, tabSize, hashSize);
+    double total = 0.0;
+    while (generator.advanceToNextConfiguration()) total += generator.mass();
+    std::cout << total << std::endl;
+    clock_t end = std::clock();
+    std::cout << "Sum of masses: using IsoThresholdGeneratorFast, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+  }
+
+  // legacy, 
+  if (true)
+  {
+    clock_t begin = std::clock();
+    Iso iso(formula.c_str());
+    IsoThresholdGenerator generator (std::move(iso), threshold, absolute, tabSize, hashSize); 
+    int64_t size = 0;
+    while (generator.advanceToNextConfiguration()) size++;
+    std::cout << size << std::endl;
+    clock_t end = std::clock();
+    std::cout << "sum of masses: Using legacy, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+  }
+
+  // RAM-based
+  if (tsize <= 3000000000)
+  {
+    double* T = new double[tsize];
+    // Fill it with junk
+    for(int ii=0; ii<tsize; ii++)
+        T[ii] = 17.0456;
+    double sum = 0.0;
+    clock_t begin = std::clock();
+    for(int ii=0; ii<tsize; ii++)
+        sum += T[ii];
+    clock_t end = std::clock();
+    std::cout << sum << std::endl;
+    std::cout << "Memory sum: it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+  }
+
 
   // verify that the results are the same
   if(true)
