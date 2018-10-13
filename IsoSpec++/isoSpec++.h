@@ -133,22 +133,6 @@ public:
 // Be very absolutely safe vs. false-sharing cache lines between threads...
 #define ISOSPEC_PADDING 64
 
-// Note: __GNUC__ is defined by clang and gcc
-#ifdef __GNUC__
-#define LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
-#define UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
-// For aggressive inlining 
-#define INLINE __attribute__ ((always_inline)) inline
-#elif defined _MSC_VER
-#define LIKELY(condition) condition
-#define UNLIKELY(condition) condition
-#define INLINE __forceinline inline
-#else
-#define LIKELY(condition) condition
-#define UNLIKELY(condition) condition
-#define INLINE inline
-#endif
-    
 //! The generator of isotopologues.
 /*!
     This class provides the common interface for all isotopic generators.
@@ -341,14 +325,14 @@ public:
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
-    INLINE bool advanceToNextConfiguration()
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration()
     {
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
         lProbs_ptr++;
 //        mass_ptr++;
 //        exp_ptr++;
-        if(LIKELY(*partialLProbs_first >= Lcutoff))
+        if(ISOSPEC_LIKELY(*partialLProbs_first >= Lcutoff))
         {
 //            partialMasses[0] = partialMasses[1] + *mass_ptr;
 //            partialExpProbs[0] = partialExpProbs[1] * (*exp_ptr);
@@ -395,7 +379,7 @@ public:
 
 
 private:
-    INLINE void recalc(int idx)
+    ISOSPEC_FORCE_INLINE void recalc(int idx)
     {
         for(; idx > 0; idx--)
         {
@@ -425,12 +409,12 @@ public:
     
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
-    INLINE bool advanceToNextConfiguration()
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration()
     {
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
         lProbs_ptr++;
-        if(LIKELY(*partialLProbs_first >= Lcutoff))
+        if(ISOSPEC_LIKELY(*partialLProbs_first >= Lcutoff))
         {
             return true;
         }
@@ -462,7 +446,7 @@ public:
     }
 
 private:
-    INLINE void recalc(int idx)
+    ISOSPEC_FORCE_INLINE void recalc(int idx)
     {
         for(; idx >=0; idx--)
         {
