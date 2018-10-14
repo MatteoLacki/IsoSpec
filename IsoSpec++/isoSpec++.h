@@ -242,61 +242,6 @@ public:
 */
 class IsoThresholdGenerator: public IsoGenerator
 {
-protected:
-    int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
-    double*                 maxConfsLPSum;
-    const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
-    PrecalculatedMarginal** marginalResults;
-
-public:
-    bool advanceToNextConfiguration() override;
-    inline void get_conf_signature(int* space) const override
-    {
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
-    };
-
-    //! The move-constructor.
-    /*!
-        \param iso An instance of the Iso class.
-        \param _threshold The threshold value.
-        \param _absolute If true, the _threshold is interpreted as the absolute minimal peak height for the isotopologues.
-                         If false, the _threshold is the fraction of the heighest peak's probability.
-        \param tabSize The size of the extension of the table with configurations.
-        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
-    */
-    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true,
-                        int _tabSize=1000, int _hashSize=1000);
-
-    //! Destructor.
-    inline virtual ~IsoThresholdGenerator() { delete[] counter;
-                                              delete[] maxConfsLPSum;
-                                              dealloc_table(marginalResults, dimNumber); };
-
-    //! Block the subsequent search of isotopologues.
-    void terminate_search();
-
-private:
-    //! Recalculate the current partial log-probabilities, masses, and probabilities.
-    inline void recalc(int idx)
-    {
-        for(; idx >=0; idx--)
-        {
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-        }
-    }
-
-};
-
-/** This is a generator class for fast generation of isotopic probabilities.
-*/
-class IsoThresholdGeneratorFast: public IsoGenerator
-{
 private:
 
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
@@ -321,10 +266,18 @@ public:
         }
     };
 
+    //! The move-constructor.
+    /*!
+        \param iso An instance of the Iso class.
+        \param _threshold The threshold value.
+        \param _absolute If true, the _threshold is interpreted as the absolute minimal peak height for the isotopologues.
+                         If false, the _threshold is the fraction of the heighest peak's probability.
+        \param tabSize The size of the extension of the table with configurations.
+        \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
+    */
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000);
 
-    IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000);
-
-    inline ~IsoThresholdGeneratorFast()
+    inline ~IsoThresholdGenerator()
     {
         delete[] counter;
         delete[] maxConfsLPSum;
@@ -380,9 +333,11 @@ public:
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
     ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
 
+    //! Block the subsequent search of isotopologues.
     void terminate_search();
 
 private:
+    //! Recalculate the current partial log-probabilities, masses, and probabilities.
     ISOSPEC_FORCE_INLINE void recalc(int idx)
     {
         for(; idx > 0; idx--)

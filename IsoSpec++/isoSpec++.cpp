@@ -417,95 +417,7 @@ void IsoThresholdGeneratorMT::terminate_search()
 
 
 
-
-
-
-
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
-: IsoGenerator(std::move(iso)),
-Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
-{
-    counter = new int[dimNumber];
-    maxConfsLPSum = new double[dimNumber-1];
-    marginalResults = new PrecalculatedMarginal*[dimNumber];
-
-    bool empty = false;
-
-    for(int ii=0; ii<dimNumber; ii++)
-    {
-        counter[ii] = 0;
-        marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                        true,
-                                                        tabSize,
-                                                        hashSize);
-
-        if(!marginalResults[ii]->inRange(0))
-            empty = true;
-    }
-
-    if(dimNumber > 1)
-        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
-
-    for(int ii=1; ii<dimNumber-1; ii++)
-        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
-
-    if(!empty)
-    {
-        recalc(dimNumber-1);
-        counter[0]--;
-    }
-    else
-        terminate_search();
-
-
-}
-
-bool IsoThresholdGenerator::advanceToNextConfiguration()
-{
-    counter[0]++;
-    partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
-    if(partialLProbs[0] >= Lcutoff)
-    {
-        partialMasses[0] = partialMasses[1] + marginalResults[0]->get_mass(counter[0]);
-        partialExpProbs[0] = partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]);
-        return true;
-    }
-
-    // If we reached this point, a carry is needed
-
-    int idx = 0;
-
-    while(idx<dimNumber-1)
-    {
-        counter[idx] = 0;
-        idx++;
-        counter[idx]++;
-        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-        if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
-        {
-            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
-            recalc(idx-1);
-            return true;
-        }
-    }
-
-    terminate_search();
-    return false;
-}
-
-void IsoThresholdGenerator::terminate_search()
-{
-    for(int ii=0; ii<dimNumber; ii++)
-        counter[ii] = marginalResults[ii]->get_no_confs();
-}
-
-/*
- * ------------------------------------------------------------------------------------------------------------------------
- */
-
-IsoThresholdGeneratorFast::IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
 : IsoGenerator(std::move(iso)),
 Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
 {
@@ -553,7 +465,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
 }
 
-void IsoThresholdGeneratorFast::terminate_search()
+void IsoThresholdGenerator::terminate_search()
 {
     for(int ii=0; ii<dimNumber; ii++)
         counter[ii] = marginalResults[ii]->get_no_confs();
