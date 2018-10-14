@@ -295,9 +295,14 @@ private:
 
 /** This is a generator class for fast generation of isotopic probabilities.
 */
-class IsoThresholdGeneratorFast: public IsoThresholdGenerator
+class IsoThresholdGeneratorFast: public IsoGenerator
 {
-  protected:
+private:
+
+    int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
+    double*                 maxConfsLPSum;      
+    const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
+    PrecalculatedMarginal** marginalResults;
 
     const double* lProbs_ptr;
     const double* mass_ptr;
@@ -307,25 +312,28 @@ class IsoThresholdGeneratorFast: public IsoThresholdGenerator
     int* counter_first;
 
 public:
-    virtual void get_conf_signature(int*) const {};
-
-    IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute=true,
-                        int _tabSize=1000, int _hashSize=1000) :
-      IsoThresholdGenerator(std::move(iso), _threshold, _absolute, _tabSize, _hashSize)
+    inline void get_conf_signature(int* space) const override final
     {
-      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
-      mass_ptr = marginalResults[0]->get_masses_ptr();
-      exp_ptr = marginalResults[0]->get_eProbs_ptr();
+        for(int ii=0; ii<dimNumber; ii++)
+        {
+            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+            space += isotopeNumbers[ii];
+        }
+    };
 
-      counter_first = counter;
-      partialLProbs_first = partialLProbs;
-      partialLProbs_second = partialLProbs;
-      partialLProbs_second++;
-    }
+
+    IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000);
+
+    inline ~IsoThresholdGeneratorFast()
+    {
+        delete[] counter;
+        delete[] maxConfsLPSum;
+        dealloc_table(marginalResults, dimNumber); 
+    };
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration()
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         (*counter_first)++; // counter[0]++;
         *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
@@ -367,10 +375,12 @@ public:
         return false;
     }
 
-    inline double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
-    inline double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
 
 
+    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
+    ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
+
+    void terminate_search();
 
 private:
     ISOSPEC_FORCE_INLINE void recalc(int idx)

@@ -505,6 +505,65 @@ void IsoThresholdGenerator::terminate_search()
  * ------------------------------------------------------------------------------------------------------------------------
  */
 
+IsoThresholdGeneratorFast::IsoThresholdGeneratorFast(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
+: IsoGenerator(std::move(iso)),
+Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
+{
+    counter = new int[dimNumber];
+    maxConfsLPSum = new double[dimNumber-1];
+    marginalResults = new PrecalculatedMarginal*[dimNumber];
+
+    bool empty = false;
+
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        counter[ii] = 0;
+        marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
+                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                        true,
+                                                        tabSize,
+                                                        hashSize);
+
+        if(!marginalResults[ii]->inRange(0))
+            empty = true;
+    }
+
+    if(dimNumber > 1)
+        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+
+    for(int ii=1; ii<dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+
+    if(!empty)
+    {
+        recalc(dimNumber-1);
+        counter[0]--;
+    }
+    else
+        terminate_search();
+
+      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+      mass_ptr = marginalResults[0]->get_masses_ptr();
+      exp_ptr = marginalResults[0]->get_eProbs_ptr();
+
+      counter_first = counter;
+      partialLProbs_first = partialLProbs;
+      partialLProbs_second = partialLProbs;
+      partialLProbs_second++;
+
+}
+
+void IsoThresholdGeneratorFast::terminate_search()
+{
+    for(int ii=0; ii<dimNumber; ii++)
+        counter[ii] = marginalResults[ii]->get_no_confs();
+}
+
+
+/*
+ * ------------------------------------------------------------------------------------------------------------------------
+ */
+
 IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
 IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
