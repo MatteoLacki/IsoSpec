@@ -464,13 +464,11 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     else
         terminate_search();
 
-      lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
-      mass_ptr = marginalResults[0]->get_masses_ptr();
-      exp_ptr = marginalResults[0]->get_eProbs_ptr();
+    lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
 
-      counter_first = counter;
-      partialLProbs_second = partialLProbs;
-      partialLProbs_second++;
+    counter_first = counter;
+    partialLProbs_second = partialLProbs;
+    partialLProbs_second++;
 
 }
 

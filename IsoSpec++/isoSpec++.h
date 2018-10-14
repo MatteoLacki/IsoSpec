@@ -251,8 +251,6 @@ private:
     PrecalculatedMarginal** marginalResultsUnsorted;
 
     const double* lProbs_ptr;
-    const double* mass_ptr;
-    const double* exp_ptr;
     double* partialLProbs_second;
     int* counter_first;
     bool empty;
@@ -301,11 +299,7 @@ public:
 
         int idx = 0;
         lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
-        mass_ptr = marginalResults[0]->get_masses_ptr();
-        exp_ptr = marginalResults[0]->get_eProbs_ptr();
         lProbs_ptr++;
-        mass_ptr++;
-        exp_ptr++;
 
         int * cntr_ptr = counter;
 
