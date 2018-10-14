@@ -237,7 +237,7 @@ public:
 //! The generator of isotopologues above a given threshold value.
 /*!
     Attention: the calculated configurations are only partially ordeded and the user should not assume they will be ordered.
-    This algorithm computes N isotopologues in O(N) thanks to storing data in FIFO Queue.
+    This algorithm computes N isotopologues in O(N).
     It is a considerable advantage w.r.t. the IsoOrderedGenerator.
 */
 class IsoThresholdGenerator: public IsoGenerator
