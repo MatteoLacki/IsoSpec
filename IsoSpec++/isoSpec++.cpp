@@ -417,28 +417,38 @@ void IsoThresholdGeneratorMT::terminate_search()
 
 
 
-IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize)
+IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize, bool reorder_marginals)
 : IsoGenerator(std::move(iso)),
 Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
-    marginalResults = new PrecalculatedMarginal*[dimNumber];
+    marginalResultsUnsorted = new PrecalculatedMarginal*[dimNumber];
 
     empty = false;
 
     for(int ii=0; ii<dimNumber; ii++)
     {
         counter[ii] = 0;
-        marginalResults[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
+        marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
                                                         Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
                                                         true,
                                                         tabSize,
                                                         hashSize);
 
-        if(!marginalResults[ii]->inRange(0))
+        if(!marginalResultsUnsorted[ii]->inRange(0))
             empty = true;
     }
+
+    if(reorder_marginals)
+    {
+        marginalResults = new PrecalculatedMarginal*[dimNumber];
+        memcpy(marginalResults, marginalResultsUnsorted, dimNumber * sizeof(PrecalculatedMarginal*));
+        OrderMarginalsBySizeDecresing comparator;
+        std::sort(marginalResults, marginalResults + dimNumber, comparator);
+    }
+    else
+        marginalResults = marginalResultsUnsorted;
 
     if(dimNumber > 1)
         maxConfsLPSum[0] = marginalResults[0]->getModeLProb();

@@ -248,6 +248,7 @@ private:
     double*                 maxConfsLPSum;      
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
+    PrecalculatedMarginal** marginalResultsUnsorted;
 
     const double* lProbs_ptr;
     const double* mass_ptr;
@@ -262,7 +263,7 @@ public:
     {
         for(int ii=0; ii<dimNumber; ii++)
         {
-            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+            memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
             space += isotopeNumbers[ii];
         }
     };
@@ -276,12 +277,14 @@ public:
         \param tabSize The size of the extension of the table with configurations.
         \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
     */
-    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000);
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
 
     inline ~IsoThresholdGenerator()
     {
         delete[] counter;
         delete[] maxConfsLPSum;
+        if (marginalResultsUnsorted != marginalResults)
+            delete[] marginalResultsUnsorted;
         dealloc_table(marginalResults, dimNumber); 
     };
 

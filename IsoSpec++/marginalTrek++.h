@@ -213,7 +213,7 @@ class PrecalculatedMarginal : public Marginal
 protected:
     std::vector<Conf> configurations;
     Conf* confs;
-    unsigned int no_confs;
+    size_t no_confs;
     double* masses;
     double* lProbs;
     double* eProbs;
@@ -295,7 +295,7 @@ public:
     /*!
         \return The number of precomputed subisotopologues.
     */
-    inline unsigned int get_no_confs() const { return no_confs; };
+    inline size_t get_no_confs() const { return no_confs; };
 };
 
 

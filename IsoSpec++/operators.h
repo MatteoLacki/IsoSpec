@@ -171,6 +171,7 @@ public:
 };
 
 
+
 template<typename T> class ReverseOrder
 {
 public:
@@ -185,6 +186,23 @@ public:
 	inline TableOrder(const T* _tbl) : tbl(_tbl) {};
 	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
+
+} // namespace IsoSpec
+
+#include "marginalTrek++.h"
+
+namespace IsoSpec
+{
+
+class OrderMarginalsBySizeDecresing
+{
+public:
+    inline bool operator()(const PrecalculatedMarginal* m1, const PrecalculatedMarginal* m2)
+    {
+        return m1->get_no_confs() > m2->get_no_confs();
+    }
+};
+
 
 } // namespace IsoSpec
 
