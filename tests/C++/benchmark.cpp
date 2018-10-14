@@ -41,7 +41,7 @@ int main()
   }
   #endif
   // fast
-  if (true)
+  #if (false)
   {
     clock_t begin = std::clock();
     Iso iso(formula.c_str());
@@ -53,7 +53,7 @@ int main()
     std::cout << "Using IsoThresholdGeneratorFast, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
     tsize = size;
   }
-
+  #endif
 
   // legacy
   if (true)
@@ -65,11 +65,12 @@ int main()
     while (generator.advanceToNextConfiguration()) size++;
     std::cout << size << std::endl;
     clock_t end = std::clock();
-    std::cout << "Using legacy, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+    std::cout << "Using new, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+    tsize = size;
   }
 
   // fast, calculating a (meaningless) sum of masses
-  if (true)
+  #if (false)
   {
     clock_t begin = std::clock();
     Iso iso(formula.c_str());
@@ -80,9 +81,10 @@ int main()
     clock_t end = std::clock();
     std::cout << "Sum of masses: using IsoThresholdGeneratorFast, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
   }
+  #endif
 
   // legacy, 
-  if (true)
+  #if (false)
   {
     clock_t begin = std::clock();
     Iso iso(formula.c_str());
@@ -91,8 +93,9 @@ int main()
     while (generator.advanceToNextConfiguration()) size++;
     std::cout << size << std::endl;
     clock_t end = std::clock();
-    std::cout << "sum of masses: Using legacy, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+    std::cout << "sum of masses: Using new, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
   }
+  #endif
 
   // RAM-based
   if (tsize <= 3000000000)
@@ -113,7 +116,7 @@ int main()
 
 
   // verify that the results are the same
-  if(true)
+  #if(fasle)
   {
     IsoThresholdGenerator generator_old(formula.c_str(), threshold, absolute, tabSize, hashSize);
     IsoThresholdGeneratorFast generator_new(formula.c_str(), threshold, absolute, tabSize, hashSize);
@@ -135,4 +138,5 @@ int main()
     std::cout << "Results are the same for old and new!" << std::endl;
 
   }
+  #endif
 }
