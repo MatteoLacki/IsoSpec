@@ -425,7 +425,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     maxConfsLPSum = new double[dimNumber-1];
     marginalResults = new PrecalculatedMarginal*[dimNumber];
 
-    bool empty = false;
+    empty = false;
 
     for(int ii=0; ii<dimNumber; ii++)
     {
@@ -471,6 +471,19 @@ void IsoThresholdGenerator::terminate_search()
         counter[ii] = marginalResults[ii]->get_no_confs();
 }
 
+void IsoThresholdGenerator::reset()
+{ //TODO: needs testing
+    if(empty)
+        return;
+
+    bzero(counter, sizeof(int)*dimNumber);
+    recalc(dimNumber-1);
+    counter[0]--;
+
+    counter_first = counter;
+    lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+
+}
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------

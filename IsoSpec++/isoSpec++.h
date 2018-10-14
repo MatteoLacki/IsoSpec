@@ -255,6 +255,7 @@ private:
     double* partialLProbs_first;
     double* partialLProbs_second;
     int* counter_first;
+    bool empty;
 
 public:
     inline void get_conf_signature(int* space) const override final
@@ -335,6 +336,12 @@ public:
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
+
+    /*! Reset the generator to the beginning of the sequence. Allows it to be reused, eg. to go through the conf space once, calculate
+        the amount of space needed to store configurations, then to allocate that memory, and go through it again, this time saving 
+        configurations (and *is* in fact faster than allocating a std::vector and depending on it to grow as needed. This is cheaper
+        than throwing away the generator and making a new one too: marginal distributions don't need to be recalculated. */
+    void reset();
 
 private:
     //! Recalculate the current partial log-probabilities, masses, and probabilities.
