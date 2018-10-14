@@ -16,7 +16,6 @@ int main()
   double threshold = 0.01;
   bool absolute = false;
 
-  clock_t begin = std::clock();
   formula = "C520H817N139O147S8";
   threshold = 1e-95; // 2,000M entries -> ca 31 GB of RAM for both arrays
   threshold = 1e-75; // 755M entries -> ca. 11.8 GB of RAM for both arrays
@@ -28,7 +27,7 @@ int main()
 
   int64_t tsize;
 
-  if (true)
+  #if (false)
   {
     clock_t begin = std::clock();
     Iso iso(formula.c_str());
@@ -40,7 +39,7 @@ int main()
     std::cout << "Using IsoThresholdGeneratorCntr, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
     tsize = size;
   }
-
+  #endif
   // fast
   if (true)
   {
@@ -52,6 +51,7 @@ int main()
     std::cout << size << std::endl;
     clock_t end = std::clock();
     std::cout << "Using IsoThresholdGeneratorFast, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+    tsize = size;
   }
 
 
@@ -106,6 +106,7 @@ int main()
     for(int ii=0; ii<tsize; ii++)
         sum += T[ii];
     clock_t end = std::clock();
+    delete[] T;
     std::cout << sum << std::endl;
     std::cout << "Memory sum: it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
   }
@@ -116,14 +117,19 @@ int main()
   {
     IsoThresholdGenerator generator_old(formula.c_str(), threshold, absolute, tabSize, hashSize);
     IsoThresholdGeneratorFast generator_new(formula.c_str(), threshold, absolute, tabSize, hashSize);
+    int confspace_size = generator_old.getAllDim();
+    int confspace_old[confspace_size];
+    int confspace_new[confspace_size];
 
     while(generator_new.advanceToNextConfiguration())
     {
         assert(generator_old.advanceToNextConfiguration());
         assert(generator_new.eprob() == generator_old.eprob());
-//        std::cout << generator_new.lprob() << " " << generator_old.lprob() << std::endl;
         assert(generator_new.lprob() == generator_old.lprob());
         assert(generator_new.mass()  == generator_old.mass());
+        generator_old.get_conf_signature(confspace_old);
+        generator_new.get_conf_signature(confspace_new);
+        assert(0 == memcmp(confspace_old, confspace_new, confspace_size*sizeof(int)));
     }
     assert(!generator_old.advanceToNextConfiguration());
     std::cout << "Results are the same for old and new!" << std::endl;
