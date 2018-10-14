@@ -253,7 +253,6 @@ private:
     const double* lProbs_ptr;
     const double* mass_ptr;
     const double* exp_ptr;
-    double* partialLProbs_first;
     double* partialLProbs_second;
     int* counter_first;
     bool empty;
@@ -293,9 +292,9 @@ public:
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         (*counter_first)++; // counter[0]++;
-        *partialLProbs_first = *partialLProbs_second + *lProbs_ptr;
+        *partialLProbs = *partialLProbs_second + *lProbs_ptr;
         lProbs_ptr++;
-        if(ISOSPEC_LIKELY(*partialLProbs_first >= Lcutoff))
+        if(ISOSPEC_LIKELY(*partialLProbs >= Lcutoff))
             return true;
 
         // If we reached this point, a carry is needed

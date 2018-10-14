@@ -469,7 +469,6 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
       exp_ptr = marginalResults[0]->get_eProbs_ptr();
 
       counter_first = counter;
-      partialLProbs_first = partialLProbs;
       partialLProbs_second = partialLProbs;
       partialLProbs_second++;
 
