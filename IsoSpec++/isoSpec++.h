@@ -252,6 +252,7 @@ private:
 
     const double* lProbs_ptr;
     double* partialLProbs_second;
+    double partialLProbs_second_val;
     int* counter_first;
     bool empty;
 
@@ -290,7 +291,7 @@ public:
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         (*counter_first)++; // counter[0]++;
-        *partialLProbs = *partialLProbs_second + *lProbs_ptr;
+        *partialLProbs = partialLProbs_second_val + *lProbs_ptr;
         lProbs_ptr++;
         if(ISOSPEC_LIKELY(*partialLProbs >= Lcutoff))
             return true;
@@ -349,7 +350,8 @@ private:
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
         }
-        partialLProbs[0] = partialLProbs[1] + marginalResults[0]->get_lProb(counter[0]);
+        partialLProbs_second_val = *partialLProbs_second;
+        partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
     }
 };
 
