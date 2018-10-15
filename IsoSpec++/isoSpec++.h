@@ -264,14 +264,12 @@ public:
             for(int ii=0; ii<dimNumber; ii++)
             {
                 int jj = marginalOrder[ii];
-                printArray(marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]);
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
         else
             for(int ii=0; ii<dimNumber; ii++)
             {
-                printArray(marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]);
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
