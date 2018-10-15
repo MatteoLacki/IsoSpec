@@ -90,10 +90,10 @@ int main()
     Iso iso(formula.c_str());
     IsoThresholdGenerator generator (std::move(iso), threshold, absolute, tabSize, hashSize); 
     double total = 0.0;
-    while (generator.advanceToNextConfiguration()) total += generator.mass();
+    while (generator.advanceToNextConfiguration()) total += generator.lprob();
     std::cout << total << std::endl;
     clock_t end = std::clock();
-    std::cout << "sum of masses: Using new, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
+    std::cout << "sum of lprobs: Using new, it took " <<   double(end - begin) / CLOCKS_PER_SEC << "s "<< std::endl;
   }
   #endif
 
