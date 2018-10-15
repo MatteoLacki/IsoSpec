@@ -470,6 +470,8 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     else
         terminate_search();
 
+    lProbs_ptr--;
+
 
 }
 

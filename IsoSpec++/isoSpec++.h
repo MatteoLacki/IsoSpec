@@ -261,6 +261,7 @@ public:
     {
         for(int ii=0; ii<dimNumber; ii++)
         {
+            printArray(marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]);
             memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
             space += isotopeNumbers[ii];
         }
@@ -292,10 +293,10 @@ public:
     {
         (*counter_first)++; // counter[0]++;
 //        *partialLProbs = partialLProbs_second_val + *lProbs_ptr;
+        lProbs_ptr++;
 
         if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
         {
-            lProbs_ptr++;
             return true;
         }
 
@@ -303,7 +304,6 @@ public:
 
         int idx = 0;
         lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
-        lProbs_ptr++;
 
         int * cntr_ptr = counter;
 
@@ -330,7 +330,7 @@ public:
     }
 
 
-    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr-1)); };
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
     ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
 
