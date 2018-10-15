@@ -249,6 +249,7 @@ private:
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
     PrecalculatedMarginal** marginalResultsUnsorted;
+    int* marginalOrder;
 
     const double* lProbs_ptr;
     double* partialLProbs_second;
@@ -259,12 +260,22 @@ private:
 public:
     inline void get_conf_signature(int* space) const override final
     {
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            printArray(marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]);
-            memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
+        if(marginalOrder != nullptr)
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                int jj = marginalOrder[ii];
+                printArray(marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]);
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+        else
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                printArray(marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]);
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+
     };
 
     //! The move-constructor.
@@ -285,6 +296,8 @@ public:
         if (marginalResultsUnsorted != marginalResults)
             delete[] marginalResultsUnsorted;
         dealloc_table(marginalResults, dimNumber); 
+        if(marginalOrder != nullptr)
+            delete[] marginalOrder;
     };
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}

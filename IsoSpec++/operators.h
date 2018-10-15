@@ -196,10 +196,12 @@ namespace IsoSpec
 
 class OrderMarginalsBySizeDecresing
 {
+    PrecalculatedMarginal const* const* const T;
 public:
-    inline bool operator()(const PrecalculatedMarginal* m1, const PrecalculatedMarginal* m2)
+    inline OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * _T) : T(_T) {};
+    inline bool operator()(int m1, int m2)
     {
-        return m1->get_no_confs() > m2->get_no_confs();
+        return T[m1]->get_no_confs() > T[m2]->get_no_confs();
     }
 };
 

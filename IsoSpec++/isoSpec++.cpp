@@ -442,13 +442,25 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     if(reorder_marginals)
     {
+//        memcpy(marginalResults, marginalResultsUnsorted, dimNumber * sizeof(PrecalculatedMarginal*));
+        OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
+        marginalOrder = new int[dimNumber];
+
+        for(int ii=0; ii<dimNumber; ii++)
+            marginalOrder[ii] = ii;
+
+        std::sort(marginalOrder, marginalOrder + dimNumber, comparator);
         marginalResults = new PrecalculatedMarginal*[dimNumber];
-        memcpy(marginalResults, marginalResultsUnsorted, dimNumber * sizeof(PrecalculatedMarginal*));
-        OrderMarginalsBySizeDecresing comparator;
-        std::sort(marginalResults, marginalResults + dimNumber, comparator);
+        
+        for(int ii=0; ii<dimNumber; ii++)
+            marginalResults[ii] = marginalResultsUnsorted[marginalOrder[ii]];
+
     }
     else
+    {
         marginalResults = marginalResultsUnsorted;
+        marginalOrder = nullptr;
+    }
 
     if(dimNumber > 1)
         maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
