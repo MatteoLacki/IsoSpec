@@ -155,7 +155,7 @@ public:
     /*!
         \return The log-probability of the current isotopologue.
     */
-    inline double lprob() const { return partialLProbs[0]; };
+    virtual inline double lprob() const { return partialLProbs[0]; };
 
     //! Get the mass of the current isotopologue.
     /*!
@@ -252,7 +252,7 @@ private:
 
     const double* lProbs_ptr;
     double* partialLProbs_second;
-    double partialLProbs_second_val;
+    double partialLProbs_second_val, lcfmsv;
     int* counter_first;
     bool empty;
 
@@ -291,10 +291,13 @@ public:
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         (*counter_first)++; // counter[0]++;
-        *partialLProbs = partialLProbs_second_val + *lProbs_ptr;
-        lProbs_ptr++;
-        if(ISOSPEC_LIKELY(*partialLProbs >= Lcutoff))
+//        *partialLProbs = partialLProbs_second_val + *lProbs_ptr;
+
+        if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
+        {
+            lProbs_ptr++;
             return true;
+        }
 
         // If we reached this point, a carry is needed
 
@@ -327,7 +330,7 @@ public:
     }
 
 
-
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr-1)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
     ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
 
@@ -352,6 +355,7 @@ private:
         }
         partialLProbs_second_val = *partialLProbs_second;
         partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = Lcutoff - partialLProbs_second_val;
     }
 };
 
