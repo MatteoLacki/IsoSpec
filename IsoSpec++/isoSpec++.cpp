@@ -462,13 +462,15 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
         marginalOrder = nullptr;
     }
 
+    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
+
     if(dimNumber > 1)
         maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
 
     for(int ii=1; ii<dimNumber-1; ii++)
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
-    lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+    lProbs_ptr = lProbs_ptr_start;
 
     counter_first = counter;
     partialLProbs_second = partialLProbs;

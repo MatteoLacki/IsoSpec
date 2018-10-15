@@ -252,6 +252,7 @@ private:
     int* marginalOrder;
 
     const double* lProbs_ptr;
+    const double* lProbs_ptr_start;
     double* partialLProbs_second;
     double partialLProbs_second_val, lcfmsv;
     int* counter_first;
@@ -260,6 +261,7 @@ private:
 public:
     inline void get_conf_signature(int* space) const override final
     {
+        counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
             for(int ii=0; ii<dimNumber; ii++)
             {
@@ -302,8 +304,6 @@ public:
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
-        (*counter_first)++; // counter[0]++;
-//        *partialLProbs = partialLProbs_second_val + *lProbs_ptr;
         lProbs_ptr++;
 
         if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
@@ -314,7 +314,7 @@ public:
         // If we reached this point, a carry is needed
 
         int idx = 0;
-        lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+        lProbs_ptr = lProbs_ptr_start;
 
         int * cntr_ptr = counter;
 
@@ -342,8 +342,8 @@ public:
 
 
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
-    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(counter[0]); };
-    ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(counter[0]); };
+    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(lProbs_ptr - lProbs_ptr_start); };
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
