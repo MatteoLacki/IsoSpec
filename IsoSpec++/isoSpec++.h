@@ -255,7 +255,6 @@ private:
     const double* lProbs_ptr_start;
     double* partialLProbs_second;
     double partialLProbs_second_val, lcfmsv;
-    int* counter_first;
     bool empty;
 
 public:
