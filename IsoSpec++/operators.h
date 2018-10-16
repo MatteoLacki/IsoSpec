@@ -120,3 +120,24 @@ public:
 
 } // namespace IsoSpec
 
+#include "marginalTrek++.h"
+
+namespace IsoSpec
+{
+
+class OrderMarginalsBySizeDecresing
+{
+    PrecalculatedMarginal const* const* const T;
+public:
+    inline OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * _T) : T(_T) {};
+    inline bool operator()(int m1, int m2)
+    {
+        return T[m1]->get_no_confs() > T[m2]->get_no_confs();
+    }
+};
+
+
+} // namespace IsoSpec
+
+
+

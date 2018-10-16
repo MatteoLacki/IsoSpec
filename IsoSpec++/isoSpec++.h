@@ -144,19 +144,19 @@ public:
     /*!
         \return The log-probability of the current isotopologue.
     */
-    inline double lprob() const { return partialLProbs[0]; };
+    virtual double lprob() const { return partialLProbs[0]; };
 
     //! Get the mass of the current isotopologue.
     /*!
         \return The mass of the current isotopologue.
     */
-    inline double mass()  const { return partialMasses[0]; };
+    virtual double mass()  const { return partialMasses[0]; };
 
     //! Get the probability of the current isotopologue.
     /*!
         \return The probability of the current isotopologue.
     */
-    inline double eprob() const { return partialExpProbs[0]; };
+    virtual double eprob() const { return partialExpProbs[0]; };
 
     //TODO: what is this???
     virtual void get_conf_signature(int* space) const = 0;
@@ -225,29 +225,48 @@ public:
 
 
 
+
 //! The generator of isotopologues above a given threshold value.
 /*!
     Attention: the calculated configurations are only partially ordeded and the user should not assume they will be ordered.
-    This algorithm computes N isotopologues in O(N) thanks to storing data in FIFO Queue.
+    This algorithm computes N isotopologues in O(N).
     It is a considerable advantage w.r.t. the IsoOrderedGenerator.
 */
 class IsoThresholdGenerator: public IsoGenerator
 {
 private:
-    int*                    counter;
-    double*                 maxConfsLPSum;
-    const double            Lcutoff;
+
+    int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
+    double*                 maxConfsLPSum;      
+    const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
+    PrecalculatedMarginal** marginalResultsUnsorted;
+    int* marginalOrder;
+
+    const double* lProbs_ptr;
+    const double* lProbs_ptr_start;
+    double* partialLProbs_second;
+    double partialLProbs_second_val, lcfmsv;
+    bool empty;
 
 public:
-    bool advanceToNextConfiguration() override final;
     inline void get_conf_signature(int* space) const override final
     {
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            memcpy(space, marginalResults[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
+        counter[0] = lProbs_ptr - lProbs_ptr_start;
+        if(marginalOrder != nullptr)
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                int jj = marginalOrder[ii];
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+        else
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+
     };
 
     //! The move-constructor.
@@ -259,30 +278,93 @@ public:
         \param tabSize The size of the extension of the table with configurations.
         \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
     */
-    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true,
-                        int _tabSize=1000, int _hashSize=1000);
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
 
-    //! Destructor.
-    inline virtual ~IsoThresholdGenerator() { delete[] counter;
-                                              delete[] maxConfsLPSum;
-                                              dealloc_table(marginalResults, dimNumber); };
+    inline ~IsoThresholdGenerator()
+    {
+        delete[] counter;
+        delete[] maxConfsLPSum;
+        if (marginalResultsUnsorted != marginalResults)
+            delete[] marginalResultsUnsorted;
+        dealloc_table(marginalResults, dimNumber); 
+        if(marginalOrder != nullptr)
+            delete[] marginalOrder;
+    };
 
-    // WTF
+    // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
+    {
+        lProbs_ptr++;
+
+        if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
+        {
+            return true;
+        }
+
+        // If we reached this point, a carry is needed
+
+        int idx = 0;
+        lProbs_ptr = lProbs_ptr_start;
+
+        int * cntr_ptr = counter;
+
+        while(idx<dimNumber-1)
+        {
+            // counter[idx] = 0;
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            // counter[idx]++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+                recalc(idx-1);
+                return true;
+            }
+        }
+
+        terminate_search();
+        return false;
+    }
+
+
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
+    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(lProbs_ptr - lProbs_ptr_start); };
+
+    //! Block the subsequent search of isotopologues.
     void terminate_search();
+
+    /*! Reset the generator to the beginning of the sequence. Allows it to be reused, eg. to go through the conf space once, calculate
+        the amount of space needed to store configurations, then to allocate that memory, and go through it again, this time saving 
+        configurations (and *is* in fact faster than allocating a std::vector and depending on it to grow as needed. This is cheaper
+        than throwing away the generator and making a new one too: marginal distributions don't need to be recalculated. */
+    void reset();
+
+    /*! Count the number of configurations in the distribution. This can be used to pre-allocate enough memory to store it (e.g.
+     * std::vector's reserve() method - this is faster than depending on the vector's dynamic resizing, even though it means that
+     * the configuration space is walked through twice. This method has to be called before the first call to advanceToNextConfiguration
+     * and has undefined results (incl. segfaults) otherwise. */
+    size_t count_confs();
 
 private:
     //! Recalculate the current partial log-probabilities, masses, and probabilities.
-    inline void recalc(int idx)
+    ISOSPEC_FORCE_INLINE void recalc(int idx)
     {
-        for(; idx >=0; idx--)
+        for(; idx > 0; idx--)
         {
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
         }
+        partialLProbs_second_val = *partialLProbs_second;
+        partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = Lcutoff - partialLProbs_second_val;
     }
-
-
 };
 
 
