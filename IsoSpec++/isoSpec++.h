@@ -353,6 +353,12 @@ public:
         than throwing away the generator and making a new one too: marginal distributions don't need to be recalculated. */
     void reset();
 
+    /*! Count the number of configurations in the distribution. This can be used to pre-allocate enough memory to store it (e.g.
+     * std::vector's reserve() method - this is faster than depending on the vector's dynamic resizing, even though it means that
+     * the configuration space is walked through twice. This method has to be called before the first call to advanceToNextConfiguration
+     * and has undefined results (incl. segfaults) otherwise. */
+    size_t count_confs();
+
 private:
     //! Recalculate the current partial log-probabilities, masses, and probabilities.
     ISOSPEC_FORCE_INLINE void recalc(int idx)

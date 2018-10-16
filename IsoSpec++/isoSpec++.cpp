@@ -494,6 +494,16 @@ void IsoThresholdGenerator::terminate_search()
         counter[ii] = marginalResults[ii]->get_no_confs();
 }
 
+size_t IsoThresholdGenerator::count_confs()
+{
+    // Smarter algorithm forthcoming in 2.0
+    size_t ret = 0;
+    while(advanceToNextConfiguration())
+        ret++;
+    reset();
+    return ret;
+}
+
 void IsoThresholdGenerator::reset()
 { //TODO: needs testing
     if(empty)
