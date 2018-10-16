@@ -1,20 +1,22 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 ----------------------------------
-HEAD
+1.9.0alpha3
 
 - Brought C++/Python examples up to the new API
 - Small change of Python API 
+- Speed improvements in IsoThresholdGenerator
+- Code cleanup, ripped out much of experimental stuff which will be postponed until 2.0
 
 ----------------------------------
-1.9.0a2
+1.9.0alpha2
 
 - Rudimentary module for backward-compatibility with IsoSpecPy 1.0.X API
 - Bugfix (and usability improvement) for getting configurations in 
   IsoThreshold
 
 ----------------------------------
-1.9.0a1
+1.9.0alpha1
 
 - Almost complete rewrite of the entire codebase
 - Improvements in the core algorithms, resulting in 10x-1000x speed increase
