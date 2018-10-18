@@ -481,7 +481,10 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
         counter[0]--;
     }
     else
+    {
         terminate_search();
+        lcfmsv = std::numeric_limits<double>::infinity();
+    }
 
     lProbs_ptr--;
 
@@ -491,7 +494,12 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 void IsoThresholdGenerator::terminate_search()
 {
     for(int ii=0; ii<dimNumber; ii++)
-        counter[ii] = marginalResults[ii]->get_no_confs();
+    {
+        counter[ii] = marginalResults[ii]->get_no_confs()-1;
+        partialLProbs[ii] = -std::numeric_limits<double>::infinity();
+    }
+    partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
+    lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs();
 }
 
 size_t IsoThresholdGenerator::count_confs()
