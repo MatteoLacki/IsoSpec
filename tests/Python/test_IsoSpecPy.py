@@ -15,12 +15,13 @@ except ImportError:
 
 # Correctness tests comparing IsoSpecPy 1.0.7 and HEAD
 
-#molecules = "H2O1 C100 P1 P100 C1 H100C100O100N100S10 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1N1O1Se1Sn1P1 P1C1Sn1".split()
+#molecules = "H2O1 C100 P1 P100 C1 H100C100O100N100S10 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1N1O1Se1Sn1Se1P1Sn1P1 P1C1Sn1".split()
 molecules = "H2O1 C100 P1 P100 C1".split()
 parameters = map(float, "0.0 0.1 1.0 0.5 0.99 0.01 0.9".split())
 
 def kinda_like(o1, o2):
     if type(o1) in (list, tuple) and type(o2) in (list, tuple) :
+        assert len(o1) == len(o2)
         assert all(kinda_like(oo1, oo2) for oo1, oo2 in zip(o1, o2))
     if type(o1) == type(o2) == float:
         assert o1*o2 >= 0.0 # same sign check
@@ -39,7 +40,7 @@ def confs_from_ordered_generator(formula, target_prob):
     ret = ([], [], [])
     prob = 0.0
     for conf in IsoSpecPy.IsoOrderedGenerator(formula=formula, get_confs=True):
-        if prob >= target_prob:
+        if prob >= target_prob and target_prob < 1.0:
             return ret
         ret[0].append(conf[0])
         prob += exp(conf[1])
@@ -49,11 +50,13 @@ def confs_from_ordered_generator(formula, target_prob):
 
 def confs_from_layered_generator(formula, target_prob):
     ret = ([], [], [])
-    for conf in IsoSpecPy.IsoLayeredGenerator(formula=formula, prob_to_cover = target_prob, get_confs=True):
+    for conf in IsoSpecPy.IsoLayeredGenerator(formula=formula, prob_to_cover = target_prob, get_confs=True, do_trim=True):
         ret[0].append(conf[0])
         ret[1].append(conf[1])
         ret[2].append([item for sublist in conf[2] for item in sublist])
-    return ret
+
+    return sort_confs(ret)
+
 
 for molecule in molecules:
     for parameter in parameters:
@@ -64,9 +67,7 @@ for molecule in molecules:
         assert old_ordered == old_layered
         new_ordered = confs_from_ordered_generator(molecule, parameter)
         assert kinda_like(new_ordered, old_ordered)
-
         new_layered = confs_from_layered_generator(molecule, parameter)
-        print len(new_layered)
         assert new_layered == new_ordered
 
         print("... OK!")
