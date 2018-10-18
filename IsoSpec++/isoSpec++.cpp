@@ -581,7 +581,8 @@ generator_position(-1)
 
     lprobThr = (*reinterpret_cast<double*>(topConf));
 
-    while(advanceToNextLayer()) {};
+    if(targetCoverage > 0.0)
+        while(advanceToNextLayer()) {};
 }
 
 
