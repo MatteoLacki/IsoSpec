@@ -30,7 +30,8 @@ class IsoFFI:
                                        double _target_coverage,
                                        double _percentage_to_expand,
                                        int _tabSize,
-                                       int _hashSize);
+                                       int _hashSize,
+                                       bool _do_trim);
         double massIsoLayeredGenerator(void* generator); double lprobIsoLayeredGenerator(void* generator); void methodIsoLayeredGenerator(void* generator); bool advanceToNextConfigurationIsoLayeredGenerator(void* generator); void deleteIsoLayeredGenerator(void* generator); void get_conf_signatureIsoLayeredGenerator(void* generator, int* space);
 
 
