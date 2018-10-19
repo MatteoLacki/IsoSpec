@@ -313,18 +313,23 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     if(reorder_marginals)
     {
-//        memcpy(marginalResults, marginalResultsUnsorted, dimNumber * sizeof(PrecalculatedMarginal*));
         OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
-        marginalOrder = new int[dimNumber];
+        int* tmpMarginalOrder = new int[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)
-            marginalOrder[ii] = ii;
+            tmpMarginalOrder[ii] = ii;
 
-        std::sort(marginalOrder, marginalOrder + dimNumber, comparator);
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
         marginalResults = new PrecalculatedMarginal*[dimNumber];
         
         for(int ii=0; ii<dimNumber; ii++)
-            marginalResults[ii] = marginalResultsUnsorted[marginalOrder[ii]];
+            marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
+
+        marginalOrder = new int[dimNumber];
+        for(int ii = 0; ii<dimNumber; ii++)
+            marginalOrder[tmpMarginalOrder[ii]] = ii;
+
+        delete[] tmpMarginalOrder;
 
     }
     else
