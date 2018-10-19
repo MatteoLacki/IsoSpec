@@ -1,6 +1,6 @@
 import sys
 import IsoSpecPy
-from math import exp
+from math import exp, log
 
 def sprint(s):
     sys.stdout.write(str(s))
@@ -13,11 +13,13 @@ except ImportError:
     print("You must install it, using:")
     print("pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
 
-# Correctness tests comparing IsoSpecPy 1.0.7 and HEAD
+# Correctness tests comparing IsoSpecPy 1.0.7 and HEAD. The trouble here is that due to slightly different way things are calculated
+# we get different rounding errors, and therefore slightly different results - and that's OK. The function kinda_like reflects that
+# - but is still WAAAY too strict. Often we can justifiably get different configurations, or different counts of configurations...
 
-#molecules = "H2O1 C100 P1 P100 C1 H100C100O100N100S10 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1N1O1Se1Sn1Se1P1Sn1P1 P1C1Sn1".split()
-molecules = "H2O1 C100 P1 P100 C1".split()
-parameters = map(float, "0.0 0.1 1.0 0.5 0.99 0.01 0.9".split())
+molecules = "H2O1 C100 P1 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1".split()
+
+parameters = map(float, "0.0 0.1 0.5 0.01 0.9".split())
 
 def kinda_like(o1, o2):
     if type(o1) in (list, tuple) and type(o2) in (list, tuple) :
@@ -57,18 +59,32 @@ def confs_from_layered_generator(formula, target_prob):
 
     return sort_confs(ret)
 
+def confs_from_threshold_generator(formula, target_prob):
+    ret = ([], [], [])
+    for conf in IsoSpecPy.IsoThresholdGenerator(formula=formula, threshold = target_prob, absolute = True, get_confs=True):
+        ret[0].append(conf[0])
+        ret[1].append(conf[1])
+        ret[2].append([item for sublist in conf[2] for item in sublist])
+
+    return sort_confs(ret)
+
+
 
 for molecule in molecules:
     for parameter in parameters:
         sprint("{} {}... ".format(molecule, parameter))
         old_ordered = OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="ordered").getConfs()
         sprint(len(old_ordered[0]))
-        old_layered = sort_confs(OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="layered_estimating", trim = True).getConfs())
-        assert old_ordered == old_layered
         new_ordered = confs_from_ordered_generator(molecule, parameter)
         assert kinda_like(new_ordered, old_ordered)
         new_layered = confs_from_layered_generator(molecule, parameter)
-        assert new_layered == new_ordered
+        assert kinda_like(new_layered, new_ordered)
+        if len(new_ordered[1]) > 0:
+            new_threshold = exp(new_ordered[1][-1]-0.00000001)
+        else:
+            new_threshold = 1.1
+        new_threshold_res = confs_from_threshold_generator(molecule, new_threshold)
+        assert kinda_like(new_ordered, new_threshold_res)
 
         print("... OK!")
 
