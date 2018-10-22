@@ -556,6 +556,7 @@ allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
 targetCoverage(_targetCoverage),
 percentageToExpand(_percentageToExpand),
+estimateThresholds(false), // EstimateThresholds is too experimental to be exposed for now...
 do_trim(trim),
 layers(0),
 generator_position(-1)
