@@ -17,9 +17,9 @@ except ImportError:
 # we get different rounding errors, and therefore slightly different results - and that's OK. The function kinda_like reflects that
 # - but is still WAAAY too strict. Often we can justifiably get different configurations, or different counts of configurations...
 
-molecules = "H2O1 C100 P1 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1".split()
+molecules = "H2O1 C100 P1 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5 Sn5 Se2Sn2C2O2N2S2B2He2U2Na2Cl2".split()
 
-parameters = map(float, "0.0 0.1 0.5 0.01 0.9".split())
+parameters = map(float, "0.0 0.1 0.5 0.01 0.9 0.99 0.01 0.0001 0.999 0.362 0.852348".split())
 
 def kinda_like(o1, o2):
     if type(o1) in (list, tuple) and type(o2) in (list, tuple) :
