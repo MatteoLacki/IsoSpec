@@ -31,6 +31,7 @@
 #include <string>
 #include <limits>
 #include <assert.h>
+#include <ctype.h>
 #include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
@@ -142,16 +143,6 @@ double Iso::getHeaviestPeakMass() const
 
 
 
-inline int str_to_int(const string& s)
-{
-    char* endptr[1];
-    const char* c_s = s.c_str();
-    int ret = (int) strtol(c_s, endptr, 10);
-    if (c_s == endptr[0])
-        throw invalid_argument("Invalid formula");
-    return ret;
-}
-
 Iso::Iso(const char* formula) :
 disowned(false),
 allDim(0),
@@ -169,34 +160,36 @@ modeLProb(0.0)
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
-    string cpp_formula(formula);
-    int last_modeswitch = 0;
-    int mode = 0;
-    int pos = 0;
+    size_t slen = strlen(formula);
     std::vector<string> elements;
     std::vector<int> numbers;
-    while(formula[pos] != '\0')
+
+    if(slen == 0)
+        throw invalid_argument("Invalid formula: can't be empty");
+
+    if(!isdigit(formula[slen-1]))
+        throw invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
+
+    for(size_t ii=0; ii<slen; ii++)
+        if(!isdigit(formula[ii]) && !isalpha(formula[ii]))
+            throw invalid_argument("Ivalid formula: contains invalid (non-digit, non-alpha) character");
+
+    size_t position = 0;
+    size_t elem_end = 0;
+    size_t digit_end = 0;
+
+    while(position < slen)
     {
-        if(isdigit(formula[pos]) && mode == 0)
-        {
-            elements.push_back(cpp_formula.substr(last_modeswitch, pos-last_modeswitch));
-            last_modeswitch = pos;
-            mode = 1;
-        }
-        else if(isalpha(formula[pos]) && mode == 1)
-        {
-            numbers.push_back(str_to_int(cpp_formula.substr(last_modeswitch, pos-last_modeswitch)));
-            last_modeswitch = pos;
-            mode = 0;
-        }
-        pos++;
+        elem_end = position;
+        while(isalpha(formula[elem_end]))
+            elem_end++;
+        digit_end = elem_end;
+        while(isdigit(formula[digit_end]))
+            digit_end++;
+        elements.push_back(std::string(&formula[position], elem_end-position));
+        numbers.push_back(atoi(&formula[elem_end]));
+        position = digit_end;
     }
-
-    numbers.push_back(str_to_int(cpp_formula.substr(last_modeswitch, pos)));
-
-
-    if(elements.size() != numbers.size())
-        throw invalid_argument("Invalid formula");
 
     std::vector<int> element_indexes;
 
