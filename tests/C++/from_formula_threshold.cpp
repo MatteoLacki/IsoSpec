@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 	double target_prob = atof(argv[2]);
-	IsoThresholdGenerator i(argv[1], target_prob, true, 100, 100, false);
+	IsoThresholdGenerator i(argv[1], target_prob, true, 100, 100, true);
         int confspace[1000];
         int no_visited = 0;
         double total_prob = 0.0;
