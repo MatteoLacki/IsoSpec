@@ -627,18 +627,12 @@ bool IsoLayeredGenerator::advanceToNextLayer()
 
         if(top_lprob >= lprobThr)
         {
-#ifdef DEBUG
-            hits += 1;
-#endif /* DEBUG */
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
         }
         else
         {
-#ifdef DEBUG
-            moves += 1;
-#endif /* DEBUG */
             next->push_back(topConf);
             continue;
         }
@@ -688,58 +682,16 @@ bool IsoLayeredGenerator::advanceToNextLayer()
     {
         if(prob_in_this_layer.get() < targetCoverage)
         {
-#ifdef DEBUG
-            Summator testDupa(prob_in_this_layer);
-            for (std::vector<void*>::iterator it = next->begin(); it != next->end(); it++) {
-                testDupa.add(exp(getLProb(*it)));
-            }
-            std::cout << "Prob(Layer) = " << prob_in_this_layer.get() << std::endl;
-            std::cout << "Prob(Layer)+Prob(Fringe) = " << testDupa.get() << std::endl;
-            std::cout << "Layers = " << layers << std::endl;
-            std::cout << std::endl;
-#endif /* DEBUG */
-
-        // // This was an attempt to merge two methods: layered and layered_estimating
-        // // that does not work so good as predicted.
-//             if( estimateThresholds and ( prob_in_this_layer.get() >= targetCoverage*.99 ) ){
-//                 estimateThresholds = false;
-//                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
-// #ifdef DEBUG
-//                 std::cout << "We switch!" << std::endl;
-// #endif /* DEBUG */
-//             }
-
-#ifdef DEBUG
-                std::cout << "percentageToExpand = " << percentageToExpand << std::endl;
-#endif /* DEBUG */
-
             std::vector<void*>* nnew = current;
             nnew->clear();
             current = next;
             next = nnew;
             int howmany = floor(current->size()*percentageToExpand);
-            if(estimateThresholds){
-                // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
-                // lprobThr += log((1.0-targetCoverage))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
-                lprobThr += log(1.0-targetCoverage) + log(1.0-(1.0-percentageToExpand)/pow(layers, 2.0)) - log(1.0 -prob_in_this_layer.get());
-                if(lprobThr > maxFringeLprob){
-                    lprobThr = maxFringeLprob;
-                    estimateThresholds = false;
-                    percentageToExpand = .3;
-#ifdef DEBUG
-                    std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
-#endif /* DEBUG */
-                    lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
-                }
-            } else
-                lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
+            lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
             totalProb = prob_in_this_layer;
         }
         else
         {
-#ifdef DEBUG
-            std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
-#endif /* DEBUG */
             delete next;
             next = nullptr;
             delete current;
@@ -795,11 +747,7 @@ bool IsoLayeredGenerator::advanceToNextLayer()
                     else
                         end = loweridx;
                 }
-            int accend = newaccepted.size()-accepted_in_this_layer+start+1;
-    #ifdef DEBUG
-                std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer
-            << "    Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
-    #endif /* DEBUG */
+                int accend = newaccepted.size()-accepted_in_this_layer+start+1;
 
                 totalProb = qsprob;
                 newaccepted.resize(accend);

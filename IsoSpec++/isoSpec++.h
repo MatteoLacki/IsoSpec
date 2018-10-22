@@ -400,10 +400,6 @@ private:
     bool                        do_trim;
     int layers;
     size_t generator_position;
-#ifdef DEBUG
-    int moves = 0;
-    int hits = 0;
-#endif /* DEBUG */
 
     bool advanceToNextLayer(); 
 
