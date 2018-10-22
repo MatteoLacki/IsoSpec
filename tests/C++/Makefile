@@ -19,11 +19,16 @@ formula:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_debug
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -fsanitize=address -o ./from_formula_asan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -fsanitize=memory,undefined -o ./from_formula_memsan
+
 
 formula_threshold:
 	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_gcc
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_dbg
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -fsanitize=address -o ./from_formula_threshold_asan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -fsanitize=memory,undefined -o ./from_formula_threshold_memsan
 
 test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(TESTADDRFLAGS) $(SRCFILES) test.cpp -o ./test-clang
