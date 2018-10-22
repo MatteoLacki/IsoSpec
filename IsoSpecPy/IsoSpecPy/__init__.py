@@ -250,7 +250,7 @@ class IsoOrderedGenerator(IsoGenerator):
 
 
 
-__version__ = "1.9.0a3"
+__version__ = "1.9.0b1"
 
 
 # For compatibility with 1.0.X
