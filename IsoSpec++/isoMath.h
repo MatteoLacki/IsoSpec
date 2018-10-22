@@ -19,7 +19,9 @@
 #include <cmath>
 #include <fenv.h>
 
+#if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
 #define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
+#endif
 
 namespace IsoSpec
 {
