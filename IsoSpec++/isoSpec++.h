@@ -396,7 +396,6 @@ private:
     double                      lprobThr;
     double                      targetCoverage;
     double                      percentageToExpand;
-    bool                        estimateThresholds;
     bool                        do_trim;
     int layers;
     size_t generator_position;
