@@ -1,6 +1,6 @@
 The easiest (if not the most elegant) way to compile the example is:
 
-clang++ water.cpp ../../IsoSpec++/unity-build.cpp -std=c++11 -lpthread
+clang++ water.cpp ../../IsoSpec++/unity-build.cpp -std=c++11
 
 You may replace clang++ with g++ if you do not have LLVM installed.
 
