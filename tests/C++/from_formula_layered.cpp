@@ -31,7 +31,7 @@ size_t test_layered(const char* formula, double total_prob, bool print_confs)
 		no_visited += 1;
 		if(print_confs)
 		{
-			std::cout << "EPROB: " << i.eprob() << "  \tMASS: " << i.mass() << "\tCONF: ";
+			std::cout << "PROB: " << i.prob() << "  \tMASS: " << i.mass() << "\tCONF: ";
 			i.get_conf_signature(space);
 			for(int ii=0; ii<i.getAllDim(); ii++)
 			    std::cout << space[ii] << " ";

@@ -39,11 +39,11 @@ size_t test_threshold_simple(const char* formula, double threshold, bool print_c
 	{
 		if(print_confs)
 		{
-                	std::cout << "lprob: " << i.lprob() << " prob: " << i.eprob() << " log(prob): " << log(i.eprob()) << " mass: " << i.mass() << " conf: ";
+                	std::cout << "lprob: " << i.lprob() << " prob: " << i.prob() << " log(prob): " << log(i.prob()) << " mass: " << i.mass() << " conf: ";
                 	printArray<int>(confspace, i.getAllDim());
 		}
 		no_visited += 1;
-                total_prob += i.eprob();
+                total_prob += i.prob();
 	}
 	delete[] confspace;
 	return no_visited;

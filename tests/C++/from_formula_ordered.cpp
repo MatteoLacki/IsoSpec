@@ -37,11 +37,11 @@ size_t test_ordered(const char* formula, double total_prob, bool print_confs)
         int* space = new int[i.getAllDim()];
 	while(target_prob > 0.0 && i.advanceToNextConfiguration())
 	{
-		target_prob -= i.eprob();
+		target_prob -= i.prob();
 		no_visited += 1;
 		if(print_confs)
 		{
-			std::cout << "EPROB: " << i.eprob() << "  \tMASS: " << i.mass() << "\tCONF: ";
+			std::cout << "PROB: " << i.prob() << "  \tMASS: " << i.mass() << "\tCONF: ";
 			i.get_conf_signature(space);
 			for(int ii=0; ii<i.getAllDim(); ii++)
 			    std::cout << space[ii] << " ";

@@ -44,17 +44,17 @@ size_t test_threshold(const char* formula, double threshold, bool print_confs)
                 assert(i2.advanceToNextConfiguration());
                 assert(i3.advanceToNextConfiguration());
 		if(print_confs)
-                	std::cout << "lprob: " << i.lprob() << " prob: " << i.eprob() << " log(prob): " << log(i.eprob()) << " mass: " << i.mass() << " conf: ";
+                	std::cout << "lprob: " << i.lprob() << " prob: " << i.prob() << " log(prob): " << log(i.prob()) << " mass: " << i.mass() << " conf: ";
                 assert(i.lprob() == i2.lprob());
                 assert(i.mass() == i2.mass());
-                assert(i.eprob() == i2.eprob());
+                assert(i.prob() == i2.prob());
                 i.get_conf_signature(confspace);
                 i2.get_conf_signature(confspace2);
                 assert(memcmp(confspace, confspace2, i.getAllDim()*sizeof(int)) == 0);
 		if(print_confs)
                 	printArray<int>(confspace, i.getAllDim());
 		no_visited += 1;
-                total_prob += i.eprob();
+                total_prob += i.prob();
 	}
         delete[] confspace;
         delete[] confspace2;
