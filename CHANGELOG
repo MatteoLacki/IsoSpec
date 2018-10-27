@@ -1,14 +1,18 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 ----------------------------------
+1.9.0beta2
+
+- API change: rename eprob() functions to prob()
+- Added more tests
+- Some bugfixes
+
+----------------------------------
 1.9.0beta1
 
 - Added more tests
 - Code cleanups
 - Some bugfixes
-All outstanding issues that we are aware of are now fixed, all that remains is to write 
-some more comprehensive tests, docs and examples, but the library code itself looks ready 
-for release.
 
 ----------------------------------
 1.9.0alpha3
