@@ -6,12 +6,17 @@
 #include "unity-build.cpp"
 #include <vector>
 
+#if !defined(ISOSPEC_TESTS_MEMSAN)
 #define TEST(formula, prob, function) \
 std::cout << "Testing " << formula << " prob: " << prob << " function: " << #function << "..." << std::flush; \
 tmp = function(formula, prob, false); \
 std::cout << " " << tmp << " confs." << std::endl; \
 total += tmp;
-
+#else
+#define TEST(formula, prob, function) \
+tmp = function(formula, prob, false); \
+total += tmp;
+#endif
 
 int main()
 {
