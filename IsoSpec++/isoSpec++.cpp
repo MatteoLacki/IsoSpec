@@ -255,13 +255,13 @@ IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     Iso(std::move(iso)),
     partialLProbs(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialMasses(alloc_partials ? new double[dimNumber+1] : nullptr),
-    partialExpProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
+    partialProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
 {
     if(alloc_partials)
     {
         partialLProbs[dimNumber] = 0.0;
         partialMasses[dimNumber] = 0.0;
-        partialExpProbs[dimNumber] = 1.0;
+        partialProbs[dimNumber] = 1.0;
     }
 }
 
@@ -272,8 +272,8 @@ IsoGenerator::~IsoGenerator()
         delete[] partialLProbs; 
     if(partialMasses != nullptr)
         delete[] partialMasses; 
-    if(partialExpProbs != nullptr)
-        delete[] partialExpProbs; 
+    if(partialProbs != nullptr)
+        delete[] partialProbs; 
 }
 
 
@@ -410,7 +410,7 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
     partialLProbs = &currentLProb;
     partialMasses = &currentMass;
-    partialExpProbs = &currentEProb;
+    partialProbs = &currentProb;
 
     marginalResults = new MarginalTrek*[dimNumber];
 
@@ -455,7 +455,7 @@ IsoOrderedGenerator::~IsoOrderedGenerator()
     delete[] marginalConfs;
     partialLProbs = nullptr;
     partialMasses = nullptr;
-    partialExpProbs = nullptr;
+    partialProbs = nullptr;
 }
 
 
@@ -472,7 +472,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     currentLProb = *(reinterpret_cast<double*>(topConf));
     currentMass = combinedSum( topConfIsoCounts, masses, dimNumber );
-    currentEProb = exp(currentLProb);
+    currentProb = exp(currentLProb);
 
     ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
@@ -778,7 +778,7 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
     {
         partialLProbs[0] = getLProb(newaccepted[generator_position]);
         partialMasses[0] = combinedSum(getConf(newaccepted[generator_position]), masses, dimNumber);
-        partialExpProbs[0] = exp(partialLProbs[0]);
+        partialProbs[0] = exp(partialLProbs[0]);
         return true;
     }
     else
