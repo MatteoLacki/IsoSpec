@@ -60,6 +60,9 @@ size_t test_threshold(const char* formula, double threshold, bool print_confs)
         delete[] confspace2;
         assert(!i2.advanceToNextConfiguration());
         assert(!i3.advanceToNextConfiguration());
+	assert(!i.advanceToNextConfiguration());
+	assert(!i2.advanceToNextConfiguration());
+	assert(!i3.advanceToNextConfiguration());
 	return no_visited;
 
 }
