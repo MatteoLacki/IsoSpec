@@ -272,7 +272,7 @@ IsoGenerator::~IsoGenerator()
     if(partialMasses != nullptr)
         delete[] partialMasses; 
     if(partialProbs != nullptr)
-        delete[] partialProbs; 
+        delete[] partialProbs;
 }
 
 
