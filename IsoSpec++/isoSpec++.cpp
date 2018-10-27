@@ -161,7 +161,10 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
-    std::vector<string> elements;
+    // Yes, it would be more elegant to use std::string here, but it's the only promiment place where it would be used in IsoSpec, and avoiding it here
+    // means we can run the whole thing through Clang's memory sanitizer without the need for instrumented libc++/libstdc++. That's worth messing with char pointers a
+    // little bit.
+    std::vector<std::pair<const char*, size_t> > elements;
     std::vector<int> numbers;
 
     if(slen == 0)
@@ -186,7 +189,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         digit_end = elem_end;
         while(isdigit(formula[digit_end]))
             digit_end++;
-        elements.push_back(std::string(&formula[position], elem_end-position));
+        elements.emplace_back(&formula[position], elem_end-position);
         numbers.push_back(atoi(&formula[elem_end]));
         position = digit_end;
     }
@@ -198,7 +201,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         int idx = -1;
         for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
         {
-            if (elements[i].compare(elem_table_symbol[j]) == 0)
+            if (strncmp(elements[i].first, elem_table_symbol[j], elements[i].second) == 0)
             {
                 idx = j;
                 break;
