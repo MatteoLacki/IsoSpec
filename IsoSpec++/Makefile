@@ -1,4 +1,3 @@
-CXX=clang++
 OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g -Werror
 CXXFLAGS=-std=c++11 -Wall -pedantic -Wextra
