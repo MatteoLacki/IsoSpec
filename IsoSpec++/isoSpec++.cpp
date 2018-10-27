@@ -201,7 +201,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         int idx = -1;
         for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
         {
-            if (strncmp(elements[i].first, elem_table_symbol[j], elements[i].second) == 0)
+            if ((strlen(elem_table_symbol[j]) == elements[i].second) && (strncmp(elements[i].first, elem_table_symbol[j], elements[i].second) == 0))
             {
                 idx = j;
                 break;
@@ -210,7 +210,6 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         if(idx < 0)
             throw invalid_argument("Invalid formula");
         element_indexes.push_back(idx);
-
     }
 
     vector<int> _isotope_numbers;
