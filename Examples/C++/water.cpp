@@ -14,7 +14,7 @@ int main()
     std::cout << "The first configuration has the following parameters: " << std::endl;
     std::cout << "Mass: " << iso.mass() << std::endl;
     std::cout << "log-prob: " << iso.lprob() << std::endl;
-    std::cout << "probability: " << iso.eprob() << std::endl;
+    std::cout << "probability: " << iso.prob() << std::endl;
 
     iso.get_conf_signature(configs);
 
@@ -54,7 +54,7 @@ int main()
     std::cout << "The first configuration has the following parameters: " << std::endl;
     std::cout << "Mass: " << iso.mass() << std::endl;
     std::cout << "log-prob: " << iso.lprob() << std::endl;
-    std::cout << "probability: " << iso.eprob() << std::endl;
+    std::cout << "probability: " << iso.prob() << std::endl;
 
     iso.get_conf_signature(configs);
 
@@ -68,7 +68,7 @@ int main()
     std::cout << "Probabilities of the remaining configurations, in a (guaranteed) nonincreasing order, are: " << std::endl;
 
     while(iso.advanceToNextConfiguration())
-        std::cout << iso.eprob() << std::endl;
+        std::cout << iso.prob() << std::endl;
   }
 
   // TODO: demonstrate other algorithms
