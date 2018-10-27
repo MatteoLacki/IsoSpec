@@ -20,7 +20,7 @@ formula:
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_debug
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -fsanitize=address -o ./from_formula_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -fsanitize=memory,undefined -o ./from_formula_memsan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_memsan
 
 
 formula_threshold:
@@ -28,14 +28,14 @@ formula_threshold:
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_gcc
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_dbg
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -fsanitize=address -o ./from_formula_threshold_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -fsanitize=memory,undefined -o ./from_formula_threshold_memsan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_threshold_memsan
 
 formula_layered:
 	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_gcc
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_dbg
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -fsanitize=address -o ./from_formula_layered_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -fsanitize=memory,undefined -o ./from_formula_layered_memsan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_memsan
 
 
 test:
