@@ -8,19 +8,14 @@ LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
 CXXFLAGS=-std=c++11 -Wall -I../../IsoSpec++ -Wextra -pedantic -lpthread
 SRCFILES=../../IsoSpec++/unity-build.cpp
 
-all: formula_layered
+all: formula_layered formula_ordered formula_threshold
 
-formula-dbg:
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
-	g++-5 $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc-5
-
-formula:
-	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -o ./from_formula_debug
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -fsanitize=address -o ./from_formula_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_memsan
+formula_ordered:
+	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_gcc
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_debug
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_ordered.cpp -fsanitize=address -o ./from_formula_ordered_asan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_ordered.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_ordered_memsan
 
 
 formula_threshold:
