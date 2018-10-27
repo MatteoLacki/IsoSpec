@@ -28,15 +28,18 @@ size_t test_threshold_simple(const char* formula, double threshold, bool print_c
 {
 
 	IsoThresholdGenerator i(formula, threshold, true, 100, 100, true);
+#ifdef TEST_SIZE
         size_t confs_no = i.count_confs();
 	if(print_confs)
         	std::cout << "No. confs is: " << confs_no << std::endl;
         i.reset();
+#endif
         int* confspace = new int[i.getAllDim()];
         int no_visited = 0;
         double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
+		i.get_conf_signature(confspace);
 		if(print_confs)
 		{
                 	std::cout << "lprob: " << i.lprob() << " prob: " << i.prob() << " log(prob): " << log(i.prob()) << " mass: " << i.mass() << " conf: ";
