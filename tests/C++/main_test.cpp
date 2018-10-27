@@ -2,11 +2,12 @@
 #include "from_formula_layered.cpp"
 #include "from_formula_ordered.cpp"
 #include "from_formula_threshold.cpp"
+#include "from_formula_threshold_simple.cpp"
 #include "unity-build.cpp"
 #include <vector>
 
 #define TEST(formula, prob, function) \
-std::cout << "Testing " << formula << " prob: " << prob << " function: " << function << "..." << std::flush; \
+std::cout << "Testing " << formula << " prob: " << prob << " function: " << #function << "..." << std::flush; \
 tmp = function(formula, prob, false); \
 std::cout << " " << tmp << " confs." << std::endl; \
 total += tmp;
@@ -14,7 +15,7 @@ total += tmp;
 
 int main()
 {
-	char test_formulas[] = "H2O1 C0 P0 C100O0P100 C100 P1 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5 Sn5 Se2Sn2C2O2N2S2B2He2U2Na2Cl2";
+	char test_formulas[] = "P1 P2 H1 H2 O1 O2 H2O1 C0 P0 C100O0P100 C100 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5 Sn5 Se2Sn2C2O2N2S2B2He2U2Na2Cl2";
 	size_t tf_len = strlen(test_formulas);
 	std::vector<const char*> formulas;
 	formulas.push_back(test_formulas);
@@ -34,7 +35,7 @@ int main()
 	for(auto it_formula = formulas.begin(); it_formula != formulas.end(); it_formula++)
 		for(auto it_prob = probs.begin(); it_prob != probs.end(); it_prob++)
 		{
-			
+			TEST(*it_formula, *it_prob, test_threshold_simple);
 			TEST(*it_formula, *it_prob, test_threshold);
 			TEST(*it_formula, *it_prob, test_layered);
 			TEST(*it_formula, *it_prob, test_ordered);
