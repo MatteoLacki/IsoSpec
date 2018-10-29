@@ -1,5 +1,11 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+
+1.9.0
+----------------------------------
+- We no longer override $CXX to use clang when available - the difference in speed of
+produced code is no longer large enough to justify it
+
 ----------------------------------
 1.9.0beta2
 
