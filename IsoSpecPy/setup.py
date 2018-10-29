@@ -22,10 +22,6 @@ if not os.path.exists("IsoSpec++"):
         shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
 
 
-if os.getenv('ISO_USE_DEFAULT_CXX') == None and spawn.find_executable('clang++') != None:
-    os.environ['CXX'] = 'clang++'
-
-
 
 here = os.path.abspath(os.path.dirname(__file__))
 
