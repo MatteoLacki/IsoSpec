@@ -54,7 +54,7 @@ ti:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
 
 mr:
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp marginal-test.cpp -o marginal -g
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) marginal-test.cpp -o marginal -g
 
 tabulator:
 	clang++ -std=c++11 ../../IsoSpec++/unity-build.cpp tabulator_test.cpp -o tabulator

@@ -1,4 +1,5 @@
 #include <iostream>
+#include "unity-build.cpp"
 #include "marginalTrek++.h"
 #include "summator.h"
 
