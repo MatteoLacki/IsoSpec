@@ -69,4 +69,4 @@ nr_conf:
 	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread
 
 clean:
-	rm -f *_gcc *_clang *_dbg *_memsan *_asan
+	rm -f *_gcc *_clang *_dbg *_memsan *_asan IsoThresholdGenerator layered main_test_cfi main_test_ss marginal nr_conf tabulator titin
