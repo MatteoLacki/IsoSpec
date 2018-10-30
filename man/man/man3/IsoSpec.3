@@ -1,0 +1,254 @@
+.TH "IsoSpec" 3 "Tue Oct 30 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec
+.SH SYNOPSIS
+.br
+.PP
+.SS "Classes"
+
+.in +1c
+.ti -1c
+.RI "class \fBAllocator\fP"
+.br
+.ti -1c
+.RI "class \fBConfEqual\fP"
+.br
+.ti -1c
+.RI "class \fBConfOrder\fP"
+.br
+.ti -1c
+.RI "class \fBConfOrderMarginal\fP"
+.br
+.ti -1c
+.RI "class \fBConfOrderMarginalDescending\fP"
+.br
+.ti -1c
+.RI "class \fBDirtyAllocator\fP"
+.br
+.ti -1c
+.RI "class \fBIso\fP"
+.br
+.RI "The \fBIso\fP class for the calculation of the isotopic distribution\&. "
+.ti -1c
+.RI "class \fBIsoGenerator\fP"
+.br
+.RI "The generator of isotopologues\&. "
+.ti -1c
+.RI "class \fBIsoLayeredGenerator\fP"
+.br
+.RI "The class that represents isotopologues above a given joint probability value\&. "
+.ti -1c
+.RI "class \fBIsoOrderedGenerator\fP"
+.br
+.RI "The generator of isotopologues sorted by their probability of occurrence\&. "
+.ti -1c
+.RI "class \fBIsoThresholdGenerator\fP"
+.br
+.RI "The generator of isotopologues above a given threshold value\&. "
+.ti -1c
+.RI "class \fBKeyHasher\fP"
+.br
+.ti -1c
+.RI "class \fBMarginal\fP"
+.br
+.RI "The marginal distribution class (a subisotopologue)\&. "
+.ti -1c
+.RI "class \fBMarginalTrek\fP"
+.br
+.RI "The marginal distribution class (a subisotopologue)\&. "
+.ti -1c
+.RI "class \fBOrderMarginalsBySizeDecresing\fP"
+.br
+.ti -1c
+.RI "class \fBPrecalculatedMarginal\fP"
+.br
+.RI "Precalculated \fBMarginal\fP class\&. "
+.ti -1c
+.RI "class \fBReverseOrder\fP"
+.br
+.ti -1c
+.RI "class \fBSSummator\fP"
+.br
+.ti -1c
+.RI "class \fBSummator\fP"
+.br
+.ti -1c
+.RI "class \fBTableOrder\fP"
+.br
+.ti -1c
+.RI "class \fBTabulator\fP"
+.br
+.ti -1c
+.RI "class \fBTSummator\fP"
+.br
+.in -1c
+.SS "Typedefs"
+
+.in +1c
+.ti -1c
+.RI "typedef int * \fBConf\fP"
+.br
+.in -1c
+.SS "Functions"
+
+.in +1c
+.ti -1c
+.RI "template<typename T > void \fBcopyConf\fP (const T *source, T *destination, int dim)"
+.br
+.ti -1c
+.RI "void \fBrelease_g_lfact_table\fP ()"
+.br
+.ti -1c
+.RI "double * \fBalloc_lfact_table\fP ()"
+.br
+.ti -1c
+.RI "double \fBRationalApproximation\fP (double t)"
+.br
+.ti -1c
+.RI "double \fBNormalCDFInverse\fP (double p)"
+.br
+.ti -1c
+.RI "double \fBNormalCDFInverse\fP (double p, double mean, double stdev)"
+.br
+.ti -1c
+.RI "double \fBNormalCDF\fP (double x, double mean, double stdev)"
+.br
+.ti -1c
+.RI "double \fBNormalPDF\fP (double x, double mean, double stdev)"
+.br
+.ti -1c
+.RI "unsigned int \fBparse_formula\fP (const char *formula, std::vector< const double *> &isotope_masses, std::vector< const double *> &isotope_probabilities, int **isotopeNumbers, int **atomCounts, unsigned int *confSize)"
+.br
+.ti -1c
+.RI "void \fBprintConfigurations\fP (const std::tuple< double *, double *, int *, int > &results, int dimNumber, int *isotopeNumbers)"
+.br
+.ti -1c
+.RI "Conf \fBinitialConfigure\fP (const int atomCnt, const int isotopeNo, const double *probs, const double *lprobs)"
+.br
+.RI "Find one of the most probable subisotopologues\&. "
+.ti -1c
+.RI "void \fBprintMarginal\fP (const std::tuple< double *, double *, int *, int > &results, int dim)"
+.br
+.ti -1c
+.RI "double * \fBgetMLogProbs\fP (const double *probs, int isoNo)"
+.br
+.ti -1c
+.RI "double \fBget_loggamma_nominator\fP (int x)"
+.br
+.ti -1c
+.RI "Conf \fBinitialConfigure\fP (int atomCnt, int isotopeNo, const double *probs)"
+.br
+.ti -1c
+.RI "void * \fBquickselect\fP (void **array, int n, int start, int end)"
+.br
+.RI "Quickly select the n'th positional statistic, including the weights\&. "
+.ti -1c
+.RI "double \fBcombinedSum\fP (const int *conf, const std::vector< double > **valuesContainer, int dimNumber)"
+.br
+.ti -1c
+.RI "int * \fBgetConf\fP (void *conf)"
+.br
+.ti -1c
+.RI "double \fBgetLProb\fP (void *conf)"
+.br
+.ti -1c
+.RI "double \fBunnormalized_logProb\fP (const int *conf, const double *logProbs, int dim)"
+.br
+.ti -1c
+.RI "double \fBmass\fP (const int *conf, const double *masses, int dim)"
+.br
+.ti -1c
+.RI "bool \fBtupleCmp\fP (std::tuple< double, double, int *> t1, std::tuple< double, double, int *> t2)"
+.br
+.ti -1c
+.RI "template<typename T > void \fBprintArray\fP (const T *array, int size)"
+.br
+.ti -1c
+.RI "template<typename T > void \fBprintVector\fP (const std::vector< T > &vec)"
+.br
+.ti -1c
+.RI "template<typename T > void \fBprintNestedArray\fP (const T **array, const int *shape, int size)"
+.br
+.ti -1c
+.RI "template<typename T > void \fBdealloc_table\fP (T *tbl, int dim)"
+.br
+.ti -1c
+.RI "void \fBreallocate\fP (double **array, int new_size)"
+.br
+.in -1c
+.SS "Variables"
+
+.in +1c
+.ti -1c
+.RI "const int \fBelem_table_atomicNo\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const double \fBelem_table_mass\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const int \fBelem_table_massNo\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const int \fBelem_table_extraNeutrons\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const char * \fBelem_table_element\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const char * \fBelem_table_symbol\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const bool \fBelem_table_Radioactive\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const double \fBelem_table_probability\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const double \fBelem_table_log_probability\fP [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES]"
+.br
+.ti -1c
+.RI "const double \fBpi\fP = 3\&.14159265358979323846264338328"
+.br
+.ti -1c
+.RI "double * \fBg_lfact_table\fP = alloc_lfact_table()"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek\&.
+.PP
+This file is part of \fBIsoSpec\fP\&.
+.PP
+\fBIsoSpec\fP is free software: you can redistribute it and/or modify it under the terms of the Simplified ('2-clause') BSD licence\&.
+.PP
+\fBIsoSpec\fP is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\&.
+.PP
+You should have received a copy of the Simplified BSD Licence along with \fBIsoSpec\fP\&. If not, see https://opensource.org/licenses/BSD-2-Clause\&. 
+.SH "Function Documentation"
+.PP 
+.SS "double* IsoSpec::getMLogProbs (const double * probs, int isoNo)"
+
+.br
+Here we order the processor to round the numbers up rather than down\&. Rounding down could result in the algorithm falling in an infinite loop because of the numerical instability of summing\&.
+.PP
+Definition at line 150 of file marginalTrek++\&.cpp\&.
+.SS "Conf IsoSpec::initialConfigure (const int atomCnt, const int isotopeNo, const double * probs, const double * lprobs)"
+
+.PP
+Find one of the most probable subisotopologues\&. The algorithm uses the hill-climbing algorithm\&. It starts from a subisotopologue close to the mean of the underlying multinomial distribution\&. There might be more than one modes, in case of which this function will return only one of them, close to the mean\&.
+.PP
+\fBParameters:\fP
+.RS 4
+\fIatomCnt\fP 
+.RE
+.PP
+
+.br
+Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution)\&. We start from the point close to the mean of the underlying multinomial distribution\&.
+.PP
+Definition at line 55 of file marginalTrek++\&.cpp\&.
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

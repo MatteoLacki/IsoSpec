@@ -1,0 +1,122 @@
+\hypertarget{class_iso_spec_1_1_marginal_trek}{}\section{Iso\+Spec\+:\+:Marginal\+Trek Class Reference}
+\label{class_iso_spec_1_1_marginal_trek}\index{Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}}
+
+
+The marginal distribution class (a subisotopologue).  
+
+
+
+
+{\ttfamily \#include $<$marginal\+Trek++.\+h$>$}
+
+Inheritance diagram for Iso\+Spec\+:\+:Marginal\+Trek\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_iso_spec_1_1_marginal_trek}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_iso_spec_1_1_marginal_trek_a83e70d522174e4e6724116941fd9c99e}{Marginal\+Trek}} (\mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} \&\&m, int tab\+Size=1000, int hash\+Size=1000)
+\begin{DoxyCompactList}\small\item\em Move constructor\+: specializes the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{class_iso_spec_1_1_marginal_trek_a4db6041328b818d123a017dda3c8b8ae}{probe\+Configuration\+Idx}} (int idx)
+\begin{DoxyCompactList}\small\item\em Check if the table of computed subisotopologues does not have to be extended. \end{DoxyCompactList}\item 
+int \mbox{\hyperlink{class_iso_spec_1_1_marginal_trek_a04f3e495a805a3ea242059c963c5b129}{process\+Until\+Cutoff}} (double cutoff)
+\begin{DoxyCompactList}\small\item\em Calculate subisotopologues with probability above or equal to the cut-\/off. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_marginal_trek_a802aa5dfd06d560b4f867240bb6c9d10}\label{class_iso_spec_1_1_marginal_trek_a802aa5dfd06d560b4f867240bb6c9d10}} 
+const std\+::vector$<$ double $>$ \& {\bfseries conf\+\_\+lprobs} () const
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_marginal_trek_a8b31b886749c0bb07756ae367a4c31cd}\label{class_iso_spec_1_1_marginal_trek_a8b31b886749c0bb07756ae367a4c31cd}} 
+const std\+::vector$<$ double $>$ \& {\bfseries conf\+\_\+masses} () const
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_marginal_trek_a05df43d45dda1a7f80b711eec016c40c}\label{class_iso_spec_1_1_marginal_trek_a05df43d45dda1a7f80b711eec016c40c}} 
+const std\+::vector$<$ int $\ast$ $>$ \& {\bfseries confs} () const
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+The marginal distribution class (a subisotopologue). 
+
+Definition at line 141 of file marginal\+Trek++.\+h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_marginal_trek_a83e70d522174e4e6724116941fd9c99e}\label{class_iso_spec_1_1_marginal_trek_a83e70d522174e4e6724116941fd9c99e}} 
+\index{Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}!Marginal\+Trek@{Marginal\+Trek}}
+\index{Marginal\+Trek@{Marginal\+Trek}!Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}}
+\subsubsection{\texorpdfstring{Marginal\+Trek()}{MarginalTrek()}}
+{\footnotesize\ttfamily Iso\+Spec\+::\+Marginal\+Trek\+::\+Marginal\+Trek (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} \&\&}]{m,  }\item[{int}]{tab\+Size = {\ttfamily 1000},  }\item[{int}]{hash\+Size = {\ttfamily 1000} }\end{DoxyParamCaption})}
+
+
+
+Move constructor\+: specializes the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em tab\+Size} & The size of the table used to store configurations in the allocator. \\
+\hline
+{\em hash\+Size} & The size of the hash table used to store visited subisotopologues. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 256 of file marginal\+Trek++.\+cpp.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_marginal_trek_a4db6041328b818d123a017dda3c8b8ae}\label{class_iso_spec_1_1_marginal_trek_a4db6041328b818d123a017dda3c8b8ae}} 
+\index{Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}!probe\+Configuration\+Idx@{probe\+Configuration\+Idx}}
+\index{probe\+Configuration\+Idx@{probe\+Configuration\+Idx}!Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}}
+\subsubsection{\texorpdfstring{probe\+Configuration\+Idx()}{probeConfigurationIdx()}}
+{\footnotesize\ttfamily bool Iso\+Spec\+::\+Marginal\+Trek\+::probe\+Configuration\+Idx (\begin{DoxyParamCaption}\item[{int}]{idx }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Check if the table of computed subisotopologues does not have to be extended. 
+
+This function checks if the idx-\/th most probable subisotopologue was memoized and if not, computes it and memoizes it.
+
+
+\begin{DoxyParams}{Parameters}
+{\em idx} & The number of the idx-\/th most probable subisotopologue. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns false if it the provided idx exceeds the total number of subisotopologues. 
+\end{DoxyReturn}
+
+
+Definition at line 179 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_marginal_trek_a04f3e495a805a3ea242059c963c5b129}\label{class_iso_spec_1_1_marginal_trek_a04f3e495a805a3ea242059c963c5b129}} 
+\index{Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}!process\+Until\+Cutoff@{process\+Until\+Cutoff}}
+\index{process\+Until\+Cutoff@{process\+Until\+Cutoff}!Iso\+Spec\+::\+Marginal\+Trek@{Iso\+Spec\+::\+Marginal\+Trek}}
+\subsubsection{\texorpdfstring{process\+Until\+Cutoff()}{processUntilCutoff()}}
+{\footnotesize\ttfamily int Iso\+Spec\+::\+Marginal\+Trek\+::process\+Until\+Cutoff (\begin{DoxyParamCaption}\item[{double}]{cutoff }\end{DoxyParamCaption})}
+
+
+
+Calculate subisotopologues with probability above or equal to the cut-\/off. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em cutoff} & The probability cut-\/off \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of the last subisotopologue above the cut-\/off. 
+\end{DoxyReturn}
+
+
+Definition at line 333 of file marginal\+Trek++.\+cpp.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/marginal\+Trek++.\+h\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/marginal\+Trek++.\+cpp\end{DoxyCompactItemize}

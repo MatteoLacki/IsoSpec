@@ -1,0 +1,270 @@
+\hypertarget{class_iso_spec_1_1_precalculated_marginal}{}\section{Iso\+Spec\+:\+:Precalculated\+Marginal Class Reference}
+\label{class_iso_spec_1_1_precalculated_marginal}\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+
+
+Precalculated \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class.  
+
+
+
+
+{\ttfamily \#include $<$marginal\+Trek++.\+h$>$}
+
+Inheritance diagram for Iso\+Spec\+:\+:Precalculated\+Marginal\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_iso_spec_1_1_precalculated_marginal}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_acb84bd7ba582847655c55bd64d64463e}{Precalculated\+Marginal}} (\mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} \&\&m, double l\+Cut\+Off, bool sort=true, int tab\+Size=1000, int hash\+Size=1000)
+\begin{DoxyCompactList}\small\item\em The move constructor (disowns the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}}). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a6b7b30cfe90ffba1d2c9d2f0d87107d8}\label{class_iso_spec_1_1_precalculated_marginal_a6b7b30cfe90ffba1d2c9d2f0d87107d8}} 
+virtual \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a6b7b30cfe90ffba1d2c9d2f0d87107d8}{$\sim$\+Precalculated\+Marginal}} ()
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a942b30ace039f80c50125360be4ed4d2}{in\+Range}} (unsigned int idx) const
+\begin{DoxyCompactList}\small\item\em Is there a subisotopologue with a given number? \end{DoxyCompactList}\item 
+const double \& \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a07eee6d60635c9c1d6f92c181994e06a}{get\+\_\+l\+Prob}} (int idx) const
+\begin{DoxyCompactList}\small\item\em Get the log-\/probability of the idx-\/th subisotopologue. \end{DoxyCompactList}\item 
+const double \& \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a7a38a567eadf16fa2ad41e81c8f55c02}{get\+\_\+e\+Prob}} (int idx) const
+\begin{DoxyCompactList}\small\item\em Get the probability of the idx-\/th subisotopologue. \end{DoxyCompactList}\item 
+const double \& \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_ada12caa2e195c1a16c5158a428ea3ed2}{get\+\_\+mass}} (int idx) const
+\begin{DoxyCompactList}\small\item\em Get the mass of the idx-\/th subisotopologue. \end{DoxyCompactList}\item 
+const double $\ast$ \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_af5d01500c7efb8cba57399ba11fc7124}{get\+\_\+l\+Probs\+\_\+ptr}} () const
+\begin{DoxyCompactList}\small\item\em Get the table of the log-\/probabilities of subisotopologues. \end{DoxyCompactList}\item 
+const double $\ast$ \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a9a768b90299ea16c447a392dbe1123b5}{get\+\_\+masses\+\_\+ptr}} () const
+\begin{DoxyCompactList}\small\item\em Get the table of the masses of subisotopologues. \end{DoxyCompactList}\item 
+const Conf \& \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a3ecbbf1263a274cc8e3bc71cd96f0bff}{get\+\_\+conf}} (int idx) const
+\begin{DoxyCompactList}\small\item\em Get the counts of isotopes that define the subisotopologue. \end{DoxyCompactList}\item 
+unsigned int \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a0dbf1ec53eac9953a354c11e1b0803f9}{get\+\_\+no\+\_\+confs}} () const
+\begin{DoxyCompactList}\small\item\em Get the number of precomputed subisotopologues. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_adaba0751ea134b2cbd6c3fdf67c327ea}\label{class_iso_spec_1_1_precalculated_marginal_adaba0751ea134b2cbd6c3fdf67c327ea}} 
+std\+::vector$<$ Conf $>$ {\bfseries configurations}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a1197bed742b2139243e9dc71cb8fcdfc}\label{class_iso_spec_1_1_precalculated_marginal_a1197bed742b2139243e9dc71cb8fcdfc}} 
+Conf $\ast$ {\bfseries confs}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_ad82d7aef36c946ce4f9bbf3ddac70cd1}\label{class_iso_spec_1_1_precalculated_marginal_ad82d7aef36c946ce4f9bbf3ddac70cd1}} 
+unsigned int {\bfseries no\+\_\+confs}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a94e78eba4ae89c0d6c811d7bc0085684}\label{class_iso_spec_1_1_precalculated_marginal_a94e78eba4ae89c0d6c811d7bc0085684}} 
+double $\ast$ {\bfseries masses}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_afd5a4a7b094038f66eda31c6827a66f9}\label{class_iso_spec_1_1_precalculated_marginal_afd5a4a7b094038f66eda31c6827a66f9}} 
+double $\ast$ {\bfseries l\+Probs}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_abf3e9faabf5011f75cfb8e89cb3cdcca}\label{class_iso_spec_1_1_precalculated_marginal_abf3e9faabf5011f75cfb8e89cb3cdcca}} 
+double $\ast$ {\bfseries e\+Probs}
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_add0495cfc67fd8b9757b93b07d47e6cf}\label{class_iso_spec_1_1_precalculated_marginal_add0495cfc67fd8b9757b93b07d47e6cf}} 
+\mbox{\hyperlink{class_iso_spec_1_1_allocator}{Allocator}}$<$ int $>$ {\bfseries allocator}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Precalculated \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class. 
+
+This class serves to calculate a set of isotopologues that is defined by the minimal probability threshold.
+
+This works faster than if you did not know the threshold. If you have no idea about the threshold, you would need to call us, to change encode the layered version of the marginal. 
+
+Definition at line 213 of file marginal\+Trek++.\+h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_acb84bd7ba582847655c55bd64d64463e}\label{class_iso_spec_1_1_precalculated_marginal_acb84bd7ba582847655c55bd64d64463e}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!Precalculated\+Marginal@{Precalculated\+Marginal}}
+\index{Precalculated\+Marginal@{Precalculated\+Marginal}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{Precalculated\+Marginal()}{PrecalculatedMarginal()}}
+{\footnotesize\ttfamily Iso\+Spec\+::\+Precalculated\+Marginal\+::\+Precalculated\+Marginal (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} \&\&}]{m,  }\item[{double}]{l\+Cut\+Off,  }\item[{bool}]{sort = {\ttfamily true},  }\item[{int}]{tab\+Size = {\ttfamily 1000},  }\item[{int}]{hash\+Size = {\ttfamily 1000} }\end{DoxyParamCaption})}
+
+
+
+The move constructor (disowns the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}}). 
+
+This constructor memoizes all subisotopologues with log-\/probability above the provided threshold l\+Cut\+Off 
+\begin{DoxyParams}{Parameters}
+{\em \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}}} & An instance of the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class this class is about to disown. \\
+\hline
+{\em l\+Cut\+Off} & The lower limit on the log-\/probability of the precomputed subisotopologues. \\
+\hline
+{\em sort} & Should the subisotopologues be stored with descending probability ? \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+An instance of the \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal}{Precalculated\+Marginal}} class. 
+\end{DoxyReturn}
+
+
+Definition at line 362 of file marginal\+Trek++.\+cpp.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a3ecbbf1263a274cc8e3bc71cd96f0bff}\label{class_iso_spec_1_1_precalculated_marginal_a3ecbbf1263a274cc8e3bc71cd96f0bff}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+conf@{get\+\_\+conf}}
+\index{get\+\_\+conf@{get\+\_\+conf}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+conf()}{get\_conf()}}
+{\footnotesize\ttfamily const Conf\& Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+conf (\begin{DoxyParamCaption}\item[{int}]{idx }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the counts of isotopes that define the subisotopologue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em idx} & The number of the considered subisotopologue. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The counts of isotopes that define the subisotopologue. 
+\end{DoxyReturn}
+
+
+Definition at line 288 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a7a38a567eadf16fa2ad41e81c8f55c02}\label{class_iso_spec_1_1_precalculated_marginal_a7a38a567eadf16fa2ad41e81c8f55c02}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+e\+Prob@{get\+\_\+e\+Prob}}
+\index{get\+\_\+e\+Prob@{get\+\_\+e\+Prob}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+e\+Prob()}{get\_eProb()}}
+{\footnotesize\ttfamily const double\& Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+e\+Prob (\begin{DoxyParamCaption}\item[{int}]{idx }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the probability of the idx-\/th subisotopologue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em idx} & The number of the considered subisotopologue. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The probability of the idx-\/th subisotopologue. 
+\end{DoxyReturn}
+
+
+Definition at line 261 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a07eee6d60635c9c1d6f92c181994e06a}\label{class_iso_spec_1_1_precalculated_marginal_a07eee6d60635c9c1d6f92c181994e06a}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+l\+Prob@{get\+\_\+l\+Prob}}
+\index{get\+\_\+l\+Prob@{get\+\_\+l\+Prob}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+l\+Prob()}{get\_lProb()}}
+{\footnotesize\ttfamily const double\& Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+l\+Prob (\begin{DoxyParamCaption}\item[{int}]{idx }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the log-\/probability of the idx-\/th subisotopologue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em idx} & The number of the considered subisotopologue. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The log-\/probability of the idx-\/th subisotopologue. 
+\end{DoxyReturn}
+
+
+Definition at line 254 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_af5d01500c7efb8cba57399ba11fc7124}\label{class_iso_spec_1_1_precalculated_marginal_af5d01500c7efb8cba57399ba11fc7124}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+l\+Probs\+\_\+ptr@{get\+\_\+l\+Probs\+\_\+ptr}}
+\index{get\+\_\+l\+Probs\+\_\+ptr@{get\+\_\+l\+Probs\+\_\+ptr}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+l\+Probs\+\_\+ptr()}{get\_lProbs\_ptr()}}
+{\footnotesize\ttfamily const double$\ast$ Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+l\+Probs\+\_\+ptr (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the table of the log-\/probabilities of subisotopologues. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to the first element in the table storing log-\/probabilities of subisotopologues. 
+\end{DoxyReturn}
+
+
+Definition at line 274 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_ada12caa2e195c1a16c5158a428ea3ed2}\label{class_iso_spec_1_1_precalculated_marginal_ada12caa2e195c1a16c5158a428ea3ed2}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+mass@{get\+\_\+mass}}
+\index{get\+\_\+mass@{get\+\_\+mass}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+mass()}{get\_mass()}}
+{\footnotesize\ttfamily const double\& Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+mass (\begin{DoxyParamCaption}\item[{int}]{idx }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the mass of the idx-\/th subisotopologue. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em idx} & The number of the considered subisotopologue. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The mass of the idx-\/th subisotopologue. 
+\end{DoxyReturn}
+
+
+Definition at line 268 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a9a768b90299ea16c447a392dbe1123b5}\label{class_iso_spec_1_1_precalculated_marginal_a9a768b90299ea16c447a392dbe1123b5}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+masses\+\_\+ptr@{get\+\_\+masses\+\_\+ptr}}
+\index{get\+\_\+masses\+\_\+ptr@{get\+\_\+masses\+\_\+ptr}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+masses\+\_\+ptr()}{get\_masses\_ptr()}}
+{\footnotesize\ttfamily const double$\ast$ Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+masses\+\_\+ptr (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the table of the masses of subisotopologues. 
+
+\begin{DoxyReturn}{Returns}
+Pointer to the first element in the table storing masses of subisotopologues. 
+\end{DoxyReturn}
+
+
+Definition at line 280 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a0dbf1ec53eac9953a354c11e1b0803f9}\label{class_iso_spec_1_1_precalculated_marginal_a0dbf1ec53eac9953a354c11e1b0803f9}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!get\+\_\+no\+\_\+confs@{get\+\_\+no\+\_\+confs}}
+\index{get\+\_\+no\+\_\+confs@{get\+\_\+no\+\_\+confs}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{get\+\_\+no\+\_\+confs()}{get\_no\_confs()}}
+{\footnotesize\ttfamily unsigned int Iso\+Spec\+::\+Precalculated\+Marginal\+::get\+\_\+no\+\_\+confs (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the number of precomputed subisotopologues. 
+
+\begin{DoxyReturn}{Returns}
+The number of precomputed subisotopologues. 
+\end{DoxyReturn}
+
+
+Definition at line 294 of file marginal\+Trek++.\+h.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_precalculated_marginal_a942b30ace039f80c50125360be4ed4d2}\label{class_iso_spec_1_1_precalculated_marginal_a942b30ace039f80c50125360be4ed4d2}} 
+\index{Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}!in\+Range@{in\+Range}}
+\index{in\+Range@{in\+Range}!Iso\+Spec\+::\+Precalculated\+Marginal@{Iso\+Spec\+::\+Precalculated\+Marginal}}
+\subsubsection{\texorpdfstring{in\+Range()}{inRange()}}
+{\footnotesize\ttfamily bool Iso\+Spec\+::\+Precalculated\+Marginal\+::in\+Range (\begin{DoxyParamCaption}\item[{unsigned int}]{idx }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Is there a subisotopologue with a given number? 
+
+\begin{DoxyReturn}{Returns}
+Returns true if idx does not exceed the number of pre-\/computed configurations. 
+\end{DoxyReturn}
+
+
+Definition at line 247 of file marginal\+Trek++.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/marginal\+Trek++.\+h\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/marginal\+Trek++.\+cpp\end{DoxyCompactItemize}

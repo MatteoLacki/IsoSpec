@@ -1,0 +1,145 @@
+.TH "IsoSpec::IsoGenerator" 3 "Tue Oct 30 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::IsoGenerator \- The generator of isotopologues\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <isoSpec++\&.h>\fP
+.PP
+Inherits \fBIsoSpec::Iso\fP\&.
+.PP
+Inherited by \fBIsoSpec::IsoLayeredGenerator\fP, \fBIsoSpec::IsoOrderedGenerator\fP, and \fBIsoSpec::IsoThresholdGenerator\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "virtual bool \fBadvanceToNextConfiguration\fP ()=0"
+.br
+.RI "Advance to the next, not yet visited, most probable isotopologue\&. "
+.ti -1c
+.RI "virtual double \fBlprob\fP () const"
+.br
+.RI "Get the log-probability of the current isotopologue\&. "
+.ti -1c
+.RI "virtual double \fBmass\fP () const"
+.br
+.RI "Get the mass of the current isotopologue\&. "
+.ti -1c
+.RI "virtual double \fBprob\fP () const"
+.br
+.RI "Get the probability of the current isotopologue\&. "
+.ti -1c
+.RI "virtual void \fBget_conf_signature\fP (int *space) const =0"
+.br
+.ti -1c
+.RI "\fBIsoGenerator\fP (\fBIso\fP &&iso, bool alloc_partials=true)"
+.br
+.RI "Move constructor\&. "
+.ti -1c
+.RI "virtual \fB~IsoGenerator\fP ()"
+.br
+.RI "Destructor\&. "
+.in -1c
+.SS "Protected Attributes"
+
+.in +1c
+.ti -1c
+.RI "double * \fBpartialLProbs\fP"
+.br
+.ti -1c
+.RI "double * \fBpartialMasses\fP"
+.br
+.ti -1c
+.RI "double * \fBpartialProbs\fP"
+.br
+.in -1c
+.SS "Additional Inherited Members"
+.SH "Detailed Description"
+.PP 
+The generator of isotopologues\&. 
+
+This class provides the common interface for all isotopic generators\&. 
+.PP
+Definition at line 129 of file isoSpec++\&.h\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "virtual bool IsoSpec::IsoGenerator::advanceToNextConfiguration ()\fC [pure virtual]\fP"
+
+.PP
+Advance to the next, not yet visited, most probable isotopologue\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Return false if it is not possible to advance\&. 
+.RE
+.PP
+
+.PP
+Implemented in \fBIsoSpec::IsoLayeredGenerator\fP, \fBIsoSpec::IsoThresholdGenerator\fP, and \fBIsoSpec::IsoOrderedGenerator\fP\&.
+.SS "virtual double IsoSpec::IsoGenerator::lprob () const\fC [inline]\fP, \fC [virtual]\fP"
+
+.PP
+Get the log-probability of the current isotopologue\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+The log-probability of the current isotopologue\&. 
+.RE
+.PP
+
+.PP
+Reimplemented in \fBIsoSpec::IsoThresholdGenerator\fP\&.
+.PP
+Definition at line 147 of file isoSpec++\&.h\&.
+.SS "virtual double IsoSpec::IsoGenerator::mass () const\fC [inline]\fP, \fC [virtual]\fP"
+
+.PP
+Get the mass of the current isotopologue\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+The mass of the current isotopologue\&. 
+.RE
+.PP
+
+.PP
+Reimplemented in \fBIsoSpec::IsoThresholdGenerator\fP\&.
+.PP
+Definition at line 153 of file isoSpec++\&.h\&.
+.SS "virtual double IsoSpec::IsoGenerator::prob () const\fC [inline]\fP, \fC [virtual]\fP"
+
+.PP
+Get the probability of the current isotopologue\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+The probability of the current isotopologue\&. 
+.RE
+.PP
+
+.PP
+Reimplemented in \fBIsoSpec::IsoThresholdGenerator\fP\&.
+.PP
+Definition at line 159 of file isoSpec++\&.h\&.
+.SH "Member Data Documentation"
+.PP 
+.SS "double* IsoSpec::IsoGenerator::partialLProbs\fC [protected]\fP"
+The prefix sum of the log-probabilities of the current isotopologue\&. 
+.PP
+Definition at line 132 of file isoSpec++\&.h\&.
+.SS "double* IsoSpec::IsoGenerator::partialMasses\fC [protected]\fP"
+The prefix sum of the masses of the current isotopologue\&. 
+.PP
+Definition at line 133 of file isoSpec++\&.h\&.
+.SS "double* IsoSpec::IsoGenerator::partialProbs\fC [protected]\fP"
+The prefix product of the probabilities of the current isotopologue\&. 
+.PP
+Definition at line 134 of file isoSpec++\&.h\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

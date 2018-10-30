@@ -1,0 +1,104 @@
+\hypertarget{class_iso_spec_1_1_layered_marginal}{}\section{Iso\+Spec\+:\+:Layered\+Marginal Class Reference}
+\label{class_iso_spec_1_1_layered_marginal}\index{Iso\+Spec\+::\+Layered\+Marginal@{Iso\+Spec\+::\+Layered\+Marginal}}
+
+
+\mbox{\hyperlink{class_iso_spec_1_1_layered_marginal}{Layered\+Marginal}} class.  
+
+
+
+
+{\ttfamily \#include $<$marginal\+Trek++.\+h$>$}
+
+Inheritance diagram for Iso\+Spec\+:\+:Layered\+Marginal\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_iso_spec_1_1_layered_marginal}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_af062d180664c9c856b4cc72e3457ca9d}{Layered\+Marginal}} (\mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} \&\&m, int tab\+Size=1000, int hash\+Size=1000)
+\begin{DoxyCompactList}\small\item\em Move constructor\+: specializes the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_ab8b66ed79bad27183f98a9ae34c3b944}{extend}} (double new\+\_\+threshold)
+\begin{DoxyCompactList}\small\item\em Extend the set of computed subisotopologues to those above the new threshold. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_aec04c0f0e00a24d151be39ab46267b4c}\label{class_iso_spec_1_1_layered_marginal_aec04c0f0e00a24d151be39ab46267b4c}} 
+double \mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_aec04c0f0e00a24d151be39ab46267b4c}{get\+\_\+l\+Prob}} (int idx) const
+\begin{DoxyCompactList}\small\item\em get the log-\/probability of the idx-\/th subisotopologue, see details in \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a07eee6d60635c9c1d6f92c181994e06a}{Precalculated\+Marginal\+::get\+\_\+l\+Prob}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_a3c0a5ce02f00680fc67211c66761e887}\label{class_iso_spec_1_1_layered_marginal_a3c0a5ce02f00680fc67211c66761e887}} 
+double \mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_a3c0a5ce02f00680fc67211c66761e887}{get\+\_\+e\+Prob}} (int idx) const
+\begin{DoxyCompactList}\small\item\em get the probability of the idx-\/th subisotopologue, see details in \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a7a38a567eadf16fa2ad41e81c8f55c02}{Precalculated\+Marginal\+::get\+\_\+e\+Prob}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_a0323521e0435172c1f4a4ccd0168668d}\label{class_iso_spec_1_1_layered_marginal_a0323521e0435172c1f4a4ccd0168668d}} 
+double \mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_a0323521e0435172c1f4a4ccd0168668d}{get\+\_\+mass}} (int idx) const
+\begin{DoxyCompactList}\small\item\em get the mass of the idx-\/th subisotopologue, see details in \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_ada12caa2e195c1a16c5158a428ea3ed2}{Precalculated\+Marginal\+::get\+\_\+mass}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_abfb6c79d8bdcf4b50f8942f7f8a21de5}\label{class_iso_spec_1_1_layered_marginal_abfb6c79d8bdcf4b50f8942f7f8a21de5}} 
+const Conf \& \mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_abfb6c79d8bdcf4b50f8942f7f8a21de5}{get\+\_\+conf}} (int idx) const
+\begin{DoxyCompactList}\small\item\em get the counts of isotopes that define the subisotopologue, see details in \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a3ecbbf1263a274cc8e3bc71cd96f0bff}{Precalculated\+Marginal\+::get\+\_\+conf}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_aa15967c22941783e5e59f20544434fb1}\label{class_iso_spec_1_1_layered_marginal_aa15967c22941783e5e59f20544434fb1}} 
+unsigned int \mbox{\hyperlink{class_iso_spec_1_1_layered_marginal_aa15967c22941783e5e59f20544434fb1}{get\+\_\+no\+\_\+confs}} () const
+\begin{DoxyCompactList}\small\item\em Get the number of precomputed subisotopologues, see details in \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal_a0dbf1ec53eac9953a354c11e1b0803f9}{Precalculated\+Marginal\+::get\+\_\+no\+\_\+confs}}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+\mbox{\hyperlink{class_iso_spec_1_1_layered_marginal}{Layered\+Marginal}} class. 
+
+An extendable version of the \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal}{Precalculated\+Marginal}}, where you can extend the threshold at will. 
+
+Definition at line 337 of file marginal\+Trek++.\+h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_af062d180664c9c856b4cc72e3457ca9d}\label{class_iso_spec_1_1_layered_marginal_af062d180664c9c856b4cc72e3457ca9d}} 
+\index{Iso\+Spec\+::\+Layered\+Marginal@{Iso\+Spec\+::\+Layered\+Marginal}!Layered\+Marginal@{Layered\+Marginal}}
+\index{Layered\+Marginal@{Layered\+Marginal}!Iso\+Spec\+::\+Layered\+Marginal@{Iso\+Spec\+::\+Layered\+Marginal}}
+\subsubsection{\texorpdfstring{Layered\+Marginal()}{LayeredMarginal()}}
+{\footnotesize\ttfamily Iso\+Spec\+::\+Layered\+Marginal\+::\+Layered\+Marginal (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} \&\&}]{m,  }\item[{int}]{tab\+Size = {\ttfamily 1000},  }\item[{int}]{hash\+Size = {\ttfamily 1000} }\end{DoxyParamCaption})}
+
+
+
+Move constructor\+: specializes the \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em tab\+Size} & The size of the table used to store configurations in the allocator. \\
+\hline
+{\em hash\+Size} & The size of the hash table used to store visited subisotopologues. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 445 of file marginal\+Trek++.\+cpp.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_layered_marginal_ab8b66ed79bad27183f98a9ae34c3b944}\label{class_iso_spec_1_1_layered_marginal_ab8b66ed79bad27183f98a9ae34c3b944}} 
+\index{Iso\+Spec\+::\+Layered\+Marginal@{Iso\+Spec\+::\+Layered\+Marginal}!extend@{extend}}
+\index{extend@{extend}!Iso\+Spec\+::\+Layered\+Marginal@{Iso\+Spec\+::\+Layered\+Marginal}}
+\subsubsection{\texorpdfstring{extend()}{extend()}}
+{\footnotesize\ttfamily bool Iso\+Spec\+::\+Layered\+Marginal\+::extend (\begin{DoxyParamCaption}\item[{double}]{new\+\_\+threshold }\end{DoxyParamCaption})}
+
+
+
+Extend the set of computed subisotopologues to those above the new threshold. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em new\+\_\+threshold} & The new log-\/probability limiting the subisotopologues from below. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Returns false, if there are no fringe-\/subisotopologues (subisotopologues that were neighbours of the previously calculated subisotopologues, with log-\/probability below the previous threshold). 
+\end{DoxyReturn}
+
+
+Definition at line 455 of file marginal\+Trek++.\+cpp.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/marginal\+Trek++.\+h\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/marginal\+Trek++.\+cpp\end{DoxyCompactItemize}

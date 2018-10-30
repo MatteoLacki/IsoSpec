@@ -1,0 +1,111 @@
+\begin{theindex}
+
+  \item {advance\+To\+Next\+Configuration}
+    \subitem {Iso\+Spec\+::\+Iso\+Generator}, \hyperpage{17}
+    \subitem {Iso\+Spec\+::\+Iso\+Layered\+Generator}, \hyperpage{18}
+    \subitem {Iso\+Spec\+::\+Iso\+Ordered\+Generator}, \hyperpage{19}
+    \subitem {Iso\+Spec\+::\+Iso\+Threshold\+Generator}, \hyperpage{20}
+  \item {all\+Dim}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{15}
+  \item {atom\+Counts}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{15}
+
+  \indexspace
+
+  \item {conf\+Size}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{16}
+  \item {configurations}
+    \subitem {Iso\+Spec\+::\+Precalculated\+Marginal}, \hyperpage{23}
+
+  \indexspace
+
+  \item {dim\+Number}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{16}
+  \item {disowned}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{16}
+
+  \indexspace
+
+  \item {get\+\_\+\+M\+T\+\_\+marginal\+\_\+set}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{15}
+  \item {get\+M\+Log\+Probs}
+    \subitem {Iso\+Spec}, \hyperpage{9}
+
+  \indexspace
+
+  \item {initial\+Configure}
+    \subitem {Iso\+Spec}, \hyperpage{9}
+  \item {Iso}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{14}
+  \item {Iso\+Spec}, \hyperpage{7}
+    \subitem {get\+M\+Log\+Probs}, \hyperpage{9}
+    \subitem {initial\+Configure}, \hyperpage{9}
+  \item {Iso\+Spec\+::\+Allocator$<$ T $>$}, \hyperpage{11}
+  \item {Iso\+Spec\+::\+Conf\+Equal}, \hyperpage{11}
+  \item {Iso\+Spec\+::\+Conf\+Order}, \hyperpage{12}
+  \item {Iso\+Spec\+::\+Conf\+Order\+Marginal}, \hyperpage{12}
+  \item {Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}, 
+		\hyperpage{13}
+  \item {Iso\+Spec\+::\+Dirty\+Allocator}, \hyperpage{13}
+  \item {Iso\+Spec\+::\+Iso}, \hyperpage{13}
+    \subitem {all\+Dim}, \hyperpage{15}
+    \subitem {atom\+Counts}, \hyperpage{15}
+    \subitem {conf\+Size}, \hyperpage{16}
+    \subitem {dim\+Number}, \hyperpage{16}
+    \subitem {disowned}, \hyperpage{16}
+    \subitem {get\+\_\+\+M\+T\+\_\+marginal\+\_\+set}, \hyperpage{15}
+    \subitem {Iso}, \hyperpage{14}
+    \subitem {isotope\+Numbers}, \hyperpage{16}
+    \subitem {marginals}, \hyperpage{16}
+    \subitem {mode\+L\+Prob}, \hyperpage{16}
+  \item {Iso\+Spec\+::\+Iso\+Generator}, \hyperpage{17}
+    \subitem {advance\+To\+Next\+Configuration}, \hyperpage{17}
+    \subitem {partial\+Exp\+Probs}, \hyperpage{18}
+    \subitem {partial\+Masses}, \hyperpage{18}
+  \item {Iso\+Spec\+::\+Iso\+Layered\+Generator}, \hyperpage{18}
+    \subitem {advance\+To\+Next\+Configuration}, \hyperpage{18}
+  \item {Iso\+Spec\+::\+Iso\+Ordered\+Generator}, \hyperpage{19}
+    \subitem {advance\+To\+Next\+Configuration}, \hyperpage{19}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Equal}, \hyperpage{11}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order}, \hyperpage{12}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal}, 
+		\hyperpage{12}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}, 
+		\hyperpage{13}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Key\+Hasher}, \hyperpage{21}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Reverse\+Order$<$ T $>$}, 
+		\hyperpage{24}
+  \item {Iso\+Spec\+::\+Iso\+Spec\+::\+Table\+Order$<$ T $>$}, 
+		\hyperpage{25}
+  \item {Iso\+Spec\+::\+Iso\+Threshold\+Generator}, \hyperpage{20}
+    \subitem {advance\+To\+Next\+Configuration}, \hyperpage{20}
+  \item {Iso\+Spec\+::\+Key\+Hasher}, \hyperpage{21}
+  \item {Iso\+Spec\+::\+Marginal}, \hyperpage{21}
+  \item {Iso\+Spec\+::\+Marginal\+Trek}, \hyperpage{22}
+  \item {Iso\+Spec\+::\+Precalculated\+Marginal}, \hyperpage{23}
+    \subitem {configurations}, \hyperpage{23}
+  \item {Iso\+Spec\+::\+Reverse\+Order$<$ T $>$}, \hyperpage{24}
+  \item {Iso\+Spec\+::\+S\+Summator}, \hyperpage{24}
+  \item {Iso\+Spec\+::\+Summator}, \hyperpage{24}
+  \item {Iso\+Spec\+::\+T\+Summator}, \hyperpage{26}
+  \item {Iso\+Spec\+::\+Table\+Order$<$ T $>$}, \hyperpage{25}
+  \item {Iso\+Spec\+::\+Tabulator$<$ T $>$}, \hyperpage{25}
+  \item {Iso\+Spec\+::\+Thread\+Summator}, \hyperpage{25}
+  \item {isotope\+Numbers}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{16}
+
+  \indexspace
+
+  \item {marginals}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{16}
+  \item {mode\+L\+Prob}
+    \subitem {Iso\+Spec\+::\+Iso}, \hyperpage{16}
+
+  \indexspace
+
+  \item {partial\+Exp\+Probs}
+    \subitem {Iso\+Spec\+::\+Iso\+Generator}, \hyperpage{18}
+  \item {partial\+Masses}
+    \subitem {Iso\+Spec\+::\+Iso\+Generator}, \hyperpage{18}
+
+\end{theindex}

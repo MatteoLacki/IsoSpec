@@ -1,0 +1,220 @@
+\hypertarget{namespace_iso_spec}{}\section{Iso\+Spec Namespace Reference}
+\label{namespace_iso_spec}\index{Iso\+Spec@{Iso\+Spec}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_allocator}{Allocator}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_conf_equal}{Conf\+Equal}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_conf_order}{Conf\+Order}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_conf_order_marginal}{Conf\+Order\+Marginal}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_conf_order_marginal_descending}{Conf\+Order\+Marginal\+Descending}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_dirty_allocator}{Dirty\+Allocator}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_iso}{Iso}}
+\begin{DoxyCompactList}\small\item\em The \mbox{\hyperlink{class_iso_spec_1_1_iso}{Iso}} class for the calculation of the isotopic distribution. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_iso_generator}{Iso\+Generator}}
+\begin{DoxyCompactList}\small\item\em The generator of isotopologues. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_iso_layered_generator}{Iso\+Layered\+Generator}}
+\begin{DoxyCompactList}\small\item\em The class that represents isotopologues above a given joint probability value. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_iso_ordered_generator}{Iso\+Ordered\+Generator}}
+\begin{DoxyCompactList}\small\item\em The generator of isotopologues sorted by their probability of occurrence. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_iso_threshold_generator}{Iso\+Threshold\+Generator}}
+\begin{DoxyCompactList}\small\item\em The generator of isotopologues above a given threshold value. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_key_hasher}{Key\+Hasher}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}}
+\begin{DoxyCompactList}\small\item\em The marginal distribution class (a subisotopologue). \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_marginal_trek}{Marginal\+Trek}}
+\begin{DoxyCompactList}\small\item\em The marginal distribution class (a subisotopologue). \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_order_marginals_by_size_decresing}{Order\+Marginals\+By\+Size\+Decresing}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal}{Precalculated\+Marginal}}
+\begin{DoxyCompactList}\small\item\em Precalculated \mbox{\hyperlink{class_iso_spec_1_1_marginal}{Marginal}} class. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_reverse_order}{Reverse\+Order}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_s_summator}{S\+Summator}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_summator}{Summator}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_table_order}{Table\+Order}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_tabulator}{Tabulator}}
+\item 
+class \mbox{\hyperlink{class_iso_spec_1_1_t_summator}{T\+Summator}}
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a5e5cbcb7f667e0610638d0a4372899c1}\label{namespace_iso_spec_a5e5cbcb7f667e0610638d0a4372899c1}} 
+typedef int $\ast$ {\bfseries Conf}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a823643c5602bf7f0992eadc3ae472b5a}\label{namespace_iso_spec_a823643c5602bf7f0992eadc3ae472b5a}} 
+{\footnotesize template$<$typename T $>$ }\\void {\bfseries copy\+Conf} (const T $\ast$source, T $\ast$destination, int dim)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a7f5e7376b35b2e0766dfea0d5917baed}\label{namespace_iso_spec_a7f5e7376b35b2e0766dfea0d5917baed}} 
+void {\bfseries release\+\_\+g\+\_\+lfact\+\_\+table} ()
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a8cd1d93e56c1301eed0d696332fc81a5}\label{namespace_iso_spec_a8cd1d93e56c1301eed0d696332fc81a5}} 
+double $\ast$ {\bfseries alloc\+\_\+lfact\+\_\+table} ()
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_ac766fd9337e208d161395836b9fd9249}\label{namespace_iso_spec_ac766fd9337e208d161395836b9fd9249}} 
+double {\bfseries Rational\+Approximation} (double t)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_ac143363e41d73579b72144675ea3ed43}\label{namespace_iso_spec_ac143363e41d73579b72144675ea3ed43}} 
+double {\bfseries Normal\+C\+D\+F\+Inverse} (double p)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a07b909ec7b54fbe3f68c4c3e3cdf9105}\label{namespace_iso_spec_a07b909ec7b54fbe3f68c4c3e3cdf9105}} 
+double {\bfseries Normal\+C\+D\+F\+Inverse} (double p, double mean, double stdev)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a80f49da9159a9df06ac64e89d3cef4c8}\label{namespace_iso_spec_a80f49da9159a9df06ac64e89d3cef4c8}} 
+double {\bfseries Normal\+C\+DF} (double x, double mean, double stdev)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_aaea4e6cc79d5b2185f4b7b905bd2157f}\label{namespace_iso_spec_aaea4e6cc79d5b2185f4b7b905bd2157f}} 
+double {\bfseries Normal\+P\+DF} (double x, double mean, double stdev)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a1cde19132fedfa1686da624baa5e5c35}\label{namespace_iso_spec_a1cde19132fedfa1686da624baa5e5c35}} 
+unsigned int {\bfseries parse\+\_\+formula} (const char $\ast$formula, std\+::vector$<$ const double $\ast$$>$ \&isotope\+\_\+masses, std\+::vector$<$ const double $\ast$$>$ \&isotope\+\_\+probabilities, int $\ast$$\ast$isotope\+Numbers, int $\ast$$\ast$atom\+Counts, unsigned int $\ast$conf\+Size)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a8c0ac7d2f8818b2f4e66b40cf15aebe5}\label{namespace_iso_spec_a8c0ac7d2f8818b2f4e66b40cf15aebe5}} 
+void {\bfseries print\+Configurations} (const std\+::tuple$<$ double $\ast$, double $\ast$, int $\ast$, int $>$ \&results, int dim\+Number, int $\ast$isotope\+Numbers)
+\item 
+Conf \mbox{\hyperlink{namespace_iso_spec_a9abbd881dd3c9347438361a6dd21cef4}{initial\+Configure}} (const int atom\+Cnt, const int isotope\+No, const double $\ast$probs, const double $\ast$lprobs)
+\begin{DoxyCompactList}\small\item\em Find one of the most probable subisotopologues. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespace_iso_spec_a90a5da54d5272c212ed36f4117939343}\label{namespace_iso_spec_a90a5da54d5272c212ed36f4117939343}} 
+void {\bfseries print\+Marginal} (const std\+::tuple$<$ double $\ast$, double $\ast$, int $\ast$, int $>$ \&results, int dim)
+\item 
+double $\ast$ \mbox{\hyperlink{namespace_iso_spec_a4b68cc6e2f1f4f30b189a5d01153daa4}{get\+M\+Log\+Probs}} (const double $\ast$probs, int iso\+No)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a01f8cd14080a2713f6e83e9f46322277}\label{namespace_iso_spec_a01f8cd14080a2713f6e83e9f46322277}} 
+double {\bfseries get\+\_\+loggamma\+\_\+nominator} (int x)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a4e0e801604398f617d64e6822bbc4e03}\label{namespace_iso_spec_a4e0e801604398f617d64e6822bbc4e03}} 
+Conf {\bfseries initial\+Configure} (int atom\+Cnt, int isotope\+No, const double $\ast$probs)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_acbcd0253dcdabd90c53d008c7e12b95f}\label{namespace_iso_spec_acbcd0253dcdabd90c53d008c7e12b95f}} 
+void $\ast$ \mbox{\hyperlink{namespace_iso_spec_acbcd0253dcdabd90c53d008c7e12b95f}{quickselect}} (void $\ast$$\ast$array, int n, int start, int end)
+\begin{DoxyCompactList}\small\item\em Quickly select the n\textquotesingle{}th positional statistic, including the weights. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespace_iso_spec_a79a88e35ec43cb5066675948fec030cd}\label{namespace_iso_spec_a79a88e35ec43cb5066675948fec030cd}} 
+double {\bfseries combined\+Sum} (const int $\ast$conf, const std\+::vector$<$ double $>$ $\ast$$\ast$values\+Container, int dim\+Number)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a82d9acffe9c8d0b1cca7d801233284c3}\label{namespace_iso_spec_a82d9acffe9c8d0b1cca7d801233284c3}} 
+int $\ast$ {\bfseries get\+Conf} (void $\ast$conf)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a4642b23c34680776d4e55f6b815a6888}\label{namespace_iso_spec_a4642b23c34680776d4e55f6b815a6888}} 
+double {\bfseries get\+L\+Prob} (void $\ast$conf)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_aa105ce846eaa3e14d1db54ca4e21ad05}\label{namespace_iso_spec_aa105ce846eaa3e14d1db54ca4e21ad05}} 
+double {\bfseries unnormalized\+\_\+log\+Prob} (const int $\ast$conf, const double $\ast$log\+Probs, int dim)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a0fc35ec359d8411cbdbab3a9e364c7f5}\label{namespace_iso_spec_a0fc35ec359d8411cbdbab3a9e364c7f5}} 
+double {\bfseries mass} (const int $\ast$conf, const double $\ast$masses, int dim)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a54355fd7cad87694458f8ea19a478a09}\label{namespace_iso_spec_a54355fd7cad87694458f8ea19a478a09}} 
+bool {\bfseries tuple\+Cmp} (std\+::tuple$<$ double, double, int $\ast$$>$ t1, std\+::tuple$<$ double, double, int $\ast$$>$ t2)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_aa6fae021871c7833eb935320e12f7ddc}\label{namespace_iso_spec_aa6fae021871c7833eb935320e12f7ddc}} 
+{\footnotesize template$<$typename T $>$ }\\void {\bfseries print\+Array} (const T $\ast$array, int size)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_ae984eaef367699061a7fd28a8f20c3ec}\label{namespace_iso_spec_ae984eaef367699061a7fd28a8f20c3ec}} 
+{\footnotesize template$<$typename T $>$ }\\void {\bfseries print\+Vector} (const std\+::vector$<$ T $>$ \&vec)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a6e695f7c9f32f0a53a47765ea7369e0b}\label{namespace_iso_spec_a6e695f7c9f32f0a53a47765ea7369e0b}} 
+{\footnotesize template$<$typename T $>$ }\\void {\bfseries print\+Nested\+Array} (const T $\ast$$\ast$array, const int $\ast$shape, int size)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_ac68241aedabb0a2fb5ee9c744bc12555}\label{namespace_iso_spec_ac68241aedabb0a2fb5ee9c744bc12555}} 
+{\footnotesize template$<$typename T $>$ }\\void {\bfseries dealloc\+\_\+table} (T $\ast$tbl, int dim)
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a01daa7537f1603ce443013c0a69f5ad3}\label{namespace_iso_spec_a01daa7537f1603ce443013c0a69f5ad3}} 
+void {\bfseries reallocate} (double $\ast$$\ast$array, int new\+\_\+size)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_ad8f480cc82f6a8972cf586464d61b328}\label{namespace_iso_spec_ad8f480cc82f6a8972cf586464d61b328}} 
+const int {\bfseries elem\+\_\+table\+\_\+atomic\+No} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a005cf652f6fd989d4c361ec5a78c3d30}\label{namespace_iso_spec_a005cf652f6fd989d4c361ec5a78c3d30}} 
+const double {\bfseries elem\+\_\+table\+\_\+mass} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a967fbb44ff2abf87af634d2342faff44}\label{namespace_iso_spec_a967fbb44ff2abf87af634d2342faff44}} 
+const int {\bfseries elem\+\_\+table\+\_\+mass\+No} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a933aad6dfcdc5a011338a53dd3699a6d}\label{namespace_iso_spec_a933aad6dfcdc5a011338a53dd3699a6d}} 
+const int {\bfseries elem\+\_\+table\+\_\+extra\+Neutrons} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a0fbc31be6f3b2728456a9a7345f727e8}\label{namespace_iso_spec_a0fbc31be6f3b2728456a9a7345f727e8}} 
+const char $\ast$ {\bfseries elem\+\_\+table\+\_\+element} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a917b6e971fd81932bb4703644ede9728}\label{namespace_iso_spec_a917b6e971fd81932bb4703644ede9728}} 
+const char $\ast$ {\bfseries elem\+\_\+table\+\_\+symbol} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_aaa9917bfb60e80f214b7c6d238a39082}\label{namespace_iso_spec_aaa9917bfb60e80f214b7c6d238a39082}} 
+const bool {\bfseries elem\+\_\+table\+\_\+\+Radioactive} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a0f9c2f5f409e63672066a692931e189b}\label{namespace_iso_spec_a0f9c2f5f409e63672066a692931e189b}} 
+const double {\bfseries elem\+\_\+table\+\_\+probability} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a9fe61f2f9c36103283bb256a2f59e93a}\label{namespace_iso_spec_a9fe61f2f9c36103283bb256a2f59e93a}} 
+const double {\bfseries elem\+\_\+table\+\_\+log\+\_\+probability} \mbox{[}I\+S\+O\+S\+P\+E\+C\+\_\+\+N\+U\+M\+B\+E\+R\+\_\+\+O\+F\+\_\+\+I\+S\+O\+T\+O\+P\+I\+C\+\_\+\+E\+N\+T\+R\+I\+ES\mbox{]}
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_acc706853ec222cb50405ee264e9007bf}\label{namespace_iso_spec_acc706853ec222cb50405ee264e9007bf}} 
+const double {\bfseries pi} = 3.\+14159265358979323846264338328
+\item 
+\mbox{\Hypertarget{namespace_iso_spec_a8be6485cb575264c4ec7398501f7c99d}\label{namespace_iso_spec_a8be6485cb575264c4ec7398501f7c99d}} 
+double $\ast$ {\bfseries g\+\_\+lfact\+\_\+table} = alloc\+\_\+lfact\+\_\+table()
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Copyright (C) 2015-\/2018 Mateusz Łącki and Michał Startek.
+
+This file is part of \mbox{\hyperlink{namespace_iso_spec}{Iso\+Spec}}.
+
+\mbox{\hyperlink{namespace_iso_spec}{Iso\+Spec}} is free software\+: you can redistribute it and/or modify it under the terms of the Simplified (\char`\"{}2-\/clause\char`\"{}) B\+SD licence.
+
+\mbox{\hyperlink{namespace_iso_spec}{Iso\+Spec}} is distributed in the hope that it will be useful, but W\+I\+T\+H\+O\+UT A\+NY W\+A\+R\+R\+A\+N\+TY; without even the implied warranty of M\+E\+R\+C\+H\+A\+N\+T\+A\+B\+I\+L\+I\+TY or F\+I\+T\+N\+E\+SS F\+OR A P\+A\+R\+T\+I\+C\+U\+L\+AR P\+U\+R\+P\+O\+SE.
+
+You should have received a copy of the Simplified B\+SD Licence along with \mbox{\hyperlink{namespace_iso_spec}{Iso\+Spec}}. If not, see \href{https://opensource.org/licenses/BSD-2-Clause}{\tt https\+://opensource.\+org/licenses/\+B\+S\+D-\/2-\/\+Clause}. 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespace_iso_spec_a4b68cc6e2f1f4f30b189a5d01153daa4}\label{namespace_iso_spec_a4b68cc6e2f1f4f30b189a5d01153daa4}} 
+\index{Iso\+Spec@{Iso\+Spec}!get\+M\+Log\+Probs@{get\+M\+Log\+Probs}}
+\index{get\+M\+Log\+Probs@{get\+M\+Log\+Probs}!Iso\+Spec@{Iso\+Spec}}
+\subsubsection{\texorpdfstring{get\+M\+Log\+Probs()}{getMLogProbs()}}
+{\footnotesize\ttfamily double$\ast$ Iso\+Spec\+::get\+M\+Log\+Probs (\begin{DoxyParamCaption}\item[{const double $\ast$}]{probs,  }\item[{int}]{iso\+No }\end{DoxyParamCaption})}
+
+~\newline
+Here we order the processor to round the numbers up rather than down. Rounding down could result in the algorithm falling in an infinite loop because of the numerical instability of summing.
+
+Definition at line 150 of file marginal\+Trek++.\+cpp.
+
+\mbox{\Hypertarget{namespace_iso_spec_a9abbd881dd3c9347438361a6dd21cef4}\label{namespace_iso_spec_a9abbd881dd3c9347438361a6dd21cef4}} 
+\index{Iso\+Spec@{Iso\+Spec}!initial\+Configure@{initial\+Configure}}
+\index{initial\+Configure@{initial\+Configure}!Iso\+Spec@{Iso\+Spec}}
+\subsubsection{\texorpdfstring{initial\+Configure()}{initialConfigure()}}
+{\footnotesize\ttfamily Conf Iso\+Spec\+::initial\+Configure (\begin{DoxyParamCaption}\item[{const int}]{atom\+Cnt,  }\item[{const int}]{isotope\+No,  }\item[{const double $\ast$}]{probs,  }\item[{const double $\ast$}]{lprobs }\end{DoxyParamCaption})}
+
+
+
+Find one of the most probable subisotopologues. 
+
+The algorithm uses the hill-\/climbing algorithm. It starts from a subisotopologue close to the mean of the underlying multinomial distribution. There might be more than one modes, in case of which this function will return only one of them, close to the mean.
+
+
+\begin{DoxyParams}{Parameters}
+{\em atom\+Cnt} & \\
+\hline
+\end{DoxyParams}
+~\newline
+Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution). We start from the point close to the mean of the underlying multinomial distribution.
+
+Definition at line 55 of file marginal\+Trek++.\+cpp.
+

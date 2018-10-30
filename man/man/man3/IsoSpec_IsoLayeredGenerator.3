@@ -1,0 +1,61 @@
+.TH "IsoSpec::IsoLayeredGenerator" 3 "Tue Oct 30 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::IsoLayeredGenerator \- The class that represents isotopologues above a given joint probability value\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <isoSpec++\&.h>\fP
+.PP
+Inherits \fBIsoSpec::IsoGenerator\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "bool \fBadvanceToNextConfiguration\fP () override final"
+.br
+.RI "Advance to the next, not yet visited, most probable isotopologue\&. "
+.ti -1c
+.RI "void \fBget_conf_signature\fP (int *space) const override final"
+.br
+.ti -1c
+.RI "\fBIsoLayeredGenerator\fP (\fBIso\fP &&iso, double _targetCoverage, double _percentageToExpand, int _tabSize=1000, int _hashSize=1000, bool trim=false)"
+.br
+.ti -1c
+.RI "void \fBterminate_search\fP ()"
+.br
+.in -1c
+.SS "Additional Inherited Members"
+.SH "Detailed Description"
+.PP 
+The class that represents isotopologues above a given joint probability value\&. 
+
+This class generates subsequent isotopologues that ARE NOT GUARANTEED TO BE ORDERED BY probability\&. The overal set of isotopologues is guaranteed to surpass a given threshold of probability contained in the isotopic distribution\&. This calculations are performed in O(N) operations, where N is the total number of the output isotopologues\&.
+.PP
+This class is not a true generator yet - the generator methods have been implemented for compatibility, but the class actually performs all computations during the initialization and stores them, and the generator methods only walk through the array of precomputed values\&. \&. It will be reimplemented as a true generator in 2\&.0\&. 
+.PP
+Definition at line 383 of file isoSpec++\&.h\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "bool IsoSpec::IsoLayeredGenerator::advanceToNextConfiguration ()\fC [final]\fP, \fC [override]\fP, \fC [virtual]\fP"
+
+.PP
+Advance to the next, not yet visited, most probable isotopologue\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Return false if it is not possible to advance\&. 
+.RE
+.PP
+
+.PP
+Implements \fBIsoSpec::IsoGenerator\fP\&.
+.PP
+Definition at line 773 of file isoSpec++\&.cpp\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

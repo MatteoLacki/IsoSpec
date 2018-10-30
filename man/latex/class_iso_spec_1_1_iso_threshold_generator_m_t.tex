@@ -1,0 +1,96 @@
+\hypertarget{class_iso_spec_1_1_iso_threshold_generator_m_t}{}\section{Iso\+Spec\+:\+:Iso\+Threshold\+Generator\+MT Class Reference}
+\label{class_iso_spec_1_1_iso_threshold_generator_m_t}\index{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT@{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT}}
+
+
+The multi-\/threaded version of the generator of isotopologues.  
+
+
+
+
+{\ttfamily \#include $<$iso\+Spec++.\+h$>$}
+
+Inheritance diagram for Iso\+Spec\+:\+:Iso\+Threshold\+Generator\+MT\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_iso_spec_1_1_iso_threshold_generator_m_t}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_iso_spec_1_1_iso_threshold_generator_m_t_ab82a60de126aa926b2baf67c49015c22}{advance\+To\+Next\+Configuration}} () override final
+\begin{DoxyCompactList}\small\item\em Advance to the next, not yet visited, most probable isotopologue. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{class_iso_spec_1_1_iso_threshold_generator_m_t_a7c398ea67338f0d446de73ec6670dbf5}{get\+\_\+conf\+\_\+signature}} (int $\ast$space) const override final
+\begin{DoxyCompactList}\small\item\em Save the counts of isotopes in the space. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_threshold_generator_m_t_a557fc9c693ddd9980151ff6250f80fc0}\label{class_iso_spec_1_1_iso_threshold_generator_m_t_a557fc9c693ddd9980151ff6250f80fc0}} 
+\mbox{\hyperlink{class_iso_spec_1_1_iso_threshold_generator_m_t_a557fc9c693ddd9980151ff6250f80fc0}{Iso\+Threshold\+Generator\+MT}} (\mbox{\hyperlink{class_iso_spec_1_1_iso}{Iso}} \&\&iso, double \+\_\+threshold, \mbox{\hyperlink{class_iso_spec_1_1_precalculated_marginal}{Precalculated\+Marginal}} $\ast$$\ast$\mbox{\hyperlink{class_iso_spec_1_1_iso_aea98a8331a2f8a1a6bbcace6124fcfae}{marginals}}, bool \+\_\+absolute=true)
+\begin{DoxyCompactList}\small\item\em Move constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_threshold_generator_m_t_a761bc9e2421c3098cf55c800ddc9908c}\label{class_iso_spec_1_1_iso_threshold_generator_m_t_a761bc9e2421c3098cf55c800ddc9908c}} 
+virtual \mbox{\hyperlink{class_iso_spec_1_1_iso_threshold_generator_m_t_a761bc9e2421c3098cf55c800ddc9908c}{$\sim$\+Iso\+Threshold\+Generator\+MT}} ()
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_threshold_generator_m_t_a43d32039cf98798ea3b0b347673fe6ad}\label{class_iso_spec_1_1_iso_threshold_generator_m_t_a43d32039cf98798ea3b0b347673fe6ad}} 
+void \mbox{\hyperlink{class_iso_spec_1_1_iso_threshold_generator_m_t_a43d32039cf98798ea3b0b347673fe6ad}{terminate\+\_\+search}} ()
+\begin{DoxyCompactList}\small\item\em Block the subsequent search of isotopologues. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+The multi-\/threaded version of the generator of isotopologues. 
+
+Attention\+: this code is experimental. 
+
+Definition at line 305 of file iso\+Spec++.\+h.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_threshold_generator_m_t_ab82a60de126aa926b2baf67c49015c22}\label{class_iso_spec_1_1_iso_threshold_generator_m_t_ab82a60de126aa926b2baf67c49015c22}} 
+\index{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT@{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT}!advance\+To\+Next\+Configuration@{advance\+To\+Next\+Configuration}}
+\index{advance\+To\+Next\+Configuration@{advance\+To\+Next\+Configuration}!Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT@{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT}}
+\subsubsection{\texorpdfstring{advance\+To\+Next\+Configuration()}{advanceToNextConfiguration()}}
+{\footnotesize\ttfamily bool Iso\+Spec\+::\+Iso\+Threshold\+Generator\+M\+T\+::advance\+To\+Next\+Configuration (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Advance to the next, not yet visited, most probable isotopologue. 
+
+\begin{DoxyReturn}{Returns}
+Return false if it is not possible to advance. 
+\end{DoxyReturn}
+
+
+Implements \mbox{\hyperlink{class_iso_spec_1_1_iso_generator_a20f48ba18c6aecc57d73b2c3ec3a11dd}{Iso\+Spec\+::\+Iso\+Generator}}.
+
+
+
+Definition at line 354 of file iso\+Spec++.\+cpp.
+
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_threshold_generator_m_t_a7c398ea67338f0d446de73ec6670dbf5}\label{class_iso_spec_1_1_iso_threshold_generator_m_t_a7c398ea67338f0d446de73ec6670dbf5}} 
+\index{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT@{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT}!get\+\_\+conf\+\_\+signature@{get\+\_\+conf\+\_\+signature}}
+\index{get\+\_\+conf\+\_\+signature@{get\+\_\+conf\+\_\+signature}!Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT@{Iso\+Spec\+::\+Iso\+Threshold\+Generator\+MT}}
+\subsubsection{\texorpdfstring{get\+\_\+conf\+\_\+signature()}{get\_conf\_signature()}}
+{\footnotesize\ttfamily void Iso\+Spec\+::\+Iso\+Threshold\+Generator\+M\+T\+::get\+\_\+conf\+\_\+signature (\begin{DoxyParamCaption}\item[{int $\ast$}]{space }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [final]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Save the counts of isotopes in the space. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em space} & An array where counts of isotopes shall be written. Must be as big as the overall number of isotopes. \\
+\hline
+\end{DoxyParams}
+
+
+Implements \mbox{\hyperlink{class_iso_spec_1_1_iso_generator_a19ca8af7dd97f8f37756d4267d49d91d}{Iso\+Spec\+::\+Iso\+Generator}}.
+
+
+
+Definition at line 316 of file iso\+Spec++.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/iso\+Spec++.\+h\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/iso\+Spec++.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,73 @@
+\hypertarget{class_iso_spec_1_1_iso_layered_generator}{}\section{Iso\+Spec\+:\+:Iso\+Layered\+Generator Class Reference}
+\label{class_iso_spec_1_1_iso_layered_generator}\index{Iso\+Spec\+::\+Iso\+Layered\+Generator@{Iso\+Spec\+::\+Iso\+Layered\+Generator}}
+
+
+The class that represents isotopologues above a given joint probability value.  
+
+
+
+
+{\ttfamily \#include $<$iso\+Spec++.\+h$>$}
+
+Inheritance diagram for Iso\+Spec\+:\+:Iso\+Layered\+Generator\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{class_iso_spec_1_1_iso_layered_generator}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{class_iso_spec_1_1_iso_layered_generator_abce0871ac279fd54a0344ceb80126b66}{advance\+To\+Next\+Configuration}} () override final
+\begin{DoxyCompactList}\small\item\em Advance to the next, not yet visited, most probable isotopologue. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_layered_generator_ab63cbae392f88528e5b7421dada4abef}\label{class_iso_spec_1_1_iso_layered_generator_ab63cbae392f88528e5b7421dada4abef}} 
+void {\bfseries get\+\_\+conf\+\_\+signature} (int $\ast$space) const override final
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_layered_generator_a746fc9fe13cca843a0f0f1993aee970a}\label{class_iso_spec_1_1_iso_layered_generator_a746fc9fe13cca843a0f0f1993aee970a}} 
+{\bfseries Iso\+Layered\+Generator} (\mbox{\hyperlink{class_iso_spec_1_1_iso}{Iso}} \&\&iso, double \+\_\+target\+Coverage, double \+\_\+percentage\+To\+Expand, int \+\_\+tab\+Size=1000, int \+\_\+hash\+Size=1000, bool trim=false)
+\item 
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_layered_generator_a6c4ea5906136d802859f47cd1b5add8d}\label{class_iso_spec_1_1_iso_layered_generator_a6c4ea5906136d802859f47cd1b5add8d}} 
+void {\bfseries terminate\+\_\+search} ()
+\end{DoxyCompactItemize}
+\subsection*{Additional Inherited Members}
+
+
+\subsection{Detailed Description}
+The class that represents isotopologues above a given joint probability value. 
+
+This class generates subsequent isotopologues that A\+RE N\+OT G\+U\+A\+R\+A\+N\+T\+E\+ED TO BE O\+R\+D\+E\+R\+ED BY probability. The overal set of isotopologues is guaranteed to surpass a given threshold of probability contained in the isotopic distribution. This calculations are performed in O(\+N) operations, where N is the total number of the output isotopologues.
+
+This class is not a true generator yet -\/ the generator methods have been implemented for compatibility, but the class actually performs all computations during the initialization and stores them, and the generator methods only walk through the array of precomputed values. . It will be reimplemented as a true generator in 2.\+0. 
+
+Definition at line 383 of file iso\+Spec++.\+h.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_layered_generator_abce0871ac279fd54a0344ceb80126b66}\label{class_iso_spec_1_1_iso_layered_generator_abce0871ac279fd54a0344ceb80126b66}} 
+\index{Iso\+Spec\+::\+Iso\+Layered\+Generator@{Iso\+Spec\+::\+Iso\+Layered\+Generator}!advance\+To\+Next\+Configuration@{advance\+To\+Next\+Configuration}}
+\index{advance\+To\+Next\+Configuration@{advance\+To\+Next\+Configuration}!Iso\+Spec\+::\+Iso\+Layered\+Generator@{Iso\+Spec\+::\+Iso\+Layered\+Generator}}
+\subsubsection{\texorpdfstring{advance\+To\+Next\+Configuration()}{advanceToNextConfiguration()}}
+{\footnotesize\ttfamily bool Iso\+Spec\+::\+Iso\+Layered\+Generator\+::advance\+To\+Next\+Configuration (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [final]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Advance to the next, not yet visited, most probable isotopologue. 
+
+\begin{DoxyReturn}{Returns}
+Return false if it is not possible to advance. 
+\end{DoxyReturn}
+
+
+Implements \mbox{\hyperlink{class_iso_spec_1_1_iso_generator_a20f48ba18c6aecc57d73b2c3ec3a11dd}{Iso\+Spec\+::\+Iso\+Generator}}.
+
+
+
+Definition at line 773 of file iso\+Spec++.\+cpp.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/iso\+Spec++.\+h\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/iso\+Spec++.\+cpp\end{DoxyCompactItemize}

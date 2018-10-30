@@ -1,0 +1,79 @@
+\hypertarget{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending}{}\section{Iso\+Spec\+:\+:Iso\+Spec\+:\+:Conf\+Order\+Marginal\+Descending Class Reference}
+\label{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending}\index{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending@{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}}
+
+
+The class used for comparing the position of subisotopologues in the order of descending probabilities.  
+
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending_a331cca614490a25d2bf4d48e04a1eba3}{Conf\+Order\+Marginal\+Descending}} (const double $\ast$log\+Probs, int dim)
+\begin{DoxyCompactList}\small\item\em Contstructor. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending_a24753a23a4484aa1247606e15362dee0}{operator()}} (const Conf conf1, const Conf conf2)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The class used for comparing the position of subisotopologues in the order of descending probabilities. 
+
+Needed for the priority queue. 
+
+Definition at line 141 of file operators.\+cpp.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending_a331cca614490a25d2bf4d48e04a1eba3}\label{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending_a331cca614490a25d2bf4d48e04a1eba3}} 
+\index{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending@{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}!Conf\+Order\+Marginal\+Descending@{Conf\+Order\+Marginal\+Descending}}
+\index{Conf\+Order\+Marginal\+Descending@{Conf\+Order\+Marginal\+Descending}!Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending@{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}}
+\subsubsection{\texorpdfstring{Conf\+Order\+Marginal\+Descending()}{ConfOrderMarginalDescending()}}
+{\footnotesize\ttfamily Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending\+::\+Conf\+Order\+Marginal\+Descending (\begin{DoxyParamCaption}\item[{const double $\ast$}]{log\+Probs,  }\item[{int}]{dim }\end{DoxyParamCaption})}
+
+
+
+Contstructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em log\+Probs} & \\
+\hline
+{\em dim} & The number of isotopes. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 34 of file operators.\+cpp.
+
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending_a24753a23a4484aa1247606e15362dee0}\label{class_iso_spec_1_1_iso_spec_1_1_conf_order_marginal_descending_a24753a23a4484aa1247606e15362dee0}} 
+\index{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending@{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}!operator()@{operator()}}
+\index{operator()@{operator()}!Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending@{Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending}}
+\subsubsection{\texorpdfstring{operator()()}{operator()()}}
+{\footnotesize\ttfamily bool Iso\+Spec\+::\+Iso\+Spec\+::\+Conf\+Order\+Marginal\+Descending\+::operator() (\begin{DoxyParamCaption}\item[{const Conf}]{conf1,  }\item[{const Conf}]{conf2 }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Constructor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em conf1} & An array of integer counts. \\
+\hline
+{\em conf2} & An array of integer counts. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+True if conf1 is more probable than conf2. 
+\end{DoxyReturn}
+
+
+Definition at line 160 of file operators.\+cpp.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/matteo/\+Projects/isospec/\+Iso\+Spec/\+Iso\+Spec++/operators.\+cpp\end{DoxyCompactItemize}

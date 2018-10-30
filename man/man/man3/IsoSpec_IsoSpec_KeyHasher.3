@@ -1,0 +1,67 @@
+.TH "IsoSpec::IsoSpec::KeyHasher" 3 "Thu Oct 11 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::IsoSpec::KeyHasher \- The hash function class\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBKeyHasher\fP (int dim)"
+.br
+.RI "Constructor\&. "
+.ti -1c
+.RI "std::size_t \fBoperator()\fP (const int *conf) const"
+.br
+.RI "The \fBcall\fP operator\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The hash function class\&. 
+
+Needed for the unordered-map\&. 
+.PP
+Definition at line 31 of file operators\&.cpp\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "IsoSpec::KeyHasher::KeyHasher (int dim)"
+
+.PP
+Constructor\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdim\fP the number of the ints that make up a configuration\&. 
+.RE
+.PP
+
+.PP
+Definition at line 22 of file operators\&.cpp\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "std::size_t IsoSpec::IsoSpec::KeyHasher::operator() (const int * conf) const\fC [inline]\fP"
+
+.PP
+The \fBcall\fP operator\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconf\fP An array of integer counts\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+The hash for counts\&. 
+.RE
+.PP
+
+.PP
+Definition at line 47 of file operators\&.cpp\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

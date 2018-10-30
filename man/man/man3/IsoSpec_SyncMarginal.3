@@ -1,0 +1,49 @@
+.TH "IsoSpec::SyncMarginal" 3 "Thu Oct 11 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::SyncMarginal \- Big experiment for multi-threaded version of the algorithm, do not touch\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <marginalTrek++\&.h>\fP
+.PP
+Inherits \fBIsoSpec::PrecalculatedMarginal\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBSyncMarginal\fP (\fBMarginal\fP &&m, double lCutOff, int tabSize=1000, int hashSize=1000)"
+.br
+.RI "likewise\&.\&.\&. "
+.ti -1c
+.RI "unsigned int \fBgetNextConfIdx\fP ()"
+.br
+.ti -1c
+.RI "unsigned int \fBgetNextConfIdxwMass\fP (double mmin, double mmax)"
+.br
+.in -1c
+.SS "Protected Attributes"
+
+.in +1c
+.ti -1c
+.RI "char \fBpadding\fP [64]"
+.br
+.ti -1c
+.RI "std::atomic< unsigned int > \fBcounter\fP"
+.br
+.ti -1c
+.RI "char \fBpadding2\fP [64]"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+Big experiment for multi-threaded version of the algorithm, do not touch\&. 
+.PP
+Definition at line 298 of file marginalTrek++\&.h\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

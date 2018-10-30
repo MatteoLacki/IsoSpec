@@ -1,0 +1,69 @@
+.TH "IsoSpec::IsoSpec::ConfEqual" 3 "Thu Oct 11 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::IsoSpec::ConfEqual \- The equality of configurations operator\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBConfEqual\fP (int dim)"
+.br
+.RI "Constructor\&. "
+.ti -1c
+.RI "bool \fBoperator()\fP (const int *conf1, const int *conf2) const"
+.br
+.RI "The \fBcall\fP operator\&. "
+.in -1c
+.SH "Detailed Description"
+.PP 
+The equality of configurations operator\&. 
+
+Needed for the unordered-map\&. 
+.PP
+Definition at line 62 of file operators\&.cpp\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "IsoSpec::ConfEqual::ConfEqual (int dim)"
+
+.PP
+Constructor\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIdim\fP the number of the ints that make up a configuration\&. 
+.RE
+.PP
+
+.PP
+Definition at line 26 of file operators\&.cpp\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "bool IsoSpec::IsoSpec::ConfEqual::operator() (const int * conf1, const int * conf2) const\fC [inline]\fP"
+
+.PP
+The \fBcall\fP operator\&. Let us quote the sacred MAN of memcmp: "The memcmp() function returns zero if the two strings are identical, otherwise returns the difference between the first two differing bytes (treated as unsigned char values, so that `\\200' is greater than `\\0', for example)\&. Zero-length strings are always identical\&. This behavior is not required by C and portable code should only depend on the sign of the returned value\&."
+.PP
+\fBParameters:\fP
+.RS 4
+\fIconf1\fP An array of integer counts\&. 
+.br
+\fIconf2\fP An array of integer counts\&. 
+.RE
+.PP
+\fBReturns:\fP
+.RS 4
+Are conf1 and conf2 the same configuration? 
+.RE
+.PP
+
+.PP
+Definition at line 87 of file operators\&.cpp\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

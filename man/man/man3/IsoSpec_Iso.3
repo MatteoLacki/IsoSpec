@@ -1,0 +1,172 @@
+.TH "IsoSpec::Iso" 3 "Tue Oct 30 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::Iso \- The \fBIso\fP class for the calculation of the isotopic distribution\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <isoSpec++\&.h>\fP
+.PP
+Inherited by \fBIsoSpec::IsoGenerator\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBIso\fP (int _dimNumber, const int *_isotopeNumbers, const int *_atomCounts, const double *const *_isotopeMasses, const double *const *_isotopeProbabilities)"
+.br
+.RI "General constructror\&. "
+.ti -1c
+.RI "\fBIso\fP (const char *formula)"
+.br
+.RI "Constructor from the formula object\&. "
+.ti -1c
+.RI "\fBIso\fP (\fBIso\fP &&other)"
+.br
+.RI "The move constructor\&. "
+.ti -1c
+.RI "\fBIso\fP (const \fBIso\fP &other, bool fullcopy)"
+.br
+.RI "The copy constructor\&. "
+.ti -1c
+.RI "virtual \fB~Iso\fP ()"
+.br
+.RI "Destructor\&. "
+.ti -1c
+.RI "double \fBgetLightestPeakMass\fP () const"
+.br
+.RI "Get the mass of the lightest peak in the isotopic distribution\&. "
+.ti -1c
+.RI "double \fBgetHeaviestPeakMass\fP () const"
+.br
+.RI "Get the mass of the heaviest peak in the isotopic distribution\&. "
+.ti -1c
+.RI "double \fBgetModeLProb\fP () const"
+.br
+.RI "Get the log-probability of the mode-configuration (if there are many modes, they share this value)\&. "
+.ti -1c
+.RI "int \fBgetDimNumber\fP () const"
+.br
+.RI "Get the number of elements in the chemical formula of the molecule\&. "
+.ti -1c
+.RI "int \fBgetAllDim\fP () const"
+.br
+.RI "Get the total number of isotopes of elements present in a chemical formula\&. "
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "bool \fBdisowned\fP"
+.br
+.in -1c
+.SS "Protected Attributes"
+
+.in +1c
+.ti -1c
+.RI "int \fBdimNumber\fP"
+.br
+.ti -1c
+.RI "int * \fBisotopeNumbers\fP"
+.br
+.ti -1c
+.RI "int * \fBatomCounts\fP"
+.br
+.ti -1c
+.RI "unsigned int \fBconfSize\fP"
+.br
+.ti -1c
+.RI "int \fBallDim\fP"
+.br
+.ti -1c
+.RI "\fBMarginal\fP ** \fBmarginals\fP"
+.br
+.ti -1c
+.RI "double \fBmodeLProb\fP"
+.br
+.in -1c
+.SH "Detailed Description"
+.PP 
+The \fBIso\fP class for the calculation of the isotopic distribution\&. 
+
+It contains full description of the molecule for which one would like to calculate the isotopic distribution\&. 
+.PP
+Definition at line 52 of file isoSpec++\&.h\&.
+.SH "Constructor & Destructor Documentation"
+.PP 
+.SS "IsoSpec::Iso::Iso (int _dimNumber, const int * _isotopeNumbers, const int * _atomCounts, const double *const * _isotopeMasses, const double *const * _isotopeProbabilities)"
+
+.PP
+General constructror\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fI_dimNumber\fP The number of elements in the formula, e\&.g\&. for C100H202 it would be 2, as there are only carbon and hydrogen atoms\&. 
+.br
+\fI_isotopeNumbers\fP A table with numbers of isotopes for each element, e\&.g\&. for C100H202 it would be {2, 2}, because both C and H have two stable isotopes\&. 
+.br
+\fI_atomCounts\fP Number of atoms of each element in the formula, e\&.g\&. for C100H202 corresponds to {100, 202}\&. 
+.br
+\fI_isotopeMasses\fP A table of masses of isotopes of the elements in the chemical formula, e\&.g\&. {12\&.0, 13\&.003355, 1\&.007825, 2\&.014102} for C100H202\&. 
+.br
+\fI_isotopeProbabilities\fP A table of isotope frequencies of the elements in the chemical formula, e\&.g\&. {\&.989212, \&.010788, \&.999885, \&.000115} for C100H202\&. 
+.RE
+.PP
+
+.PP
+Definition at line 51 of file isoSpec++\&.cpp\&.
+.SS "IsoSpec::Iso::Iso (const \fBIso\fP & other, bool fullcopy)"
+
+.PP
+The copy constructor\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIother\fP The other instance of the \fBIso\fP class\&. 
+.br
+\fIfullcopy\fP If false, copy only the number of atoms in the formula, the size of the configuration, the total number of isotopes, and the probability of the mode isotopologue\&. 
+.RE
+.PP
+
+.PP
+Definition at line 84 of file isoSpec++\&.cpp\&.
+.SH "Member Data Documentation"
+.PP 
+.SS "int IsoSpec::Iso::allDim\fC [protected]\fP"
+The total number of isotopes of elements present in a chemical formula, e\&.g\&. for H20 it is 2+3=5\&. 
+.PP
+Definition at line 71 of file isoSpec++\&.h\&.
+.SS "int* IsoSpec::Iso::atomCounts\fC [protected]\fP"
+A table with numbers of isotopes for each element\&. 
+.PP
+Definition at line 69 of file isoSpec++\&.h\&.
+.SS "unsigned int IsoSpec::Iso::confSize\fC [protected]\fP"
+The number of bytes needed to represent the counts of isotopes present in the extended chemical formula\&. 
+.PP
+Definition at line 70 of file isoSpec++\&.h\&.
+.SS "int IsoSpec::Iso::dimNumber\fC [protected]\fP"
+The number of elements in the chemical formula of the molecule\&. 
+.PP
+Definition at line 67 of file isoSpec++\&.h\&.
+.SS "bool IsoSpec::Iso::disowned"
+A variable showing if the \fBIso\fP class was specialized by its child-class\&. If so, then the description of the molecules has been transfered there and \fBIso\fP is a carcass class, dead as a dodo, an ex-class if you will\&. 
+.PP
+Definition at line 65 of file isoSpec++\&.h\&.
+.SS "int* IsoSpec::Iso::isotopeNumbers\fC [protected]\fP"
+A table with numbers of isotopes for each element\&. 
+.PP
+Definition at line 68 of file isoSpec++\&.h\&.
+.SS "\fBMarginal\fP** IsoSpec::Iso::marginals\fC [protected]\fP"
+The table of pointers to the distributions of individual subisotopologues\&. 
+.PP
+Definition at line 72 of file isoSpec++\&.h\&.
+.SS "double IsoSpec::Iso::modeLProb\fC [protected]\fP"
+The log-probability of the mode of the isotopic distribution\&. 
+.PP
+Definition at line 73 of file isoSpec++\&.h\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.

@@ -1,0 +1,81 @@
+.TH "IsoSpec::IsoThresholdGeneratorMT" 3 "Thu Oct 11 2018" "Version 1.95" "IsoSpec" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+IsoSpec::IsoThresholdGeneratorMT \- The multi-threaded version of the generator of isotopologues\&.  
+
+.SH SYNOPSIS
+.br
+.PP
+.PP
+\fC#include <isoSpec++\&.h>\fP
+.PP
+Inherits \fBIsoSpec::IsoGenerator\fP\&.
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "bool \fBadvanceToNextConfiguration\fP () override final"
+.br
+.RI "Advance to the next, not yet visited, most probable isotopologue\&. "
+.ti -1c
+.RI "void \fBget_conf_signature\fP (int *space) const override final"
+.br
+.RI "Save the counts of isotopes in the space\&. "
+.ti -1c
+.RI "\fBIsoThresholdGeneratorMT\fP (\fBIso\fP &&iso, double _threshold, \fBPrecalculatedMarginal\fP **\fBmarginals\fP, bool _absolute=true)"
+.br
+.RI "Move constructor\&. "
+.ti -1c
+.RI "virtual \fB~IsoThresholdGeneratorMT\fP ()"
+.br
+.RI "Destructor\&. "
+.ti -1c
+.RI "void \fBterminate_search\fP ()"
+.br
+.RI "Block the subsequent search of isotopologues\&. "
+.in -1c
+.SS "Additional Inherited Members"
+.SH "Detailed Description"
+.PP 
+The multi-threaded version of the generator of isotopologues\&. 
+
+Attention: this code is experimental\&. 
+.PP
+Definition at line 305 of file isoSpec++\&.h\&.
+.SH "Member Function Documentation"
+.PP 
+.SS "bool IsoSpec::IsoThresholdGeneratorMT::advanceToNextConfiguration ()\fC [final]\fP, \fC [override]\fP, \fC [virtual]\fP"
+
+.PP
+Advance to the next, not yet visited, most probable isotopologue\&. 
+.PP
+\fBReturns:\fP
+.RS 4
+Return false if it is not possible to advance\&. 
+.RE
+.PP
+
+.PP
+Implements \fBIsoSpec::IsoGenerator\fP\&.
+.PP
+Definition at line 354 of file isoSpec++\&.cpp\&.
+.SS "void IsoSpec::IsoThresholdGeneratorMT::get_conf_signature (int * space) const\fC [inline]\fP, \fC [final]\fP, \fC [override]\fP, \fC [virtual]\fP"
+
+.PP
+Save the counts of isotopes in the space\&. 
+.PP
+\fBParameters:\fP
+.RS 4
+\fIspace\fP An array where counts of isotopes shall be written\&. Must be as big as the overall number of isotopes\&. 
+.RE
+.PP
+
+.PP
+Implements \fBIsoSpec::IsoGenerator\fP\&.
+.PP
+Definition at line 316 of file isoSpec++\&.h\&.
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for IsoSpec from the source code\&.
