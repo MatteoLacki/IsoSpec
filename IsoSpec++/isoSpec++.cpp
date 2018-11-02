@@ -124,6 +124,7 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
         }
         catch(...)
         {
+            ii--;
             while(ii >= 0)
             {
                 delete marginals[ii];
