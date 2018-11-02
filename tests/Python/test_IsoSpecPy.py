@@ -13,6 +13,7 @@ except ImportError:
     print("You must install it, using:")
     print("pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
 
+
 # Correctness tests comparing IsoSpecPy 1.0.7 and HEAD. The trouble here is that due to slightly different way things are calculated
 # we get different rounding errors, and therefore slightly different results - and that's OK. The function kinda_like reflects that
 # - but is still WAAAY too strict. Often we can justifiably get different configurations, or different counts of configurations...
@@ -69,6 +70,14 @@ def confs_from_threshold_generator(formula, target_prob):
     return sort_confs(ret)
 
 
+is_ok = False
+try:
+    i = IsoSpecPy.IsoThreshold(0.1, False, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
+    for x in i:
+        print(x)
+except ValueError:
+    is_ok = True
+assert is_ok
 
 for molecule in molecules:
     for parameter in parameters:

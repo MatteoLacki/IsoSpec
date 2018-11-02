@@ -72,7 +72,12 @@ class Iso(object):
 
         if isotopeProbabilities is not None:
             self.isotopeProbabilities = isotopeProbabilities
-        
+
+        for sublist in self.isotopeProbabilities:
+            for prob in sublist:
+                if not (0.0 < prob <= 1.0):
+                    raise ValueError("All isotope probabilities p must fulfill: 0.0 < p <= 1.0")
+
         self.isotopeNumbers = tuple(map(len, self.isotopeMasses))
         assert self.isotopeNumbers == tuple(map(len, self.isotopeProbabilities))
 
