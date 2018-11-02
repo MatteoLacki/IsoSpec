@@ -16,6 +16,7 @@ i = IsoSpecPy.IsoOrderedGenerator(formula="H2O1", get_confs=True)
 print("Calculating isotopic distribution of water. Here's a list of all configurations, in a guaranteed order of nonincreasing probability:")
 
 for mass, log_prob, conf in i:
+    print("")
     print("Mass: " + str(mass))
     print("log(probability): " + str(log_prob))
     print("probability: " + str(exp(log_prob)))
