@@ -14,7 +14,8 @@ main_test:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) main_test.cpp -o main_test_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) main_test.cpp -o main_test_gcc
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -o main_test_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=address,undefined -o main_test_asan
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_SKIP_SLOW_TESTS -o main_test_dbg_fast
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_SKIP_SLOW_TESTS -fsanitize=address,undefined -o main_test_asan
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=cfi -flto -fvisibility=hidden -o main_test_cfi
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=safe-stack -o main_test_ss
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o main_test_memsan
@@ -48,7 +49,6 @@ formula_layered:
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_dbg
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -fsanitize=address,undefined -o ./from_formula_layered_asan
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_memsan
-
 
 ti:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin

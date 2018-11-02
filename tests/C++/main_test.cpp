@@ -3,6 +3,7 @@
 #include "from_formula_ordered.cpp"
 #include "from_formula_threshold.cpp"
 #include "from_formula_threshold_simple.cpp"
+#include "element_zero.cpp"
 #include "unity-build.cpp"
 #include <vector>
 
@@ -20,7 +21,20 @@ total += tmp;
 
 int main()
 {
+        bool zero_ok = false;
+        try{
+            test_zero(0.1, false);
+        }
+        catch(std::invalid_argument&)
+        {
+            zero_ok = true;
+        }
+        assert(zero_ok);
+        #if !defined(ISOSPEC_SKIP_SLOW_TESTS)
 	char test_formulas[] = "P1 P2 H1 H2 O1 O2 H2O1 C0 P0 C100O0P100 C100 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5 Sn5 Se2Sn2C2O2N2S2B2He2U2Na2Cl2";
+        #else
+        char test_formulas[] = "P1 P2 H1 H2 O1 O2 H2O1 C0 P0 C100O0P100 C100 P100 C1 H3C3O3N3S3 Se1 Se3 Sn1 Sn3C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5";
+        #endif
 	size_t tf_len = strlen(test_formulas);
 	std::vector<const char*> formulas;
 	formulas.push_back(test_formulas);
