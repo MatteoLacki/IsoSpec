@@ -74,6 +74,7 @@ void get_conf_signature##generatorType(void* generator, int* space)\
 #define C_CODES(generatorType)\
 C_CODE(generatorType, double, mass) \
 C_CODE(generatorType, double, lprob) \
+C_CODE(generatorType, double, prob) \
 C_CODE_GET_CONF_SIGNATURE(generatorType) \
 C_CODE(generatorType, bool, advanceToNextConfiguration) \
 DELETE(generatorType)

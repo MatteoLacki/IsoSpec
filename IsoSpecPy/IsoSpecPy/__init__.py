@@ -191,15 +191,15 @@ class IsoGenerator(Iso):
         if self.get_confs:
             while self.advancer(cgen):
                 self.conf_getter(cgen, self.conf_space)
-                yield (self.mass_getter(cgen), self.lprob_getter(cgen), self.parse_conf(self.conf_space))
+                yield (self.mass_getter(cgen), self.xprob_getter(cgen), self.parse_conf(self.conf_space))
         else:
             while self.advancer(cgen):
-                yield (self.mass_getter(cgen), self.lprob_getter(cgen))
+                yield (self.mass_getter(cgen), self.xprob_getter(cgen))
 
         
 
 class IsoThresholdGenerator(IsoGenerator):
-    def __init__(self, threshold, absolute=False, get_confs=False, **kwargs):
+    def __init__(self, threshold, absolute=False, get_confs=False, use_lprobs=False, **kwargs):
         super(IsoThresholdGenerator, self).__init__(get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
@@ -209,7 +209,7 @@ class IsoThresholdGenerator(IsoGenerator):
                                                         1000,
                                                         1000)
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
-        self.lprob_getter = self.ffi.lprobIsoThresholdGenerator
+        self.xprob_getter = self.ffi.lprobIsoThresholdGenerator if use_lprobs else self.ffi.probIsoThresholdGenerator
         self.mass_getter = self.ffi.massIsoThresholdGenerator
         self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
 
@@ -219,7 +219,7 @@ class IsoThresholdGenerator(IsoGenerator):
 
 
 class IsoLayeredGenerator(IsoGenerator):
-    def __init__(self, prob_to_cover = 0.99, get_confs=False, do_trim = False, **kwargs):
+    def __init__(self, prob_to_cover = 0.99, get_confs=False, do_trim = False, use_lprobs=False, **kwargs):
         super(IsoLayeredGenerator, self).__init__(get_confs, **kwargs)
         self.delta = prob_to_cover
         self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso,
@@ -229,7 +229,7 @@ class IsoLayeredGenerator(IsoGenerator):
                                                       1000,
                                                       do_trim)
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
-        self.lprob_getter = self.ffi.lprobIsoLayeredGenerator
+        self.xprob_getter = self.ffi.lprobIsoLayeredGenerator if use_lprobs else self.ffi.probIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator
         self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
 
@@ -238,13 +238,13 @@ class IsoLayeredGenerator(IsoGenerator):
             self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
 class IsoOrderedGenerator(IsoGenerator):
-    def __init__(self, get_confs=False, **kwargs):
+    def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
         super(IsoOrderedGenerator, self).__init__(get_confs, **kwargs)
         self.cgen = self.ffi.setupIsoOrderedGenerator(self.iso,
                                                       1000,
                                                       1000)
         self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
-        self.lprob_getter = self.ffi.lprobIsoOrderedGenerator
+        self.xprob_getter = self.ffi.lprobIsoOrderedGenerator if use_lprobs else self.ffi.probIsoOrderedGenerator
         self.mass_getter = self.ffi.massIsoOrderedGenerator
         self.conf_getter = self.ffi.get_conf_signatureIsoOrderedGenerator
 

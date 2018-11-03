@@ -43,6 +43,7 @@ def confs_from_ordered_generator(formula, target_prob):
     ret = ([], [], [])
     prob = 0.0
     for conf in IsoSpecPy.IsoOrderedGenerator(formula=formula, get_confs=True):
+        conf = (conf[0], log(conf[1]), conf[2])
         if prob >= target_prob and target_prob < 1.0:
             return ret
         ret[0].append(conf[0])
@@ -54,6 +55,7 @@ def confs_from_ordered_generator(formula, target_prob):
 def confs_from_layered_generator(formula, target_prob):
     ret = ([], [], [])
     for conf in IsoSpecPy.IsoLayeredGenerator(formula=formula, prob_to_cover = target_prob, get_confs=True, do_trim=True):
+        conf = (conf[0], log(conf[1]), conf[2])
         ret[0].append(conf[0])
         ret[1].append(conf[1])
         ret[2].append([item for sublist in conf[2] for item in sublist])
@@ -63,6 +65,7 @@ def confs_from_layered_generator(formula, target_prob):
 def confs_from_threshold_generator(formula, target_prob):
     ret = ([], [], [])
     for conf in IsoSpecPy.IsoThresholdGenerator(formula=formula, threshold = target_prob, absolute = True, get_confs=True):
+        conf = (conf[0], log(conf[1]), conf[2])
         ret[0].append(conf[0])
         ret[1].append(conf[1])
         ret[2].append([item for sublist in conf[2] for item in sublist])
