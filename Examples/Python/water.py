@@ -11,9 +11,9 @@ except AttributeError:
     import sys
     sys.exit(-1)
 
-i = IsoSpecPy.IsoOrderedGenerator(formula="H2O1", get_confs=True)
+i = IsoSpecPy.IsoLayeredGenerator(formula="H2O1", prob_to_cover = 0.999, get_confs=True)
 
-print("Calculating isotopic distribution of water. Here's a list of all configurations, in a guaranteed order of nonincreasing probability:")
+print("Calculating isotopic distribution of water. Here's a list of configurations necessary to cover at least 0.999 of total probability:")
 
 for mass, log_prob, conf in i:
     print("")
@@ -34,7 +34,7 @@ oxygen_probs = (0.5, 0.3, 0.2)
 hydrogen_masses = (1.00782503207, 2.0141017778)
 oxygen_masses = (15.99491461956, 16.99913170, 17.9991610)
 
-i = IsoSpecPy.IsoOrderedGenerator(atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), get_confs=True)
+i = IsoSpecPy.IsoLayeredGenerator(atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), prob_to_cover = 0.999, get_confs=True)
 
 
 mass, log_prob, conf = next(i.__iter__())
