@@ -8,6 +8,7 @@ produced code is no longer large enough to justify it
 - Some more minor code cleanups
 - Python wrapper now returns probabilities of configurations instead of logprobabilities 
   by default. This is controllable through (optional) parameter.
+- Expose LayeredTabulator in Python
 
 ----------------------------------
 1.9.0beta2
