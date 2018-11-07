@@ -162,20 +162,45 @@ class IsoThreshold(Iso):
 
 
 
-'''
 
 class IsoLayered(Iso):
-    def __init__(self, delta=-10.0, **kwargs):
-        super(IsoLayered, self).__init__(**kwargs)
-        self.delta = delta
+    def __init__(self, prob_to_cover, get_confs = False, **kwargs):
+        self.tabulator = None
+        self.generator = None
+        super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
+        self.prob_to_cover = prob_to_cover
 
-    def __iter__(self):
-        return IsoLayeredGenerator(src=self, get_confs=self.get_confs)
+        self.generator = self.ffi.setupIsoLayeredGenerator(self.iso, prob_to_cover, 0.3, 1000, 1000, True)
+        self.tabulator = self.ffi.setupLayeredTabulator(self.generator, True, True, True, get_confs)
+
+        self.size = self.ffi.confs_noLayeredTabulator(self.tabulator)
+
+        def c(typename, what, mult = 1):
+            return isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what)
+
+        self.masses = c("double", self.ffi.massesThresholdTabulator(self.tabulator))
+        self.lprobs = c("double", self.ffi.lprobsThresholdTabulator(self.tabulator))
+        self.probs  = c("double", self.ffi.probsThresholdTabulator(self.tabulator))
+
+        if get_confs:
+            self.sum_isotope_numbers = sum(self.isotopeNumbers)
+            self.raw_confs = c("int", self.ffi.confsLayeredTabulator(self.tabulator), mult = self.sum_isotope_numbers)
+            self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+
+    def _get_conf(self, idx):
+        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
+
+    def __len__(self):
+        return self.size
 
     def __del__(self):
-        pass
+        if self.tabulator is not None:
+            self.ffi.deleteThresholdTabulator(self.tabulator)
+        if self.generator is not None:
+            self.ffi.deleteIsoThresholdGenerator(self.generator)
 
-'''
+
+
 
 class IsoGenerator(Iso):
     def __init__(self, get_confs=False, **kwargs):

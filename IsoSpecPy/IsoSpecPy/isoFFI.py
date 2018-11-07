@@ -54,6 +54,21 @@ class IsoFFI:
         const int* confsThresholdTabulator(void* tabulator);
         int confs_noThresholdTabulator(void* tabulator);
 
+
+        void* setupLayeredTabulator(void* generator,
+                                      bool get_masses,
+                                      bool get_probs,
+                                      bool get_lprobs,
+                                      bool get_confs);
+
+        void deleteLayeredTabulator(void* tabulator);
+
+        const double* massesLayeredTabulator(void* tabulator);
+        const double* lprobsLayeredTabulator(void* tabulator);
+        const double* probsLayeredTabulator(void* tabulator);
+        const int* confsLayeredTabulator(void* tabulator);
+        int confs_noLayeredTabulator(void* tabulator);
+
         #define NUMBER_OF_ISOTOPIC_ENTRIES 287
         extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
         extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];

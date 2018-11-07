@@ -95,6 +95,22 @@ const double* probsThresholdTabulator(void* tabulator);
 const int*    confsThresholdTabulator(void* tabulator);
 int confs_noThresholdTabulator(void* tabulator);
 
+
+
+void* setupLayeredTabulator(void* generator,
+                              bool  get_masses,
+                              bool  get_probs,
+                              bool  get_lprobs,
+                              bool  get_confs);
+
+void deleteLayeredTabulator(void* tabulator);
+
+const double* massesLayeredTabulator(void* tabulator);
+const double* lprobsLayeredTabulator(void* tabulator);
+const double* probsLayeredTabulator(void* tabulator);
+const int*    confsLayeredTabulator(void* tabulator);
+int confs_noLayeredTabulator(void* tabulator);
+
 #ifdef __cplusplus
 }
 #endif

@@ -135,7 +135,7 @@ void* setupIsoOrderedGenerator(void* iso,
 }
 C_CODES(IsoOrderedGenerator)
 
-//______________________________________________________ Threshold Tabulator 1.0
+//______________________________________________________ Threshold Tabulator
 
 void* setupThresholdTabulator(void* generator,
                      bool  get_masses,
@@ -180,6 +180,54 @@ const int*    confsThresholdTabulator(void* tabulator)
 int confs_noThresholdTabulator(void* tabulator)
 {
     return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs_no();
+}
+
+
+//______________________________________________________ Layered Tabulator
+
+void* setupLayeredTabulator(void* generator,
+                     bool  get_masses,
+                     bool  get_probs,
+                     bool  get_lprobs,
+                     bool  get_confs)
+{
+    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(reinterpret_cast<IsoLayeredGenerator*>(generator),
+                                         get_masses,
+                                         get_probs,
+                                         get_lprobs,
+                                         get_confs);
+
+    return reinterpret_cast<void*>(tabulator);
+}
+
+void deleteLayeredTabulator(void* t)
+{
+    delete reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(t);
+}
+
+const double* massesLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses();
+}
+
+const double* lprobsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs();
+}
+
+const double* probsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs();
+}
+
+const int*    confsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs();
+}
+
+int confs_noLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs_no();
 }
 
 
