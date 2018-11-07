@@ -105,15 +105,16 @@ class Iso(object):
 
     def __iter__(self):
         if self.get_confs:
-            raise NotImplementedError() # TODO: implement
+            for i in xrange(self.size):
+                yield(self.masses[i], self.probs[i], self.confs[i])
         else:
             for i in xrange(self.size):
                 yield (self.masses[i], self.probs[i])
-                
+
     def __del__(self):
         if self.iso is not None:
             self.ffi.deleteIso(self.iso)
-        
+
 
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
