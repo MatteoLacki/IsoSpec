@@ -4,6 +4,8 @@
 	#include "mman.c"
 #endif
 
+#if !ISOSPEC_BUILDING_R
+
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
 #include "isoSpec++.cpp"
@@ -14,3 +16,5 @@
 #include "cwrapper.cpp"
 #include "tabulator.cpp"
 #include "misc.cpp"
+
+#endif

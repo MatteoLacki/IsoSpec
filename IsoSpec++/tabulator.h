@@ -31,7 +31,7 @@ public:
     inline size_t    confs_no() { return _confs_no; };
 };
 
-void reallocate(double **array, int new_size){
+inline void reallocate(double **array, int new_size){
     if( *array != nullptr ){
         *array = (double *) realloc(*array, new_size);
     }

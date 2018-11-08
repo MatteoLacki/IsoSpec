@@ -2,7 +2,7 @@
 #pragma once
 
 #if !defined(ISOSPEC_BUILDING_R)
-#define ISOSPEC_BUILDING_R false
+#define ISOSPEC_BUILDING_R true
 #endif
 
 #if !defined(ISOSPEC_BUILDING_CPP)
