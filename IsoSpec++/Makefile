@@ -14,6 +14,9 @@ debug:
 debug-gcc:
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) unity-build.cpp -DDEBUG -fPIC -shared -o libIsoSpec++.so
 
+nonunity:
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) -DDEBUG -fPIC -shared -o libIsoSpec++.so
+
 clean:
 	rm -f libIsoSpec++.so
 
