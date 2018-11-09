@@ -19,9 +19,11 @@
 '''
 Bunch of deprecated functions for 1.0.X compatibility.
 Avoid using them: there is a considerable overhead associated
-with using the old interface...
+with using the old interface... The backward compatibility module
+is also very rudimentary, somewhat incomplete and not very well
+tested too...
 
-The current functions are implemented in __init__.py, use them instead
+The current API is implemented in __init__.py, use that instead
 '''
 
 try:
@@ -48,8 +50,6 @@ class IsoSpec():
         isoargs = {
             "formula"           : None,
             "get_confs"         : True,
-            "dimNumber"         : len(_atomCounts),
-            "isotopeNumbers"    : [len(x) for x in _isotopeMasses],
             "atomCounts"        : _atomCounts,
             "isotopeMasses"     : _isotopeMasses,
             "isotopeProbabilities"  : _isotopeProbabilities,
@@ -66,11 +66,11 @@ class IsoSpec():
         from .__init__ import IsoThreshold
 
         try:
-            algo = { # 'layered' : 0, # not implemented yet
-              # 'ordered' : 1, # not implemented yet
+            algo = { 'layered' : lambda total_prob: IsoLayered(total_prob, **isoargs)
+              'ordered' : 1, lambda total_prob: IsoLayered(total_prob, **isoargs)
               'threshold_absolute' : lambda threshold: IsoThreshold(threshold, True, **isoargs),
               'threshold_relative' : lambda threshold: IsoThreshold(threshold, False, **isoargs)
-              # 'layered_estimating' : 4, # not implemented yet
+              'layered_estimating' : lambda total_prob: IsoLayered(total_prob, **isoargs)
             }[method]
         except KeyError:
             raise Exception("Invalid ISO method")
@@ -84,6 +84,10 @@ class IsoSpec():
         self.probs  = self.iso.probs
         self.confs  = self.iso.confs
         self.size   = self.iso.size
+
+        if method == 'ordered':
+            L = sorted(zip(self.masses, self.lprobs, self.probs, self.confs), key = lambda x: -x[1])
+            self.masses, self.lprobs, self.probs, self.confs = zip(*L)
 
     @staticmethod
     def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'threshold_relative', step = 0.25, trim = True):
