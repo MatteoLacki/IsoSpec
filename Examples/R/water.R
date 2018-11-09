@@ -12,7 +12,7 @@ print(resRaw)
 
 # While not doing any high-throughput analysis, you might consider to present reported data in a fancy way. 
 # ATTENTION: this will CORRUPT THE LINEAR RUNTIME claim, as setting "fancy = TRUE" involves sorting the results. 
-res <- IsoSpecify( molecule=water, stopCondition=.99, fancy=TRUE )
+res <- IsoSpecify( molecule=water, stopCondition=.99 )
 
 # ATTENTION: while turned on, the algorithm's time complexity is nlog(n) instead of linear.
 
@@ -36,7 +36,7 @@ modifiedIsotopes <- data.frame(
 	abundance = c(0.5, 0.5,0.5, 0.3, 0.2)
 )
 
-modRes <- IsoSpecify( molecule=water, stopCondition=.99, fancy=TRUE, isotopes=modifiedIsotopes )
+modRes <- IsoSpecify( molecule=water, stopCondition=.99, isotopes=modifiedIsotopes )
 
 print('The number of configuration must be bigger, the probability being less concentrated on any isotope.')
 modRes
