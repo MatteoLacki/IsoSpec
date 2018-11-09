@@ -8,20 +8,22 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef MISC_HPP
-#define MISC_HPP
+#pragma once
 
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <fenv.h>
 #include "isoMath.h"
+
+namespace IsoSpec
+{
 
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
@@ -46,18 +48,25 @@ inline double getLProb(void* conf)
 }
 
 
-inline double logProb(const int* conf, const double* logProbs, int dim)
+inline double unnormalized_logProb(const int* conf, const double* logProbs, int dim)
 {
-    int     N = 0;
     double  res = 0.0;
 
+    int curr_method = fegetround();
+
+    fesetround(FE_TOWARDZERO);
+
     for(int i=0; i < dim; i++)
-    {
-        N   += conf[i];
-        res -= logFactorial(conf[i]);
+        res += minuslogFactorial(conf[i]);
+
+    fesetround(FE_UPWARD);
+
+    for(int i=0; i < dim; i++)
         res += conf[i] * logProbs[i];
-    }
-    return res + logFactorial(N);
+
+    fesetround(curr_method);
+
+    return res;
 }
 
 inline double mass(const int* conf, const double* masses, int dim)
@@ -102,5 +111,26 @@ template<typename T> void printNestedArray(const T** array, const int* shape, in
 
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
+
+//! Quickly select the n'th positional statistic, including the weights.
 void* quickselect(void** array, int n, int start, int end);
-#endif
+
+
+template <typename T> inline static T* array_copy(const T* A, int size)
+{
+    T* ret = new T[size];
+    memcpy(ret, A, size*sizeof(T));
+    return ret;
+}
+
+template<typename T> void dealloc_table(T* tbl, int dim)
+{
+    for(int i=0; i<dim; i++)
+    {
+        delete tbl[i];
+    }
+    delete[] tbl;
+}
+
+} // namespace IsoSpec
+

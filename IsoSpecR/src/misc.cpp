@@ -15,14 +15,15 @@
  */
 
 
-
 #include "misc.h"
-#include "lang.h"
+#include "platform.h"
 #include <stdlib.h>
 
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
 
+namespace IsoSpec
+{
 
 void* quickselect(void** array, int n, int start, int end)
 {
@@ -35,7 +36,7 @@ void* quickselect(void** array, int n, int start, int end)
     {
         // Partition part
         int len = end - start;
-#ifdef ISOSPEC_BUILDING_R
+#if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
 	int pivot = rand() % len + start;
@@ -63,4 +64,6 @@ void* quickselect(void** array, int n, int start, int end)
             start = loweridx+1;
     };
 }
+
+} // namespace IsoSpec
 

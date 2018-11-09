@@ -14,20 +14,21 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef ALLOCATOR_HPP
-#define ALLOCATOR_HPP
+#pragma once
 
 #include <vector>
 #include <iostream>
+#include <string.h>
 #include "conf.h"
 
+namespace IsoSpec
+{
 
 template <typename T> inline void copyConf(
     const T* source, T* destination,
     int dim
 ){
-    for(int i = 0; i < dim; i++) destination[i] = source[i];
+    memcpy(destination, source, dim*sizeof(T));
 }
 
 template <typename T> class Allocator{
@@ -44,14 +45,12 @@ public:
 
     inline T* newConf()
     {
-        unsigned int idx = (currentId++) * dim;
+        currentId++;
 
         if (currentId >= tabSize)
-        {
             shiftTables();
-        }
 
-        return &currentTab[ idx ];
+        return &(currentTab[ currentId * dim ]);
     }
 
     inline T* makeCopy(const T* conf)
@@ -71,4 +70,5 @@ public:
     }
 };
 
-#endif
+}
+

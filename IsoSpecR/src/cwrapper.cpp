@@ -24,148 +24,30 @@
 #include "misc.h"
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
+#include "tabulator.h"
 
+using namespace IsoSpec;
 
 extern "C"
 {
-
-void* setupMarginal(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
-    int tabSize,
-    int hashSize
-)
+void * setupIso(int             dimNumber,
+                const int*      isotopeNumbers,
+                const int*      atomCounts,
+                const double*   isotopeMasses,
+                const double*   isotopeProbabilities)
 {
-    /*
-        *        std::tuple<double*,double*,int*,int> res_tmp =
-        *                        getMarginal(
-        *                                masses,
-        *                                probs,
-        *                                isotopeNo,
-        *                                atomCnt,
-        *                                cutOff,
-        *                                tabSize,
-        *                                hashSize
-        *                        );
-        *
-        *        std::tuple<double*,double*,int*,int,int>* res =
-        *                        new std::tuple<double*,double*,int*,int,int>(
-        *                                                std::get<0>(res_tmp),
-        *                                                std::get<1>(res_tmp),
-        *                                                std::get<2>(res_tmp),
-        *                                                std::get<3>(res_tmp),
-        *                                                isotopeNo
-        *                                            );
-        *
-        *        return reinterpret_cast<void*>(res);
-        */
-    MarginalTrek* MT = new MarginalTrek(
-        masses,
-        probs,
-        isotopeNo,
-        atomCnt,
-        tabSize,
-        hashSize
-    );
-    return reinterpret_cast<void*>(MT);
-}
-
-int probeConfigurationIdx(void* MT, int idx)
-{
-    return reinterpret_cast<MarginalTrek*>(MT)->probeConfigurationIdx(idx);
-}
-
-int getConfMT(void* MT, int idx, double* mass, double* logProb, int* configuration)
-{
-    MarginalTrek* IMT = reinterpret_cast<MarginalTrek*>(MT);
-    if(!IMT->probeConfigurationIdx(idx))
-        return 0;
-    *mass = IMT->conf_masses()[idx];
-    *logProb = IMT->conf_probs()[idx];
-    memcpy(configuration, IMT->confs()[idx], IMT->_isotopeNo*sizeof(int));
-    return 1;
-}
-
-int processMTUntilCutoff(void* MT, double cutoff)
-{
-    return reinterpret_cast<MarginalTrek*>(MT)->processUntilCutoff(cutoff);
-}
-
-int getConfNo(void* MT)
-{
-    return reinterpret_cast<MarginalTrek*>(MT)->conf_probs().size();
-}
-
-void getConfs(int howmany, void* MT, double* masses, double* logprobs, int* configurations)
-{
-    MarginalTrek* IMT = reinterpret_cast<MarginalTrek*>(MT);
-    int cnt = std::min(howmany, (int)IMT->conf_probs().size());
-    memcpy(masses, IMT->conf_probs().data(), cnt*sizeof(double));
-    memcpy(logprobs, IMT->conf_probs().data(), cnt*sizeof(double));
-    int dim = IMT->get_isotopeNo();
-    for(int i=0; i<cnt; i++)
-        memcpy(&configurations[i*dim], IMT->confs()[i], dim*sizeof(int));
-}
-
-
-void destroyConf(void* marginals)
-{
-    if (marginals != NULL)
-    {
-        delete reinterpret_cast<MarginalTrek*>(marginals);
-    }
-}
-
-
-// =================================================================================
-
-void* setupIsoLayered( int      _dimNumber,
-                        const int*      _isotopeNumbers,
-                        const int*      _atomCounts,
-                        const double*   _isotopeMasses,
-                        const double*   _isotopeProbabilities,
-                        const double    _cutOff,
-                        int             tabSize,
-                        int             hashSize,
-                        double          step,
-                        bool            estimate,
-                        bool            trim
-)
-{
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
+    const double** IM = new const double*[dimNumber];
+    const double** IP = new const double*[dimNumber];
     int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
+    for(int i=0; i<dimNumber; i++)
     {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
+        IM[i] = &isotopeMasses[idx];
+        IP[i] = &isotopeProbabilities[idx];
+        idx += isotopeNumbers[i];
     }
+    //TODO in place (maybe pass a numpy matrix??)
 
-
-    IsoSpec* iso = new IsoSpecLayered(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP,
-        _cutOff,
-        tabSize,
-        hashSize,
-        step,
-	estimate,
-	trim
-    );
-
-    try {
-        iso->processConfigurationsUntilCutoff();
-    }
-    catch (std::bad_alloc& ba) {
-        delete iso;
-        iso = NULL;
-    }
+    Iso* iso = new Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP);
 
     delete[] IM;
     delete[] IP;
@@ -173,178 +55,181 @@ void* setupIsoLayered( int      _dimNumber,
     return reinterpret_cast<void*>(iso);
 }
 
-void* setupIsoOrdered( int             _dimNumber,
-                        const int*      _isotopeNumbers,
-                        const int*      _atomCounts,
-                        const double*   _isotopeMasses,
-                        const double*   _isotopeProbabilities,
-                        const double    _cutOff,
-                        int             tabSize,
-                        int             hashSize
-)
+void deleteIso(void* iso)
 {
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
-    int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
-    {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
-    }
-
-
-    IsoSpec* iso = new IsoSpecOrdered(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP,
-        _cutOff,
-        tabSize,
-        hashSize
-    );
-
-    try {
-        iso->processConfigurationsUntilCutoff();
-    }
-    catch (std::bad_alloc& ba) {
-        delete iso;
-        iso = NULL;
-    }
-
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
+    delete reinterpret_cast<Iso*>(iso);
 }
 
-void* setupIsoThreshold(    int      _dimNumber,
-                            const int*      _isotopeNumbers,
-                            const int*      _atomCounts,
-                            const double*   _isotopeMasses,
-                            const double*   _isotopeProbabilities,
-                            const double    _threshold,
-                            int             _absolute,
-                            int             tabSize,
-                            int             hashSize
-)
+
+#define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
+dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
+
+#define ISOSPEC_C_FN_CODE_GET_CONF_SIGNATURE(generatorType)\
+void get_conf_signature##generatorType(void* generator, int* space)\
+{ reinterpret_cast<generatorType*>(generator)->get_conf_signature(space); }
+
+
+#define ISOSPEC_C_FN_DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
+
+#define ISOSPEC_C_FN_CODES(generatorType)\
+ISOSPEC_C_FN_CODE(generatorType, double, mass) \
+ISOSPEC_C_FN_CODE(generatorType, double, lprob) \
+ISOSPEC_C_FN_CODE(generatorType, double, prob) \
+ISOSPEC_C_FN_CODE_GET_CONF_SIGNATURE(generatorType) \
+ISOSPEC_C_FN_CODE(generatorType, bool, advanceToNextConfiguration) \
+ISOSPEC_C_FN_DELETE(generatorType)
+
+
+
+//______________________________________________________THRESHOLD GENERATOR
+void* setupIsoThresholdGenerator(void* iso,
+                                 double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize)
 {
-    const double** IM = new const double*[_dimNumber];
-    const double** IP = new const double*[_dimNumber];
-    int idx = 0;
-    for(int i=0; i<_dimNumber; i++)
-    {
-        IM[i] = &_isotopeMasses[idx];
-        IP[i] = &_isotopeProbabilities[idx];
-        idx += _isotopeNumbers[i];
-    }
-
-
-    IsoSpecThreshold* iso = new IsoSpecThreshold(
-        _dimNumber,
-        _isotopeNumbers,
-        _atomCounts,
-        IM,
-        IP,
-        _threshold,
+    IsoThresholdGenerator* iso_tmp = new IsoThresholdGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
+        threshold,
         _absolute,
-        tabSize,
-        hashSize
-    );
+        _tabSize,
+        _hashSize);
 
-    try {
-        iso->processConfigurationsAboveThreshold();
-    }
-    catch (std::bad_alloc& ba) {
-        delete iso;
-	iso = NULL;
-    }
-
-    delete[] IM;
-    delete[] IP;
-
-    return reinterpret_cast<void*>(iso);
+    return reinterpret_cast<void*>(iso_tmp);
 }
+ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 
-void* setupIso( int             _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities,
-                const double    _StopCondition,
-                int             algo,
-                int             tabSize,
-                int             hashSize,
-                double          step,
-                bool            trim
-)
+
+//______________________________________________________LAYERED GENERATOR
+void* setupIsoLayeredGenerator(void* iso,
+                     double _target_coverage,
+                     double _percentage_to_expand,
+                     int _tabSize,
+                     int _hashSize,
+                     bool _do_trim)
 {
-    switch(algo)
-    {
-        case ALGO_LAYERED:
-            return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, false, trim);
-            break;
-	case ALGO_LAYERED_ESTIMATE:
-	    return setupIsoLayered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize, step, true, trim);
+    IsoLayeredGenerator* iso_tmp = new IsoLayeredGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
+        _target_coverage,
+        _percentage_to_expand,
+        _tabSize,
+        _hashSize,
+        _do_trim);
 
-        case ALGO_ORDERED:
-            return setupIsoOrdered(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                    _isotopeProbabilities, _StopCondition, tabSize, hashSize);
-            break;
-        case ALGO_THRESHOLD_ABSOLUTE:
-            return setupIsoThreshold(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                        _isotopeProbabilities, _StopCondition, true, tabSize, hashSize);
-            break;
-        case ALGO_THRESHOLD_RELATIVE:
-            return setupIsoThreshold(_dimNumber, _isotopeNumbers, _atomCounts, _isotopeMasses,
-                                        _isotopeProbabilities, _StopCondition, false, tabSize, hashSize);
-            break;
-    }
-    return NULL;
+    return reinterpret_cast<void*>(iso_tmp);
 }
+ISOSPEC_C_FN_CODES(IsoLayeredGenerator)
 
 
-int getIsotopesNo(void* iso)
+//______________________________________________________ORDERED GENERATOR
+void* setupIsoOrderedGenerator(void* iso,
+                               int _tabSize,
+                               int _hashSize)
 {
-    return reinterpret_cast<IsoSpec*>(iso)->getNoIsotopesTotal();
-}
+    IsoOrderedGenerator* iso_tmp = new IsoOrderedGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
+        _tabSize,
+        _hashSize);
 
-void* IsoFromFormula(const char* formula, double cutoff, int tabsize, int hashsize)
+    return reinterpret_cast<void*>(iso_tmp);
+}
+ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
+
+//______________________________________________________ Threshold Tabulator
+
+void* setupThresholdTabulator(void* generator,
+                     bool  get_masses,
+                     bool  get_probs,
+                     bool  get_lprobs,
+                     bool  get_confs)
 {
-    IsoSpec* iso;
-    try{
-        iso = IsoSpec::IsoFromFormula<IsoSpecLayered>(
-            formula, cutoff,
-                tabsize, hashsize);
-    }
-    catch (const std::invalid_argument& e)
-    {
-        return NULL;
-    }
+    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(reinterpret_cast<IsoThresholdGenerator*>(generator),
+                                         get_masses,
+                                         get_probs,
+                                         get_lprobs,
+                                         get_confs);
 
-    return reinterpret_cast<void*>(iso);
+    return reinterpret_cast<void*>(tabulator);
 }
 
-int getIsoConfNo(void* iso)
+void deleteThresholdTabulator(void* t)
 {
-    return reinterpret_cast<IsoSpec*>(iso)->getNoVisitedConfs();
+    delete reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(t);
 }
 
-void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoCounts)
+const double* massesThresholdTabulator(void* tabulator)
 {
-    reinterpret_cast<IsoSpec*>(iso)->getProduct(res_mass, res_logProb, res_isoCounts);
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->masses();
 }
 
-void destroyIso(void* iso)
+const double* lprobsThresholdTabulator(void* tabulator)
 {
-    if (iso != NULL)
-    {
-        delete reinterpret_cast<IsoSpec*>(iso);
-    }
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->lprobs();
+}
+
+const double* probsThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->probs();
+}
+
+const int*    confsThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs();
+}
+
+int confs_noThresholdTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs_no();
 }
 
 
+//______________________________________________________ Layered Tabulator
+
+void* setupLayeredTabulator(void* generator,
+                     bool  get_masses,
+                     bool  get_probs,
+                     bool  get_lprobs,
+                     bool  get_confs)
+{
+    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(reinterpret_cast<IsoLayeredGenerator*>(generator),
+                                         get_masses,
+                                         get_probs,
+                                         get_lprobs,
+                                         get_confs);
+
+    return reinterpret_cast<void*>(tabulator);
 }
+
+void deleteLayeredTabulator(void* t)
+{
+    delete reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(t);
+}
+
+const double* massesLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses();
+}
+
+const double* lprobsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs();
+}
+
+const double* probsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs();
+}
+
+const int*    confsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs();
+}
+
+int confs_noLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs_no();
+}
+
+
+
+}  //extern "C" ends here
