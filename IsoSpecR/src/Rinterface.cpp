@@ -136,7 +136,7 @@ NumericMatrix Rinterface(
     NumericMatrix res(logProbs.size(), columnsNo);
 
 
-    size_t idx, j, confs_idx;
+    size_t idx, confs_idx;
 
     for(size_t i = 0; i < logProbs.size(); i++)
     {
