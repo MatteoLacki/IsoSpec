@@ -14,18 +14,36 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
 #include "operators.h"
+#include "marginalTrek++.h"
 
-KeyHasher::KeyHasher(int dim)
-: dim(dim)
+namespace IsoSpec
+{
+
+KeyHasher::KeyHasher(int _dim)
+: dim(_dim)
 {}
 
 ConfEqual::ConfEqual(int dim)
 : size( dim*sizeof(int) )
 {}
 
-ConfOrderMarginal::ConfOrderMarginal(const double* logProbs, int dim)
-: logProbs(logProbs), dim(dim)
+ConfOrderMarginal::ConfOrderMarginal(const double* _logProbs, int _dim)
+: logProbs(_logProbs), dim(_dim)
 {}
+
+ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs, int _dim)
+: logProbs(_logProbs), dim(_dim)
+{}
+
+
+OrderMarginalsBySizeDecresing::OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * const _T) : T(_T) {}
+
+bool OrderMarginalsBySizeDecresing::operator()(int m1, int m2)
+{
+    return T[m1]->get_no_confs() > T[m2]->get_no_confs();
+}
+
+
+} // namespace IsoSpec
 

@@ -14,110 +14,103 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef CWRAPPER_H
-#define CWRAPPER_H
-
-
-#define ALGO_LAYERED 0
-#define ALGO_ORDERED 1
-#define ALGO_THRESHOLD_ABSOLUTE 2
-#define ALGO_THRESHOLD_RELATIVE 3
-#define ALGO_LAYERED_ESTIMATE 4
+#define ISOSPEC_ALGO_LAYERED 0
+#define ISOSPEC_ALGO_ORDERED 1
+#define ISOSPEC_ALGO_THRESHOLD_ABSOLUTE 2
+#define ISOSPEC_ALGO_THRESHOLD_RELATIVE 3
+#define ISOSPEC_ALGO_LAYERED_ESTIMATE 4
 
 
 #ifdef __cplusplus
 extern "C" {
+#else
+#include <stdbool.h>
 #endif
 
+void * setupIso(int             dimNumber,
+                const int*      isotopeNumbers,
+                const int*      atomCounts,
+                const double*   isotopeMasses,
+                const double*   isotopeProbabilities);
+
+void deleteIso(void* iso);
+
+#define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\
+dataType method##generatorType(void* generator);
+
+#define ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType)\
+void method##generatorType(void* generator);
+
+#define ISOSPEC_C_FN_HEADERS(generatorType)\
+ISOSPEC_C_FN_HEADER(generatorType, double, mass) \
+ISOSPEC_C_FN_HEADER(generatorType, double, lprob) \
+ISOSPEC_C_FN_HEADER(generatorType, double, prob) \
+ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType) \
+ISOSPEC_C_FN_HEADER(generatorType, bool, advanceToNextConfiguration) \
+ISOSPEC_C_FN_HEADER(generatorType, void, delete)
 
 
-void* setupMarginal(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
-    int tabSize,
-    int hashSize
-);
-
-int probeConfigurationIdx(void* MT, int idx);
-
-int getConfMT(void* MT, int idx, double* mass, double* logProb, int* configuration);
-
-int processMTUntilCutoff(void* MT, double cutoff);
-
-int getConfNo(void* marginals);
-
-void getConfs(int howmany, void* marginals, double* masses, double* logprobs, int* configurations);
-
-void destroyConf(void* marginals);
 
 
-// ================================================================
+//______________________________________________________THRESHOLD GENERATOR
+void* setupIsoThresholdGenerator(void* iso,
+                                 double threshold,
+                                 bool _absolute,
+                                 int _tabSize,
+                                 int _hashSize);
+ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 
-void* setupIsoLayered( int             _dimNumber,
-                       const int*      _isotopeNumbers,
-                       const int*      _atomCounts,
-                       const double*   _isotopeMasses,
-                       const double*   _isotopeProbabilities,
-                       const double    _cutOff,
-                       int             tabSize,
-                       int             hashSize,
-                       double          step,
-                       bool            estimate,
-                       bool            trim
-);
+//______________________________________________________LAYERED GENERATOR
+void* setupIsoLayeredGenerator(void* iso,
+                               double _target_coverage,
+                               double _percentage_to_expand,
+                               int _tabSize,
+                               int _hashSize,
+                               bool _do_trim);
+ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
-void* setupIsoOrdered( int             _dimNumber,
-                       const int*      _isotopeNumbers,
-                       const int*      _atomCounts,
-                       const double*   _isotopeMasses,
-                       const double*   _isotopeProbabilities,
-                       const double    _cutOff,
-                       int             tabSize,
-                       int             hashSize
-);
+//______________________________________________________ORDERED GENERATOR
+void* setupIsoOrderedGenerator(void* iso,
+                               int _tabSize,
+                               int _hashSize);
+ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
-void* setupIsoThreshold( int             _dimNumber,
-                         const int*      _isotopeNumbers,
-                         const int*      _atomCounts,
-                         const double*   _isotopeMasses,
-                         const double*   _isotopeProbabilities,
-                         const double    _threshold,
-                         int             _absolute,
-                         int             tabSize,
-                         int             hashSize
-);
 
-void* setupIso( int             _dimNumber,
-                const int*      _isotopeNumbers,
-                const int*      _atomCounts,
-                const double*   _isotopeMasses,
-                const double*   _isotopeProbabilities,
-                const double    _StopCondition,
-                int             algo,
-                int             tabSize,
-                int             hashSize,
-                double          step,
-                bool            trim
-);
 
-void* IsoFromFormula(const char* formula, double cutoff, int tabSize, int hashSize);
+void* setupThresholdTabulator(void* generator,
+                              bool  get_masses,
+                              bool  get_probs,
+                              bool  get_lprobs,
+                              bool  get_confs);
 
-int getIsotopesNo(void* iso);
+void deleteThresholdTabulator(void* tabulator);
 
-int getIsoConfNo(void* iso);
+const double* massesThresholdTabulator(void* tabulator);
+const double* lprobsThresholdTabulator(void* tabulator);
+const double* probsThresholdTabulator(void* tabulator);
+const int*    confsThresholdTabulator(void* tabulator);
+int confs_noThresholdTabulator(void* tabulator);
 
-void getIsoConfs(void* iso, double* res_mass, double* res_logProb, int* res_isoCounts);
 
-void destroyIso(void* iso);
+
+void* setupLayeredTabulator(void* generator,
+                              bool  get_masses,
+                              bool  get_probs,
+                              bool  get_lprobs,
+                              bool  get_confs);
+
+void deleteLayeredTabulator(void* tabulator);
+
+const double* massesLayeredTabulator(void* tabulator);
+const double* lprobsLayeredTabulator(void* tabulator);
+const double* probsLayeredTabulator(void* tabulator);
+const int*    confsLayeredTabulator(void* tabulator);
+int confs_noLayeredTabulator(void* tabulator);
 
 #ifdef __cplusplus
 }
 #endif
 
-
-
-#endif

@@ -18,10 +18,11 @@
 #include <iostream>
 #include "allocator.h"
 
-
+namespace IsoSpec
+{
 
 template <typename T>
-Allocator<T>::Allocator(const int dim, const int tabSize): currentId(0), dim(dim), tabSize(tabSize)
+Allocator<T>::Allocator(const int dim, const int tabSize): currentId(-1), dim(dim), tabSize(tabSize)
 {
     currentTab = new T[dim * tabSize];
 }
@@ -46,3 +47,5 @@ void Allocator<T>::shiftTables()
 }
 
 template class Allocator<int>;
+
+}

@@ -2,8 +2,8 @@ Encoding: UTF-8
 Package: IsoSpecR
 Type: Package
 Title: The IsoSpec Algorithm
-Version: 1.0.3
-Date: 2017-01-10
+Version: 1.9.0
+Date: 2018-11-10
 Author: Mateusz Krzysztof Lacki and Michal Startek
 Maintainer: Matteo Lacki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most

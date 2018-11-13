@@ -14,16 +14,15 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef OPERATORS_HPP
-#define OPERATORS_HPP
+#pragma once
 
 #include <string.h>
 #include "conf.h"
 #include "isoMath.h"
 #include "misc.h"
 
-
+namespace IsoSpec
+{
 
 class KeyHasher
 {
@@ -52,7 +51,14 @@ public:
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
-        return not memcmp(conf1, conf2, size);
+        // The memcmp() function returns zero if the two strings are identical, oth-
+        // erwise returns the difference between the first two differing bytes
+        // (treated as unsigned char values, so that `\200' is greater than `\0',
+        // for example).  Zero-length strings are always identical.  This behavior
+        // is not required by C and portable code should only depend on the sign of
+        // the returned value.
+        //                                          sacred man of memcmp.
+        return memcmp(conf1, conf2, size) == 0;
     }
 };
 
@@ -79,10 +85,58 @@ public:
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {// Return true if conf1 is less probable than conf2.
-        return logProb(conf1,logProbs,dim) < logProb(conf2,logProbs,dim);
+        return unnormalized_logProb(conf1,logProbs,dim) < unnormalized_logProb(conf2,logProbs,dim);
     };
 };
 
+class ConfOrderMarginalDescending
+{
+//configurations comparator
+    const double*  logProbs;
+    int dim;
+public:
+    ConfOrderMarginalDescending(const double* logProbs, int dim);
+
+    inline bool operator()(const Conf conf1, const Conf conf2)
+    {// Return true if conf1 is less probable than conf2.
+        return unnormalized_logProb(conf1,logProbs,dim) > unnormalized_logProb(conf2,logProbs,dim);
+    };
+};
+
+template<typename T> class ReverseOrder
+{
+public:
+    inline ReverseOrder() {};
+    inline bool operator()(const T a,const T b) const { return a > b; };
+};
+
+template<typename T> class TableOrder
+{
+	const T* tbl;
+public:
+	inline TableOrder(const T* _tbl) : tbl(_tbl) {};
+	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
+};
+
+} // namespace IsoSpec
+
+#include "marginalTrek++.h"
+
+class PrecalculatedMarginal; // In case marginalTrek++.h us including us, and can't be included again...
+
+namespace IsoSpec
+{
+
+class OrderMarginalsBySizeDecresing
+{
+    PrecalculatedMarginal const* const* const T;
+public:
+    OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * const _T);
+    bool operator()(int m1, int m2);
+};
 
 
-#endif
+} // namespace IsoSpec
+
+
+

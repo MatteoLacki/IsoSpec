@@ -14,13 +14,14 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef DIRTY_ALLOCATOR_HPP
-#define DIRTY_ALLOCATOR_HPP
+#pragma once
 
 #include <vector>
 #include <iostream>
 #include <string.h>
+
+namespace IsoSpec
+{
 
 class DirtyAllocator{
 private:
@@ -68,4 +69,5 @@ public:
     }
 };
 
-#endif
+} // namespace IsoSpec
+

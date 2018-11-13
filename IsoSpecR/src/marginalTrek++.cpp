@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -21,31 +21,50 @@
 #include <stdlib.h>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <queue>
 #include <utility>
 #include <iostream>
 #include <string.h>
+#include <string>
 #include <limits>
-#include "lang.h"
+#include <cstdlib>
+#include <fenv.h>
+#include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
 #include "summator.h"
 #include "element_tables.h"
+#include "misc.h"
 
 
-
-
-Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs)
+namespace IsoSpec
 {
+
+//! Find one of the most probable subisotopologues.
+/*!
+    The algorithm uses the hill-climbing algorithm.
+    It starts from a subisotopologue close to the mean of the underlying multinomial distribution.
+    There might be more than one modes, in case of which this function will return only one of them, close to the mean.
+
+    \param atomCnt
+
+*/
+Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
+{
+    /*!
+    Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
+    We start from the point close to the mean of the underlying multinomial distribution.
+    */
     Conf res = new int[isotopeNo];
 
+    // This approximates the mode (heuristics: the mean is close to the mode).
     for(int i = 0; i < isotopeNo; ++i )
-    {
         res[i] = int( atomCnt * probs[i] ) + 1;
-    }
 
+    // The number of assigned atoms above.
     int s = 0;
 
     for(int i = 0; i < isotopeNo; ++i) s += res[i];
@@ -74,125 +93,43 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
             }
         }
     }
+
+    // What we computed so far will be very close to the mode: hillclimb the rest of the way
+
+    bool modified = true;
+    double LP = unnormalized_logProb(res, lprobs, isotopeNo);
+    double NLP;
+
+    while(modified)
+    {
+        modified = false;
+        for(int ii = 0; ii<isotopeNo; ii++)
+        for(int jj = 0; jj<isotopeNo; jj++)
+            if(ii != jj && res[ii] > 0)
+        {
+            res[ii]--;
+            res[jj]++;
+            NLP = unnormalized_logProb(res, lprobs, isotopeNo);
+            if(NLP>LP || (NLP==LP && ii>jj))
+            {
+                modified = true;
+            LP = NLP;
+            }
+            else
+            {
+                res[ii]++;
+            res[jj]--;
+            }
+        }
+
+
+    }
     return res;
 }
 
-// Masses  logProb configurations size
-std::tuple<double*,double*,int*,int> getMarginal(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
-    const double cutOff,
-    const int tabSize,
-    const int hashSize
-){
-    double* logProbs = new double[isotopeNo];
-    for(int i = 0; i < isotopeNo; i++)      logProbs[i] = log(probs[i]);
 
 
-    Allocator<int>  allocator(isotopeNo, tabSize);
-    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs);
-    int*    initialConf = allocator.makeCopy(initialConf_tmp);
-    delete [] initialConf_tmp;
-
-    KeyHasher       keyHasher(isotopeNo);
-    ConfEqual       equalizer(isotopeNo);
-    ConfOrderMarginal orderMarginal(logProbs, isotopeNo);
-
-    std::unordered_map<Conf,int,KeyHasher,ConfEqual>
-    visited(hashSize,keyHasher,equalizer);
-
-    std::priority_queue<Conf,std::vector<Conf>,ConfOrderMarginal>
-    pq(orderMarginal);
-
-    pq.push(initialConf);
-    visited[initialConf] = 0;
-
-    Summator        totalProb;
-
-    Conf    candidate = new int[isotopeNo];
-
-    int cnt = 0;
-    while(
-        cutOff >  totalProb.get() &&
-        pq.size() > 0
-    ){
-        Conf topConf = pq.top();
-        pq.pop();
-        ++cnt;
-        visited[topConf] = cnt;
-
-
-        totalProb.add( exp( logProb(topConf, logProbs, isotopeNo) ) );
-
-        for( int i = 0; i < isotopeNo; ++i )
-        {
-            for( int j = 0; j < isotopeNo; ++j )
-            {
-                // Growing index different than decreasing one AND
-                // Remain on simplex condition.
-                if( i != j && topConf[j] > 0 ){
-                    copyConf(topConf, candidate, isotopeNo);
-
-                    ++candidate[i];
-                    --candidate[j];
-
-                    // candidate should not have been already visited.
-                    if( visited.count( candidate ) == 0 )
-                    {
-                        Conf acceptedCandidate = allocator.makeCopy(candidate);
-                        pq.push(acceptedCandidate);
-
-                        visited[acceptedCandidate] = 0;
-                    }
-                }
-            }
-        }
-    }
-
-    delete[] candidate;
-
-    std::unordered_map<Conf,int,KeyHasher,ConfEqual>::const_iterator it;
-    std::vector<std::tuple<double,double,int*> > res_tmp;
-
-    for(it = visited.cbegin(); it != visited.cend(); it++)
-    {
-        if( it->second != 0 )
-        {
-            double  res_mass        = mass( it->first, masses, isotopeNo );
-            double  res_logProb = logProb( it->first, logProbs, isotopeNo );
-            int*    res_conf        = it->first;
-
-            res_tmp.push_back(std::make_tuple(res_mass, res_logProb, res_conf));
-        }
-    }
-
-    std::sort(res_tmp.begin(), res_tmp.end(), tupleCmp);
-
-    double* res_logProb = new double[ res_tmp.size() ];
-    double* res_mass        = new double[ res_tmp.size() ];
-    int*    res_counts      = new int[isotopeNo*res_tmp.size()];
-
-    for(unsigned int i=0; i<res_tmp.size(); i++)
-    {
-        res_mass[i]     = std::get<0>(res_tmp[i]);
-        res_logProb[i]  = std::get<1>(res_tmp[i]);
-        memcpy(
-            &res_counts[i*isotopeNo],
-            std::get<2>(res_tmp[i]),
-               sizeof(int)*isotopeNo
-        );
-    }
-
-    delete[] logProbs;
-
-    return std::tuple<double*,double*,int*,int>(
-        res_mass, res_logProb, res_counts, res_tmp.size()
-    );
-}
-
-#ifndef ISOSPEC_BUILDING_R
+#if !ISOSPEC_BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){
@@ -212,121 +149,158 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
+    /*!
+    Here we order the processor to round the numbers up rather than down.
+    Rounding down could result in the algorithm falling in an infinite loop
+    because of the numerical instability of summing. 
+    */
+    int curr_method = fegetround();
+    fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
+
+    // here we change the table of probabilities and log it.
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
-        for(int j=0; j<NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
             if(elem_table_probability[j] == probs[i])
             {
                 ret[i] = elem_table_log_probability[j];
                 break;
             }
     }
+    fesetround(curr_method);
     return ret;
 }
 
-double* arr_copy(const double* T, int size)
+double get_loggamma_nominator(int x)
 {
-    double* ret = new double[size];
-    memcpy(ret, T, size*sizeof(double));
+    // calculate log gamma of the nominator calculated in the binomial exression.
+    int curr_method = fegetround();
+    fesetround(FE_UPWARD);
+    double ret = lgamma(x+1);
+    fesetround(curr_method);
     return ret;
 }
 
+
+Marginal::Marginal(
+    const double* _masses,
+    const double* _probs,
+    int _isotopeNo,
+    int _atomCnt
+) :
+disowned(false),
+isotopeNo(_isotopeNo),
+atomCnt(_atomCnt),
+atom_masses(array_copy<double>(_masses, _isotopeNo)),
+atom_lProbs(getMLogProbs(_probs, isotopeNo)),
+loggamma_nominator(get_loggamma_nominator(_atomCnt)),
+mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
+mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo)),
+mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
+mode_prob(exp(mode_lprob)),
+smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
+{
+    try
+    {
+        if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
+            throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
+        for(size_t ii = 0; ii < isotopeNo; ii++)
+            if(_probs[ii] <= 0.0 || _probs[ii] > 1.0)
+                throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
+    }
+    catch(...)
+    {
+        delete[] atom_masses;
+        delete[] atom_lProbs;
+        delete[] mode_conf;
+        throw;
+    }
+}
+
+// the move-constructor: used in the specialization of the marginal.
+Marginal::Marginal(Marginal&& other) :
+disowned(other.disowned),
+isotopeNo(other.isotopeNo),
+atomCnt(other.atomCnt),
+atom_masses(other.atom_masses),
+atom_lProbs(other.atom_lProbs),
+loggamma_nominator(other.loggamma_nominator),
+mode_conf(other.mode_conf),
+mode_lprob(other.mode_lprob),
+mode_mass(other.mode_mass),
+mode_prob(other.mode_prob),
+smallest_lprob(other.smallest_lprob)
+{
+    other.disowned = true;
+}
+
+Marginal::~Marginal()
+{
+    if(!disowned)
+    {
+        delete[] atom_masses;
+        delete[] atom_lProbs;
+        delete[] mode_conf;
+    }
+}
+
+
+double Marginal::getLightestConfMass() const
+{
+    double ret_mass = std::numeric_limits<double>::infinity();
+    for(unsigned int ii=0; ii < isotopeNo; ii++)
+        if( ret_mass > atom_masses[ii] )
+            ret_mass = atom_masses[ii];
+    return ret_mass*atomCnt;
+}
+
+double Marginal::getHeaviestConfMass() const
+{
+    double ret_mass = 0.0;
+    for(unsigned int ii=0; ii < isotopeNo; ii++)
+        if( ret_mass < atom_masses[ii] )
+            ret_mass = atom_masses[ii];
+    return ret_mass*atomCnt;
+}
+
+// this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
-    const double* masses,   // masses size = logProbs size = isotopeNo
-    const double* probs,
-    int isotopeNo,                  // No of isotope configurations.
-    int atomCnt,
+    Marginal&& m,
     int tabSize,
     int hashSize
-) : current_count(0),
-_tabSize(tabSize),
-_hashSize(hashSize),
-_isotopeNo(isotopeNo),
-_atomCnt(atomCnt),
-iso_masses(arr_copy(masses, isotopeNo)),
-logProbs(getMLogProbs(probs, isotopeNo)),
-allocator(isotopeNo, _tabSize),
+) :
+Marginal(std::move(m)),
+current_count(0),
 keyHasher(isotopeNo),
 equalizer(isotopeNo),
-orderMarginal(logProbs, isotopeNo),
-visited(_hashSize,keyHasher,equalizer),
+orderMarginal(atom_lProbs, isotopeNo),
+visited(hashSize,keyHasher,equalizer),
 pq(orderMarginal),
 totalProb(),
-candidate(new int[isotopeNo])
+candidate(new int[isotopeNo]),
+allocator(isotopeNo, tabSize)
 {
-
-
-    int*    initialConf_tmp = initialConfigure(atomCnt, isotopeNo, probs);
-    int*    initialConf = allocator.makeCopy(initialConf_tmp);
-    delete [] initialConf_tmp;
-
+    int* initialConf = allocator.makeCopy(mode_conf);
 
     pq.push(initialConf);
     visited[initialConf] = 0;
-
-    bool cont = true;
-    double last_prob = -10000.0;
-
-    double cconf = -INFINITY;
-    while(cont)
-    {
-        cont = add_next_conf();
-        cconf = _conf_probs.back();
-        if(cconf < last_prob)
-            break;
-        last_prob = cconf;
-
-    }
-    // Find max element in case loop terminated from cont==false, and not from break
-
-    std::vector<double>::iterator max_el_it = std::max_element(_conf_probs.begin(), _conf_probs.end());
-    int max_idx = std::distance(_conf_probs.begin(), max_el_it);
-
-    initialConf = _confs[max_idx];
-
-    pq = std::priority_queue<Conf,std::vector<Conf>,ConfOrderMarginal>(orderMarginal);
-    visited = std::unordered_map<Conf,int,KeyHasher,ConfEqual>(_hashSize,keyHasher,equalizer);
-    _conf_probs.clear();
-    _conf_masses.clear();
-    _confs.clear();
 
     totalProb = Summator();
-
-    pq.push(initialConf);
-    visited[initialConf] = 0;
 
     current_count = 0;
 
     add_next_conf();
-
-
-}
-
-void MarginalTrek::sort_configs()
-{
-    std::vector<std::tuple<double,double,int*> > T;
-    for (unsigned int i=0; i<_conf_probs.size(); i++)
-        T.push_back(std::make_tuple(_conf_masses[i], _conf_probs[i], _confs[i]));
-
-    std::sort(T.begin(), T.end(), tupleCmp);
-
-    _conf_masses.clear();
-    _conf_probs.clear();
-    _confs.clear();
-
-    for(unsigned int i=0; i<T.size(); i++)
-    {
-        _conf_masses.push_back(std::get<0>(T[i]));
-        _conf_probs.push_back(std::get<1>(T[i]));
-        _confs.push_back(std::get<2>(T[i]));
-    }
 }
 
 
 bool MarginalTrek::add_next_conf()
 {
+    /*!
+    Add next configuration.
+    If visited all, return false.
+    */
     if(pq.size() < 1) return false;
 
     Conf topConf = pq.top();
@@ -335,21 +309,21 @@ bool MarginalTrek::add_next_conf()
     visited[topConf] = current_count;
 
     _confs.push_back(topConf);
-    _conf_masses.push_back(mass(topConf, iso_masses, _isotopeNo));
-    double logprob = logProb(topConf, logProbs, _isotopeNo);
-    _conf_probs.push_back(logprob);
+    _conf_masses.push_back(mass(topConf, atom_masses, isotopeNo));
+    double logprob = logProb(topConf);
+    _conf_lprobs.push_back(logprob);
 
 
     totalProb.add( exp( logprob ) );
 
-    for( unsigned int i = 0; i < _isotopeNo; ++i )
+    for( unsigned int i = 0; i < isotopeNo; ++i )
     {
-        for( unsigned int j = 0; j < _isotopeNo; ++j )
+        for( unsigned int j = 0; j < isotopeNo; ++j )
         {
             // Growing index different than decreasing one AND
             // Remain on simplex condition.
             if( i != j && topConf[j] > 0 ){
-                copyConf(topConf, candidate, _isotopeNo);
+                copyConf(topConf, candidate, isotopeNo);
 
                 ++candidate[i];
                 --candidate[j];
@@ -373,9 +347,9 @@ int MarginalTrek::processUntilCutoff(double cutoff)
 {
     Summator s;
     int last_idx = -1;
-    for(unsigned int i=0; i<_conf_probs.size(); i++)
+    for(unsigned int i=0; i<_conf_lprobs.size(); i++)
     {
-        s.add(_conf_probs[i]);
+        s.add(_conf_lprobs[i]);
         if(s.get() >= cutoff)
         {
             last_idx = i;
@@ -386,30 +360,106 @@ int MarginalTrek::processUntilCutoff(double cutoff)
         return last_idx;
 
     while(totalProb.get() < cutoff && add_next_conf()) {}
-    return _conf_probs.size();
+    return _conf_lprobs.size();
 }
 
-double MarginalTrek::getLightestConfMass()
-{
-    double ret_mass = std::numeric_limits<double>::infinity();
-    for(unsigned int ii=0; ii < _isotopeNo; ii++)
-        if( ret_mass > iso_masses[ii] )
-	    ret_mass = iso_masses[ii];
-    return ret_mass*_atomCnt;
-}
-
-double MarginalTrek::getHeaviestConfMass()
-{
-    double ret_mass = 0.0;
-    for(unsigned int ii=0; ii < _isotopeNo; ii++)
-        if( ret_mass < iso_masses[ii] )
-            ret_mass = iso_masses[ii];
-    return ret_mass*_atomCnt;
-}
 
 MarginalTrek::~MarginalTrek()
 {
-    delete[] logProbs;
     delete[] candidate;
-    delete[] iso_masses;
 }
+
+
+
+
+PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
+	double lCutOff,
+	bool sort,
+        int tabSize,
+        int hashSize
+) : Marginal(std::move(m)),
+allocator(isotopeNo, tabSize)
+{
+    const ConfEqual equalizer(isotopeNo);
+    const KeyHasher keyHasher(isotopeNo);
+    const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
+
+    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+
+    Conf currentConf = allocator.makeCopy(mode_conf);
+    if(logProb(currentConf) >= lCutOff)
+    {
+        // create a copy and store a ptr to the *same* copy in both structures
+        // (save some space and time)
+        auto tmp = allocator.makeCopy(currentConf);
+        configurations.push_back(tmp);
+        visited.insert(tmp);
+    }
+
+    unsigned int idx = 0;
+
+    while(idx < configurations.size())
+    {
+        memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
+        idx++;
+        for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                if( ii != jj && currentConf[jj] > 0)
+                {
+                    currentConf[ii]++;
+                    currentConf[jj]--;
+
+                    if (visited.count(currentConf) == 0 && logProb(currentConf) >= lCutOff)
+                    {
+                        // create a copy and store a ptr to the *same* copy in
+                        // both structures (save some space and time)
+                        auto tmp = allocator.makeCopy(currentConf);
+                        visited.insert(tmp);
+                        configurations.push_back(tmp);
+                        // std::cout << " V: "; for (auto it : visited) std::cout << it << " "; std::cout << std::endl;
+                    }
+
+                    currentConf[ii]--;
+                    currentConf[jj]++;
+
+                }
+    }
+
+    // orderMarginal defines the order of configurations (compares their logprobs)
+    // akin to key in Python sort.
+    if(sort)
+        std::sort(configurations.begin(), configurations.end(), orderMarginal);
+
+
+    confs  = &configurations[0];
+    no_confs = configurations.size();
+    lProbs = new double[no_confs+1];
+    eProbs = new double[no_confs];
+    masses = new double[no_confs];
+
+
+    for(unsigned int ii=0; ii < no_confs; ii++)
+    {
+        lProbs[ii] = logProb(confs[ii]);
+        eProbs[ii] = exp(lProbs[ii]);
+        masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
+    }
+    lProbs[no_confs] = -std::numeric_limits<double>::infinity();
+}
+
+
+PrecalculatedMarginal::~PrecalculatedMarginal()
+{
+    if(lProbs != nullptr)
+        delete[] lProbs;
+    if(masses != nullptr)
+        delete[] masses;
+    if(eProbs != nullptr)
+        delete[] eProbs;
+}
+
+
+
+
+} // namespace IsoSpec
+
