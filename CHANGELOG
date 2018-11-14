@@ -4,7 +4,7 @@ This file lists *major* changes between releases, for a full list see git log.
 ----------------------------------
 - R bindings brought up to speed
 - Improvements for 1.0.X backward compatibility in Python module
-- No changes in C++ part
+- Minor fixes and cleanups
 
 1.9.0
 ----------------------------------
