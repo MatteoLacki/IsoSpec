@@ -1,3 +1,14 @@
-.DS_Store # macOS shit
-*.pyc     # Python shit
+.DS_Store
+*.pyc
 *.h.gch
+*.o
+a.out
+libIsoSpec++.so
+IsoSpecR_*.tar.gz
+IsoSpecPy/IsoSpecPy.egg-info
+IsoSpecPy/build
+IsoSpecPy/dist
+IsoSpecPy/IsoSpec++
+IsoSpecR/src/CMakeLists.txt
+IsoSpecR/src/IsoSpecConfig.cmake.in
+IsoSpecR/src/symbols.rds
