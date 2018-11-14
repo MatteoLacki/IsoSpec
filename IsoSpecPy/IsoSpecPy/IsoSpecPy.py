@@ -66,10 +66,10 @@ class IsoSpec():
         from .__init__ import IsoThreshold
 
         try:
-            algo = { 'layered' : lambda total_prob: IsoLayered(total_prob, **isoargs)
-              'ordered' : 1, lambda total_prob: IsoLayered(total_prob, **isoargs)
+            algo = { 'layered' : lambda total_prob: IsoLayered(total_prob, **isoargs),
+              'ordered' : lambda total_prob: IsoLayered(total_prob, **isoargs),
               'threshold_absolute' : lambda threshold: IsoThreshold(threshold, True, **isoargs),
-              'threshold_relative' : lambda threshold: IsoThreshold(threshold, False, **isoargs)
+              'threshold_relative' : lambda threshold: IsoThreshold(threshold, False, **isoargs),
               'layered_estimating' : lambda total_prob: IsoLayered(total_prob, **isoargs)
             }[method]
         except KeyError:
