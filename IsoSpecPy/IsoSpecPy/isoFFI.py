@@ -69,6 +69,8 @@ class IsoFFI:
         const int* confsLayeredTabulator(void* tabulator);
         int confs_noLayeredTabulator(void* tabulator);
 
+        void freeReleasedArray(void* array);
+
         #define NUMBER_OF_ISOTOPIC_ENTRIES 287
         extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];
         extern const double elem_table_probability[NUMBER_OF_ISOTOPIC_ENTRIES];
