@@ -9,6 +9,9 @@
  * https://code.google.com/archive/p/mman-win32/
  */
 
+#include "platform.h"
+#if ISOSPEC_GOT_MMAN && !ISOSPEC_GOT_SYSTEM_MMAN
+
 #include <windows.h>
 #include <errno.h>
 #include <io.h>
@@ -188,3 +191,5 @@ int munlock(const void *addr, size_t len)
     
     return -1;
 }
+
+#endif
