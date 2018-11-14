@@ -178,9 +178,9 @@ class IsoLayered(Iso):
         def c(typename, what, mult = 1):
             return isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what)
 
-        self.masses = c("double", self.ffi.massesThresholdTabulator(self.tabulator))
-        self.lprobs = c("double", self.ffi.lprobsThresholdTabulator(self.tabulator))
-        self.probs  = c("double", self.ffi.probsThresholdTabulator(self.tabulator))
+        self.masses = c("double", self.ffi.massesLayeredTabulator(self.tabulator))
+        self.lprobs = c("double", self.ffi.lprobsLayeredTabulator(self.tabulator))
+        self.probs  = c("double", self.ffi.probsLayeredTabulator(self.tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
@@ -195,9 +195,9 @@ class IsoLayered(Iso):
 
     def __del__(self):
         if self.tabulator is not None:
-            self.ffi.deleteThresholdTabulator(self.tabulator)
+            self.ffi.deleteLayeredTabulator(self.tabulator)
         if self.generator is not None:
-            self.ffi.deleteIsoThresholdGenerator(self.generator)
+            self.ffi.deleteIsoLayeredGenerator(self.generator)
 
 
 
