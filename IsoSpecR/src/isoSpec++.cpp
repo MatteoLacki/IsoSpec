@@ -586,7 +586,9 @@ IsoLayeredGenerator::IsoLayeredGenerator( Iso&&     iso,
 ) : IsoGenerator(std::move(iso)),
 allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
-targetCoverage(_targetCoverage),
+targetCoverage(_targetCoverage >= 1.0 ? 10000.0 : _targetCoverage), // If the user wants the entire spectrum,
+                                                                    // give it to him - and make sure we don't terminate
+                                                                    // early because of rounding errors
 percentageToExpand(_percentageToExpand),
 do_trim(trim),
 layers(0),
