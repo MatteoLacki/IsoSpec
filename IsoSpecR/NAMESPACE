@@ -2,4 +2,4 @@
 
 export(IsoSpecify)
 importFrom(Rcpp,sourceCpp)
-useDynLib(IsoSpecR)
+useDynLib(IsoSpecR, .registration = TRUE)
