@@ -23,12 +23,6 @@
 #include <_mingw.h>
 #endif
 
-#if defined(MMAN_LIBRARY)
-#define MMANSHARED_EXPORT __declspec(dllexport)
-#else
-#define MMANSHARED_EXPORT __declspec(dllimport)
-#endif
-
 /* Determine offset type */
 #include <stdint.h>
 #if defined(_WIN64)
@@ -39,9 +33,6 @@ typedef uint32_t OffsetType;
 
 #include <sys/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define PROT_NONE       0
 #define PROT_READ       1
@@ -63,14 +54,11 @@ extern "C" {
 #define MS_SYNC         2
 #define MS_INVALIDATE   4
 
-MMANSHARED_EXPORT void*   mmap(void *addr, size_t len, int prot, int flags, int fildes, OffsetType off);
-MMANSHARED_EXPORT int     munmap(void *addr, size_t len);
-MMANSHARED_EXPORT int     _mprotect(void *addr, size_t len, int prot);
-MMANSHARED_EXPORT int     msync(void *addr, size_t len, int flags);
-MMANSHARED_EXPORT int     mlock(const void *addr, size_t len);
-MMANSHARED_EXPORT int     munlock(const void *addr, size_t len);
+void*   mmap(void *addr, size_t len, int prot, int flags, int fildes, OffsetType off);
+int     munmap(void *addr, size_t len);
+int     _mprotect(void *addr, size_t len, int prot);
+int     msync(void *addr, size_t len, int flags);
+int     mlock(const void *addr, size_t len);
+int     munlock(const void *addr, size_t len);
 
-#ifdef __cplusplus
-}
-#endif
 

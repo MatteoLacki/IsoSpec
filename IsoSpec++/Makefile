@@ -1,7 +1,7 @@
 OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g -Werror
 CXXFLAGS=-std=c++11 -Wall -pedantic -Wextra
-SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp mman.c
+SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp mman.cpp
 
 all: unitylib
 
