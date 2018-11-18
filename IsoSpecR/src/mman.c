@@ -22,6 +22,11 @@
 #define FILE_MAP_EXECUTE    0x0020
 #endif /* FILE_MAP_EXECUTE */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 static int __map_mman_error(const DWORD err, const int deferr)
 {
     if (err == 0)
@@ -191,5 +196,10 @@ int munlock(const void *addr, size_t len)
     
     return -1;
 }
+
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif
