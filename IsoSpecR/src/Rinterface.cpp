@@ -95,9 +95,9 @@ NumericMatrix Rinterface(
     Iso iso(dimNumber, stdIsotopeNumbers.data(), Rcpp::as<std::vector<int> >( molecule).data(), IM.data(), IP.data());
     IsoGenerator* IG = mkIsoG(iso, algo, stopCondition, tabSize, hashSize, step, trim);
 
-    int columnsNo = stdIsotopeTags.size(); // standard
+    unsigned int columnsNo = stdIsotopeTags.size(); // standard
 
-    int isotopesNo = iso.getAllDim();
+    unsigned int isotopesNo = iso.getAllDim();
 
     // Code doing useless copying around of memory follows, as NumericMatrix apparently can't resize dynamically like std::vector does, so we can't directly
     // write into it, as we don't know how many configurations we're going to get upfront and we can't preallocate size.
