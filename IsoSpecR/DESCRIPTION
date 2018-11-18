@@ -20,6 +20,8 @@ Depends:
     R (>= 3.0.0)
 Imports:
     Rcpp (>= 0.12.0)
+Suggests:
+    testthat
 LazyData: no
 LinkingTo: Rcpp
 NeedsCompilation: yes
