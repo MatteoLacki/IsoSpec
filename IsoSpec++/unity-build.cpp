@@ -1,10 +1,10 @@
 #include "platform.h"
 
+#if !ISOSPEC_BUILDING_R
+
 #if !ISOSPEC_GOT_SYSTEM_MMAN && ISOSPEC_GOT_MMAN
 	#include "mman.c"
 #endif
-
-#if !ISOSPEC_BUILDING_R
 
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
