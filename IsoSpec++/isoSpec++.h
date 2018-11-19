@@ -111,6 +111,13 @@ public:
     //! Get the mass of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakMass() const;
 
+    /*!
+        Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as 
+        consisting only of the most frequent isotopes of each element. These are often (but not always) the 
+        lightest ones, making this often (but again, not always) equal to getLightestPeakMass()
+    */
+    double getMonoisotopicPeakMass() const;
+
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
     inline double getModeLProb() const { return modeLProb; };
 

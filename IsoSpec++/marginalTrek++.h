@@ -103,6 +103,13 @@ public:
     */
     double getHeaviestConfMass() const;
 
+    //! Get the mass of the monoisotopic subisotopologue.
+    /*! The monoisotopic subisotopologue is defined as the molecule consiting only 
+        of the most likely isotope. This is frequently the lightest subisotopologue,
+        making this frequently (but not always) eqial to getLightestconfMass()
+    */
+    double getMonoisotopicConfMass() const;
+
     //! Get the log-probability of the mode subisotopologue.
     /*!
         \return The log-probability of a/the most probable subisotopologue. 
