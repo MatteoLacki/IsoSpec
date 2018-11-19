@@ -25,7 +25,7 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
   add_definitions(-std=c++11 -Wall -pedantic -Wextra)
 else()
   ## On MSVS we need this for mmap
-  set(my_sources ${my_sources} mman.c)
+  set(my_sources ${my_sources} mman.cpp)
   add_definitions(-DMMAN_LIBRARY)
 endif()
 
