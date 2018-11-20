@@ -44,7 +44,7 @@ class IsoSpec():
                     hashSize = 1000,    # ignored
                     step = 0.3,         # ignored
                     trim = True,        # True not supported yet, treated as False anyway
-                    method = 'layered'  # layered actually not supported yet...
+                    method = 'layered'
                 ):
 
         isoargs = {
