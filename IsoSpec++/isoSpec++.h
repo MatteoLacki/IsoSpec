@@ -78,8 +78,8 @@ public:
         \param _dimNumber The number of elements in the formula, e.g. for C100H202 it would be 2, as there are only carbon and hydrogen atoms.
         \param _isotopeNumbers A table with numbers of isotopes for each element, e.g. for C100H202 it would be {2, 2}, because both C and H have two stable isotopes.
         \param _atomCounts Number of atoms of each element in the formula, e.g. for C100H202 corresponds to {100, 202}.
-        \param _isotopeMasses A table of masses of isotopes of the elements in the chemical formula, e.g. {12.0, 13.003355, 1.007825, 2.014102} for C100H202.
-        \param _isotopeProbabilities A table of isotope frequencies of the elements in the chemical formula, e.g. {.989212, .010788, .999885, .000115} for C100H202.
+        \param _isotopeMasses A table of tables of masses of isotopes of the elements in the chemical formula, e.g. {{12.0, 13.003355}, {1.007825, 2.014102}} for C100H202.
+        \param _isotopeProbabilities A table of tables of isotope frequencies of the elements in the chemical formula, e.g. {{.989212, .010788}, {.999885, .000115}} for C100H202.
     */
     Iso(
         int             _dimNumber,
