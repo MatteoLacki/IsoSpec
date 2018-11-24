@@ -30,6 +30,21 @@ except NameError:
 regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
 
 def IsoParamsFromFormula(formula):
+    """Parse a chemical formula.
+
+    Arguments
+    ---------
+    formula : str
+        A string with a chemical formula.
+
+    Examples
+    --------
+    >>> IsoParamsFromFormula("C100H200")
+    ([100, 200],
+     ((12.0, 13.0033548352), (1.00782503227, 2.01410177819)),
+     ((0.9892119418504669, 0.010788058149533084),
+      (0.9998842901643079, 0.00011570983569203331)))
+    """
     global regex_pattern
 
     symbols = []
@@ -122,6 +137,15 @@ class Iso(object):
 
 
 class IsoThreshold(Iso):
+    """The thresholded version of the algorithm.
+
+    Arguments
+    ---------
+    threshold : float
+        If absolute is False, the percentage of the most abundant peak above which 
+        we report all the isotopologues. If absolute is True, the probability that
+        bounds the reported isotopologues from below.
+    """
     def __init__(self, threshold, absolute=False, get_confs = False, **kwargs):
         super(IsoThreshold, self).__init__(get_confs = get_confs, **kwargs)
         self.threshold = threshold
@@ -210,7 +234,7 @@ class IsoGenerator(Iso):
             while self.advancer(cgen):
                 yield (self.mass_getter(cgen), self.xprob_getter(cgen))
 
-        
+
 
 class IsoThresholdGenerator(IsoGenerator):
     def __init__(self, threshold, absolute=False, get_confs=False, use_lprobs=False, **kwargs):
@@ -222,10 +246,10 @@ class IsoThresholdGenerator(IsoGenerator):
                                                         absolute,
                                                         1000,
                                                         1000)
-        self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
+        self.advancer     = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
         self.xprob_getter = self.ffi.lprobIsoThresholdGenerator if use_lprobs else self.ffi.probIsoThresholdGenerator
-        self.mass_getter = self.ffi.massIsoThresholdGenerator
-        self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
+        self.mass_getter  = self.ffi.massIsoThresholdGenerator
+        self.conf_getter  = self.ffi.get_conf_signatureIsoThresholdGenerator
 
     def __del__(self):
         if self.cgen is not None:
@@ -236,16 +260,16 @@ class IsoLayeredGenerator(IsoGenerator):
     def __init__(self, prob_to_cover = 0.99, get_confs=False, do_trim = False, use_lprobs=False, **kwargs):
         super(IsoLayeredGenerator, self).__init__(get_confs, **kwargs)
         self.delta = prob_to_cover
-        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso,
+        self.cgen  = self.ffi.setupIsoLayeredGenerator(self.iso,
                                                       self.delta,
                                                       0.3,
                                                       1000,
                                                       1000,
                                                       do_trim)
-        self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
+        self.advancer     = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.xprob_getter = self.ffi.lprobIsoLayeredGenerator if use_lprobs else self.ffi.probIsoLayeredGenerator
-        self.mass_getter = self.ffi.massIsoLayeredGenerator
-        self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
+        self.mass_getter  = self.ffi.massIsoLayeredGenerator
+        self.conf_getter  = self.ffi.get_conf_signatureIsoLayeredGenerator
 
     def __del__(self):
         if self.cgen is not None:
@@ -267,6 +291,64 @@ class IsoOrderedGenerator(IsoGenerator):
             self.ffi.deleteIsoLayeredGenerator(self.cgen)
 
 
+def isospecify(formula,
+               P,
+               algorithm = "layered_gen",
+               get_counts = False):
+    """Run IsoSpec.
+
+    Arguments
+    ---------
+    formula : str
+        A chemical formula.
+    P : float
+        Either the joint probability of reported isotopologues or minimal probability
+        in that set.
+    algorithm : str
+        Either:
+        "layered",
+            for O(n) bulk calculation of isotopologues together more probable than P§,
+        "threshold",
+            for O(n) bulk calculation of isotopologues each more probable than P,
+        "threshold_gen", 
+            for O(n) generation of isotopologues each more probable than P,
+        "layered_gen", 
+            for O(n) generation of isotopologues together more probable than P,
+        "ordered_gen",
+            for O(nlog(n)) generation of isotopologues with decreasing probability,
+            but YOU HAVE TO TAKE CARE OF STOPPING HERE.
+        where n is the total number of isotopologues.
+    get_counts : boolean
+        Should the result include counts of isotopologues? By default no.
+
+    Returns
+    -------
+    An iterable of tuples (mass, probability) if get_counts=False or
+    (mass, probability, counts), if get_counts=True.
+    """
+    iso = None
+    if algorithm == "layered":
+        iso = IsoLayered(formula        = formula,
+                         prob_to_cover  = P,
+                         get_confs      = get_counts)
+    if algorithm == "threshold":
+        iso = IsoThreshold(formula      = formula,
+                           threshold    = P,
+                           get_confs    = get_counts)
+    if algorithm == "threshold_gen":
+        iso = IsoThresholdGenerator(formula      = formula,
+                                    threshold    = P,
+                                    get_confs    = get_counts)
+    if algorithm == "layered_gen":
+        iso = IsoLayeredGenerator(formula        = formula,
+                                  prob_to_cover  = P,
+                                  get_confs      = get_counts)
+    if algorithm == "ordered_gen":
+        iso = IsoLayeredGenerator(formula        = formula,
+                                  get_confs      = get_counts)
+    if iso is None:
+        raise KeyError("Algorithm {} is not implemented".format(algorithm))
+    return iso
 
 
 __version__ = "1.9.1"
