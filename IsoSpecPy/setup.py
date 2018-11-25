@@ -103,7 +103,7 @@ setup_args = {
     # $ pip install -e .[dev,test]
     'extras_require' : {
 #        'dev': ['check-manifest'],
-#        'test': ['coverage'],
+        'pytest': ['coverage'],
     },
 
     # If there are data files included in your packages that need to be
@@ -127,6 +127,10 @@ setup_args = {
 #            'sample=sample:main',
 #        ],
 #    },
+    # some mother-fucker will not tell me what to do. Cross-platform support, shit.
+    "scripts" : [
+        "bin/isospec"
+    ],
     'ext_modules' : [cmodule],
 }
 

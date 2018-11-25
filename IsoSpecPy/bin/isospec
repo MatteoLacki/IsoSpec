@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+import argparse
+from argparse import ArgumentParser
+
+from IsoSpecPy import isospecify
+
+
+S = 8 # significant digits.
+
+
+class SmartFormatter(argparse.HelpFormatter):
+    def _split_lines(self, text, width):
+        if text.startswith('R|'):
+            return text[2:].splitlines()  
+        # this is the RawTextHelpFormatter._split_lines
+        return argparse.HelpFormatter._split_lines(self, text, width)
+
+
+parser = argparse.ArgumentParser(
+    description = 'IsoSpec: generation of theoretical isotopic distribution.', 
+    formatter_class = SmartFormatter)
+parser.add_argument("formula", type=str, 
+    help="Chemical formula, e.g. C100H202.")
+parser.add_argument("P", type=float, 
+    help="Either joint probability or minimal probability in the reported P-set of isotopologues. Should be between 0 and 1.")
+parser.add_argument("--get_counts",
+    dest = 'get_counts',
+    action= 'store_const',
+    default = False,
+    const = True,
+    help = "Show counts of isotopologues?")
+parser.add_argument("-f", "--shmancy",
+    dest = 'fancy',
+    action= 'store_const',
+    default = False,
+    const = True,
+    help = "Fancify output (also rounds floats to {} significant digits.)".format(S))
+parser.add_argument('--algorithm', 
+    choices=['layered',
+             'threshold',
+             'threshold_gen',
+             'layered_gen',
+             'ordered_gen'],
+    default='layered',
+    help="R|Possible algorithms (defaults to layered)\n"
+         "layered\n* O(n) calculation of isotopologues together more probable than P,\n"
+         "threshold\n* O(n) calculation of isotopologues each more probable than P,\n"
+         "threshold_gen\n* O(n) generation of isotopologues each more probable than P,\n"
+         "layered_gen\n* O(n) generation of isotopologues together more probable than P,\n"
+         "ordered_gen\n* O(nlog(n)) generation of isotopologues with decreasing probability.")
+
+args = parser.parse_args()
+iso = isospecify(formula=args.formula,
+                 P = args.P,
+                 algorithm = args.algorithm,
+                 get_counts = args.get_counts)
+if args.fancy:
+    if args.get_counts:
+        for x in iso:
+            print("mass = {}\tprob = {}\tcounts = {}".format(round(x[0],S),
+                                                             round(x[1],S),
+                                                             x[2]))
+    else:
+        for x in iso:
+            print("mass = {}\tprob = {}".format(round(x[0],S), round(x[1],S)))
+else:
+    for x in iso:
+        print(x)
