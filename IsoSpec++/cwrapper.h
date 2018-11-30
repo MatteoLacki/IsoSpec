@@ -35,6 +35,13 @@ void * setupIso(int             dimNumber,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities);
 
+double getLightestPeakMassIso(void* iso);
+double getHeaviestPeakMassIso(void* iso);
+double getMonoisotopicPeakMassIso(void* iso);
+double getModeLProbIso(void* iso);
+double getModeMassIso(void* iso);
+
+
 void deleteIso(void* iso);
 
 #define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\

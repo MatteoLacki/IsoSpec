@@ -60,6 +60,31 @@ void deleteIso(void* iso)
     delete reinterpret_cast<Iso*>(iso);
 }
 
+double getLightestPeakMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getLightestPeakMass();
+}
+
+double getHeaviestPeakMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getHeaviestPeakMass();
+}
+
+double getMonoisotopicPeakMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakMass();
+}
+
+double getModeLProbIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getModeLProb();
+}
+
+double getModeMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getModeMass();
+}
+
 
 #define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
