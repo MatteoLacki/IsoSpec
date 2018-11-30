@@ -182,6 +182,13 @@ double Iso::getModeMass() const
     return mass;
 }
 
+double Iso::getTheoreticalAverageMass() const
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginals[ii]->getTheoreticalAverageMass();
+    return mass;
+}
 
 Iso::Iso(const char* formula) :
 disowned(false),

@@ -130,6 +130,9 @@ class Iso(object):
     def getModeMass(self):
         return self.ffi.getModeMassIso(self.iso)
 
+    def getTheoreticalAverageMass(self):
+        return self.ffi.getTheoreticalAverageMassIso(self.iso)
+
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 

@@ -132,8 +132,13 @@ public:
     /*!
         \return The logarithm of the  smallest non-zero probability of a subisotopologue. 
     */
-
     inline double getSmallestLProb() const { return smallest_lprob; };
+
+    //! The theoretical average mass of the molecule.
+    /*!
+        \return The theoretical average mass of the molecule.
+     */
+    double getTheoreticalAverageMass() const;
 
     //! Calculate the log-probability of a given subisotopologue.
     /*!

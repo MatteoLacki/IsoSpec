@@ -85,6 +85,12 @@ double getModeMassIso(void* iso)
     return reinterpret_cast<Iso*>(iso)->getModeMass();
 }
 
+double getTheoreticalAverageMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getTheoreticalAverageMass();
+}
+
+
 
 #define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }

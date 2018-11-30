@@ -124,6 +124,9 @@ public:
     //! Get the mass of the mode-configuration (if there are many modes, it is undefined which one will be selected).
     double getModeMass() const;
 
+    //! Get the theoretical average mass of the molecule.
+    double getTheoreticalAverageMass() const;
+
     //! Get the number of elements in the chemical formula of the molecule.
     inline int getDimNumber() const { return dimNumber; };
 
