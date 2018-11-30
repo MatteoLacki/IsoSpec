@@ -61,6 +61,8 @@ class Iso(object):
             raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
 
         if formula is not None:
+            if isinstance(formula, dict):
+                formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
 
         if atomCounts is not None:
