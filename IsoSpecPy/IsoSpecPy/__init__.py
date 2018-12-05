@@ -112,8 +112,11 @@ class Iso(object):
                 yield (self.masses[i], self.probs[i])
 
     def __del__(self):
-        if self.iso is not None:
-            self.ffi.deleteIso(self.iso)
+        try:
+            if self.iso is not None:
+                self.ffi.deleteIso(self.iso)
+        except AttributeError:
+            pass
 
 
     def parse_conf(self, cptr, starting_with = 0):
@@ -228,8 +231,11 @@ class IsoThresholdGenerator(IsoGenerator):
         self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
 
     def __del__(self):
-        if self.cgen is not None:
-            self.ffi.deleteIsoThresholdGenerator(self.cgen)
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoThresholdGenerator(self.cgen)
+        except AttributeError:
+            pass
 
 
 class IsoLayeredGenerator(IsoGenerator):
@@ -248,8 +254,11 @@ class IsoLayeredGenerator(IsoGenerator):
         self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
 
     def __del__(self):
-        if self.cgen is not None:
-            self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        except AttributeError:
+            pass
 
 class IsoOrderedGenerator(IsoGenerator):
     def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
@@ -263,8 +272,11 @@ class IsoOrderedGenerator(IsoGenerator):
         self.conf_getter = self.ffi.get_conf_signatureIsoOrderedGenerator
 
     def __del__(self):
-        if self.cgen is not None:
-            self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        except AttributeError:
+            pass
 
 
 
