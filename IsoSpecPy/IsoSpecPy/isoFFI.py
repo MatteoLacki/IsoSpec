@@ -15,6 +15,13 @@ class IsoFFI:
                 const double* isotopeMasses,
                 const double* isotopeProbabilities);
 
+        double getLightestPeakMassIso(void* iso);
+        double getHeaviestPeakMassIso(void* iso);
+        double getMonoisotopicPeakMassIso(void* iso);
+        double getModeLProbIso(void* iso);
+        double getModeMassIso(void* iso);
+        double getTheoreticalAverageMassIso(void* iso);
+
         void deleteIso(void* iso);
 
         void* setupIsoThresholdGenerator(void* iso,

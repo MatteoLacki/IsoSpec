@@ -61,6 +61,8 @@ class Iso(object):
             raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
 
         if formula is not None:
+            if isinstance(formula, dict):
+                formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
 
         if atomCounts is not None:
@@ -118,6 +120,23 @@ class Iso(object):
         except AttributeError:
             pass
 
+    def getLightestPeakMass(self):
+        return self.ffi.getLightestPeakMassIso(self.iso)
+
+    def getHeaviestPeakMass(self):
+        return self.ffi.getHeaviestPeakMassIso(self.iso)
+
+    def getMonoisotopicPeakMass(self):
+        return self.ffi.getMonoisotopicPeakMassIso(self.iso)
+
+    def getModeLProb(self):
+        return self.ffi.getModeLProbIso(self.iso)
+
+    def getModeMass(self):
+        return self.ffi.getModeMassIso(self.iso)
+
+    def getTheoreticalAverageMass(self):
+        return self.ffi.getTheoreticalAverageMassIso(self.iso)
 
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
@@ -130,8 +149,8 @@ class IsoThreshold(Iso):
         self.threshold = threshold
         self.absolute = absolute
 
-        generator = self.ffi.setupIsoThresholdGenerator(self.iso, threshold, absolute, 1000, 1000)
-        tabulator = self.ffi.setupThresholdTabulator(generator, True, True, True, get_confs)
+        self.generator = self.ffi.setupIsoThresholdGenerator(self.iso, threshold, absolute, 1000, 1000)
+        tabulator = self.ffi.setupThresholdTabulator(self.generator, True, True, True, get_confs)
 
         self.size = self.ffi.confs_noThresholdTabulator(tabulator)
 
@@ -148,8 +167,9 @@ class IsoThreshold(Iso):
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
         self.ffi.deleteThresholdTabulator(tabulator)
-        self.ffi.deleteIsoThresholdGenerator(generator)
 
+    def __del__(self):
+        self.ffi.deleteIsoThresholdGenerator(self.generator)
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
@@ -165,8 +185,8 @@ class IsoLayered(Iso):
         super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        generator = self.ffi.setupIsoLayeredGenerator(self.iso, prob_to_cover, 0.3, 1000, 1000, True)
-        tabulator = self.ffi.setupLayeredTabulator(generator, True, True, True, get_confs)
+        self.generator = self.ffi.setupIsoLayeredGenerator(self.iso, prob_to_cover, 0.3, 1000, 1000, True)
+        tabulator = self.ffi.setupLayeredTabulator(self.generator, True, True, True, get_confs)
 
         self.size = self.ffi.confs_noLayeredTabulator(tabulator)
 
@@ -183,7 +203,9 @@ class IsoLayered(Iso):
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
         self.ffi.deleteLayeredTabulator(tabulator)
-        self.ffi.deleteIsoLayeredGenerator(generator)
+
+    def __del__(self):
+        self.ffi.deleteIsoLayeredGenerator(self.generator)
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)

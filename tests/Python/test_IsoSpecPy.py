@@ -12,6 +12,7 @@ except ImportError:
     print("This test compares the results of installed IsoSpec with IsoSpec version 1.0.7, installed as OldIsoSpecPy")
     print("You must install it, using:")
     print("pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
+    sys.exit(1)
 
 
 # Correctness tests comparing IsoSpecPy 1.0.7 and HEAD. The trouble here is that due to slightly different way things are calculated
