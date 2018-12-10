@@ -169,7 +169,10 @@ class IsoThreshold(Iso):
         self.ffi.deleteThresholdTabulator(tabulator)
 
     def __del__(self):
-        self.ffi.deleteIsoThresholdGenerator(self.generator)
+        try:
+            self.ffi.deleteIsoThresholdGenerator(self.generator)
+        except AttributeError:
+            pass
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
@@ -205,7 +208,10 @@ class IsoLayered(Iso):
         self.ffi.deleteLayeredTabulator(tabulator)
 
     def __del__(self):
-        self.ffi.deleteIsoLayeredGenerator(self.generator)
+        try:
+            self.ffi.deleteIsoLayeredGenerator(self.generator)
+        except AttributeError:
+            pass
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
