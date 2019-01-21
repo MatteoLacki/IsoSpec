@@ -1,5 +1,26 @@
 # Calculates the isotopic distribution of water in several ways
 
+'''
+We shall walk through a set of configurations which covers at least 99.9% of the total
+probability. For water we could obviously go through the entire spectrum (100%), but for
+larger molecules the entire spectrum has far too many configurations. Luckily, most of the
+likelihood is concentrated in a relatively small set of most probable isotopologues
+- and this method allows one to quickly calculate such a set, parametrising on the
+percentage of coverage of total probability space required.
+
+This is usually better than just calculating all isotopes with probabilities above a
+iven threshold, as it allows one to directly parametrise on the accuracy of the
+simplified spectrum - that is, the L1 distance between the full and simplified spectrum
+will be less than (in this example) 0.001.
+
+If for some reason one would wish to just calculate a set of peaks with probabilities
+above a given threshold - it is possible using the IsoThresholdGenerator class.
+
+Note: the returned set will usually contain a bit more configurations than necessary
+to achieve the desired coverage. These configurations need to be computed anyway, however
+it is possible to discard them using the optional trim argument.
+'''
+
 import IsoSpecPy
 from math import exp
 

@@ -8,9 +8,9 @@ int main()
 {
   int configs[5];
   {
-    // We shall walk through a set of configurations which covers at least 99.9% of the mass.
-    // For water we could obviously go through the entire spectrum (100%), but for larger
-    // molecules the entire spectrum has far too many configurations. Luckily, most of the 
+    // We shall walk through a set of configurations which covers at least 99.9% of the total
+    // probability. For water we could obviously go through the entire spectrum (100%), but for 
+    // larger molecules the entire spectrum has far too many configurations. Luckily, most of the 
     // likelihood is concentrated in a relatively small set of most probable isotopologues
     // - and this method allows one to quickly calculate such a set, parametrising on the
     // percentage of coverage of total probability space required.
