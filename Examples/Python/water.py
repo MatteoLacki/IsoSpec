@@ -15,11 +15,10 @@ i = IsoSpecPy.IsoLayeredGenerator(formula="H2O1", prob_to_cover = 0.999, get_con
 
 print("Calculating isotopic distribution of water. Here's a list of configurations necessary to cover at least 0.999 of total probability:")
 
-for mass, log_prob, conf in i:
+for mass, prob, conf in i:
     print("")
     print("Mass: " + str(mass))
-    print("log(probability): " + str(log_prob))
-    print("probability: " + str(exp(log_prob)))
+    print("probability: " + str(prob))
     print("Number of Protium atoms: " + str(conf[0][0]))
     print("Number of Deuterium atoms: " + str(conf[0][1]))
     print("Number of O16 atoms: " + str(conf[1][0]))
@@ -37,12 +36,11 @@ oxygen_masses = (15.99491461956, 16.99913170, 17.9991610)
 i = IsoSpecPy.IsoLayeredGenerator(atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), prob_to_cover = 0.999, get_confs=True)
 
 
-mass, log_prob, conf = next(i.__iter__())
+mass, prob, conf = next(i.__iter__())
 
 print("The first configuration has the following parameters:")
 print("Mass: " + str(mass))
-print("log(probability): " + str(log_prob))
-print("probability: " + str(exp(log_prob)))
+print("probability: " + str(prob))
 print("Number of Protium atoms: " + str(conf[0][0]))
 print("Number of Deuterium atoms: " + str(conf[0][1]))
 print("Number of O16 atoms: " + str(conf[1][0]))
