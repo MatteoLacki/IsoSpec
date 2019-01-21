@@ -15,8 +15,9 @@ except AttributeError:
 
 
 
-# As one of the atoms has a nonstandard isotopic distribution we can't use the construction from chemical formula,
-# Have to manually grab isotopic masses and probabilities instead
+# As one of the atoms has a nonstandard isotopic distribution we can't do the construction from chemical formula
+# We have to manually grab isotopic masses and probabilities instead, the construct an artificial "element" which is carbon
+# with one added isotope (14C) and shifted isotopic distribution
 
 # Formula of radiolabeled glucose is C5H12O6(14C)1
 # First, deal with standard elements
@@ -28,15 +29,15 @@ oxygen_masses = PeriodicTbl.symbol_to_masses["O"]
 oxygen_probs = PeriodicTbl.symbol_to_probs["O"]
 
 # Now, the radiolabelled carbon
-# 14C isn't normally consider, here we add an extra isotope to the standard ones
+# 14C isn't normally considered, here we add an extra isotope to the standard ones
 radiolabelled_carbon_masses = PeriodicTbl.symbol_to_masses["C"] + (14.003241989,)
 
 # Assuming that the labelling was only 95% efficient, that is only 95% 
-# of the molecules have 12C replaced with 14C. Non-replaced molecules have standard
-# abundance (realtive to each other)
+# of the molecules have standard C replaced with 14C. Non-replaced molecules have standard
+# isotopic abundance (realtive to each other)
 radiolabelled_carbon_probs = (0.05*normal_carbon_probs[0], 0.05*normal_carbon_probs[1], 0.95)
 
-atom_counts = (5, 12, 6, 1) # 5 normal carbons, 12 H's, 6 O's and one isotopically labelled carbon
+atom_counts = (5, 12, 6, 1) # 5 normal carbons, 12 H's, 6 O's and one radiolabelled carbon
 
 i = IsoSpecPy.IsoLayeredGenerator(atomCounts = atom_counts, 
                                   isotopeMasses = (normal_carbon_masses, hydrogen_masses, oxygen_masses, radiolabelled_carbon_masses), 
