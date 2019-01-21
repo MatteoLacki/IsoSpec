@@ -1,5 +1,9 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+1.9.2
+----------------------------------
+- Mostly documentation improvements
+
 1.9.1
 ----------------------------------
 - R bindings brought up to speed
