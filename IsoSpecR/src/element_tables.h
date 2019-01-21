@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 namespace IsoSpec
 {
 
@@ -25,6 +27,7 @@ extern "C" {
 
 
 #define ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES 288
+extern const size_t isospec_number_of_isotopic_entries;
 
 extern const int elem_table_atomicNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const double elem_table_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];

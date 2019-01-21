@@ -35,6 +35,14 @@ void * setupIso(int             dimNumber,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities);
 
+double getLightestPeakMassIso(void* iso);
+double getHeaviestPeakMassIso(void* iso);
+double getMonoisotopicPeakMassIso(void* iso);
+double getModeLProbIso(void* iso);
+double getModeMassIso(void* iso);
+double getTheoreticalAverageMassIso(void* iso);
+
+
 void deleteIso(void* iso);
 
 #define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\
@@ -109,6 +117,8 @@ const double* lprobsLayeredTabulator(void* tabulator);
 const double* probsLayeredTabulator(void* tabulator);
 const int*    confsLayeredTabulator(void* tabulator);
 int confs_noLayeredTabulator(void* tabulator);
+
+void freeReleasedArray(void* array);
 
 #ifdef __cplusplus
 }

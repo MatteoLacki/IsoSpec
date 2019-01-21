@@ -166,7 +166,29 @@ double Iso::getHeaviestPeakMass() const
     return mass;
 }
 
+double Iso::getMonoisotopicPeakMass() const
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginals[ii]->getMonoisotopicConfMass();
+    return mass;
+}
 
+double Iso::getModeMass() const
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginals[ii]->getModeMass();
+    return mass;
+}
+
+double Iso::getTheoreticalAverageMass() const
+{
+    double mass = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        mass += marginals[ii]->getTheoreticalAverageMass();
+    return mass;
+}
 
 Iso::Iso(const char* formula) :
 disowned(false),

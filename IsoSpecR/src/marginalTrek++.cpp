@@ -265,6 +265,27 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
+double Marginal::getMonoisotopicConfMass() const
+{
+    double found_prob = -std::numeric_limits<double>::infinity();
+    double found_mass = 0.0; // to avoid uninitialized var warning
+    for(unsigned int ii=0; ii < isotopeNo; ii++)
+        if( found_prob < atom_lProbs[ii] )
+        {
+            found_prob = atom_lProbs[ii];
+            found_mass = atom_masses[ii];
+        }
+    return found_mass*atomCnt;
+}
+
+double Marginal::getTheoreticalAverageMass() const
+{
+    double ret = 0.0;
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        ret += exp(atom_lProbs[ii]) * atom_masses[ii];
+    return ret * atomCnt;
+}
+
 // this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
     Marginal&& m,

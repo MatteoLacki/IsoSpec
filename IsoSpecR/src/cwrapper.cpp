@@ -60,6 +60,37 @@ void deleteIso(void* iso)
     delete reinterpret_cast<Iso*>(iso);
 }
 
+double getLightestPeakMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getLightestPeakMass();
+}
+
+double getHeaviestPeakMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getHeaviestPeakMass();
+}
+
+double getMonoisotopicPeakMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakMass();
+}
+
+double getModeLProbIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getModeLProb();
+}
+
+double getModeMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getModeMass();
+}
+
+double getTheoreticalAverageMassIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getTheoreticalAverageMass();
+}
+
+
 
 #define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
@@ -159,22 +190,22 @@ void deleteThresholdTabulator(void* t)
 
 const double* massesThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->masses();
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->masses(true);
 }
 
 const double* lprobsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->lprobs();
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->lprobs(true);
 }
 
 const double* probsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->probs();
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->probs(true);
 }
 
 const int*    confsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs();
+    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs(true);
 }
 
 int confs_noThresholdTabulator(void* tabulator)
@@ -207,22 +238,22 @@ void deleteLayeredTabulator(void* t)
 
 const double* massesLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses();
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses(true);
 }
 
 const double* lprobsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs();
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs(true);
 }
 
 const double* probsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs();
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs(true);
 }
 
 const int*    confsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs();
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs(true);
 }
 
 int confs_noLayeredTabulator(void* tabulator)
@@ -230,6 +261,9 @@ int confs_noLayeredTabulator(void* tabulator)
     return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs_no();
 }
 
-
+void freeReleasedArray(void* array)
+{
+    free(array);
+}
 
 }  //extern "C" ends here
