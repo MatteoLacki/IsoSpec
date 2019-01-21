@@ -82,6 +82,7 @@ class Iso(object):
 
         self.isotopeNumbers = tuple(map(len, self.isotopeMasses))
         assert self.isotopeNumbers == tuple(map(len, self.isotopeProbabilities))
+        assert len(self.atomCounts) == len(self.isotopeNumbers) == len(self.isotopeProbabilities)
 
         self.dimNumber = len(self.isotopeNumbers)
 
