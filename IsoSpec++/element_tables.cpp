@@ -23,6 +23,9 @@ namespace IsoSpec
 extern "C" {
 #endif
 
+const size_t isospec_number_of_isotopic_entries = ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES;
+
+
 const int elem_table_atomicNo [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 1,
 1,
