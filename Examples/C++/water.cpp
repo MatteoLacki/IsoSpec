@@ -90,7 +90,7 @@ int main()
     std::cout << "O17 atoms: " << configs[3] << std::endl;
     std::cout << "O18 atoms: " << configs[4] << std::endl;
 
-    std::cout << "Probabilities of the remaining configurations, are: " << std::endl;
+    std::cout << "Probabilities of the remaining configurations are: " << std::endl;
 
     while(iso.advanceToNextConfiguration())
         std::cout << iso.prob() << std::endl;

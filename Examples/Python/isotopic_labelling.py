@@ -16,7 +16,7 @@ except AttributeError:
 
 
 # As one of the atoms has a nonstandard isotopic distribution we can't do the construction from chemical formula
-# We have to manually grab isotopic masses and probabilities instead, the construct an artificial "element" which is carbon
+# We have to manually grab isotopic masses and probabilities instead, then construct an artificial "element" which is carbon
 # with one added isotope (14C) and shifted isotopic distribution
 
 # Formula of radiolabeled glucose is C5H12O6(14C)1
@@ -38,7 +38,6 @@ radiolabelled_carbon_masses = PeriodicTbl.symbol_to_masses["C"] + (14.003241989,
 radiolabelled_carbon_probs = (0.05*normal_carbon_probs[0], 0.05*normal_carbon_probs[1], 0.95)
 
 atom_counts = (5, 12, 6, 1) # 5 normal carbons, 12 H's, 6 O's and one radiolabelled carbon
-
 i = IsoSpecPy.IsoLayeredGenerator(atomCounts = atom_counts, 
                                   isotopeMasses = (normal_carbon_masses, hydrogen_masses, oxygen_masses, radiolabelled_carbon_masses), 
                                   isotopeProbabilities = (normal_carbon_probs, hydrogen_probs, oxygen_probs, radiolabelled_carbon_probs), 

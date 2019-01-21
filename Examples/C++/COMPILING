@@ -3,6 +3,7 @@ The easiest (if not the most elegant) way to compile the example is:
 clang++ water.cpp ../../IsoSpec++/unity-build.cpp -std=c++11
 
 You may replace clang++ with g++ if you do not have LLVM installed.
+Replace water.cpp for other examples as needed.
 
 Run the example by:
 
