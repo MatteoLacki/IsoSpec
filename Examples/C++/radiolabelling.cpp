@@ -40,7 +40,7 @@ int main()
     // We're assuming that the labelling was only 95% efficient, that is only 95%
     // of the molecules have standard C replaced with 14C. Non-replaced molecules have standard
     // isotopic abundance (realtive to each other)
-    const double radiocarbon_probs[3] = {0.05*normal_carbon_masses[0], 0.05*normal_carbon_masses[1], 0.95};
+    const double radiocarbon_probs[3] = {0.05*normal_carbon_probs[0], 0.05*normal_carbon_probs[1], 0.95};
 
     const double* probs[4] = {normal_carbon_probs, hydrogen_probs, oxygen_probs, radiocarbon_probs};
  
