@@ -222,7 +222,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
     for(size_t ii=0; ii<slen; ii++)
         if(!isdigit(formula[ii]) && !isalpha(formula[ii]))
-            throw invalid_argument("Ivalid formula: contains invalid (non-digit, non-alpha) character");
+            throw invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
 
     size_t position = 0;
     size_t elem_end = 0;
