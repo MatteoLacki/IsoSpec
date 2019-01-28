@@ -13,11 +13,11 @@ isotopes = isotopicData$IsoSpec
 # And we add an artificial element X, with 3 isotopes, that will represent the radiocarbon. 
 radiolabel = data.frame(
     element = c('X', 'X', 'X'),
-    isotope = c('12X', '13X', '14X'),
+    isotope = c('X12', 'X13', 'X14'),
     # Grab the masses of 12C and 13C from IsoSpec builtin data, provide mass of 14C manually
-    mass = c(isotopes[isotopes$isotope == '12C', 'mass'], isotopes[isotopes$isotope == '13C', 'mass'], 14.003241989),
+    mass = c(isotopes[isotopes$isotope == 'C12', 'mass'], isotopes[isotopes$isotope == 'C13', 'mass'], 14.003241989),
     # Isotope abundances are: 95% 14C, and the remaining 5% is split between 12C and 13C proportionally to their natural abundances
-    abundance = c(isotopes[isotopes$isotope == '12C', 'abundance'] * 0.05, isotopes[isotopes$isotope == '13C', 'abundance'] * 0.05, 0.95),
+    abundance = c(isotopes[isotopes$isotope == 'C12', 'abundance'] * 0.05, isotopes[isotopes$isotope == 'C13', 'abundance'] * 0.05, 0.95),
     # unused parameter, kept for backward compatibility, ignore that
     ratioC = c(NA, NA, NA)
 )
@@ -30,5 +30,5 @@ radioglucose = c(C=5, H=12, O=6, X=1) # A glucose molecule: one of the carbons i
 
 p = .99 # joint probability of the output
 
-IsoSpecify(radioglucose, p, isotopes = isotopes)
+IsoSpecify(radioglucose, p, isotopes = isotopes, showCounts = TRUE)
 
