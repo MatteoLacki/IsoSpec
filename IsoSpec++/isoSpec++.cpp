@@ -204,6 +204,20 @@ modeLProb(0.0)
     setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
 
+
+void Iso::addElement(int noIsotopes, int atomCount, const double* isotopeMasses, const double* isotopeProbabilities)
+{
+    Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
+    modeLProb += m->getModeLProb();
+    realloc_append<int>(&isotopeNumbers, noIsotopes, dimNumber);
+    realloc_append<int>(&atomCounts, atomCount, dimNumber);
+    realloc_append<Marginal*>(&marginals, m, dimNumber);
+    dimNumber++;
+    confSize += sizeof(int);
+    allDim += noIsotopes;
+
+}
+
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.

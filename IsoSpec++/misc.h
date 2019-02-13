@@ -133,13 +133,13 @@ template<typename T> void dealloc_table(T* tbl, int dim)
     delete[] tbl;
 }
 
-inline template<typename T> void realloc_append(T** array, T what, size_t old_arr_size)
+template<typename T> void realloc_append(T** array, T what, size_t old_array_size)
 {
-    T* newT = new T[old_arr_size+1];
+    T* newT = new T[old_array_size+1];
     memcpy(newT, *array, old_array_size*sizeof(T));
-    newT[old_arr_size] = what;
+    newT[old_array_size] = what;
     delete[] *array;
-    array = newT;
+    *array = newT;
 }
 
 } // namespace IsoSpec

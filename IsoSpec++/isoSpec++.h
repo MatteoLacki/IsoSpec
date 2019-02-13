@@ -132,6 +132,9 @@ public:
 
     //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; };
+
+    //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
+    void addElement(int noIsotopes, int atomCount, const double* isotopeMasses, const double* isotopeProbabilities);
 };
 
 
