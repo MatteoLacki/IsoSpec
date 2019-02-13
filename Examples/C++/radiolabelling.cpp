@@ -6,45 +6,24 @@ using namespace IsoSpec;
 
 int main()
 {
-  // Calculates the isotopic distribution of isotopically labelled glucose, where one of the carbons is replaced with 14C
-  // We assume that 95% of the molecules are radiolabelled.
+  // Calculates the isotopic distribution of isotopically labelled glucose, where two of the carbons are replaced with 14C
+  // We assume that radiolabelling is 95% efficient (that is, there is a 95% chance for each of the radiolabel atoms to be 14C, and
+  // a 5% chance of them being either 12C or 13C, with the probability of each of those proportional to their standard isotopic abundances)
 
 
   {
-    // As one of the atoms has a nonstandard isotopic distribution we can't use the Iso(const char*) constructor (from chemical formula)
-    // We have to manually grab isotopic masses and probabilities instead, then construct an artificial "element" which is carbon
-    // with one added isotope (14C) and shifted isotopic distribution
+    // First, we construct the glucose molecule WITHOUT the radiolabel atoms - that is C4 instead of C6
+    Iso i("C4H12O6");
 
-
-    const int elementNumber = 4;
-    const int isotopeNumbers[4] = {2,2,3,3};
-
-    // Formula of radiolabeled glucose is C5H12O6(14C)1
-    const int atomCounts[4] = {5,12,6,1};
-
-    // First, deal with standard elements. Here we define them manually, they can also be retrieved from stuff in element_tables.h
-    const double normal_carbon_masses[2] = {12.0, 13.0033548352};
-    const double hydrogen_masses[2] = {1.00782503207, 2.0141017778};
-    const double oxygen_masses[3] = {15.99491461956, 16.99913170, 17.9991610};
-
-    // The set of masses for the radiolabelled carbon
+    // Then, we add the special "element", representing the radiolabel, with custom isotopic distribution (of 3 possible isotopes) and 2 atoms
     const double radiocarbon_masses[3] = {12.0, 13.0033548352, 14.003241989};
+    const double radiocarbon_probs[3] = {0.05*0.989211941850466, 0.05*0.010788058149533084, 0.95}; // The standard isotopic distribution of nonradio-carbon multiplied by 0.05, and 0.95 of 14C
 
-    const double* isotope_masses[4] = {normal_carbon_masses, hydrogen_masses, oxygen_masses, radiocarbon_masses};
+    i.addElement(2, 3, radiocarbon_masses, radiocarbon_probs);
 
-    // Now, the isotopic distributions. Standard for normal elements...
-    const double normal_carbon_probs[2] = {0.9892119418504669, 0.010788058149533084};
-    const double hydrogen_probs[2] = {0.9998842901643079, 0.00011570983569203331};
-    const double oxygen_probs[3] = {0.997567609729561, 0.00038099847600609594, 0.002051391794432822};
+    // Additional radiolabel elements can be added by more calls to addElement
 
-    // We're assuming that the labelling was only 95% efficient, that is only 95%
-    // of the molecules have standard C replaced with 14C. Non-replaced molecules have standard
-    // isotopic abundance (realtive to each other)
-    const double radiocarbon_probs[3] = {0.05*normal_carbon_probs[0], 0.05*normal_carbon_probs[1], 0.95};
-
-    const double* probs[4] = {normal_carbon_probs, hydrogen_probs, oxygen_probs, radiocarbon_probs};
- 
-    IsoLayeredGenerator iso(Iso(elementNumber, isotopeNumbers, atomCounts, isotope_masses, probs), 0.99);
+    IsoLayeredGenerator iso(std::move(i), 0.99);
 
     iso.advanceToNextConfiguration();
 
@@ -67,11 +46,9 @@ int main()
     std::cout << "18O atoms: " << configs[6] << std::endl;
 
 
-    std::cout << "Probabilities of the remaining configurations are: " << std::endl;
+    std::cout << "Probabilities of the remaining computed configurations of the distribution are: " << std::endl;
 
     while(iso.advanceToNextConfiguration())
         std::cout << iso.prob() << std::endl;
   }
-
-  // TODO: demonstrate other algorithms
 }
