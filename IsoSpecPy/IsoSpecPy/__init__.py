@@ -38,8 +38,8 @@ def IsoParamsFromFormula(formula):
         symbols.append(elem)
         atomCounts.append(int(cnt) if cnt is not '' else 1)
     try:
-        masses = tuple(PeriodicTbl.symbol_to_masses[s] for s in symbols)
-        probs  = tuple(PeriodicTbl.symbol_to_probs[s]  for s in symbols)
+        masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
+        probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
     except KeyError:
         raise ValueError("Invalid formula")
 
@@ -64,16 +64,17 @@ class Iso(object):
             if isinstance(formula, dict):
                 formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
+        else:
+            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
 
         if atomCounts is not None:
-            self.atomCounts = atomCounts
-
+            self.atomCounts.extend(atomCounts)
 
         if isotopeMasses is not None:
-            self.isotopeMasses = isotopeMasses
+            self.isotopeMasses.extend(isotopeMasses)
 
         if isotopeProbabilities is not None:
-            self.isotopeProbabilities = isotopeProbabilities
+            self.isotopeProbabilities.extend(isotopeProbabilities)
 
         for sublist in self.isotopeProbabilities:
             for prob in sublist:
