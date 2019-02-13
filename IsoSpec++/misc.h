@@ -20,6 +20,7 @@
 #include <tuple>
 #include <vector>
 #include <fenv.h>
+#include <string.h>
 #include "isoMath.h"
 
 namespace IsoSpec
@@ -130,6 +131,15 @@ template<typename T> void dealloc_table(T* tbl, int dim)
         delete tbl[i];
     }
     delete[] tbl;
+}
+
+inline template<typename T> void realloc_append(T** array, T what, size_t old_arr_size)
+{
+    T* newT = new T[old_arr_size+1];
+    memcpy(newT, *array, old_array_size*sizeof(T));
+    newT[old_arr_size] = what;
+    delete[] *array;
+    array = newT;
 }
 
 } // namespace IsoSpec
