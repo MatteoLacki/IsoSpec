@@ -205,7 +205,7 @@ modeLProb(0.0)
 }
 
 
-void Iso::addElement(int noIsotopes, int atomCount, const double* isotopeMasses, const double* isotopeProbabilities)
+void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities)
 {
     Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
     modeLProb += m->getModeLProb();

@@ -134,7 +134,7 @@ public:
     inline int getAllDim() const { return allDim; };
 
     //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
-    void addElement(int noIsotopes, int atomCount, const double* isotopeMasses, const double* isotopeProbabilities);
+    void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
 };
 
 
