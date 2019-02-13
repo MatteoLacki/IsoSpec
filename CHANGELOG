@@ -1,5 +1,10 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+
+1.9.3 (C++/Python-only release)
+----------------------------------
+- Improve API and examples for radiolabelling in C++/Python
+
 1.9.2
 ----------------------------------
 - Mostly documentation improvements
