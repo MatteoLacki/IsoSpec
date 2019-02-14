@@ -326,12 +326,12 @@ IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
 }
 
 
-IsoGenerator::~IsoGenerator() 
+IsoGenerator::~IsoGenerator()
 {
     if(partialLProbs != nullptr)
-        delete[] partialLProbs; 
+        delete[] partialLProbs;
     if(partialMasses != nullptr)
-        delete[] partialMasses; 
+        delete[] partialMasses;
     if(partialProbs != nullptr)
         delete[] partialProbs;
 }
@@ -377,7 +377,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
         std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
         marginalResults = new PrecalculatedMarginal*[dimNumber];
-        
+
         for(int ii=0; ii<dimNumber; ii++)
             marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
 

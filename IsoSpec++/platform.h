@@ -63,7 +63,7 @@
 #ifdef __GNUC__
 #define ISOSPEC_LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
 #define ISOSPEC_UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
-// For aggressive inlining 
+// For aggressive inlining
 #define ISOSPEC_FORCE_INLINE __attribute__ ((always_inline)) inline
 #elif defined _MSC_VER
 #define ISOSPEC_LIKELY(condition) condition

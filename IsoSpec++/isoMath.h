@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -21,7 +21,7 @@
 
 #if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
 // 10M should be enough for anyone, right?
-// Actually, yes. If anyone tries to input a molecule that has more than 10M atoms, 
+// Actually, yes. If anyone tries to input a molecule that has more than 10M atoms,
 // he deserves to get an exception thrown in his face.
 #define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
 #endif
@@ -31,9 +31,9 @@ namespace IsoSpec
 
 extern double* g_lfact_table;
 
-static inline double minuslogFactorial(int n) 
-{ 
-    if (n < 2) 
+static inline double minuslogFactorial(int n)
+{
+    if (n < 2)
         return 0.0;
     if (g_lfact_table[n] == 0.0)
         g_lfact_table[n] = -lgamma(n+1);

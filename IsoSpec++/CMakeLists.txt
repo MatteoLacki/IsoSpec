@@ -3,11 +3,11 @@ cmake_minimum_required(VERSION 2.6)
 
 set(my_sources
 cwrapper.cpp
-allocator.cpp  
-dirtyAllocator.cpp 
-isoSpec++.cpp 
-isoMath.cpp 
-marginalTrek++.cpp 
+allocator.cpp
+dirtyAllocator.cpp
+isoSpec++.cpp
+isoMath.cpp
+marginalTrek++.cpp
 operators.cpp
 element_tables.cpp
 misc.cpp

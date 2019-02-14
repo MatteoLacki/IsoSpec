@@ -112,8 +112,8 @@ public:
     double getHeaviestPeakMass() const;
 
     /*!
-        Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as 
-        consisting only of the most frequent isotopes of each element. These are often (but not always) the 
+        Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as
+        consisting only of the most frequent isotopes of each element. These are often (but not always) the
         lightest ones, making this often (but again, not always) equal to getLightestPeakMass()
     */
     double getMonoisotopicPeakMass() const;
@@ -212,7 +212,7 @@ public:
 
     //! Save the counts of isotopes in the space.
     /*!
-        \param space An array where counts of isotopes shall be written. 
+        \param space An array where counts of isotopes shall be written.
                      Must be as big as the overall number of isotopes.
     */
     inline void get_conf_signature(int* space) const override final
@@ -253,7 +253,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 private:
 
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
-    double*                 maxConfsLPSum;      
+    double*                 maxConfsLPSum;
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
     PrecalculatedMarginal** marginalResultsUnsorted;
@@ -302,13 +302,13 @@ public:
         delete[] maxConfsLPSum;
         if (marginalResultsUnsorted != marginalResults)
             delete[] marginalResultsUnsorted;
-        dealloc_table(marginalResults, dimNumber); 
+        dealloc_table(marginalResults, dimNumber);
         if(marginalOrder != nullptr)
             delete[] marginalOrder;
     };
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
-    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function).
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         lProbs_ptr++;
@@ -356,7 +356,7 @@ public:
     void terminate_search();
 
     /*! Reset the generator to the beginning of the sequence. Allows it to be reused, eg. to go through the conf space once, calculate
-        the amount of space needed to store configurations, then to allocate that memory, and go through it again, this time saving 
+        the amount of space needed to store configurations, then to allocate that memory, and go through it again, this time saving
         configurations (and *is* in fact faster than allocating a std::vector and depending on it to grow as needed. This is cheaper
         than throwing away the generator and making a new one too: marginal distributions don't need to be recalculated. */
     void reset();
@@ -416,7 +416,7 @@ private:
     int layers;
     size_t generator_position;
 
-    bool advanceToNextLayer(); 
+    bool advanceToNextLayer();
 
 public:
     bool advanceToNextConfiguration() override final;

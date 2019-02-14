@@ -152,7 +152,7 @@ double* getMLogProbs(const double* probs, int isoNo)
     /*!
     Here we order the processor to round the numbers up rather than down.
     Rounding down could result in the algorithm falling in an infinite loop
-    because of the numerical instability of summing. 
+    because of the numerical instability of summing.
     */
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
