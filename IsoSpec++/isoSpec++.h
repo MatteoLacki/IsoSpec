@@ -121,14 +121,14 @@ public:
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
     inline double getModeLProb() const { return modeLProb; };
 
+    //! Get the logprobability of the least probable subisotopologue.
+    double getUnlikeliestPeakLProb() const;
+
     //! Get the mass of the mode-configuration (if there are many modes, it is undefined which one will be selected).
     double getModeMass() const;
 
     //! Get the theoretical average mass of the molecule.
     double getTheoreticalAverageMass() const;
-
-    //! Get the logprobability of the least probable subisotopologue.
-    double getUnlikeliestPeakLProb() const;
 
     //! Get the number of elements in the chemical formula of the molecule.
     inline int getDimNumber() const { return dimNumber; };
