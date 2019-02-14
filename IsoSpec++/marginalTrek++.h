@@ -306,5 +306,59 @@ public:
     inline unsigned int get_no_confs() const { return no_confs; };
 };
 
+
+//! LayeredMarginal class
+/*!
+    An extendable version of the PrecalculatedMarginal, where you can extend the threshold at will.
+*/
+class LayeredMarginal : public Marginal
+{
+private:
+    double current_threshold;
+    std::vector<Conf> configurations;
+    std::vector<Conf> fringe;
+    Allocator<int> allocator;
+    unsigned int sorted_up_to_idx;
+    const ConfEqual equalizer;
+    const KeyHasher keyHasher;
+    const ConfOrderMarginalDescending orderMarginal;
+    std::vector<double> lProbs;
+    std::vector<double> eProbs;
+    std::vector<double> masses;
+    double* guarded_lProbs;
+    const int hashSize;
+
+public:
+    //! Move constructor: specializes the Marginal class.
+    /*!
+        \param tabSize The size of the table used to store configurations in the allocator.
+        \param hashSize The size of the hash table used to store visited subisotopologues.
+    */
+    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
+
+    //! Extend the set of computed subisotopologues to those above the new threshold.
+    /*!
+        \param new_threshold The new log-probability limiting the subisotopologues from below.
+        \return Returns false, if there are no fringe-subisotopologues (subisotopologues that were neighbours of the previously calculated subisotopologues, with log-probability below the previous threshold).
+    */
+    bool extend(double new_threshold);
+
+    //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
+    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
+
+    //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
+    inline double get_eProb(int idx) const { return eProbs[idx]; };
+
+    //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
+    inline double get_mass(int idx) const { return masses[idx]; };
+
+    //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
+    inline const Conf& get_conf(int idx) const { return configurations[idx]; };
+
+    //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
+    inline unsigned int get_no_confs() const { return configurations.size(); };
+};
+
+
 } // namespace IsoSpec
 
