@@ -323,7 +323,7 @@ private:
     const KeyHasher keyHasher;
     const ConfOrderMarginalDescending orderMarginal;
     std::vector<double> lProbs;
-    std::vector<double> eProbs;
+    std::vector<double> probs;
     std::vector<double> masses;
     double* guarded_lProbs;
     const int hashSize;
@@ -347,7 +347,7 @@ public:
     inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
 
     //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
-    inline double get_eProb(int idx) const { return eProbs[idx]; };
+    inline double get_prob(int idx) const { return probs[idx]; };
 
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
     inline double get_mass(int idx) const { return masses[idx]; };

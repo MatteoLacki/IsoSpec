@@ -565,7 +565,7 @@ bool LayeredMarginal::extend(double new_threshold)
     {
         // Reserve space for new values
         lProbs.reserve(configurations.size()+2);
-        eProbs.reserve(configurations.size());
+        probs.reserve(configurations.size());
         masses.reserve(configurations.size());
     } // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
       // but don't reallocate on every call
@@ -576,7 +576,7 @@ bool LayeredMarginal::extend(double new_threshold)
     {
         std::cout << "Marginal: looped" << std::endl;
         lProbs.push_back(logProb(configurations[ii]));
-        eProbs.push_back(exp(lProbs.back()));
+        probs.push_back(exp(lProbs.back()));
         masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
     }
 
