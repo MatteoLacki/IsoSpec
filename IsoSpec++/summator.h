@@ -110,7 +110,7 @@ public:
     }
     inline double get()
     {
-    	return sum;
+        return sum;
     }
 };
 

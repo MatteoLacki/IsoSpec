@@ -39,7 +39,7 @@ void* quickselect(void** array, int n, int start, int end)
 #if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
-	int pivot = rand() % len + start;
+        int pivot = rand() % len + start;
 #endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);

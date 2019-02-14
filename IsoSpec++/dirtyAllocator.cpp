@@ -29,7 +29,7 @@ DirtyAllocator::DirtyAllocator(
     cellSize        = sizeof(double) + sizeof(int) * dim;
     // Fix memory alignment problems for SPARC
     if(cellSize % sizeof(double) != 0)
-    	cellSize += sizeof(double) - cellSize % sizeof(double);
+        cellSize += sizeof(double) - cellSize % sizeof(double);
     currentTab      = malloc( cellSize * tabSize );
     currentConf     = currentTab;
     endOfTablePtr = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;

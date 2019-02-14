@@ -61,7 +61,7 @@ double NormalCDFInverse(double p)
 
 double NormalCDFInverse(double p, double mean, double stdev)
 {
-	return mean + stdev * NormalCDFInverse(p);
+    return mean + stdev * NormalCDFInverse(p);
 }
 
 double NormalCDF(double x, double mean, double stdev)
@@ -91,9 +91,9 @@ double NormalCDF(double x, double mean, double stdev)
 
 double NormalPDF(double x, double mean, double stdev)
 {
-	double two_variance = stdev * stdev * 2.0;
-	double delta = x-mean;
-	return exp( -delta*delta / two_variance )      /     sqrt( two_variance * pi );
+    double two_variance = stdev * stdev * 2.0;
+    double delta = x-mean;
+    return exp( -delta*delta / two_variance )      /     sqrt( two_variance * pi );
 }
 
 } // namespace IsoSpec

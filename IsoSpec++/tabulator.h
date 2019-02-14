@@ -58,7 +58,7 @@ template <typename T> Tabulator<T>::Tabulator(T* generator,
         {
             current_size *= 2;
 
-	    // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+            // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
 
             reallocate(&_masses, current_size * sizeof(double));
             reallocate(&_lprobs, current_size * sizeof(double));

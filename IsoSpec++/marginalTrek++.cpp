@@ -394,10 +394,10 @@ MarginalTrek::~MarginalTrek()
 
 
 PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
-	double lCutOff,
-	bool sort,
-        int tabSize,
-        int hashSize
+    double lCutOff,
+    bool sort,
+    int tabSize,
+    int hashSize
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
