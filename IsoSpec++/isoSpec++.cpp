@@ -174,6 +174,14 @@ double Iso::getMonoisotopicPeakMass() const
     return mass;
 }
 
+double Iso::getUnlikeliestPeakLProb() const
+{
+    double lprob = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        lprob += marginals[ii]->getSmallestLProb();
+    return lprob;
+}
+
 double Iso::getModeMass() const
 {
     double mass = 0.0;
@@ -189,6 +197,7 @@ double Iso::getTheoreticalAverageMass() const
         mass += marginals[ii]->getTheoreticalAverageMass();
     return mass;
 }
+
 
 Iso::Iso(const char* formula) :
 disowned(false),
