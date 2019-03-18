@@ -48,6 +48,18 @@ using namespace std;
 namespace IsoSpec
 {
 
+Iso::Iso() :
+disowned(false),
+dimNumber(0),
+isotopeNumbers(new int[0]),
+atomCounts(new int[0]),
+confSize(0),
+allDim(0),
+marginals(new Marginal*[0]),
+modeLProb(0.0)
+{}
+
+
 Iso::Iso(
     int             _dimNumber,
     const int*      _isotopeNumbers,

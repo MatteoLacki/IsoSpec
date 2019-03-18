@@ -73,6 +73,9 @@ protected:
     double          modeLProb;      /*!< The log-probability of the mode of the isotopic distribution. */
 
 public:
+
+    Iso();
+
     //! General constructror.
     /*!
         \param _dimNumber The number of elements in the formula, e.g. for C100H202 it would be 2, as there are only carbon and hydrogen atoms.
