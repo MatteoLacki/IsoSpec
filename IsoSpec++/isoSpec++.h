@@ -391,6 +391,157 @@ private:
 
 
 
+
+
+class ISOSPEC_EXPORT_SYMBOL IsoNewLayeredGenerator : public IsoGenerator
+{
+private:
+
+    int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
+    double*                 maxConfsLPSum;
+    double currentLThreshold, lastLThreshold;
+    LayeredMarginal** marginalResults;
+    LayeredMarginal** marginalResultsUnsorted;
+    int* marginalOrder;
+
+    const double* lProbs_ptr;
+    const double* lProbs_ptr_start;
+    const double** resetPositions;
+    double* partialLProbs_second;
+    double partialLProbs_second_val, lcfmsv, last_lcfmsv;
+
+public:
+    inline void get_conf_signature(int* space) const override final
+    {
+        counter[0] = lProbs_ptr - lProbs_ptr_start;
+        if(marginalOrder != nullptr)
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                int jj = marginalOrder[ii];
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+        else
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+
+    };
+
+    void printSimpleConf()
+    {
+        std::cout << "SimpleConf: " << lProbs_ptr - lProbs_ptr_start;
+        for(int ii=1; ii<dimNumber; ii++)
+            std::cout << " " << counter[ii];
+        std::cout << std::endl;
+    }
+
+    IsoNewLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = false);
+
+    inline ~IsoNewLayeredGenerator()
+    {
+        delete[] counter;
+        delete[] maxConfsLPSum;
+        delete[] resetPositions;
+        if (marginalResultsUnsorted != marginalResults)
+            delete[] marginalResultsUnsorted;
+        dealloc_table(marginalResults, dimNumber);
+        if(marginalOrder != nullptr)
+          delete[] marginalOrder;
+    };
+
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
+    {
+        do{
+            lProbs_ptr++;
+
+            std::cout<<"ADVANCE: " << lProbs_ptr - lProbs_ptr_start << " LPptr: " << *lProbs_ptr << " lcfmsv: " << lcfmsv <<std::endl;
+            printOffsets(resetPositions, dimNumber, lProbs_ptr_start, "ResetPositions:");
+            std::cout << "CurrentLThreshold: " << currentLThreshold << " lastLThreshold: " << lastLThreshold <<std::endl;
+
+            if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
+            {
+                return true;
+            }
+        }
+        while(carry());
+        return false;
+    }
+
+    ISOSPEC_FORCE_INLINE bool carry()
+    {
+        std::cout << "CARRY" << std::endl;
+
+        // If we reached this point, a carry is needed
+
+        int idx = 0;
+
+        int * cntr_ptr = counter;
+
+        while(idx<dimNumber-1)
+        {
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
+            {
+                std::cout << "Carry: enetered if" << std::endl;
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
+                recalc(idx-1);
+                lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs();// TODO: resetPositions[idx];
+                std::cout << "BEFORE_DECR" << *lProbs_ptr << std::endl;
+                while(*lProbs_ptr <= last_lcfmsv)
+                {
+                    std::cout << "DECREASED" << std::endl;
+                    lProbs_ptr--;
+                }
+                for(int ii=0; ii<idx; ii++)
+                    resetPositions[idx] = lProbs_ptr;
+
+                return true;
+            }
+            else
+                std::cout << "Carry: skipped if" << std::endl;
+        }
+
+        return false;
+    }
+
+
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
+    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
+
+    //! Block the subsequent search of isotopologues.
+    void terminate_search();
+
+
+    //! Recalculate the current partial log-probabilities, masses, and probabilities.
+    ISOSPEC_FORCE_INLINE void recalc(int idx)
+    {
+        for(; idx > 0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
+        }
+        partialLProbs_second_val = *partialLProbs_second;
+        partialLProbs[0] = partialLProbs_second_val + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = currentLThreshold - partialLProbs_second_val;
+        last_lcfmsv = lastLThreshold - partialLProbs_second_val;
+        printArray<double>(partialLProbs, dimNumber, "AFTER RECALC partialLProbs:");
+    }
+
+    bool nextLayer(double offset);
+};
+
+
+
 //! The class that represents isotopologues above a given joint probability value.
 /*!
     This class generates subsequent isotopologues that ARE NOT GUARANTEED TO BE ORDERED BY probability.

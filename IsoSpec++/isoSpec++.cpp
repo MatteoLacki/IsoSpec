@@ -486,6 +486,127 @@ void IsoThresholdGenerator::reset()
  * ------------------------------------------------------------------------------------------------------------------------
  */
 
+
+IsoNewLayeredGenerator::IsoNewLayeredGenerator(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals)
+: IsoGenerator(std::move(iso))
+{
+    counter = new int[dimNumber];
+    maxConfsLPSum = new double[dimNumber-1];
+    currentLThreshold = nextafter(getModeLProb(), -std::numeric_limits<double>::infinity());
+    lastLThreshold = std::numeric_limits<double>::min();
+    marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
+    resetPositions = new const double*[dimNumber];
+
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        counter[ii] = 0;
+        marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
+    //    marginalResultsUnsorted[ii]->extend(marginalResultsUnsorted[ii]->getModeLProb());
+    }
+
+
+    if(reorder_marginals && dimNumber > 1)
+    {
+        throw std::logic_error("reorder_marginals == true is not implemented yet in LayeredGenerator.");
+    #if 0
+        OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
+        int* tmpMarginalOrder = new int[dimNumber];
+
+        for(int ii=0; ii<dimNumber; ii++)
+            tmpMarginalOrder[ii] = ii;
+
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
+        marginalResults = new PrecalculatedMarginal*[dimNumber];
+
+        for(int ii=0; ii<dimNumber; ii++)
+            marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
+
+        marginalOrder = new int[dimNumber];
+        for(int ii = 0; ii<dimNumber; ii++)
+            marginalOrder[tmpMarginalOrder[ii]] = ii;
+
+        delete[] tmpMarginalOrder;
+    #endif
+
+    }
+    else
+    {
+        marginalResults = marginalResultsUnsorted;
+        marginalOrder = nullptr;
+    }
+
+    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
+
+    if(dimNumber > 1)
+        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+
+    for(int ii=1; ii<dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+
+    lProbs_ptr = lProbs_ptr_start;
+
+    partialLProbs_second = partialLProbs;
+    partialLProbs_second++;
+
+    printArray<double>(partialLProbs, dimNumber, "partialLProbs:");
+    counter[0]--;
+    lProbs_ptr--;
+    nextLayer(-0.00001);
+    recalc(dimNumber-1);
+}
+
+bool IsoNewLayeredGenerator::nextLayer(double offset)
+{
+    size_t first_mrg_size = marginalResults[0]->get_no_confs();
+//    if(first_mrg_size < 1)
+//        first_mrg_size++;
+
+    std::cout << "----------NEXT LAYER---------" << std::endl;
+
+    if(currentLThreshold < getUnlikeliestPeakLProb())
+        return false;
+
+    lastLThreshold = currentLThreshold;
+    currentLThreshold += offset;
+
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        marginalResults[ii]->extend(currentLThreshold - modeLProb + marginals[ii]->getModeLProb());
+        counter[ii] = 0;
+    }
+
+    std::cout << "Marginal sizes after extension: " << marginalResults[0]->get_no_confs() << " " << marginalResults[1]->get_no_confs() << std::endl;
+
+    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr(); // vector relocation might have happened
+
+    lProbs_ptr = lProbs_ptr_start + first_mrg_size - 1;
+
+    for(int ii=0; ii<dimNumber; ii++)
+        resetPositions[ii] = lProbs_ptr;
+
+    recalc(dimNumber-1);
+
+    printArray<double>(partialLProbs, dimNumber, "partialLProbs:");
+
+    return true;
+}
+
+void IsoNewLayeredGenerator::terminate_search()
+{
+    for(int ii=0; ii<dimNumber; ii++)
+    {
+        counter[ii] = marginalResults[ii]->get_no_confs()-1;
+        partialLProbs[ii] = -std::numeric_limits<double>::infinity();
+    }
+    partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
+    lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
+}
+
+/*
+ * ------------------------------------------------------------------------------------------------------------------------
+ */
+
+
 IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
 IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
