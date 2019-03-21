@@ -352,6 +352,9 @@ public:
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
     inline double get_mass(int idx) const { return masses[idx]; };
 
+    //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
+    inline const double* get_lProbs_ptr() const { return lProbs.data()+1; };
+
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
     inline const Conf& get_conf(int idx) const { return configurations[idx]; };
 
