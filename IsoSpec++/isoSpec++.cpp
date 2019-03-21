@@ -551,8 +551,6 @@ IsoNewLayeredGenerator::IsoNewLayeredGenerator(Iso&& iso, int tabSize, int hashS
     counter[0]--;
     lProbs_ptr--;
     nextLayer(-0.00001);
-    recalc(dimNumber-1);
-    printArray<double>(partialLProbs, dimNumber, "partialLProbs:");
 }
 
 bool IsoNewLayeredGenerator::nextLayer(double offset)
