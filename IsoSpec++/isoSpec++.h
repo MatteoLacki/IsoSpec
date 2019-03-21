@@ -454,6 +454,16 @@ public:
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
+        do
+        {
+            if(advanceToNextConfigurationWithinLayer())
+                return true;
+        } while(nextLayer(-2.0));
+        return false;
+    }
+
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer()
+    {
         do{
             lProbs_ptr++;
 
