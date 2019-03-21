@@ -493,7 +493,7 @@ public:
                 partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                 partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
                 recalc(idx-1);
-                lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs();// TODO: resetPositions[idx];
+                lProbs_ptr = resetPositions[idx];
                 std::cout << "BEFORE_DECR" << *lProbs_ptr << std::endl;
                 while(*lProbs_ptr <= last_lcfmsv)
                 {
@@ -501,7 +501,7 @@ public:
                     lProbs_ptr--;
                 }
                 for(int ii=0; ii<idx; ii++)
-                    resetPositions[idx] = lProbs_ptr;
+                    resetPositions[ii] = lProbs_ptr;
 
                 return true;
             }
