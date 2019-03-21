@@ -555,12 +555,6 @@ bool LayeredMarginal::extend(double new_threshold)
 
     std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
 
-    std::cout << "Marginal: lProbs.size(): " << lProbs.size() << std::endl;
-    std::cout << "Marginal: configurations.size(): " << configurations.size() << std::endl;
-
-    std::cout << "Marginal: guardian: " << lProbs[lProbs.size()-1] << std::endl;
-
-
     if(lProbs.capacity() * 2 < configurations.size() + 2)
     {
         // Reserve space for new values
@@ -574,7 +568,6 @@ bool LayeredMarginal::extend(double new_threshold)
 
     for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
     {
-        std::cout << "Marginal: looped" << std::endl;
         lProbs.push_back(logProb(configurations[ii]));
         probs.push_back(exp(lProbs.back()));
         masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
@@ -584,14 +577,6 @@ bool LayeredMarginal::extend(double new_threshold)
 
     sorted_up_to_idx = configurations.size();
     guarded_lProbs = lProbs.data()+1; // Vector might have reallocated its backing storage
-
-    printVector(lProbs);
-    printVector(configurations);
-    printVector(masses);
-
-    std::cout << "Marginal: extended to: " << lProbs.size() << " threshold: " << new_threshold << std::endl;
-    std::cout << "Marginal: configurations extended to: " << configurations.size() << " threshold: " << new_threshold << std::endl;
-
 
     return true;
 }
