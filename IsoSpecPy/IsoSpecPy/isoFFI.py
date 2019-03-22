@@ -64,7 +64,9 @@ class IsoFFI:
                                       bool get_masses,
                                       bool get_probs,
                                       bool get_lprobs,
-                                      bool get_confs);
+                                      bool get_confs,
+                                      double taget_coverage,
+                                      bool optimize);
 
         void deleteLayeredTabulator(void* tabulator);
 

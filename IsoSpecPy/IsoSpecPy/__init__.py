@@ -186,12 +186,12 @@ class IsoThreshold(Iso):
 
 
 class IsoLayered(Iso):
-    def __init__(self, prob_to_cover, get_confs = False, **kwargs):
+    def __init__(self, prob_to_cover, get_confs = False, get_minimal_pset = True, **kwargs):
         super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        self.generator = self.ffi.setupIsoLayeredGenerator(self.iso, prob_to_cover, 0.3, 1000, 1000, True)
-        tabulator = self.ffi.setupLayeredTabulator(self.generator, True, True, True, get_confs)
+        self.generator = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000)
+        tabulator = self.ffi.setupLayeredTabulator(self.generator, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
 
         self.size = self.ffi.confs_noLayeredTabulator(tabulator)
 
