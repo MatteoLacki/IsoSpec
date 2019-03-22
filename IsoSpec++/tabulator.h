@@ -60,11 +60,12 @@ public:
     virtual ~LayeredTabulator();
 
 private:
+    void swap(size_t idx1, size_t idx2, int* conf_swapspace);
     IsoLayeredGenerator* generator;
     double target_total_prob;
     size_t current_size;
     bool optimize;
-    const int allDim;
+    const int allDim, allDimSizeofInt;
     void addConf();
 
     double* tmasses;
