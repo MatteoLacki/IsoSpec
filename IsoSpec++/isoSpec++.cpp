@@ -561,7 +561,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
 
     std::cout << "----------NEXT LAYER---------" << std::endl;
 
-    if(currentLThreshold < getUnlikeliestPeakLProb())
+    if(lastLThreshold < getUnlikeliestPeakLProb())
         return false;
 
     lastLThreshold = currentLThreshold;
@@ -573,7 +573,10 @@ bool IsoLayeredGenerator::nextLayer(double offset)
         counter[ii] = 0;
     }
 
-    std::cout << "Marginal sizes after extension: " << marginalResults[0]->get_no_confs() << " " << marginalResults[1]->get_no_confs() << std::endl;
+    std::cout << "Marginal sizes after extension: ";
+    for(int ii=0; ii<dimNumber; ii++)
+        std::cout << marginalResults[ii]->get_no_confs() << " ";
+    std::cout << std::endl;
 
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr(); // vector relocation might have happened
 
