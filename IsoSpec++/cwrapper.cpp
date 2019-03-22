@@ -170,7 +170,7 @@ void* setupThresholdTabulator(void* generator,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(reinterpret_cast<IsoThresholdGenerator*>(generator),
+    ThresholdTabulator* tabulator = new ThresholdTabulator(reinterpret_cast<IsoThresholdGenerator*>(generator),
                                          get_masses,
                                          get_probs,
                                          get_lprobs,
@@ -181,32 +181,32 @@ void* setupThresholdTabulator(void* generator,
 
 void deleteThresholdTabulator(void* t)
 {
-    delete reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(t);
+    delete reinterpret_cast<ThresholdTabulator*>(t);
 }
 
 const double* massesThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->masses(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->masses(true);
 }
 
 const double* lprobsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->lprobs(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->lprobs(true);
 }
 
 const double* probsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->probs(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->probs(true);
 }
 
 const int*    confsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs(true);
 }
 
 int confs_noThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs_no();
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs_no();
 }
 
 
@@ -216,45 +216,49 @@ void* setupLayeredTabulator(void* generator,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
-                     bool  get_confs)
+                     bool  get_confs,
+                     double target_coverage,
+                     bool optimize)
 {
-    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(reinterpret_cast<IsoLayeredGenerator*>(generator),
+    LayeredTabulator* tabulator = new LayeredTabulator(reinterpret_cast<IsoLayeredGenerator*>(generator),
                                          get_masses,
                                          get_probs,
                                          get_lprobs,
-                                         get_confs);
+                                         get_confs,
+                                         target_coverage,
+                                         optimize);
 
     return reinterpret_cast<void*>(tabulator);
 }
 
 void deleteLayeredTabulator(void* t)
 {
-    delete reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(t);
+    delete reinterpret_cast<LayeredTabulator*>(t);
 }
 
 const double* massesLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->masses(true);
 }
 
 const double* lprobsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->lprobs(true);
 }
 
 const double* probsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->probs(true);
 }
 
 const int*    confsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs(true);
 }
 
 int confs_noLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs_no();
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs_no();
 }
 
 void freeReleasedArray(void* array)
