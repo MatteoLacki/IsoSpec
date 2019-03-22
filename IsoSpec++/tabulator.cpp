@@ -77,7 +77,7 @@ LayeredTabulator::LayeredTabulator(IsoLayeredGenerator* ILG,
                      double _target_total_prob, bool _optimize) : 
 Tabulator(),
 generator(ILG),
-target_total_prob(_target_total_prob),
+target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
 current_size(ISOSPEC_INIT_TABLE_SIZE),
 optimize(_optimize),
 allDim(generator->getAllDim()),
@@ -130,7 +130,7 @@ allDimSizeofInt(allDim*sizeof(int))
     // left of pivot to decide whether to go left or right, instead of the positional index.
     // We'll be sorting by the prob array, permuting the other ones in parallel.
 
-    int* conf_swapspace;
+    int* conf_swapspace = nullptr;
     if(get_confs)
         conf_swapspace = (int*) malloc(allDimSizeofInt);
 
