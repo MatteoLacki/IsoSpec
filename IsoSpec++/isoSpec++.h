@@ -162,6 +162,9 @@ public:
     */
     virtual bool advanceToNextConfiguration() = 0;
 
+    ISOSPEC_FORCE_INLINE virtual bool advanceToNextConfigurationWithinLayer() { return advanceToNextConfiguration(); };
+    ISOSPEC_FORCE_INLINE virtual bool nextLayer(double) { return false; };
+
     //! Get the log-probability of the current isotopologue.
     /*!
         \return The log-probability of the current isotopologue.
@@ -462,7 +465,7 @@ public:
         return false;
     }
 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer()
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer() override final
     {
         do{
             lProbs_ptr++;
@@ -547,7 +550,7 @@ public:
         printArray<double>(partialLProbs, dimNumber, "AFTER RECALC partialLProbs:");
     }
 
-    bool nextLayer(double offset);
+    virtual bool nextLayer(double offset) override final;
 };
 
 
