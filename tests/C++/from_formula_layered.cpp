@@ -1,9 +1,10 @@
 #include <iostream>
 #include "isoSpec++.h"
+#include "tabulator.h"
 
 using namespace IsoSpec;
 
-size_t test_layered(const char* formula, double total_prob, bool print_confs = false);
+size_t test_layered_tabulator(const char* formula, double total_prob, bool print_confs = false);
 
 #ifndef ISOSPEC_TESTS_SKIP_MAIN
 int main(int argc, char** argv)
@@ -15,31 +16,34 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	size_t no_confs = test_layered(argv[1], atof(argv[2]), true);
+	size_t no_confs = test_layered_tabulator(argv[1], atof(argv[2]), true);
 
 	std::cout << "The number of visited configurations is:" << no_confs << std::endl;
 }
 #endif /* #ifndef ISOSPEC_TESTS_SKIP_MAIN */
 
-size_t test_layered(const char* formula, double total_prob, bool print_confs)
+size_t test_layered_tabulator(const char* formula, double total_prob, bool print_confs)
 {
-	IsoLayeredGenerator i(formula, total_prob, 0.3, 1000, 1000, true);
-	size_t no_visited = 0;
-        int* space = new int[i.getAllDim()];
-	while(i.advanceToNextConfiguration())
+	IsoLayeredGenerator i(formula, 1000, 1000);
+        LayeredTabulator t(&i, true, true, true, true, total_prob, true);
+        double* probs = t.probs(false);
+        double* masses = t.masses(true);
+        int* confs = t.confs();
+
+        for(size_t ii = 0; ii<t.confs_no(); ii++)
 	{
-		no_visited += 1;
 		if(print_confs)
 		{
-			std::cout << "PROB: " << i.prob() << "  \tMASS: " << i.mass() << "\tCONF: ";
-			i.get_conf_signature(space);
+			std::cout << "PROB: " << probs[ii] << "  \tMASS: " << masses[ii] << "\tCONF: ";
+                        int* space = confs + ii*i.getAllDim();
 			for(int ii=0; ii<i.getAllDim(); ii++)
 			    std::cout << space[ii] << " ";
 			std::cout << std::endl;
 		}
 
 	}
-        delete[] space;
 
-	return no_visited;
+        free(masses);
+
+	return t.confs_no();
 }

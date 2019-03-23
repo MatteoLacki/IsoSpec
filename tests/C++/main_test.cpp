@@ -58,7 +58,7 @@ int main()
 		{
 			TEST(*it_formula, *it_prob, test_threshold_simple);
 			TEST(*it_formula, *it_prob, test_threshold);
-			TEST(*it_formula, *it_prob, test_layered);
+			TEST(*it_formula, *it_prob, test_layered_tabulator);
 			TEST(*it_formula, *it_prob, test_ordered);
 		}
 
