@@ -45,7 +45,9 @@ class IsoFFI:
                                        int _hashSize);
         double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
-        void* setupThresholdTabulator(void* generator,
+        void* setupThresholdTabulator(void* iso,
+                                      double threshold,
+                                      bool absolute,
                                       bool get_masses,
                                       bool get_probs,
                                       bool get_lprobs,
@@ -60,7 +62,7 @@ class IsoFFI:
         int confs_noThresholdTabulator(void* tabulator);
 
 
-        void* setupLayeredTabulator(void* generator,
+        void* setupLayeredTabulator(void* iso,
                                       bool get_masses,
                                       bool get_probs,
                                       bool get_lprobs,

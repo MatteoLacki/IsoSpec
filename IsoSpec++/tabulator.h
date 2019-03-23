@@ -18,6 +18,7 @@ protected:
     double* _probs;
     int*    _confs;
     size_t  _confs_no;
+    int     allDim;
 public:
     Tabulator();
     virtual ~Tabulator();
@@ -26,8 +27,8 @@ public:
     inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
     inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
     inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
-    inline size_t    confs_no() { return _confs_no; };
-
+    inline size_t    confs_no() const { return _confs_no; };
+    inline int       getAllDim() const { return allDim; };
 };
 
 inline void reallocate(double **array, int new_size){
@@ -40,7 +41,7 @@ inline void reallocate(double **array, int new_size){
 class ThresholdTabulator : public Tabulator
 {
 public:
-    ThresholdTabulator(IsoThresholdGenerator* ITG, 
+    ThresholdTabulator(Iso&& iso, double threshold, bool absolute,
                        bool get_masses, bool get_probs,
                        bool get_lprobs, bool get_confs);
 
@@ -52,7 +53,7 @@ public:
 class LayeredTabulator : public Tabulator
 {
 public:
-    LayeredTabulator(IsoLayeredGenerator* ILG,
+    LayeredTabulator(Iso&& iso,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs,
                      double _total_prob, bool _optimize = false);
@@ -61,17 +62,16 @@ public:
 
 private:
     void swap(size_t idx1, size_t idx2, int* conf_swapspace);
-    IsoLayeredGenerator* generator;
     double target_total_prob;
     size_t current_size;
     bool optimize;
-    const int allDim, allDimSizeofInt;
-    void addConf();
+    void addConf(IsoLayeredGenerator& generator);
 
     double* tmasses;
     double* tprobs;
     double* tlprobs;
     int* tconfs;
+    size_t allDimSizeofInt;
 };
 
 

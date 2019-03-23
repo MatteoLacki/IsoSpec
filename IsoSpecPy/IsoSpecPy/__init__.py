@@ -151,8 +151,7 @@ class IsoThreshold(Iso):
         self.threshold = threshold
         self.absolute = absolute
 
-        self.generator = self.ffi.setupIsoThresholdGenerator(self.iso, threshold, absolute, 1000, 1000)
-        tabulator = self.ffi.setupThresholdTabulator(self.generator, True, True, True, get_confs)
+        tabulator = self.ffi.setupThresholdTabulator(self.iso, threshold, absolute, True, True, True, get_confs)
 
         self.size = self.ffi.confs_noThresholdTabulator(tabulator)
 
@@ -170,12 +169,6 @@ class IsoThreshold(Iso):
 
         self.ffi.deleteThresholdTabulator(tabulator)
 
-    def __del__(self):
-        try:
-            self.ffi.deleteIsoThresholdGenerator(self.generator)
-        except AttributeError:
-            pass
-
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
 
@@ -190,8 +183,7 @@ class IsoLayered(Iso):
         super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        self.generator = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000)
-        tabulator = self.ffi.setupLayeredTabulator(self.generator, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
+        tabulator = self.ffi.setupLayeredTabulator(self.iso, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
 
         self.size = self.ffi.confs_noLayeredTabulator(tabulator)
 
@@ -208,12 +200,6 @@ class IsoLayered(Iso):
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
         self.ffi.deleteLayeredTabulator(tabulator)
-
-    def __del__(self):
-        try:
-            self.ffi.deleteIsoLayeredGenerator(self.generator)
-        except AttributeError:
-            pass
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)

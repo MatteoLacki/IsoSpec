@@ -85,7 +85,9 @@ ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
 
 
-void* setupThresholdTabulator(void* generator,
+void* setupThresholdTabulator(void* iso,
+                              double threshold,
+                              bool absolute,
                               bool  get_masses,
                               bool  get_probs,
                               bool  get_lprobs,
@@ -101,7 +103,7 @@ int confs_noThresholdTabulator(void* tabulator);
 
 
 
-void* setupLayeredTabulator(void* generator,
+void* setupLayeredTabulator(void* iso,
                               bool  get_masses,
                               bool  get_probs,
                               bool  get_lprobs,

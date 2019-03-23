@@ -164,13 +164,17 @@ ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
 //______________________________________________________ Threshold Tabulator
 
-void* setupThresholdTabulator(void* generator,
+void* setupThresholdTabulator(void* iso,
+                     double threshold,
+                     bool absolute,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    ThresholdTabulator* tabulator = new ThresholdTabulator(reinterpret_cast<IsoThresholdGenerator*>(generator),
+    ThresholdTabulator* tabulator = new ThresholdTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
+                                         threshold,
+                                         absolute,
                                          get_masses,
                                          get_probs,
                                          get_lprobs,
@@ -212,7 +216,7 @@ int confs_noThresholdTabulator(void* tabulator)
 
 //______________________________________________________ Layered Tabulator
 
-void* setupLayeredTabulator(void* generator,
+void* setupLayeredTabulator(void* iso,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
@@ -220,7 +224,7 @@ void* setupLayeredTabulator(void* generator,
                      double target_coverage,
                      bool optimize)
 {
-    LayeredTabulator* tabulator = new LayeredTabulator(reinterpret_cast<IsoLayeredGenerator*>(generator),
+    LayeredTabulator* tabulator = new LayeredTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
                                          get_masses,
                                          get_probs,
                                          get_lprobs,

@@ -32,8 +32,8 @@ int main(int argc, char** argv)
 
 size_t test_layered_tabulator(const char* formula, double total_prob, bool print_confs)
 {
-	IsoLayeredGenerator i(formula, 1000, 1000);
-        LayeredTabulator t(&i, true, true, true, true, total_prob, true);
+//	IsoLayeredGenerator i(formula, 1000, 1000);
+        LayeredTabulator t(formula, true, true, true, false, total_prob, false);
         double* probs = t.probs(false);
         double* masses = t.masses(true);
         int* confs = t.confs();
@@ -43,8 +43,8 @@ size_t test_layered_tabulator(const char* formula, double total_prob, bool print
 		if(print_confs)
 		{
 			std::cout << "PROB: " << probs[ii] << "  \tMASS: " << masses[ii] << "\tCONF: ";
-                        int* space = confs + ii*i.getAllDim();
-			for(int ii=0; ii<i.getAllDim(); ii++)
+                        int* space = confs + ii*t.getAllDim();
+			for(int ii=0; ii<t.getAllDim(); ii++)
 			    std::cout << space[ii] << " ";
 			std::cout << std::endl;
 		}

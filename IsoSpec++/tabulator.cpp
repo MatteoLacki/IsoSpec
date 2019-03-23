@@ -21,26 +21,28 @@ Tabulator::~Tabulator()
 }
 
 
-ThresholdTabulator::ThresholdTabulator(IsoThresholdGenerator* generator, 
+ThresholdTabulator::ThresholdTabulator(Iso&& iso, double threshold, bool absolute,
                                        bool get_masses, bool get_probs,
                                        bool get_lprobs, bool get_confs) : 
 Tabulator()
 {
-    _confs_no = generator->count_confs();
-    const int allDim = generator->getAllDim();
+    IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
+
+    _confs_no = generator.count_confs();
+    allDim = generator.getAllDim();
 
     if(get_masses) _masses = (double *) malloc(_confs_no * sizeof(double));
     if(get_lprobs) _lprobs = (double *) malloc(_confs_no * sizeof(double));
     if(get_probs)  _probs  = (double *) malloc(_confs_no * sizeof(double));
     if(get_confs)  _confs  = (int *)    malloc(_confs_no * allDim * sizeof(int));
 
-    while(generator->advanceToNextConfiguration())
+    while(generator.advanceToNextConfiguration())
     {
-        if(_masses != nullptr) { *_masses = generator->mass();  _masses++; }
-        if(_lprobs != nullptr) { *_lprobs = generator->lprob(); _lprobs++; }
-        if(_probs  != nullptr) { *_probs  = generator->prob();  _probs++;  }
+        if(_masses != nullptr) { *_masses = generator.mass();  _masses++; }
+        if(_lprobs != nullptr) { *_lprobs = generator.lprob(); _lprobs++; }
+        if(_probs  != nullptr) { *_probs  = generator.prob();  _probs++;  }
         if(_confs  != nullptr){
-            generator->get_conf_signature(_confs);
+            generator.get_conf_signature(_confs);
             _confs += allDim;
         }
     }
@@ -71,20 +73,22 @@ ISOSPEC_FORCE_INLINE void LayeredTabulator::swap(size_t idx1, size_t idx2, int* 
     }
 }
 
-LayeredTabulator::LayeredTabulator(IsoLayeredGenerator* ILG,
+LayeredTabulator::LayeredTabulator(Iso&& iso,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs,
                      double _target_total_prob, bool _optimize) : 
 Tabulator(),
-generator(ILG),
 target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
 current_size(ISOSPEC_INIT_TABLE_SIZE),
-optimize(_optimize),
-allDim(generator->getAllDim()),
-allDimSizeofInt(allDim*sizeof(int))
+optimize(_optimize)
 {
     if(_target_total_prob <= 0.0)
         return;
+
+    IsoLayeredGenerator generator(std::move(iso));
+
+    allDim = generator.getAllDim();
+    allDimSizeofInt = allDim*sizeof(int);
 
     bool user_wants_probs = get_probs;
     if(optimize)
@@ -108,10 +112,10 @@ allDimSizeofInt(allDim*sizeof(int))
     do 
     { // Store confs until we accumulate more prob than needed - and, if optimizing,
       // store also the rest of the last layer
-        while(generator->advanceToNextConfigurationWithinLayer())
+        while(generator.advanceToNextConfigurationWithinLayer())
         {
-            addConf();
-            prob_so_far += generator->prob();
+            addConf(generator);
+            prob_so_far += generator.prob();
             if(!optimize && prob_so_far >= target_total_prob)
                 return;
         }
@@ -119,7 +123,7 @@ allDimSizeofInt(allDim*sizeof(int))
             break;
         last_switch = _confs_no;
         prob_at_last_switch = prob_so_far;
-    } while(generator->nextLayer(-3.0));
+    } while(generator.nextLayer(-3.0));
 
     if(!optimize || prob_so_far <= target_total_prob)
         return;
@@ -195,7 +199,7 @@ allDimSizeofInt(allDim*sizeof(int))
 
 
 
-void LayeredTabulator::addConf()
+void LayeredTabulator::addConf(IsoLayeredGenerator& generator)
 {
     if( _confs_no == current_size )
     {
@@ -209,10 +213,10 @@ void LayeredTabulator::addConf()
         if( _confs != nullptr) { _confs  = (int*)    realloc(_confs, current_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
     }
 
-    if(_masses != nullptr) { *tmasses = generator->mass();  tmasses++; };
-    if(_lprobs != nullptr) { *tlprobs = generator->lprob(); tlprobs++; };
-    if(_probs  != nullptr) { *tprobs  = generator->prob();  tprobs++;  };
-    if(_confs  != nullptr) { generator->get_conf_signature(tconfs); tconfs += allDim; };
+    if(_masses != nullptr) { *tmasses = generator.mass();  tmasses++; };
+    if(_lprobs != nullptr) { *tlprobs = generator.lprob(); tlprobs++; };
+    if(_probs  != nullptr) { *tprobs  = generator.prob();  tprobs++;  };
+    if(_confs  != nullptr) { generator.get_conf_signature(tconfs); tconfs += allDim; };
 
     _confs_no++;
 }
