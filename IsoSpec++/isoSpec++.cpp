@@ -557,10 +557,6 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
 bool IsoLayeredGenerator::nextLayer(double offset)
 {
     size_t first_mrg_size = marginalResults[0]->get_no_confs();
-//    if(first_mrg_size < 1)
-//        first_mrg_size++;
-
-    std::cout << "----------NEXT LAYER---------" << std::endl;
 
     if(lastLThreshold < getUnlikeliestPeakLProb())
         return false;
@@ -574,11 +570,6 @@ bool IsoLayeredGenerator::nextLayer(double offset)
         counter[ii] = 0;
     }
 
-    std::cout << "Marginal sizes after extension: ";
-    for(int ii=0; ii<dimNumber; ii++)
-        std::cout << marginalResults[ii]->get_no_confs() << " ";
-    std::cout << std::endl;
-
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr(); // vector relocation might have happened
 
     lProbs_ptr = lProbs_ptr_start + first_mrg_size - 1;
@@ -587,8 +578,6 @@ bool IsoLayeredGenerator::nextLayer(double offset)
         resetPositions[ii] = lProbs_ptr;
 
     recalc(dimNumber-1);
-
-    printArray<double>(partialLProbs, dimNumber, "partialLProbs:");
 
     return true;
 }

@@ -470,14 +470,8 @@ public:
         do{
             lProbs_ptr++;
 
-            std::cout<<"ADVANCE: " << lProbs_ptr - lProbs_ptr_start << " LPptr: " << *lProbs_ptr << " lcfmsv: " << lcfmsv <<std::endl;
-            printOffsets(resetPositions, dimNumber, lProbs_ptr_start, "ResetPositions:");
-            std::cout << "CurrentLThreshold: " << currentLThreshold << " lastLThreshold: " << lastLThreshold <<std::endl;
-
             if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
-            {
                 return true;
-            }
         }
         while(carry());
         return false;
@@ -485,8 +479,6 @@ public:
 
     ISOSPEC_FORCE_INLINE bool carry()
     {
-        std::cout << "CARRY" << std::endl;
-
         // If we reached this point, a carry is needed
 
         int idx = 0;
@@ -502,24 +494,19 @@ public:
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
             {
-                std::cout << "Carry: enetered if" << std::endl;
                 partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
                 partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
                 recalc(idx-1);
                 lProbs_ptr = resetPositions[idx];
-                std::cout << "BEFORE_DECR" << *lProbs_ptr << std::endl;
+
                 while(*lProbs_ptr <= last_lcfmsv)
-                {
-                    std::cout << "DECREASED" << std::endl;
                     lProbs_ptr--;
-                }
+
                 for(int ii=0; ii<idx; ii++)
                     resetPositions[ii] = lProbs_ptr;
 
                 return true;
             }
-            else
-                std::cout << "Carry: skipped if" << std::endl;
         }
 
         return false;
@@ -547,7 +534,6 @@ public:
         partialLProbs[0] = partialLProbs_second_val + marginalResults[0]->get_lProb(counter[0]);
         lcfmsv = currentLThreshold - partialLProbs_second_val;
         last_lcfmsv = lastLThreshold - partialLProbs_second_val;
-        printArray<double>(partialLProbs, dimNumber, "AFTER RECALC partialLProbs:");
     }
 
     virtual bool nextLayer(double offset) override final;
