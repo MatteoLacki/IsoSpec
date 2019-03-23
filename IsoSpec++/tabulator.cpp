@@ -138,8 +138,11 @@ allDimSizeofInt(allDim*sizeof(int))
     size_t end = _confs_no;
     double sum_to_start = prob_at_last_switch;
 
+    printArray<double>(_probs, end, "PROBS table:");
+
     while(start < end)
     {
+        std::cout << "START: " << start << " END: " << end << std::endl;
         // Partition part
         size_t len = end - start;
 #if ISOSPEC_BUILDING_R
@@ -154,7 +157,7 @@ allDimSizeofInt(allDim*sizeof(int))
 
         size_t loweridx = start;
         for(size_t ii=start; ii<end-1; ii++)
-            if(_probs[ii] < pprob)
+            if(_probs[ii] > pprob)
             {
                 swap(ii, loweridx, conf_swapspace);
                 new_csum += _probs[loweridx];
@@ -162,18 +165,18 @@ allDimSizeofInt(allDim*sizeof(int))
             }
 
         swap(end-1, loweridx, conf_swapspace);
-        new_csum += _probs[loweridx];
 
+        std::cout << "LOWERIDX: " << loweridx << std::endl;
+        std::cout << "new_csum: " << new_csum << " target_total_prob: " << target_total_prob << std::endl;
         // Selection part
         if(new_csum < target_total_prob)
         {
             start = loweridx + 1;
-            sum_to_start = new_csum;
+            sum_to_start = new_csum + _probs[loweridx];
         }
         else
             end = loweridx;
     }
-
 
     if(get_confs)
         free(conf_swapspace);
@@ -183,6 +186,9 @@ allDimSizeofInt(allDim*sizeof(int))
         free(_probs);
         _probs = nullptr;
     }
+
+    std::cout << "END " << end << std::endl;
+    _confs_no = end;
 
     if(end <= current_size/2)
     { // Overhead in memory of 2x or more, shrink to fit
