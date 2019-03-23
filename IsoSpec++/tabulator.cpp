@@ -20,7 +20,7 @@
 namespace IsoSpec
 {
 
-Tabulator::Tabulator() : 
+Tabulator::Tabulator() :
 _masses(nullptr),
 _lprobs(nullptr),
 _probs(nullptr),
@@ -39,7 +39,7 @@ Tabulator::~Tabulator()
 
 ThresholdTabulator::ThresholdTabulator(Iso&& iso, double threshold, bool absolute,
                                        bool get_masses, bool get_probs,
-                                       bool get_lprobs, bool get_confs) : 
+                                       bool get_lprobs, bool get_confs) :
 Tabulator()
 {
     IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
@@ -92,7 +92,7 @@ ISOSPEC_FORCE_INLINE void LayeredTabulator::swap(size_t idx1, size_t idx2, int* 
 LayeredTabulator::LayeredTabulator(Iso&& iso,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs,
-                     double _target_total_prob, bool _optimize) : 
+                     double _target_total_prob, bool _optimize) :
 Tabulator(),
 target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
 current_size(ISOSPEC_INIT_TABLE_SIZE),
@@ -125,7 +125,7 @@ optimize(_optimize)
     double prob_at_last_switch = 0.0;
     double prob_so_far = 0.0;
 
-    do 
+    do
     { // Store confs until we accumulate more prob than needed - and, if optimizing,
       // store also the rest of the last layer
         while(generator.advanceToNextConfigurationWithinLayer())
@@ -146,7 +146,7 @@ optimize(_optimize)
 
     // Right. We have extra configurations and we have been asked to produce an optimal p-set, so
     // now we shall trim unneeded configurations, using an algorithm dubbed "quicktrim"
-    // - similar to the quickselect algorithm, except that we use the cumulative sum of elements 
+    // - similar to the quickselect algorithm, except that we use the cumulative sum of elements
     // left of pivot to decide whether to go left or right, instead of the positional index.
     // We'll be sorting by the prob array, permuting the other ones in parallel.
 
