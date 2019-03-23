@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -73,11 +73,8 @@ ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
-                               double _target_coverage,
-                               double _percentage_to_expand,
                                int _tabSize,
-                               int _hashSize,
-                               bool _do_trim);
+                               int _hashSize);
 ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR
@@ -88,7 +85,9 @@ ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
 
 
-void* setupThresholdTabulator(void* generator,
+void* setupThresholdTabulator(void* iso,
+                              double threshold,
+                              bool absolute,
                               bool  get_masses,
                               bool  get_probs,
                               bool  get_lprobs,
@@ -104,11 +103,13 @@ int confs_noThresholdTabulator(void* tabulator);
 
 
 
-void* setupLayeredTabulator(void* generator,
+void* setupLayeredTabulator(void* iso,
                               bool  get_masses,
                               bool  get_probs,
                               bool  get_lprobs,
-                              bool  get_confs);
+                              bool  get_confs,
+                              double taget_coverage,
+                              bool optimize);
 
 void deleteLayeredTabulator(void* tabulator);
 

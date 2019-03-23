@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -8,7 +8,7 @@
  *
  *   IsoSpec is distributed in the hope that it will be useful,
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -112,10 +112,10 @@ public:
 
 template<typename T> class TableOrder
 {
-	const T* tbl;
+        const T* tbl;
 public:
-	inline TableOrder(const T* _tbl) : tbl(_tbl) {};
-	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
+        inline TableOrder(const T* _tbl) : tbl(_tbl) {};
+        inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
 
 } // namespace IsoSpec
