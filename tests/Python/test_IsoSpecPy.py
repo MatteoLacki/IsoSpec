@@ -55,7 +55,7 @@ def confs_from_ordered_generator(formula, target_prob):
 
 def confs_from_layered_generator(formula, target_prob):
     ret = ([], [], [])
-    for conf in IsoSpecPy.IsoLayeredGenerator(formula=formula, prob_to_cover = target_prob, get_confs=True, do_trim=True):
+    for conf in IsoSpecPy.IsoLayered(formula=formula, prob_to_cover = target_prob, get_confs=True, get_minimal_pset=True):
         conf = (conf[0], log(conf[1]), conf[2])
         ret[0].append(conf[0])
         ret[1].append(conf[1])
