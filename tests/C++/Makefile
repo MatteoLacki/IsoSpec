@@ -20,7 +20,7 @@ main_test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=safe-stack -o main_test_ss
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o main_test_memsan
 
-cmdlines: formula_layered formula_ordered formula_threshold formula_threshold_simple
+cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple
 
 formula_ordered:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_clang
@@ -49,6 +49,13 @@ formula_layered:
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_dbg
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -fsanitize=address,undefined -o ./from_formula_layered_asan
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_memsan
+
+formula_layered_generator:
+	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_gcc
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_dbg
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -fsanitize=address,undefined -o ./from_formula_layered_generator_asan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_generator_memsan
 
 ti:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
