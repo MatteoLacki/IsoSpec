@@ -124,19 +124,34 @@ optimize(_optimize)
     size_t last_switch = 0;
     double prob_at_last_switch = 0.0;
     double prob_so_far = 0.0;
+    bool advanced;
 
     do
     { // Store confs until we accumulate more prob than needed - and, if optimizing,
       // store also the rest of the last layer
-        while(generator.advanceToNextConfigurationWithinLayer())
+        while((advanced = generator.advanceToNextConfigurationWithinLayer())) // Yes, really meant to use assignment as a truth value
         {
             addConf(generator);
             prob_so_far += generator.prob();
-            if(!optimize && prob_so_far >= target_total_prob)
+            if(prob_so_far >= target_total_prob)
+                break;
+        }
+
+        if(advanced)
+        {
+            if (optimize)
+            {
+                // We're not at the end of the layer: extract the rest of it
+                while(generator.advanceToNextConfigurationWithinLayer())
+                    addConf(generator);
+                // advanced must be true, therefore prob_so_far >= target_total_prob (otherwise we'd still be looping above)
+                // Therefore, we're finished, time to quicktrim
+                break;
+            }
+            else // We're done
                 return;
         }
-        if(prob_so_far >= target_total_prob)
-            break;
+
         last_switch = _confs_no;
         prob_at_last_switch = prob_so_far;
     } while(generator.nextLayer(-3.0));
