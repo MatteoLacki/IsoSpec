@@ -45,6 +45,25 @@ public:
     inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
     inline size_t    confs_no() const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
+protected:
+    double* tmasses;
+    double* tlprobs;
+    double* tprobs;
+    int*    tconfs;
+
+    size_t mem_size;
+    int allDimSizeofInt;
+
+    void reallocate_memory(bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, size_t new_size);
+
+    template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, typename T> void store_conf(T& generator)
+    {
+        if constexpr(t_get_masses) { *tmasses = generator.mass();  tmasses++; };
+        if constexpr(t_get_probs) { *tlprobs = generator.lprob(); tlprobs++; };
+        if constexpr(t_get_probs) { *tprobs  = generator.prob();  tprobs++;  };
+        if constexpr(t_get_confs) { generator.get_conf_signature(tconfs); tconfs += allDim; };
+    }
+
 };
 
 inline void reallocate(double **array, int new_size){
@@ -81,12 +100,9 @@ private:
     double target_total_prob;
     size_t current_size;
     bool optimize;
-    void addConf(IsoLayeredGenerator& generator);
+    template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs> void addConf(IsoLayeredGenerator& generator);
+    template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs> double layered_main_loop(IsoLayeredGenerator& generator, size_t& last_switch, double& prob_at_last_switch);
 
-    double* tmasses;
-    double* tprobs;
-    double* tlprobs;
-    int* tconfs;
     size_t allDimSizeofInt;
 };
 
