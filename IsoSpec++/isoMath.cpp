@@ -96,5 +96,54 @@ double NormalPDF(double x, double mean, double stdev)
     return exp( -delta*delta / two_variance )      /     sqrt( two_variance * pi );
 }
 
+const double sqrt_pi = 1.772453850905516027298167483341145182798;
+
+double LowerIncompleteGamma2(int a, double x)
+{
+    double base;
+    double exp_minus_x = exp(-x);
+    double current_s;
+    if(a % 2 == 0)
+    {
+        base = 1 - exp_minus_x;
+        current_s = 1.0;
+        a--;
+    }
+    else
+    {
+        base = sqrt_pi * erf(sqrt(x));
+        current_s = 0.5;
+    }
+
+    a = a/2;
+    for(; a; a--)
+    {
+        base = base * current_s - pow(x, current_s) * exp_minus_x;
+        current_s += 1.0;
+    }
+
+    return base;
+}
+
+double InverseLowerIncompleteGamma2(int a, double x)
+{
+    double l = 0.0;
+    double p = tgamma(a);
+    double s, v;
+
+    do {
+        s = (l+p) / 2.0;
+        v = LowerIncompleteGamma2(a, s);
+        if (x < v)
+            p = s;
+        else
+            l = s;
+    } while((p-l)*1000.0>p);
+
+    return s;
+}
+
+
+
 } // namespace IsoSpec
 

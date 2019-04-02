@@ -45,5 +45,12 @@ double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);
 double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 
+// Returns lower incomplete gamma function of a/2, x, where a is int and > 0.
+double LowerIncompleteGamma2(int a, double x);
+
+// Returns y such that LowerIncompleteGamma2(a, y) == x. Approximately.
+double InverseLowerIncompleteGamma2(int a, int x);
+
+
 } // namespace IsoSpec
 
