@@ -433,6 +433,8 @@ public:
 
     };
 
+    inline double get_currentLThreshold() const { return currentLThreshold; };
+
     void printSimpleConf()
     {
         std::cout << "SimpleConf: " << lProbs_ptr - lProbs_ptr_start;
