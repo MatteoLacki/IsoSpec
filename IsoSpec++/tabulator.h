@@ -26,9 +26,9 @@ namespace IsoSpec
 {
 
 
-class Tabulator
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class Tabulator
 {
-protected:
+public:
     double* _masses;
     double* _lprobs;
     double* _probs;
@@ -36,13 +36,28 @@ protected:
     size_t  _confs_no;
     int     allDim;
 public:
-    Tabulator();
-    virtual ~Tabulator();
+    Tabulator() : _masses(nullptr),
+        _lprobs(nullptr),
+        _probs(nullptr),
+        _confs(nullptr),
+        _confs_no(0),
+        mem_size(0) {};
 
-    inline double*   masses(bool release = false)   { double* ret = _masses; if(release) _masses = nullptr; return ret; };
-    inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
-    inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
-    inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
+    virtual ~Tabulator()
+    {
+        if( _masses != nullptr ) free(_masses);
+        if( _lprobs != nullptr ) free(_lprobs);
+        if( _probs  != nullptr ) free(_probs);
+        if( _confs  != nullptr ) free(_confs);
+    }
+
+
+
+
+    inline double*   lprobs(bool release = false)   { if constexpr(tgetlProbs) { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; } else throw std::logic_error("Logprobs requested, and yet tgetLprobs template argument was false"); };
+    inline double*   masses(bool release = false)   { if constexpr(tgetMasses) { double* ret = _masses; if(release) _masses = nullptr; return ret; } else throw std::logic_error("Masses requested, and yet tgetMasses template argument was false"); };
+    inline double*   probs(bool release = false)    { if constexpr(tgetProbs)  { double* ret = _probs;  if(release) _probs  = nullptr; return ret; } else throw std::logic_error("Probabilities requested, and yet tgetProbs template argument was false"); };
+    inline int*      confs(bool release = false)    { if constexpr(tgetConfs)  { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; } else throw std::logic_error("Configurations requested, and yet tgetConfs template argument was false"); };
     inline size_t    confs_no() const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
 protected:
@@ -54,57 +69,224 @@ protected:
     size_t mem_size;
     int allDimSizeofInt;
 
-    void reallocate_memory(bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, size_t new_size);
+//    void reallocate_memory(bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, size_t new_size);
 
-    template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, typename T> void store_conf(T& generator)
+    template <typename T> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
-        if constexpr(t_get_masses) { *tmasses = generator.mass();  tmasses++; };
-        if constexpr(t_get_probs) { *tlprobs = generator.lprob(); tlprobs++; };
-        if constexpr(t_get_probs) { *tprobs  = generator.prob();  tprobs++;  };
-        if constexpr(t_get_confs) { generator.get_conf_signature(tconfs); tconfs += allDim; };
+        if constexpr(tgetlProbs) { *tlprobs = generator.lprob(); tlprobs++; };
+        if constexpr(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
+        if constexpr(tgetProbs)  { *tprobs  = generator.prob();  tprobs++;  };
+        if constexpr(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
+    }
+
+    void reallocate_memory(size_t new_size)
+    {
+        // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+        if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
+        if constexpr(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
+        if constexpr(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
+        if constexpr(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
     }
 
 };
 
-inline void reallocate(double **array, int new_size){
-    if( *array != nullptr ){
-        *array = (double *) realloc(*array, new_size);
-    }
-}
-
-
-class ThresholdTabulator : public Tabulator
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class ThresholdTabulator : public Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>
 {
 public:
-    ThresholdTabulator(Iso&& iso, double threshold, bool absolute,
-                       bool get_masses, bool get_probs,
-                       bool get_lprobs, bool get_confs);
+    ThresholdTabulator(Iso&& iso, double threshold, bool absolute) :
+    Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>()
+    {
+        IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
+
+        this->_confs_no = generator.count_confs();
+        this->allDim = generator.getAllDim();
+        this->allDimSizeofInt = this->allDim * sizeof(int);
+
+        this->reallocate_memory(this->_confs_no);
+
+        while(generator.advanceToNextConfiguration())
+        {
+            if constexpr(tgetlProbs) { *(this->_lprobs) = generator.lprob(); this->_lprobs++; }
+            if constexpr(tgetMasses) { *(this->_masses) = generator.mass();  this->_masses++; }
+            if constexpr(tgetProbs)  { *(this->_probs)  = generator.prob();  this->_probs++;  }
+            if constexpr(tgetConfs)  {
+                generator.get_conf_signature(this->_confs);
+                this->_confs += this->allDim;
+            }
+        }
+
+        if constexpr(tgetMasses) { this->_masses -= this->_confs_no; }
+        if constexpr(tgetlProbs) { this->_lprobs -= this->_confs_no; }
+        if constexpr(tgetProbs)  { this->_probs -= this->_confs_no; }
+        if constexpr(tgetConfs)  { this->_confs -= this->_confs_no*this->allDim; }
+
+    };
 
     virtual ~ThresholdTabulator();
 };
 
 
-
-class LayeredTabulator : public Tabulator
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class LayeredTabulator : public Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>
 {
 public:
-    LayeredTabulator(Iso&& iso,
-                     bool get_masses, bool get_probs,
-                     bool get_lprobs, bool get_confs,
-                     double _total_prob, bool _optimize = false);
+    LayeredTabulator(Iso&& iso, double _target_total_prob, bool _optimize = false) : 
+    Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(),
+    target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
+    current_size(ISOSPEC_INIT_TABLE_SIZE),
+    optimize(_optimize)
+    {
+        if(_target_total_prob <= 0.0)
+            return;
 
-    virtual ~LayeredTabulator();
+        if(optimize && !tgetProbs)
+        // If we want to optimize, we need the probs
+            throw std::logic_error("Cannot perform quicktrim if we're not computing probabilities");
+
+        IsoLayeredGenerator generator(std::move(iso));
+
+        this->allDim = generator.getAllDim();
+        this->allDimSizeofInt = this->allDim*sizeof(int);
+
+
+        this->reallocate_memory(ISOSPEC_INIT_TABLE_SIZE);
+
+        this->tlprobs = this->_lprobs;
+        this->tmasses = this->_masses;
+        this->tprobs  = this->_probs;
+        this->tconfs  = this->_confs;
+
+        size_t last_switch = 0;
+        double prob_at_last_switch = 0.0;
+        double prob_so_far = 0.0;
+        do
+        { // Store confs until we accumulate more prob than needed - and, if optimizing,
+          // store also the rest of the last layer
+            while(generator.advanceToNextConfigurationWithinLayer())
+            {
+                this->addConf(generator);
+                prob_so_far += generator.prob();
+                if(prob_so_far >= target_total_prob)
+                {
+                    if (optimize)
+                    {
+                        while(generator.advanceToNextConfigurationWithinLayer())
+                            this->addConf(generator);
+                        break;
+                    }
+                    else
+                        return;
+                }
+            }
+            if(prob_so_far >= target_total_prob)
+                break;
+
+            last_switch = this->_confs_no;
+            prob_at_last_switch = prob_so_far;
+        } while(generator.nextLayer(-3.0));
+
+        if(!optimize || prob_so_far <= target_total_prob)
+            return;
+
+        // Right. We have extra configurations and we have been asked to produce an optimal p-set, so
+        // now we shall trim unneeded configurations, using an algorithm dubbed "quicktrim"
+        // - similar to the quickselect algorithm, except that we use the cumulative sum of elements
+        // left of pivot to decide whether to go left or right, instead of the positional index.
+        // We'll be sorting by the prob array, permuting the other ones in parallel.
+
+        int* conf_swapspace = nullptr;
+        if constexpr(tgetConfs)
+            conf_swapspace = (int*) malloc(this->allDimSizeofInt);
+
+        size_t start = last_switch;
+        size_t end = this->_confs_no;
+        double sum_to_start = prob_at_last_switch;
+
+        while(start < end)
+        {
+            // Partition part
+            size_t len = end - start;
+#if ISOSPEC_BUILDING_R
+            size_t pivot = len/2 + start;
+#else
+            size_t pivot = rand() % len + start;
+#endif
+            double pprob = this->_probs[pivot];
+            swap(pivot, end-1, conf_swapspace);
+
+            double new_csum = sum_to_start;
+
+            size_t loweridx = start;
+            for(size_t ii=start; ii<end-1; ii++)
+                if(this->_probs[ii] > pprob)
+                {
+                    swap(ii, loweridx, conf_swapspace);
+                    new_csum += this->_probs[loweridx];
+                    loweridx++;
+                }
+
+            swap(end-1, loweridx, conf_swapspace);
+
+            // Selection part
+            if(new_csum < target_total_prob)
+            {
+                start = loweridx + 1;
+                sum_to_start = new_csum + this->_probs[loweridx];
+            }
+            else
+                end = loweridx;
+        }
+
+        if constexpr(tgetConfs)
+            free(conf_swapspace);
+
+        if(end <= current_size/2)
+            // Overhead in memory of 2x or more, shrink to fit
+            this->reallocate_memory(end);
+    }
+
+
+    virtual ~LayeredTabulator() {};
 
 private:
-    void swap(size_t idx1, size_t idx2, int* conf_swapspace);
+    void swap(size_t idx1, size_t idx2, int* conf_swapspace)
+    {
+        if constexpr(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
+        if constexpr(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
+        if constexpr(tgetMasses) std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
+        if constexpr(tgetConfs)
+        {
+            int* c1 = this->_confs + (idx1*this->allDim);
+            int* c2 = this->_confs + (idx2*this->allDim);
+            memcpy(conf_swapspace, c1, this->allDimSizeofInt);
+            memcpy(c1, c2, this->allDimSizeofInt);
+            memcpy(c2, conf_swapspace, this->allDimSizeofInt);
+        }
+    }
+
+
     double target_total_prob;
     size_t current_size;
     bool optimize;
-    template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs> void addConf(IsoLayeredGenerator& generator);
-    template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs> double layered_main_loop(IsoLayeredGenerator& generator, size_t& last_switch, double& prob_at_last_switch);
+
+
+    void addConf(IsoLayeredGenerator& generator)
+    {
+        if(this->_confs_no == this->current_size)
+        {
+            this->current_size *= 2;
+            this->reallocate_memory(this->current_size);
+        }
+
+        this->template store_conf<IsoLayeredGenerator>(generator);
+        this->_confs_no++;
+    }
+
+
+    double layered_main_loop(IsoLayeredGenerator& generator, size_t& last_switch, double& prob_at_last_switch);
 
     size_t allDimSizeofInt;
 };
+
 
 } // namespace IsoSpec
 

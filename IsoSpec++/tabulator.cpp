@@ -16,11 +16,11 @@
 
 #include "tabulator.h"
 
-
 namespace IsoSpec
 {
+#if 0
 
-Tabulator::Tabulator() :
+template Tabulator<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs>::Tabulator() :
 _masses(nullptr),
 _lprobs(nullptr),
 _probs(nullptr),
@@ -29,7 +29,7 @@ _confs_no(0),
 mem_size(0)
 {}
 
-Tabulator::~Tabulator()
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> Tabulator::~Tabulator()
 {
     if( _masses != nullptr ) free(_masses);
     if( _lprobs != nullptr ) free(_lprobs);
@@ -38,7 +38,7 @@ Tabulator::~Tabulator()
 }
 
 
-ThresholdTabulator::ThresholdTabulator(Iso&& iso, double threshold, bool absolute,
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ThresholdTabulator::ThresholdTabulator(Iso&& iso, double threshold, bool absolute,
                                        bool get_masses, bool get_probs,
                                        bool get_lprobs, bool get_confs) :
 Tabulator()
@@ -69,11 +69,11 @@ Tabulator()
 
 }
 
-ThresholdTabulator::~ThresholdTabulator() {}
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ThresholdTabulator::~ThresholdTabulator() {}
 
 
 
-ISOSPEC_FORCE_INLINE void LayeredTabulator::swap(size_t idx1, size_t idx2, int* conf_swapspace)
+ISOSPEC_FORCE_INLINE template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void LayeredTabulator::swap(size_t idx1, size_t idx2, int* conf_swapspace)
 {
     std::swap(_probs[idx1], _probs[idx2]);
     if(_lprobs != nullptr) std::swap<double>(_lprobs[idx1], _lprobs[idx2]);
@@ -87,7 +87,6 @@ ISOSPEC_FORCE_INLINE void LayeredTabulator::swap(size_t idx1, size_t idx2, int* 
         memcpy(c2, conf_swapspace, allDimSizeofInt);
     }
 }
-
 
 template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs> double LayeredTabulator::layered_main_loop(IsoLayeredGenerator& generator, size_t& last_switch, double& prob_at_last_switch)
 {
@@ -118,9 +117,7 @@ template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_conf
     return prob_so_far;
 }
 
-LayeredTabulator::LayeredTabulator(Iso&& iso,
-                     bool get_masses, bool get_probs,
-                     bool get_lprobs, bool get_confs,
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> LayeredTabulator::LayeredTabulator(Iso&& iso,
                      double _target_total_prob, bool _optimize) :
 Tabulator(),
 target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
@@ -149,87 +146,33 @@ optimize(_optimize)
 
     size_t last_switch = 0;
     double prob_at_last_switch = 0.0;
-
-    double prob_so_far;
-    
-    if(get_lprobs)
-    {
-        if(get_probs)
+    double prob_so_far = 0.0;
+    do
+    { // Store confs until we accumulate more prob than needed - and, if optimizing,
+      // store also the rest of the last layer
+        while(generator.advanceToNextConfigurationWithinLayer())
         {
-            if(get_masses)
+            addConf<t_get_lprobs, t_get_probs, t_get_masses, t_get_confs>(generator);
+            prob_so_far += generator.prob();
+            if(prob_so_far >= target_total_prob)
             {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<true, true, true, true>(generator, last_switch, prob_at_last_switch);
+                if (optimize)
+                {
+                    // We're not at the end of the layer: extract the rest of it. No need to keep storing prob though
+                    while(generator.advanceToNextConfigurationWithinLayer())
+                        addConf<t_get_lprobs, t_get_probs, t_get_masses, t_get_confs>(generator);
+                    break;
+                }
                 else
-                    prob_so_far = layered_main_loop<true, true, true, false>(generator, last_switch, prob_at_last_switch);
-            }
-            else
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<true, true, false, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<true, true, false, false>(generator, last_switch, prob_at_last_switch);
+                    return;
             }
         }
-        else
-        {
-            if(get_masses)
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<true, false, true, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<true, false, true, false>(generator, last_switch, prob_at_last_switch);
-            }
-            else
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<true, false, false, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<true, false, false, false>(generator, last_switch, prob_at_last_switch);
-            }
-        }
-    }
+        if(prob_so_far >= target_total_prob)
+            break;
 
-    else
-
-    {
-        if(get_probs)
-        {
-            if(get_masses)
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<false, true, true, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<false, true, true, false>(generator, last_switch, prob_at_last_switch);
-            }
-            else
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<false, true, false, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<false, true, false, false>(generator, last_switch, prob_at_last_switch);
-            }
-        }
-        else
-        {
-            if(get_masses)
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<false, false, true, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<false, false, true, false>(generator, last_switch, prob_at_last_switch);
-            }
-            else
-            {
-                if(get_confs)
-                    prob_so_far = layered_main_loop<false, false, false, true>(generator, last_switch, prob_at_last_switch);
-                else
-                    prob_so_far = layered_main_loop<false, false, false, false>(generator, last_switch, prob_at_last_switch);
-            }
-        }
-    }
-
-
+        last_switch = _confs_no;
+        prob_at_last_switch = prob_so_far;
+    } while(generator.nextLayer(-3.0));
 
     if(!optimize || prob_so_far <= target_total_prob)
         return;
@@ -319,14 +262,14 @@ template<bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_conf
 LayeredTabulator::~LayeredTabulator() {}
 
 
-void Tabulator::reallocate_memory(bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, size_t new_size)
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void Tabulator::reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    if(t_get_masses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-    if(t_get_lprobs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
-    if(t_get_probs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
-    if(t_get_confs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
+    if constexpr(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
+    if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
+    if constexpr(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
+    if constexpr(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
 }
-
+#endif
 
 } // namespace IsoSpec

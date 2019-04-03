@@ -33,8 +33,8 @@ int main(int argc, char** argv)
 size_t test_layered_tabulator(const char* formula, double total_prob, bool print_confs)
 {
 //	IsoLayeredGenerator i(formula, 1000, 1000);
-        LayeredTabulator t(formula, true, true, true, false, total_prob, false);
-        double* probs = t.probs(false);
+        LayeredTabulator<false, false, false, false> t(formula, total_prob, false);
+/*        double* probs = t.probs(false);
         double* masses = t.masses(true);
         int* confs = t.confs();
 
@@ -52,6 +52,6 @@ size_t test_layered_tabulator(const char* formula, double total_prob, bool print
 	}
 
         free(masses);
-
+*/
 	return t.confs_no();
 }
