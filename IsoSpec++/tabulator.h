@@ -138,11 +138,10 @@ public:
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class LayeredTabulator : public Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>
 {
 public:
-    LayeredTabulator(Iso&& iso, double _target_total_prob, bool _optimize = false) : 
+    LayeredTabulator(Iso&& iso, double _target_total_prob, bool optimize = false) : 
     Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
-    current_size(ISOSPEC_INIT_TABLE_SIZE),
-    optimize(_optimize)
+    current_size(ISOSPEC_INIT_TABLE_SIZE)
     {
         if(_target_total_prob <= 0.0)
             return;
@@ -275,7 +274,6 @@ private:
 
     double target_total_prob;
     size_t current_size;
-    bool optimize;
 
 
     void addConf(IsoLayeredGenerator& generator)
