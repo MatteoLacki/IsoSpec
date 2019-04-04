@@ -28,6 +28,123 @@
 
 using namespace IsoSpec;
 
+#define TABULATOR_LAYERED 1
+#define TABULATOR_THRESHOLD 2
+
+//dbl_param, bool_param, get_lprobs, get_masses, get_probs, get_confs)
+#define MK_TABULATOR(get_lprobs, get_masses, get_probs, get_confs) \
+{ \
+if (tabulator_type == TABULATOR_LAYERED) \
+    v_tabulator = new LayeredTabulator<get_lprobs, get_masses, get_probs, get_confs>(std::move(iso), dbl_param, bool_param); \
+if (tabulator_type == TABULATOR_THRESHOLD) \
+    v_tabulator = new ThresholdTabulator<get_lprobs, get_masses, get_probs, get_confs>(std::move(iso), dbl_param, bool_param); \
+}
+
+
+/* A trivial helper class for the various tabulators. */
+class TabulatorShell : public TabulatorParentCls
+{
+public:
+    /*
+     * The following code is ugly, horrible, terrible, wicked, immoral, an affront to everything that is holy, and should be shot in the face with a hammer.
+     * It's still better than using variadic templates though.
+     */
+    TabulatorShell(Iso&& iso, int tabulator_type, double dbl_param, bool bool_param, bool get_lprobs, bool get_masses, bool get_probs, bool get_confs) :
+    TabulatorParentCls()
+    {
+        TabulatorParentCls* v_tabulator = nullptr;
+
+        if(get_lprobs)
+        {
+            if(get_masses)
+            {
+                if(get_probs)
+                {
+                    if(get_confs)
+                        MK_TABULATOR(true, true, true, true)
+                    else
+                        MK_TABULATOR(true, true, true, false)
+                }
+                else
+                {
+                    if(get_confs)
+                        MK_TABULATOR(true, true, false, true)
+                    else
+                        MK_TABULATOR(true, true, false, false)
+                }
+            }
+            else
+            {
+                if(get_probs)
+                {
+                    if(get_confs)
+                        MK_TABULATOR(true, false, true, true)
+                    else
+                        MK_TABULATOR(true, false, true, false)
+                }
+                else
+                {
+                    if(get_confs)
+                        MK_TABULATOR(true, false, false, true)
+                    else
+                        MK_TABULATOR(true, false, false, false)
+                }
+            }
+        }
+        else
+        {
+            if(get_masses)
+            {
+                if(get_probs)
+                {
+                    if(get_confs)
+                        MK_TABULATOR(false, true, true, true)
+                    else
+                        MK_TABULATOR(false, true, true, false)
+                }
+                else
+                {
+                    if(get_confs)
+                        MK_TABULATOR(false, true, false, true)
+                    else
+                        MK_TABULATOR(false, true, false, false)
+                }
+            }
+            else
+            {
+                if(get_probs)
+                {
+                    if(get_confs)
+                        MK_TABULATOR(false, false, true, true)
+                    else
+                        MK_TABULATOR(false, false, true, false)
+                }
+                else
+                {
+                    if(get_confs)
+                        MK_TABULATOR(false, false, false, true)
+                    else
+                        MK_TABULATOR(false, false, false, false)
+                }
+            }
+        }
+
+
+        _lprobs = get_lprobs ? v_tabulator->lprobs(true) : nullptr;
+        _masses = get_masses ? v_tabulator->masses(true) : nullptr;
+        _probs  = get_probs  ? v_tabulator->probs(true)  : nullptr;
+        _confs  = get_confs  ? v_tabulator->confs(true)  : nullptr;
+
+        _confs_no = v_tabulator->confs_no();
+        allDim = v_tabulator->getAllDim();
+
+        delete v_tabulator;
+    }
+
+    virtual ~TabulatorShell() {}
+};
+
+
 extern "C"
 {
 void * setupIso(int             dimNumber,
@@ -172,12 +289,13 @@ void* setupThresholdTabulator(void* iso,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    ThresholdTabulator* tabulator = new ThresholdTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
+    TabulatorShell* tabulator = new TabulatorShell(std::move(*reinterpret_cast<Iso*>(iso)),
+                                         TABULATOR_THRESHOLD,
                                          threshold,
                                          absolute,
+                                         get_lprobs,
                                          get_masses,
                                          get_probs,
-                                         get_lprobs,
                                          get_confs);
 
     return reinterpret_cast<void*>(tabulator);
@@ -185,32 +303,32 @@ void* setupThresholdTabulator(void* iso,
 
 void deleteThresholdTabulator(void* t)
 {
-    delete reinterpret_cast<ThresholdTabulator*>(t);
+    delete reinterpret_cast<TabulatorShell*>(t);
 }
 
 const double* massesThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->masses(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->masses(true);
 }
 
 const double* lprobsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->lprobs(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->lprobs(true);
 }
 
 const double* probsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->probs(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->probs(true);
 }
 
 const int*    confsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->confs(true);
 }
 
 int confs_noThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs_no();
+    return reinterpret_cast<TabulatorShell*>(tabulator)->confs_no();
 }
 
 
@@ -224,50 +342,50 @@ void* setupLayeredTabulator(void* iso,
                      double target_coverage,
                      bool optimize)
 {
-    LayeredTabulator* tabulator = new LayeredTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
+    TabulatorShell* tabulator = new TabulatorShell(std::move(*reinterpret_cast<Iso*>(iso)),
+                                         TABULATOR_LAYERED,
+                                         target_coverage,
+                                         optimize,
                                          get_masses,
                                          get_probs,
                                          get_lprobs,
-                                         get_confs,
-                                         target_coverage,
-                                         optimize);
+                                         get_confs);
 
     return reinterpret_cast<void*>(tabulator);
 }
 
 void deleteLayeredTabulator(void* t)
 {
-    delete reinterpret_cast<LayeredTabulator*>(t);
+    delete reinterpret_cast<TabulatorShell*>(t);
 }
 
 const double* massesLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->masses(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->masses(true);
 }
 
 const double* lprobsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->lprobs(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->lprobs(true);
 }
 
 const double* probsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->probs(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->probs(true);
 }
 
 const int*    confsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs(true);
+    return reinterpret_cast<TabulatorShell*>(tabulator)->confs(true);
 }
 
 int confs_noLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs_no();
+    return reinterpret_cast<TabulatorShell*>(tabulator)->confs_no();
 }
 
 void freeReleasedArray(void* array)
 {
     free(array);
 }
-
 }  //extern "C" ends here
