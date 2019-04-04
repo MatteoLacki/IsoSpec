@@ -59,18 +59,19 @@ public:
     inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
 };
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class Tabulator : public TabulatorParentCls
+class Tabulator : public TabulatorParentCls
 {
 public:
     Tabulator() : TabulatorParentCls() {};
 
     virtual ~Tabulator() {}
 
-
+/*
     inline double*   lprobs(bool release = false)   { if constexpr(tgetlProbs) { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; } else throw std::logic_error("Logprobs requested, and yet tgetLprobs template argument was false"); };
     inline double*   masses(bool release = false)   { if constexpr(tgetMasses) { double* ret = _masses; if(release) _masses = nullptr; return ret; } else throw std::logic_error("Masses requested, and yet tgetMasses template argument was false"); };
     inline double*   probs(bool release = false)    { if constexpr(tgetProbs)  { double* ret = _probs;  if(release) _probs  = nullptr; return ret; } else throw std::logic_error("Probabilities requested, and yet tgetProbs template argument was false"); };
     inline int*      confs(bool release = false)    { if constexpr(tgetConfs)  { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; } else throw std::logic_error("Configurations requested, and yet tgetConfs template argument was false"); };
+*/
 protected:
     double* tmasses;
     double* tlprobs;
@@ -80,7 +81,7 @@ protected:
     int allDimSizeofInt;
 
 
-    template <typename T> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
+    template<typename T, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
         if constexpr(tgetlProbs) { *tlprobs = generator.lprob(); tlprobs++; };
         if constexpr(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
@@ -88,7 +89,7 @@ protected:
         if constexpr(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
     }
 
-    void reallocate_memory(size_t new_size)
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size)
     {
         // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
         if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
@@ -99,11 +100,11 @@ protected:
 
 };
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class ThresholdTabulator : public Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class ThresholdTabulator : public Tabulator
 {
 public:
     ThresholdTabulator(Iso&& iso, double threshold, bool absolute) :
-    Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>()
+    Tabulator()
     {
         IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
 
@@ -111,7 +112,7 @@ public:
         this->allDim = generator.getAllDim();
         this->allDimSizeofInt = this->allDim * sizeof(int);
 
-        this->reallocate_memory(this->_confs_no);
+        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(this->_confs_no);
 
         while(generator.advanceToNextConfiguration())
         {
@@ -135,11 +136,11 @@ public:
 };
 
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class LayeredTabulator : public Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class LayeredTabulator : public Tabulator
 {
 public:
     LayeredTabulator(Iso&& iso, double _target_total_prob, bool optimize = false) : 
-    Tabulator<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(),
+    Tabulator(),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
     current_size(ISOSPEC_INIT_TABLE_SIZE)
     {
@@ -156,7 +157,7 @@ public:
         this->allDimSizeofInt = this->allDim*sizeof(int);
 
 
-        this->reallocate_memory(ISOSPEC_INIT_TABLE_SIZE);
+        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
 
         this->tlprobs = this->_lprobs;
         this->tmasses = this->_masses;
@@ -249,7 +250,7 @@ public:
 
         if(end <= current_size/2)
             // Overhead in memory of 2x or more, shrink to fit
-            this->reallocate_memory(end);
+            this->template reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end);
     }
 
 
@@ -281,10 +282,10 @@ private:
         if(this->_confs_no == this->current_size)
         {
             this->current_size *= 2;
-            this->reallocate_memory(this->current_size);
+            this->template reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(this->current_size);
         }
 
-        this->template store_conf<IsoLayeredGenerator>(generator);
+        this->template store_conf<IsoLayeredGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
         this->_confs_no++;
     }
 
