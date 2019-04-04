@@ -346,9 +346,9 @@ void* setupLayeredTabulator(void* iso,
                                          TABULATOR_LAYERED,
                                          target_coverage,
                                          optimize,
+                                         get_lprobs,
                                          get_masses,
                                          get_probs,
-                                         get_lprobs,
                                          get_confs);
 
     return reinterpret_cast<void*>(tabulator);
