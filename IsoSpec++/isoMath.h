@@ -51,6 +51,13 @@ double LowerIncompleteGamma2(int a, double x);
 // Returns y such that LowerIncompleteGamma2(a, y) == x. Approximately.
 double InverseLowerIncompleteGamma2(int a, int x);
 
+// Computes the inverse Cumulative Distribution Funcion of the Chi-Square distribution with k degrees of freedom
+inline double InverseChiSquareCDF2(int k, double x)
+{
+    return InverseLowerIncompleteGamma2(k, x*gamma(static_cast<double>(k)/2.0)) * 2.0;
+}
+
+
 
 } // namespace IsoSpec
 
