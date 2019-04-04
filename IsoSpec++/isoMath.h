@@ -40,6 +40,10 @@ static inline double minuslogFactorial(int n)
 
     return g_lfact_table[n];
 }
+
+const double pi = 3.14159265358979323846264338328;
+const double log2pluslogpi = log(2.0) + log(pi);
+
 double NormalCDFInverse(double p);
 double NormalCDFInverse(double p, double mean, double stdev);
 double NormalCDF(double x, double mean, double stdev);

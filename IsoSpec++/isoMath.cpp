@@ -14,7 +14,6 @@
 namespace IsoSpec
 {
 
-const double pi = 3.14159265358979323846264338328;
 
 void release_g_lfact_table()
 {
