@@ -53,7 +53,7 @@ double NormalPDF(double x, double mean = 0.0, double stdev = 1.0);
 double LowerIncompleteGamma2(int a, double x);
 
 // Returns y such that LowerIncompleteGamma2(a, y) == x. Approximately.
-double InverseLowerIncompleteGamma2(int a, int x);
+double InverseLowerIncompleteGamma2(int a, double x);
 
 // Computes the inverse Cumulative Distribution Funcion of the Chi-Square distribution with k degrees of freedom
 inline double InverseChiSquareCDF2(int k, double x)
