@@ -25,9 +25,7 @@
 namespace IsoSpec
 {
 
-
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class Tabulator
-{
+class TabulatorParentCls {
 public:
     double* _masses;
     double* _lprobs;
@@ -35,41 +33,52 @@ public:
     int*    _confs;
     size_t  _confs_no;
     int     allDim;
-public:
-    Tabulator() : _masses(nullptr),
+
+    TabulatorParentCls() : _masses(nullptr),
         _lprobs(nullptr),
         _probs(nullptr),
         _confs(nullptr),
-        _confs_no(0),
-        mem_size(0) {};
+        _confs_no(0)
+        {};
 
-    virtual ~Tabulator()
+    virtual ~TabulatorParentCls()
     {
         if( _masses != nullptr ) free(_masses);
         if( _lprobs != nullptr ) free(_lprobs);
         if( _probs  != nullptr ) free(_probs);
         if( _confs  != nullptr ) free(_confs);
-    }
+    };
 
+    inline size_t    confs_no() const { return _confs_no; };
+    inline int       getAllDim() const { return allDim; };
 
+    // These are deliberately non-virtual
+    inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
+    inline double*   masses(bool release = false)   { double* ret = _masses; if(release) _masses = nullptr; return ret; };
+    inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
+    inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
+};
+
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class Tabulator : public TabulatorParentCls
+{
+public:
+    Tabulator() : TabulatorParentCls() {};
+
+    virtual ~Tabulator() {}
 
 
     inline double*   lprobs(bool release = false)   { if constexpr(tgetlProbs) { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; } else throw std::logic_error("Logprobs requested, and yet tgetLprobs template argument was false"); };
     inline double*   masses(bool release = false)   { if constexpr(tgetMasses) { double* ret = _masses; if(release) _masses = nullptr; return ret; } else throw std::logic_error("Masses requested, and yet tgetMasses template argument was false"); };
     inline double*   probs(bool release = false)    { if constexpr(tgetProbs)  { double* ret = _probs;  if(release) _probs  = nullptr; return ret; } else throw std::logic_error("Probabilities requested, and yet tgetProbs template argument was false"); };
     inline int*      confs(bool release = false)    { if constexpr(tgetConfs)  { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; } else throw std::logic_error("Configurations requested, and yet tgetConfs template argument was false"); };
-    inline size_t    confs_no() const { return _confs_no; };
-    inline int       getAllDim() const { return allDim; };
 protected:
     double* tmasses;
     double* tlprobs;
     double* tprobs;
     int*    tconfs;
 
-    size_t mem_size;
     int allDimSizeofInt;
 
-//    void reallocate_memory(bool t_get_lprobs, bool t_get_probs, bool t_get_masses, bool t_get_confs, size_t new_size);
 
     template <typename T> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
@@ -281,10 +290,6 @@ private:
         this->_confs_no++;
     }
 
-
-    double layered_main_loop(IsoLayeredGenerator& generator, size_t& last_switch, double& prob_at_last_switch);
-
-    size_t allDimSizeofInt;
 };
 
 

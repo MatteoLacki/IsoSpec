@@ -26,7 +26,6 @@ _lprobs(nullptr),
 _probs(nullptr),
 _confs(nullptr),
 _confs_no(0),
-mem_size(0)
 {}
 
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> Tabulator::~Tabulator()
