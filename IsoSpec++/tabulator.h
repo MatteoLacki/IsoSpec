@@ -100,11 +100,98 @@ protected:
 
 };
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class ThresholdTabulator : public Tabulator
+template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs)
 {
+    if(tgetlProbs)
+    {
+        if(tgetMasses)
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, true, true, true>(std::move(iso));
+                else
+                    tabulator->template init<true, true, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, true, false, true>(std::move(iso));
+                else
+                    tabulator->template init<true, true, false, false>(std::move(iso));
+            }
+        }
+        else
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, false, true, true>(std::move(iso));
+                else
+                    tabulator->template init<true, false, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, false, false, true>(std::move(iso));
+                else
+                    tabulator->template init<true, false, false, false>(std::move(iso));
+            }
+        }
+    }
+    else
+    {
+        if(tgetMasses)
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, true, true, true>(std::move(iso));
+                else
+                    tabulator->template init<false, true, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, true, false, true>(std::move(iso));
+                else
+                    tabulator->template init<false, true, false, false>(std::move(iso));
+            }
+        }
+        else
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, false, true, true>(std::move(iso));
+                else
+                    tabulator->template init<false, false, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, false, false, true>(std::move(iso));
+                else
+                    tabulator->template init<false, false, false, false>(std::move(iso));
+            }
+        }
+    }
+}
+
+class ThresholdTabulator : public Tabulator
+{
+    const double threshold;
+    const bool absolute;
 public:
-    ThresholdTabulator(Iso&& iso, double threshold, bool absolute) :
-    Tabulator()
+    ThresholdTabulator(Iso&& iso, double _threshold, bool _absolute, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
+    Tabulator(),
+    threshold(_threshold),
+    absolute(_absolute)
+    {
+        call_init<ThresholdTabulator>(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
+    }
+
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
     {
         IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
 
@@ -130,23 +217,30 @@ public:
         if constexpr(tgetProbs)  { this->_probs -= this->_confs_no; }
         if constexpr(tgetConfs)  { this->_confs -= this->_confs_no*this->allDim; }
 
-    };
+    }
 
     virtual ~ThresholdTabulator() {};
 };
 
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> class LayeredTabulator : public Tabulator
+class LayeredTabulator : public Tabulator
 {
+    const bool optimize;
 public:
-    LayeredTabulator(Iso&& iso, double _target_total_prob, bool optimize = false) : 
+    LayeredTabulator(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) : 
     Tabulator(),
+    optimize(_optimize),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
     current_size(ISOSPEC_INIT_TABLE_SIZE)
     {
         if(_target_total_prob <= 0.0)
             return;
 
+        call_init(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
+    }
+
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
+    {
         if(optimize && !tgetProbs)
         // If we want to optimize, we need the probs
             throw std::logic_error("Cannot perform quicktrim if we're not computing probabilities");
@@ -172,14 +266,14 @@ public:
           // store also the rest of the last layer
             while(generator.advanceToNextConfigurationWithinLayer())
             {
-                this->addConf(generator);
+                this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
                 prob_so_far += generator.prob();
                 if(prob_so_far >= target_total_prob)
                 {
                     if (optimize)
                     {
                         while(generator.advanceToNextConfigurationWithinLayer())
-                            this->addConf(generator);
+                            this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
                         break;
                     }
                     else
@@ -220,7 +314,7 @@ public:
             size_t pivot = rand() % len + start;
 #endif
             double pprob = this->_probs[pivot];
-            swap(pivot, end-1, conf_swapspace);
+            swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(pivot, end-1, conf_swapspace);
 
             double new_csum = sum_to_start;
 
@@ -228,12 +322,12 @@ public:
             for(size_t ii=start; ii<end-1; ii++)
                 if(this->_probs[ii] > pprob)
                 {
-                    swap(ii, loweridx, conf_swapspace);
+                    swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, loweridx, conf_swapspace);
                     new_csum += this->_probs[loweridx];
                     loweridx++;
                 }
 
-            swap(end-1, loweridx, conf_swapspace);
+            swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end-1, loweridx, conf_swapspace);
 
             // Selection part
             if(new_csum < target_total_prob)
@@ -257,7 +351,7 @@ public:
     virtual ~LayeredTabulator() {};
 
 private:
-    void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
         if constexpr(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
         if constexpr(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
@@ -277,7 +371,7 @@ private:
     size_t current_size;
 
 
-    void addConf(IsoLayeredGenerator& generator)
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
     {
         if(this->_confs_no == this->current_size)
         {
