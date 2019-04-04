@@ -257,7 +257,7 @@ public:
     virtual ~LayeredTabulator() {};
 
 private:
-    void swap(size_t idx1, size_t idx2, int* conf_swapspace)
+    void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
         if constexpr(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
         if constexpr(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
