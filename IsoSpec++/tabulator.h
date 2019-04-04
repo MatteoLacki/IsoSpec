@@ -131,7 +131,7 @@ public:
 
     };
 
-    virtual ~ThresholdTabulator();
+    virtual ~ThresholdTabulator() {};
 };
 
 
