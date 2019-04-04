@@ -41,14 +41,10 @@ if (tabulator_type == TABULATOR_THRESHOLD) \
 }
 
 
-/* A trivial helper class for the various tabulators. */
+/* A trivial helper class for the various tabulators. 
 class TabulatorShell : public TabulatorParentCls
 {
 public:
-    /*
-     * The following code is ugly, horrible, terrible, wicked, immoral, an affront to everything that is holy, and should be shot in the face with a hammer.
-     * It's still better than using variadic templates though.
-     */
     TabulatorShell(Iso&& iso, int tabulator_type, double dbl_param, bool bool_param, bool get_lprobs, bool get_masses, bool get_probs, bool get_confs) :
     TabulatorParentCls()
     {
@@ -143,7 +139,7 @@ public:
 
     virtual ~TabulatorShell() {}
 };
-
+*/
 
 extern "C"
 {
@@ -289,8 +285,7 @@ void* setupThresholdTabulator(void* iso,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    TabulatorShell* tabulator = new TabulatorShell(std::move(*reinterpret_cast<Iso*>(iso)),
-                                         TABULATOR_THRESHOLD,
+    ThresholdTabulator* tabulator = new ThresholdTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
                                          threshold,
                                          absolute,
                                          get_lprobs,
@@ -303,32 +298,32 @@ void* setupThresholdTabulator(void* iso,
 
 void deleteThresholdTabulator(void* t)
 {
-    delete reinterpret_cast<TabulatorShell*>(t);
+    delete reinterpret_cast<ThresholdTabulator*>(t);
 }
 
 const double* massesThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->masses(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->masses(true);
 }
 
 const double* lprobsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->lprobs(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->lprobs(true);
 }
 
 const double* probsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->probs(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->probs(true);
 }
 
 const int*    confsThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->confs(true);
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs(true);
 }
 
 int confs_noThresholdTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->confs_no();
+    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs_no();
 }
 
 
@@ -342,8 +337,7 @@ void* setupLayeredTabulator(void* iso,
                      double target_coverage,
                      bool optimize)
 {
-    TabulatorShell* tabulator = new TabulatorShell(std::move(*reinterpret_cast<Iso*>(iso)),
-                                         TABULATOR_LAYERED,
+    LayeredTabulator* tabulator = new LayeredTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
                                          target_coverage,
                                          optimize,
                                          get_lprobs,
@@ -356,32 +350,32 @@ void* setupLayeredTabulator(void* iso,
 
 void deleteLayeredTabulator(void* t)
 {
-    delete reinterpret_cast<TabulatorShell*>(t);
+    delete reinterpret_cast<LayeredTabulator*>(t);
 }
 
 const double* massesLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->masses(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->masses(true);
 }
 
 const double* lprobsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->lprobs(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->lprobs(true);
 }
 
 const double* probsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->probs(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->probs(true);
 }
 
 const int*    confsLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->confs(true);
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs(true);
 }
 
 int confs_noLayeredTabulator(void* tabulator)
 {
-    return reinterpret_cast<TabulatorShell*>(tabulator)->confs_no();
+    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs_no();
 }
 
 void freeReleasedArray(void* array)
