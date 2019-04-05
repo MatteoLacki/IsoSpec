@@ -228,7 +228,13 @@ public:
         if(_target_total_prob <= 0.0)
             return;
 
-        call_init(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
+        call_init(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs || _optimize, tgetConfs);
+
+        if(!tgetlProbs && optimize)
+        {
+            delete[] _probs;
+            _probs = nullptr;
+        }
     }
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
