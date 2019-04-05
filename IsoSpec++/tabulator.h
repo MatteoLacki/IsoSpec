@@ -239,7 +239,7 @@ public:
         // If we want to optimize, we need the probs
             throw std::logic_error("Cannot perform quicktrim if we're not computing probabilities");
 
-        IsoLayeredGenerator generator(std::move(iso), 1000, 1000, std::max<double>(target_total_prob, 1.0));
+        IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::max<double>(target_total_prob, 1.0));
 
         this->allDim = generator.getAllDim();
         this->allDimSizeofInt = this->allDim*sizeof(int);
