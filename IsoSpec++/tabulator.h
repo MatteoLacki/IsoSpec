@@ -343,6 +343,8 @@ public:
         if(end <= current_size/2)
             // Overhead in memory of 2x or more, shrink to fit
             this->template reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end);
+
+        this->_confs_no = end;
     }
 
 
