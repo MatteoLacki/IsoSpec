@@ -201,16 +201,10 @@ public:
 
         this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(tab_size);
 
-        this->_confs_no = tab_size;
-
         while(generator.advanceToNextConfiguration())
             store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
 
-        if constexpr(tgetMasses) { this->_masses -= this->_confs_no; }
-        if constexpr(tgetlProbs) { this->_lprobs -= this->_confs_no; }
-        if constexpr(tgetProbs)  { this->_probs -= this->_confs_no; }
-        if constexpr(tgetConfs)  { this->_confs -= this->_confs_no*this->allDim; }
-
+        this->_confs_no = tab_size;
     }
 
     virtual ~ThresholdTabulator() {};
