@@ -202,15 +202,7 @@ public:
         this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(this->_confs_no);
 
         while(generator.advanceToNextConfiguration())
-        {
-            if constexpr(tgetlProbs) { *(this->_lprobs) = generator.lprob(); this->_lprobs++; }
-            if constexpr(tgetMasses) { *(this->_masses) = generator.mass();  this->_masses++; }
-            if constexpr(tgetProbs)  { *(this->_probs)  = generator.prob();  this->_probs++;  }
-            if constexpr(tgetConfs)  {
-                generator.get_conf_signature(this->_confs);
-                this->_confs += this->allDim;
-            }
-        }
+            store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
 
         if constexpr(tgetMasses) { this->_masses -= this->_confs_no; }
         if constexpr(tgetlProbs) { this->_lprobs -= this->_confs_no; }
