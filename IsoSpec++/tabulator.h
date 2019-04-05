@@ -195,11 +195,13 @@ public:
     {
         IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
 
-        this->_confs_no = generator.count_confs();
+        size_t tab_size = generator.count_confs();
         this->allDim = generator.getAllDim();
         this->allDimSizeofInt = this->allDim * sizeof(int);
 
-        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(this->_confs_no);
+        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(tab_size);
+
+        this->_confs_no = tab_size;
 
         while(generator.advanceToNextConfiguration())
             store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
@@ -250,11 +252,6 @@ public:
 
 
         this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
-
-        this->tlprobs = this->_lprobs;
-        this->tmasses = this->_masses;
-        this->tprobs  = this->_probs;
-        this->tconfs  = this->_confs;
 
         size_t last_switch = 0;
         double prob_at_last_switch = 0.0;
