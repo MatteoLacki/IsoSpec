@@ -501,22 +501,58 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
-    //    marginalResultsUnsorted[ii]->extend(marginalResultsUnsorted[ii]->getModeLProb());
     }
-
 
     if(reorder_marginals && dimNumber > 1)
     {
-        throw std::logic_error("reorder_marginals == true is not implemented yet in LayeredGenerator.");
-    #if 0
-        OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
+        double* marginal_priorities = new double[dimNumber];
+
+        /*
+         * We shall now use Gaussian approximations of the marginal multinomial distributions to estimate
+         * how many configurations we shall need to visit from each marginal. This should be approximately
+         * proportional to the volume of the optimal P-ellipsoid of the marginal, which, in turn is defined
+         * by the quantile function of the chi-square distribution plus some modifications.
+         *
+         * We're dropping the constant factor and the (monotonic) exp() transform - these will be used as keys
+         * for sorting, so only the ordering is important.
+         */
+
+        double K = allDim - dimNumber;
+        double t_prob = 0.99; // TODO: Expected total prob: might be worth to pass the real value from tabulator
+
+        double log_R2 = log(InverseChiSquareCDF2(K, t_prob));
+
+        for(int ii = 0; ii < dimNumber; ii++)
+        {
+            const int i = marginalResultsUnsorted[ii]->get_isotopeNo();
+            if(i == 1)
+                marginal_priorities[ii] = 0.0;
+            else
+            {
+                double k = static_cast<double>(i - 1);
+                const int n = atomCounts[ii];
+
+                double sum_lprobs = 0.0;
+                for(int jj = 0; jj < i; jj++)
+                    sum_lprobs += marginalResultsUnsorted[ii]->get_lProbs()[jj];
+
+                double sum_rademacher = 0.0;
+                for(int jj = 1; jj < i; jj++)
+                    sum_rademacher += log1p((static_cast<double>(jj)) / static_cast<double>(n));
+
+                marginal_priorities[ii] = -(sum_lprobs/2.0 + sum_rademacher - lgamma((k+2.0)/2.0) + k/2.0 * (log_R2 + log2pluslogpi + log(n)));
+            }
+        }
+
         int* tmpMarginalOrder = new int[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)
             tmpMarginalOrder[ii] = ii;
 
-        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
-        marginalResults = new PrecalculatedMarginal*[dimNumber];
+        TableOrder<double> TO(marginal_priorities);
+
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, TO);
+        marginalResults = new LayeredMarginal*[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)
             marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
@@ -526,8 +562,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
             marginalOrder[tmpMarginalOrder[ii]] = ii;
 
         delete[] tmpMarginalOrder;
-    #endif
-
+        delete[] marginal_priorities;
     }
     else
     {
@@ -566,7 +601,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
 
     for(int ii=0; ii<dimNumber; ii++)
     {
-        marginalResults[ii]->extend(currentLThreshold - modeLProb + marginals[ii]->getModeLProb());
+        marginalResults[ii]->extend(currentLThreshold - modeLProb + marginalResults[ii]->getModeLProb());
         counter[ii] = 0;
     }
 

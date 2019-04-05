@@ -443,7 +443,7 @@ public:
         std::cout << std::endl;
     }
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = false);
+    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
 
     inline ~IsoLayeredGenerator()
     {
