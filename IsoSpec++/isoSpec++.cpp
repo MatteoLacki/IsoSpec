@@ -487,7 +487,7 @@ void IsoThresholdGenerator::reset()
  */
 
 
-IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals)
+IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals, double t_prob_hint)
 : IsoGenerator(std::move(iso))
 {
     counter = new int[dimNumber];
@@ -518,9 +518,8 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
          */
 
         double K = allDim - dimNumber;
-        double t_prob = 0.99; // TODO: Expected total prob: might be worth to pass the real value from tabulator
 
-        double log_R2 = log(InverseChiSquareCDF2(K, t_prob));
+        double log_R2 = log(InverseChiSquareCDF2(K, t_prob_hint));
 
         for(int ii = 0; ii < dimNumber; ii++)
         {
