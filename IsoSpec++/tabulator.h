@@ -232,7 +232,7 @@ public:
 
         call_init(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs || _optimize, tgetConfs);
 
-        if(!tgetlProbs && optimize)
+        if(!tgetProbs && optimize)
         {
             delete[] _probs;
             _probs = nullptr;
