@@ -19,4 +19,86 @@
 namespace IsoSpec
 {
 
+template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs)
+{
+    if(tgetlProbs)
+    {
+        if(tgetMasses)
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, true, true, true>(std::move(iso));
+                else
+                    tabulator->template init<true, true, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, true, false, true>(std::move(iso));
+                else
+                    tabulator->template init<true, true, false, false>(std::move(iso));
+            }
+        }
+        else
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, false, true, true>(std::move(iso));
+                else
+                    tabulator->template init<true, false, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<true, false, false, true>(std::move(iso));
+                else
+                    tabulator->template init<true, false, false, false>(std::move(iso));
+            }
+        }
+    }
+    else
+    {
+        if(tgetMasses)
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, true, true, true>(std::move(iso));
+                else
+                    tabulator->template init<false, true, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, true, false, true>(std::move(iso));
+                else
+                    tabulator->template init<false, true, false, false>(std::move(iso));
+            }
+        }
+        else
+        {
+            if(tgetProbs)
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, false, true, true>(std::move(iso));
+                else
+                    tabulator->template init<false, false, true, false>(std::move(iso));
+            }
+            else
+            {
+                if(tgetConfs)
+                    tabulator->template init<false, false, false, true>(std::move(iso));
+                else
+                    tabulator->template init<false, false, false, false>(std::move(iso));
+            }
+        }
+    }
+}
+
+template void call_init<LayeredTabulator>(LayeredTabulator* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+template void call_init<ThresholdTabulator>(ThresholdTabulator* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+
+
 } // namespace IsoSpec

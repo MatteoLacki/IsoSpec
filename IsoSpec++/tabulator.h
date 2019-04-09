@@ -100,83 +100,7 @@ protected:
 
 };
 
-template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs)
-{
-    if(tgetlProbs)
-    {
-        if(tgetMasses)
-        {
-            if(tgetProbs)
-            {
-                if(tgetConfs)
-                    tabulator->template init<true, true, true, true>(std::move(iso));
-                else
-                    tabulator->template init<true, true, true, false>(std::move(iso));
-            }
-            else
-            {
-                if(tgetConfs)
-                    tabulator->template init<true, true, false, true>(std::move(iso));
-                else
-                    tabulator->template init<true, true, false, false>(std::move(iso));
-            }
-        }
-        else
-        {
-            if(tgetProbs)
-            {
-                if(tgetConfs)
-                    tabulator->template init<true, false, true, true>(std::move(iso));
-                else
-                    tabulator->template init<true, false, true, false>(std::move(iso));
-            }
-            else
-            {
-                if(tgetConfs)
-                    tabulator->template init<true, false, false, true>(std::move(iso));
-                else
-                    tabulator->template init<true, false, false, false>(std::move(iso));
-            }
-        }
-    }
-    else
-    {
-        if(tgetMasses)
-        {
-            if(tgetProbs)
-            {
-                if(tgetConfs)
-                    tabulator->template init<false, true, true, true>(std::move(iso));
-                else
-                    tabulator->template init<false, true, true, false>(std::move(iso));
-            }
-            else
-            {
-                if(tgetConfs)
-                    tabulator->template init<false, true, false, true>(std::move(iso));
-                else
-                    tabulator->template init<false, true, false, false>(std::move(iso));
-            }
-        }
-        else
-        {
-            if(tgetProbs)
-            {
-                if(tgetConfs)
-                    tabulator->template init<false, false, true, true>(std::move(iso));
-                else
-                    tabulator->template init<false, false, true, false>(std::move(iso));
-            }
-            else
-            {
-                if(tgetConfs)
-                    tabulator->template init<false, false, false, true>(std::move(iso));
-                else
-                    tabulator->template init<false, false, false, false>(std::move(iso));
-            }
-        }
-    }
-}
+template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
 class ThresholdTabulator : public Tabulator
 {
@@ -215,7 +139,7 @@ class LayeredTabulator : public Tabulator
 {
     const bool optimize;
 public:
-    LayeredTabulator(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) : 
+    LayeredTabulator(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
     Tabulator(),
     optimize(_optimize),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
