@@ -25,7 +25,7 @@
 namespace IsoSpec
 {
 
-class TabulatorParentCls {
+class Tabulator {
 public:
     double* _masses;
     double* _lprobs;
@@ -34,14 +34,14 @@ public:
     size_t  _confs_no;
     int     allDim;
 
-    TabulatorParentCls() : _masses(nullptr),
+    Tabulator() : _masses(nullptr),
         _lprobs(nullptr),
         _probs(nullptr),
         _confs(nullptr),
         _confs_no(0)
         {};
 
-    virtual ~TabulatorParentCls()
+    virtual ~Tabulator()
     {
         if( _masses != nullptr ) free(_masses);
         if( _lprobs != nullptr ) free(_lprobs);
@@ -52,26 +52,11 @@ public:
     inline size_t    confs_no() const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
 
-    // These are deliberately non-virtual
     inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
     inline double*   masses(bool release = false)   { double* ret = _masses; if(release) _masses = nullptr; return ret; };
     inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
     inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
-};
 
-class Tabulator : public TabulatorParentCls
-{
-public:
-    Tabulator() : TabulatorParentCls() {};
-
-    virtual ~Tabulator() {}
-
-/*
-    inline double*   lprobs(bool release = false)   { if constexpr(tgetlProbs) { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; } else throw std::logic_error("Logprobs requested, and yet tgetLprobs template argument was false"); };
-    inline double*   masses(bool release = false)   { if constexpr(tgetMasses) { double* ret = _masses; if(release) _masses = nullptr; return ret; } else throw std::logic_error("Masses requested, and yet tgetMasses template argument was false"); };
-    inline double*   probs(bool release = false)    { if constexpr(tgetProbs)  { double* ret = _probs;  if(release) _probs  = nullptr; return ret; } else throw std::logic_error("Probabilities requested, and yet tgetProbs template argument was false"); };
-    inline int*      confs(bool release = false)    { if constexpr(tgetConfs)  { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; } else throw std::logic_error("Configurations requested, and yet tgetConfs template argument was false"); };
-*/
 protected:
     double* tmasses;
     double* tlprobs;
@@ -79,7 +64,6 @@ protected:
     int*    tconfs;
 
     int allDimSizeofInt;
-
 
     template<typename T, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
