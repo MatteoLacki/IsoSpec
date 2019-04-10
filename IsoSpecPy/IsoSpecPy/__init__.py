@@ -183,23 +183,23 @@ class IsoLayered(Iso):
         super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        tabulator = self.ffi.setupLayeredFixedEnvelope(self.iso, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
+        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
 
-        self.size = self.ffi.confs_noLayeredFixedEnvelope(tabulator)
+        self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesLayeredFixedEnvelope(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsLayeredFixedEnvelope(tabulator))
-        self.probs  = c("double", self.ffi.probsLayeredFixedEnvelope(tabulator))
+        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsLayeredFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
-        self.ffi.deleteLayeredFixedEnvelope(tabulator)
+        self.ffi.deleteTotalProbFixedEnvelope(tabulator)
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)

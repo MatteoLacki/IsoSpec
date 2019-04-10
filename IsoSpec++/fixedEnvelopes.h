@@ -119,11 +119,11 @@ public:
 };
 
 
-class LayeredFixedEnvelope : public FixedEnvelope
+class TotalProbFixedEnvelope : public FixedEnvelope
 {
     const bool optimize;
 public:
-    LayeredFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
+    TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
     FixedEnvelope(),
     optimize(_optimize),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
@@ -247,7 +247,7 @@ public:
     }
 
 
-    virtual ~LayeredFixedEnvelope() {};
+    virtual ~TotalProbFixedEnvelope() {};
 
 private:
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)

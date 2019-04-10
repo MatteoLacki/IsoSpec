@@ -217,7 +217,7 @@ int confs_noThresholdFixedEnvelope(void* tabulator)
 
 //______________________________________________________ Layered FixedEnvelope
 
-void* setupLayeredFixedEnvelope(void* iso,
+void* setupTotalProbFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
@@ -225,7 +225,7 @@ void* setupLayeredFixedEnvelope(void* iso,
                      double target_coverage,
                      bool optimize)
 {
-    LayeredFixedEnvelope* tabulator = new LayeredFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
+    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
                                          target_coverage,
                                          optimize,
                                          get_lprobs,
@@ -236,34 +236,34 @@ void* setupLayeredFixedEnvelope(void* iso,
     return reinterpret_cast<void*>(tabulator);
 }
 
-void deleteLayeredFixedEnvelope(void* t)
+void deleteTotalProbFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<LayeredFixedEnvelope*>(t);
+    delete reinterpret_cast<TotalProbFixedEnvelope*>(t);
 }
 
-const double* massesLayeredFixedEnvelope(void* tabulator)
+const double* massesTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->masses(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->masses(true);
 }
 
-const double* lprobsLayeredFixedEnvelope(void* tabulator)
+const double* lprobsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->lprobs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->lprobs(true);
 }
 
-const double* probsLayeredFixedEnvelope(void* tabulator)
+const double* probsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->probs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->probs(true);
 }
 
-const int*    confsLayeredFixedEnvelope(void* tabulator)
+const int*    confsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->confs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->confs(true);
 }
 
-int confs_noLayeredFixedEnvelope(void* tabulator)
+int confs_noTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->confs_no();
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->confs_no();
 }
 
 void freeReleasedArray(void* array)

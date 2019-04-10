@@ -103,7 +103,7 @@ int confs_noThresholdFixedEnvelope(void* tabulator);
 
 
 
-void* setupLayeredFixedEnvelope(void* iso,
+void* setupTotalProbFixedEnvelope(void* iso,
                               bool  get_masses,
                               bool  get_probs,
                               bool  get_lprobs,
@@ -111,13 +111,13 @@ void* setupLayeredFixedEnvelope(void* iso,
                               double taget_coverage,
                               bool optimize);
 
-void deleteLayeredFixedEnvelope(void* tabulator);
+void deleteTotalProbFixedEnvelope(void* tabulator);
 
-const double* massesLayeredFixedEnvelope(void* tabulator);
-const double* lprobsLayeredFixedEnvelope(void* tabulator);
-const double* probsLayeredFixedEnvelope(void* tabulator);
-const int*    confsLayeredFixedEnvelope(void* tabulator);
-int confs_noLayeredFixedEnvelope(void* tabulator);
+const double* massesTotalProbFixedEnvelope(void* tabulator);
+const double* lprobsTotalProbFixedEnvelope(void* tabulator);
+const double* probsTotalProbFixedEnvelope(void* tabulator);
+const int*    confsTotalProbFixedEnvelope(void* tabulator);
+int confs_noTotalProbFixedEnvelope(void* tabulator);
 
 void freeReleasedArray(void* array);
 
