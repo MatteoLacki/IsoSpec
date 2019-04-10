@@ -25,7 +25,7 @@
 namespace IsoSpec
 {
 
-class Tabulator {
+class FixedEnvelope {
 public:
     double* _masses;
     double* _lprobs;
@@ -34,14 +34,14 @@ public:
     size_t  _confs_no;
     int     allDim;
 
-    Tabulator() : _masses(nullptr),
+    FixedEnvelope() : _masses(nullptr),
         _lprobs(nullptr),
         _probs(nullptr),
         _confs(nullptr),
         _confs_no(0)
         {};
 
-    virtual ~Tabulator()
+    virtual ~FixedEnvelope()
     {
         if( _masses != nullptr ) free(_masses);
         if( _lprobs != nullptr ) free(_lprobs);
@@ -86,17 +86,17 @@ protected:
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
-class ThresholdTabulator : public Tabulator
+class ThresholdFixedEnvelope : public FixedEnvelope
 {
     const double threshold;
     const bool absolute;
 public:
-    ThresholdTabulator(Iso&& iso, double _threshold, bool _absolute, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
-    Tabulator(),
+    ThresholdFixedEnvelope(Iso&& iso, double _threshold, bool _absolute, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
+    FixedEnvelope(),
     threshold(_threshold),
     absolute(_absolute)
     {
-        call_init<ThresholdTabulator>(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
+        call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
     }
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
@@ -115,16 +115,16 @@ public:
         this->_confs_no = tab_size;
     }
 
-    virtual ~ThresholdTabulator() {};
+    virtual ~ThresholdFixedEnvelope() {};
 };
 
 
-class LayeredTabulator : public Tabulator
+class LayeredFixedEnvelope : public FixedEnvelope
 {
     const bool optimize;
 public:
-    LayeredTabulator(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
-    Tabulator(),
+    LayeredFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
+    FixedEnvelope(),
     optimize(_optimize),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
     current_size(ISOSPEC_INIT_TABLE_SIZE)
@@ -247,7 +247,7 @@ public:
     }
 
 
-    virtual ~LayeredTabulator() {};
+    virtual ~LayeredFixedEnvelope() {};
 
 private:
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)

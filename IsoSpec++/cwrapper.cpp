@@ -163,9 +163,9 @@ void* setupIsoOrderedGenerator(void* iso,
 }
 ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
-//______________________________________________________ Threshold Tabulator
+//______________________________________________________ Threshold FixedEnvelope
 
-void* setupThresholdTabulator(void* iso,
+void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
                      bool absolute,
                      bool  get_masses,
@@ -173,7 +173,7 @@ void* setupThresholdTabulator(void* iso,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    ThresholdTabulator* tabulator = new ThresholdTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
+    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
                                          threshold,
                                          absolute,
                                          get_lprobs,
@@ -184,40 +184,40 @@ void* setupThresholdTabulator(void* iso,
     return reinterpret_cast<void*>(tabulator);
 }
 
-void deleteThresholdTabulator(void* t)
+void deleteThresholdFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<ThresholdTabulator*>(t);
+    delete reinterpret_cast<ThresholdFixedEnvelope*>(t);
 }
 
-const double* massesThresholdTabulator(void* tabulator)
+const double* massesThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->masses(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->masses(true);
 }
 
-const double* lprobsThresholdTabulator(void* tabulator)
+const double* lprobsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->lprobs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->lprobs(true);
 }
 
-const double* probsThresholdTabulator(void* tabulator)
+const double* probsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->probs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->probs(true);
 }
 
-const int*    confsThresholdTabulator(void* tabulator)
+const int*    confsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->confs(true);
 }
 
-int confs_noThresholdTabulator(void* tabulator)
+int confs_noThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdTabulator*>(tabulator)->confs_no();
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->confs_no();
 }
 
 
-//______________________________________________________ Layered Tabulator
+//______________________________________________________ Layered FixedEnvelope
 
-void* setupLayeredTabulator(void* iso,
+void* setupLayeredFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
@@ -225,7 +225,7 @@ void* setupLayeredTabulator(void* iso,
                      double target_coverage,
                      bool optimize)
 {
-    LayeredTabulator* tabulator = new LayeredTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
+    LayeredFixedEnvelope* tabulator = new LayeredFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
                                          target_coverage,
                                          optimize,
                                          get_lprobs,
@@ -236,34 +236,34 @@ void* setupLayeredTabulator(void* iso,
     return reinterpret_cast<void*>(tabulator);
 }
 
-void deleteLayeredTabulator(void* t)
+void deleteLayeredFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<LayeredTabulator*>(t);
+    delete reinterpret_cast<LayeredFixedEnvelope*>(t);
 }
 
-const double* massesLayeredTabulator(void* tabulator)
+const double* massesLayeredFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->masses(true);
+    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->masses(true);
 }
 
-const double* lprobsLayeredTabulator(void* tabulator)
+const double* lprobsLayeredFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->lprobs(true);
+    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->lprobs(true);
 }
 
-const double* probsLayeredTabulator(void* tabulator)
+const double* probsLayeredFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->probs(true);
+    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->probs(true);
 }
 
-const int*    confsLayeredTabulator(void* tabulator)
+const int*    confsLayeredFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs(true);
+    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->confs(true);
 }
 
-int confs_noLayeredTabulator(void* tabulator)
+int confs_noLayeredFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<LayeredTabulator*>(tabulator)->confs_no();
+    return reinterpret_cast<LayeredFixedEnvelope*>(tabulator)->confs_no();
 }
 
 void freeReleasedArray(void* array)

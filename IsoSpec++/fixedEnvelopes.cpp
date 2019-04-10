@@ -97,8 +97,8 @@ template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bo
     }
 }
 
-template void call_init<LayeredTabulator>(LayeredTabulator* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
-template void call_init<ThresholdTabulator>(ThresholdTabulator* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+template void call_init<LayeredFixedEnvelope>(LayeredFixedEnvelope* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+template void call_init<ThresholdFixedEnvelope>(ThresholdFixedEnvelope* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
 
 } // namespace IsoSpec

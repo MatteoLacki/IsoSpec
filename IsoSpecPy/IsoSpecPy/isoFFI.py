@@ -45,7 +45,7 @@ class IsoFFI:
                                        int _hashSize);
         double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
-        void* setupThresholdTabulator(void* iso,
+        void* setupThresholdFixedEnvelope(void* iso,
                                       double threshold,
                                       bool absolute,
                                       bool get_masses,
@@ -53,16 +53,16 @@ class IsoFFI:
                                       bool get_lprobs,
                                       bool get_confs);
 
-        void deleteThresholdTabulator(void* tabulator);
+        void deleteThresholdFixedEnvelope(void* tabulator);
 
-        const double* massesThresholdTabulator(void* tabulator);
-        const double* lprobsThresholdTabulator(void* tabulator);
-        const double* probsThresholdTabulator(void* tabulator);
-        const int* confsThresholdTabulator(void* tabulator);
-        int confs_noThresholdTabulator(void* tabulator);
+        const double* massesThresholdFixedEnvelope(void* tabulator);
+        const double* lprobsThresholdFixedEnvelope(void* tabulator);
+        const double* probsThresholdFixedEnvelope(void* tabulator);
+        const int* confsThresholdFixedEnvelope(void* tabulator);
+        int confs_noThresholdFixedEnvelope(void* tabulator);
 
 
-        void* setupLayeredTabulator(void* iso,
+        void* setupLayeredFixedEnvelope(void* iso,
                                       bool get_masses,
                                       bool get_probs,
                                       bool get_lprobs,
@@ -70,13 +70,13 @@ class IsoFFI:
                                       double taget_coverage,
                                       bool optimize);
 
-        void deleteLayeredTabulator(void* tabulator);
+        void deleteLayeredFixedEnvelope(void* tabulator);
 
-        const double* massesLayeredTabulator(void* tabulator);
-        const double* lprobsLayeredTabulator(void* tabulator);
-        const double* probsLayeredTabulator(void* tabulator);
-        const int* confsLayeredTabulator(void* tabulator);
-        int confs_noLayeredTabulator(void* tabulator);
+        const double* massesLayeredFixedEnvelope(void* tabulator);
+        const double* lprobsLayeredFixedEnvelope(void* tabulator);
+        const double* probsLayeredFixedEnvelope(void* tabulator);
+        const int* confsLayeredFixedEnvelope(void* tabulator);
+        int confs_noLayeredFixedEnvelope(void* tabulator);
 
         void freeReleasedArray(void* array);
 
