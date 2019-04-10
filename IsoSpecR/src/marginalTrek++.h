@@ -91,6 +91,8 @@ public:
     */
     inline int get_isotopeNo() const { return isotopeNo; };
 
+    inline const double* get_lProbs() const { return atom_lProbs; };
+
     //! Get the mass of the lightest subisotopologue.
     /*! This is trivially obtained by considering all atomNo atoms to be the lightest isotope possible.
         \return The mass of the lightiest subisotopologue.

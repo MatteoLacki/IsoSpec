@@ -25,5 +25,5 @@ Suggests:
 LazyData: no
 LinkingTo: Rcpp
 NeedsCompilation: yes
-SystemRequirements: C++11
+SystemRequirements: C++17
 RoxygenNote: 5.0.1

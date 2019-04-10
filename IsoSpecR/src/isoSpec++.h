@@ -433,6 +433,8 @@ public:
 
     };
 
+    inline double get_currentLThreshold() const { return currentLThreshold; };
+
     void printSimpleConf()
     {
         std::cout << "SimpleConf: " << lProbs_ptr - lProbs_ptr_start;
@@ -441,7 +443,7 @@ public:
         std::cout << std::endl;
     }
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = false);
+    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99);
 
     inline ~IsoLayeredGenerator()
     {

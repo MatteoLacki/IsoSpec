@@ -28,6 +28,7 @@
 
 using namespace IsoSpec;
 
+
 extern "C"
 {
 void * setupIso(int             dimNumber,
@@ -175,9 +176,9 @@ void* setupThresholdTabulator(void* iso,
     ThresholdTabulator* tabulator = new ThresholdTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
                                          threshold,
                                          absolute,
+                                         get_lprobs,
                                          get_masses,
                                          get_probs,
-                                         get_lprobs,
                                          get_confs);
 
     return reinterpret_cast<void*>(tabulator);
@@ -225,12 +226,12 @@ void* setupLayeredTabulator(void* iso,
                      bool optimize)
 {
     LayeredTabulator* tabulator = new LayeredTabulator(std::move(*reinterpret_cast<Iso*>(iso)),
+                                         target_coverage,
+                                         optimize,
+                                         get_lprobs,
                                          get_masses,
                                          get_probs,
-                                         get_lprobs,
-                                         get_confs,
-                                         target_coverage,
-                                         optimize);
+                                         get_confs);
 
     return reinterpret_cast<void*>(tabulator);
 }
@@ -269,5 +270,4 @@ void freeReleasedArray(void* array)
 {
     free(array);
 }
-
 }  //extern "C" ends here

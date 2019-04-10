@@ -19,25 +19,26 @@
 #include "cwrapper.h"
 #include "misc.h"
 #include "isoSpec++.h"
+#include "tabulator.h"
 #include <vector>
 #include <iostream>
 
 using namespace Rcpp;
 using namespace IsoSpec;
 
-IsoGenerator* mkIsoG(Iso& iso, int algo, double stopCondition, int tabSize, int hashSize, int step, int trim)
+Tabulator* mkIsoG(Iso& iso, int algo, double stopCondition, bool trim, bool get_confs)
 {
     switch(algo)
     {
         case ISOSPEC_ALGO_LAYERED_ESTIMATE: // Not used anymore, just fall through to the next case
-        case ISOSPEC_ALGO_LAYERED: return new IsoLayeredGenerator(std::move(iso), stopCondition, step, tabSize, hashSize, trim);
-        case ISOSPEC_ALGO_ORDERED: return new IsoLayeredGenerator(std::move(iso), stopCondition, step, tabSize, hashSize, true); // Using the ordered algo in R is *completely* pointless today
+        case ISOSPEC_ALGO_LAYERED: return new LayeredTabulator(std::move(iso), stopCondition, trim, true, true, false, get_confs);
+        case ISOSPEC_ALGO_ORDERED: return new LayeredTabulator(std::move(iso), stopCondition, true, true, true, false, get_confs); // Using the ordered algo in R is *completely* pointless today
                                                                                                                              // The only point of ordered algo is when one is using the generator
-                                                                                                                             // interface, which we are not expising in R
+                                                                                                                             // interface, which we are not exposing in R
                                                                                                                              // We'll just do layered, trim and sort it afterwards - it's equivalent 
                                                                                                                              // and much faster
-        case ISOSPEC_ALGO_THRESHOLD_ABSOLUTE: return new IsoThresholdGenerator(std::move(iso), stopCondition, true, tabSize, hashSize, true);
-        case ISOSPEC_ALGO_THRESHOLD_RELATIVE: return new IsoThresholdGenerator(std::move(iso), stopCondition, true, tabSize, hashSize, true);
+        case ISOSPEC_ALGO_THRESHOLD_ABSOLUTE: return new ThresholdTabulator(std::move(iso), stopCondition, false, true, true, false, get_confs);
+        case ISOSPEC_ALGO_THRESHOLD_RELATIVE: return new ThresholdTabulator(std::move(iso), stopCondition, true, true, true, false, get_confs);
     }
     throw std::logic_error("Invalid algorithm selected");
 }
@@ -93,52 +94,36 @@ NumericMatrix Rinterface(
         tot += stdIsotopeNumbers[ii];
     }
     Iso iso(dimNumber, stdIsotopeNumbers.data(), Rcpp::as<std::vector<int> >( molecule).data(), IM.data(), IP.data());
-    IsoGenerator* IG = mkIsoG(iso, algo, stopCondition, tabSize, hashSize, step, trim);
+    Tabulator* TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
     unsigned int columnsNo = stdIsotopeTags.size(); // standard
 
     unsigned int isotopesNo = iso.getAllDim();
 
-    // Code doing useless copying around of memory follows, as NumericMatrix apparently can't resize dynamically like std::vector does, so we can't directly
-    // write into it, as we don't know how many configurations we're going to get upfront and we can't preallocate size.
-    std::vector<double> logProbs;
-    std::vector<double> masses;
-    std::vector<int> confs;
+    double* logProbs = TAB->lprobs();
+    double* masses = TAB->masses();
+    int* confs = TAB->confs();
     std::vector<size_t> ordering;
     size_t data_offset = 0;
+    size_t confs_no = TAB->confs_no();
 
-    while(IG->advanceToNextConfiguration())
-    {
-        logProbs.push_back(IG->lprob());
-        masses.push_back(IG->mass());
-        if(showCounts)
-        {
-            confs.resize(confs.size()+isotopesNo);
-            IG->get_conf_signature(&(confs.data()[data_offset]));
-            data_offset += isotopesNo;
-        }
-    }
-
-    delete IG;
-    IG = nullptr;
 
     const bool needs_sorting = (ISOSPEC_ALGO_ORDERED == algo);
 
     if(needs_sorting)
     {
         // We need to sort the confs for backward compatibility
-        ordering.reserve(logProbs.size());
-        for(size_t i = 0; i < logProbs.size(); i++)
+        ordering.reserve(confs_no);
+        for(size_t i = 0; i < confs_no; i++)
             ordering.push_back(i);
         std::sort(ordering.begin(), ordering.end(), [&logProbs](size_t idx1, size_t idx2) -> bool { return logProbs[idx1] > logProbs[idx2]; });
     }
 
-    NumericMatrix res(logProbs.size(), columnsNo);
-
+    NumericMatrix res(confs_no, columnsNo);
 
     size_t idx, confs_idx;
 
-    for(size_t i = 0; i < logProbs.size(); i++)
+    for(size_t i = 0; i < confs_no; i++)
     {
         idx = needs_sorting ? ordering[i] : i;
         res(i,0) = masses[idx];
@@ -151,6 +136,9 @@ NumericMatrix Rinterface(
                 res(i,2+j) = confs[confs_idx+j];
         }
     }
+
+    delete TAB;
+    TAB = nullptr;
 
     colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
 
