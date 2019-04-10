@@ -14,7 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-#include "precalculatedEnvelopes.h"
+#include "fixedEnvelopes.h"
 
 namespace IsoSpec
 {

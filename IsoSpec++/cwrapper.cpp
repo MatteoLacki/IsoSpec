@@ -24,7 +24,7 @@
 #include "misc.h"
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
-#include "precalculatedEnvelopes.h"
+#include "fixedEnvelopes.h"
 
 using namespace IsoSpec;
 
