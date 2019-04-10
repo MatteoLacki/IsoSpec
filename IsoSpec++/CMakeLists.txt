@@ -11,7 +11,7 @@ marginalTrek++.cpp
 operators.cpp
 element_tables.cpp
 misc.cpp
-tabulator.cpp
+precalculatedEnvelopes.cpp
 )
 
 ## platform dependent compiler flags:

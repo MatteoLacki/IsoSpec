@@ -14,7 +14,7 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-#include "tabulator.h"
+#include "precalculatedEnvelopes.h"
 
 namespace IsoSpec
 {
