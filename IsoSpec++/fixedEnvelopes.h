@@ -57,6 +57,11 @@ public:
     inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
     inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
 
+    inline double    mass(size_t i)  { return _masses[i]; };
+    inline double    lprob(size_t i) { return _lprobs[i]; };
+    inline double    prob(size_t i)  { return _probs[i];  };
+    inline int*      conf(size_t i) { return _confs + i*allDim; };
+
 protected:
     double* tmasses;
     double* tlprobs;
