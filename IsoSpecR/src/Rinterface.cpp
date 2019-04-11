@@ -104,7 +104,6 @@ NumericMatrix Rinterface(
     double* masses = TAB->masses();
     int* confs = TAB->confs();
     std::vector<size_t> ordering;
-    size_t data_offset = 0;
     size_t confs_no = TAB->confs_no();
 
 
