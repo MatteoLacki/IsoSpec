@@ -19,26 +19,26 @@
 #include "cwrapper.h"
 #include "misc.h"
 #include "isoSpec++.h"
-#include "tabulator.h"
+#include "fixedEnvelopes.h"
 #include <vector>
 #include <iostream>
 
 using namespace Rcpp;
 using namespace IsoSpec;
 
-Tabulator* mkIsoG(Iso& iso, int algo, double stopCondition, bool trim, bool get_confs)
+TotalProbFixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool trim, bool get_confs)
 {
     switch(algo)
     {
         case ISOSPEC_ALGO_LAYERED_ESTIMATE: // Not used anymore, just fall through to the next case
-        case ISOSPEC_ALGO_LAYERED: return new LayeredTabulator(std::move(iso), stopCondition, trim, true, true, false, get_confs);
-        case ISOSPEC_ALGO_ORDERED: return new LayeredTabulator(std::move(iso), stopCondition, true, true, true, false, get_confs); // Using the ordered algo in R is *completely* pointless today
+        case ISOSPEC_ALGO_LAYERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, trim, true, true, false, get_confs);
+        case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, true, true, false, get_confs); // Using the ordered algo in R is *completely* pointless today
                                                                                                                              // The only point of ordered algo is when one is using the generator
                                                                                                                              // interface, which we are not exposing in R
                                                                                                                              // We'll just do layered, trim and sort it afterwards - it's equivalent 
                                                                                                                              // and much faster
-        case ISOSPEC_ALGO_THRESHOLD_ABSOLUTE: return new ThresholdTabulator(std::move(iso), stopCondition, false, true, true, false, get_confs);
-        case ISOSPEC_ALGO_THRESHOLD_RELATIVE: return new ThresholdTabulator(std::move(iso), stopCondition, true, true, true, false, get_confs);
+        case ISOSPEC_ALGO_THRESHOLD_ABSOLUTE:
+        case ISOSPEC_ALGO_THRESHOLD_RELATIVE: throw std::logic_error("");
     }
     throw std::logic_error("Invalid algorithm selected");
 }
@@ -134,13 +134,13 @@ NumericMatrix Rinterface(
     }
 
     // The remaining (layered) algos
-    Tabulator* TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
+    TotalProbFixedEnvelope TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
-    double* logProbs = TAB->lprobs();
-    double* masses = TAB->masses();
-    int* confs = TAB->confs();
+    double* logProbs = TAB.lprobs();
+    double* masses = TAB.masses();
+    int* confs = TAB.confs();
     std::vector<size_t> ordering;
-    size_t confs_no = TAB->confs_no();
+    size_t confs_no = TAB.confs_no();
 
 
     const bool needs_sorting = (ISOSPEC_ALGO_ORDERED == algo);
@@ -171,9 +171,6 @@ NumericMatrix Rinterface(
                 res(i,2+j) = confs[confs_idx+j];
         }
     }
-
-    delete TAB;
-    TAB = nullptr;
 
     colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
 
