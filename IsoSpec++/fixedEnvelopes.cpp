@@ -19,6 +19,32 @@
 namespace IsoSpec
 {
 
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
+{
+    // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+    if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
+    if constexpr(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
+    if constexpr(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
+    if constexpr(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
+}
+
+
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void ThresholdFixedEnvelope::init(Iso&& iso)
+{
+    IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
+
+    size_t tab_size = generator.count_confs();
+    this->allDim = generator.getAllDim();
+    this->allDimSizeofInt = this->allDim * sizeof(int);
+
+    this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(tab_size);
+
+    while(generator.advanceToNextConfiguration())
+        store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
+
+    this->_confs_no = tab_size;
+}
+
 
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
 {

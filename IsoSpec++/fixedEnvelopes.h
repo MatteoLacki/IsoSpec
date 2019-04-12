@@ -34,6 +34,7 @@ public:
     size_t  _confs_no;
     int     allDim;
 
+public:
     FixedEnvelope() : _masses(nullptr),
         _lprobs(nullptr),
         _probs(nullptr),
@@ -78,15 +79,7 @@ protected:
         if constexpr(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
     }
 
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size)
-    {
-        // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-        if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
-        if constexpr(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-        if constexpr(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
-        if constexpr(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
-    }
-
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size);
 };
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
@@ -104,26 +97,12 @@ public:
         call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
     }
 
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
-    {
-        IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
-
-        size_t tab_size = generator.count_confs();
-        this->allDim = generator.getAllDim();
-        this->allDimSizeofInt = this->allDim * sizeof(int);
-
-        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(tab_size);
-
-        while(generator.advanceToNextConfiguration())
-            store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
-
-        this->_confs_no = tab_size;
-    }
-
     virtual ~ThresholdFixedEnvelope() {};
 
-    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+private:
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
 
+    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 };
 
 
@@ -149,14 +128,12 @@ public:
         }
     }
 
+    virtual ~TotalProbFixedEnvelope() {};
+
 private:
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
 
-public:
-    virtual ~TotalProbFixedEnvelope() {};
-
-private:
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
         if constexpr(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
@@ -177,7 +154,6 @@ private:
     size_t current_size;
 
 
-public:
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
     {
         if(this->_confs_no == this->current_size)
