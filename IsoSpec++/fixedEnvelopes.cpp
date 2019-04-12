@@ -19,6 +19,112 @@
 namespace IsoSpec
 {
 
+
+template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
+{
+    if(optimize && !tgetProbs)
+    // If we want to optimize, we need the probs
+        throw std::logic_error("Cannot perform quicktrim if we're not computing probabilities");
+
+    IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::max<double>(target_total_prob, 1.0));
+
+    this->allDim = generator.getAllDim();
+    this->allDimSizeofInt = this->allDim*sizeof(int);
+
+
+    this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
+
+    size_t last_switch = 0;
+    double prob_at_last_switch = 0.0;
+    double prob_so_far = 0.0;
+    do
+    { // Store confs until we accumulate more prob than needed - and, if optimizing,
+      // store also the rest of the last layer
+        while(generator.advanceToNextConfigurationWithinLayer())
+        {
+            this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
+            prob_so_far += generator.prob();
+            if(prob_so_far >= target_total_prob)
+            {
+                if (optimize)
+                {
+                    while(generator.advanceToNextConfigurationWithinLayer())
+                        this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
+                    break;
+                }
+                else
+                    return;
+            }
+        }
+        if(prob_so_far >= target_total_prob)
+            break;
+
+        last_switch = this->_confs_no;
+        prob_at_last_switch = prob_so_far;
+    } while(generator.nextLayer(-3.0));
+
+    if(!optimize || prob_so_far <= target_total_prob)
+        return;
+
+    // Right. We have extra configurations and we have been asked to produce an optimal p-set, so
+    // now we shall trim unneeded configurations, using an algorithm dubbed "quicktrim"
+    // - similar to the quickselect algorithm, except that we use the cumulative sum of elements
+    // left of pivot to decide whether to go left or right, instead of the positional index.
+    // We'll be sorting by the prob array, permuting the other ones in parallel.
+
+    int* conf_swapspace = nullptr;
+    if constexpr(tgetConfs)
+        conf_swapspace = (int*) malloc(this->allDimSizeofInt);
+
+    size_t start = last_switch;
+    size_t end = this->_confs_no;
+    double sum_to_start = prob_at_last_switch;
+
+    while(start < end)
+    {
+        // Partition part
+        size_t len = end - start;
+#if ISOSPEC_BUILDING_R
+        size_t pivot = len/2 + start;
+#else
+        size_t pivot = rand() % len + start;
+#endif
+        double pprob = this->_probs[pivot];
+        swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(pivot, end-1, conf_swapspace);
+
+        double new_csum = sum_to_start;
+
+        size_t loweridx = start;
+        for(size_t ii=start; ii<end-1; ii++)
+            if(this->_probs[ii] > pprob)
+            {
+                swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, loweridx, conf_swapspace);
+                new_csum += this->_probs[loweridx];
+                loweridx++;
+            }
+
+        swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end-1, loweridx, conf_swapspace);
+
+        // Selection part
+        if(new_csum < target_total_prob)
+        {
+            start = loweridx + 1;
+            sum_to_start = new_csum + this->_probs[loweridx];
+        }
+        else
+            end = loweridx;
+    }
+
+    if constexpr(tgetConfs)
+        free(conf_swapspace);
+
+    if(end <= current_size/2)
+        // Overhead in memory of 2x or more, shrink to fit
+        this->template reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end);
+
+    this->_confs_no = end;
+}
+
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs)
 {
     if(tgetlProbs)
