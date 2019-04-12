@@ -94,11 +94,47 @@ NumericMatrix Rinterface(
         tot += stdIsotopeNumbers[ii];
     }
     Iso iso(dimNumber, stdIsotopeNumbers.data(), Rcpp::as<std::vector<int> >( molecule).data(), IM.data(), IP.data());
-    Tabulator* TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
     unsigned int columnsNo = stdIsotopeTags.size(); // standard
 
     unsigned int isotopesNo = iso.getAllDim();
+
+    if(algo == ISOSPEC_ALGO_THRESHOLD_ABSOLUTE || algo == ISOSPEC_ALGO_THRESHOLD_RELATIVE)
+    {
+        IsoThresholdGenerator ITG(std::move(iso), stopCondition, (algo == ISOSPEC_ALGO_THRESHOLD_ABSOLUTE));
+
+        size_t no_confs = ITG.count_confs();
+        size_t ii = 0;
+
+        NumericMatrix res(no_confs, columnsNo);
+
+        if(showCounts)
+            while(ITG.advanceToNextConfiguration())
+            {
+                res(ii,0) = ITG.mass();
+                res(ii,1) = ITG.lprob();
+                ii++;
+            }
+        else
+        {
+            size_t confs_idx = 0;
+            int* conf_sig = new int[isotopesNo];
+            while(ITG.advanceToNextConfiguration())
+            {
+                res(ii,0) = ITG.mass();
+                res(ii,1) = ITG.lprob();
+                ITG.get_conf_signature(conf_sig);
+                for(size_t jj = 0; jj < isotopesNo; jj++)
+                    res(ii, 2+jj) = conf_sig[jj];
+                ii++;
+            }
+            delete[] conf_sig;
+        }
+        return res;
+    }
+
+    // The remaining (layered) algos
+    Tabulator* TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
     double* logProbs = TAB->lprobs();
     double* masses = TAB->masses();
