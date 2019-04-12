@@ -53,15 +53,21 @@ public:
     inline size_t    confs_no() const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
 
-    inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
-    inline double*   masses(bool release = false)   { double* ret = _masses; if(release) _masses = nullptr; return ret; };
-    inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
-    inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
+    inline const double*   lprobs()   { return _lprobs; };
+    inline const double*   masses()   { return _masses; };
+    inline const double*   probs()    { return _probs; };
+    inline const int*      confs()    { return _confs; };
 
-    inline double    mass(size_t i)  { return _masses[i]; };
-    inline double    lprob(size_t i) { return _lprobs[i]; };
-    inline double    prob(size_t i)  { return _probs[i];  };
-    inline int*      conf(size_t i) { return _confs + i*allDim; };
+    inline double*   release_lprobs()   { double* ret = _lprobs; _lprobs = nullptr; return ret; };
+    inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; };
+    inline double*   release_probs()    { double* ret = _probs;  _probs  = nullptr; return ret; };
+    inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; };
+
+
+    inline double     mass(size_t i)  { return _masses[i]; };
+    inline double     lprob(size_t i) { return _lprobs[i]; };
+    inline double     prob(size_t i)  { return _probs[i];  };
+    inline const int* conf(size_t i)  { return _confs + i*allDim; };
 
 protected:
     double* tmasses;

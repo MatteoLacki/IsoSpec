@@ -191,22 +191,22 @@ void deleteThresholdFixedEnvelope(void* t)
 
 const double* massesThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->masses(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_masses();
 }
 
 const double* lprobsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->lprobs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->probs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_probs();
 }
 
 const int*    confsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->confs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_confs();
 }
 
 int confs_noThresholdFixedEnvelope(void* tabulator)
@@ -243,22 +243,22 @@ void deleteTotalProbFixedEnvelope(void* t)
 
 const double* massesTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->masses(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
 }
 
 const double* lprobsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->lprobs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->probs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_probs();
 }
 
 const int*    confsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->confs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_confs();
 }
 
 int confs_noTotalProbFixedEnvelope(void* tabulator)
