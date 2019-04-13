@@ -117,7 +117,6 @@ NumericMatrix Rinterface(
             }
         else
         {
-            size_t confs_idx = 0;
             int* conf_sig = new int[isotopesNo];
             while(ITG.advanceToNextConfiguration())
             {

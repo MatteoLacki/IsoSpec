@@ -22,4 +22,3 @@ isotopicData
 A list of data frames or table data frames (dplyr like), containing different information on isotopes.
 }
 \keyword{datasets}
-

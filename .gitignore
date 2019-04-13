@@ -12,3 +12,4 @@ IsoSpecPy/IsoSpec++
 IsoSpecR/src/CMakeLists.txt
 IsoSpecR/src/IsoSpecConfig.cmake.in
 IsoSpecR/src/symbols.rds
+.Rproj.user
