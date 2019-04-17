@@ -35,7 +35,7 @@ TotalProbFixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool tri
         case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, true, true, false, get_confs); // Using the ordered algo in R is *completely* pointless today
                                                                                                                              // The only point of ordered algo is when one is using the generator
                                                                                                                              // interface, which we are not exposing in R
-                                                                                                                             // We'll just do layered, trim and sort it afterwards - it's equivalent 
+                                                                                                                             // We'll just do layered, trim and sort it afterwards - it's equivalent
                                                                                                                              // and much faster
         case ISOSPEC_ALGO_THRESHOLD_ABSOLUTE:
         case ISOSPEC_ALGO_THRESHOLD_RELATIVE: throw std::logic_error("");
@@ -129,6 +129,7 @@ NumericMatrix Rinterface(
             }
             delete[] conf_sig;
         }
+	colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
         return res;
     }
 
@@ -144,6 +145,10 @@ NumericMatrix Rinterface(
 
     const bool needs_sorting = (ISOSPEC_ALGO_ORDERED == algo);
 
+    const unsigned int isotopesNoplus2 = isotopesNo + 2;
+
+    NumericMatrix res(confs_no, columnsNo);
+
     if(needs_sorting)
     {
         // We need to sort the confs for backward compatibility
@@ -151,25 +156,49 @@ NumericMatrix Rinterface(
         for(size_t i = 0; i < confs_no; i++)
             ordering.push_back(i);
         std::sort(ordering.begin(), ordering.end(), [&logProbs](size_t idx1, size_t idx2) -> bool { return logProbs[idx1] > logProbs[idx2]; });
-    }
 
-    NumericMatrix res(confs_no, columnsNo);
-
-    size_t idx, confs_idx;
-
-    for(size_t i = 0; i < confs_no; i++)
-    {
-        idx = needs_sorting ? ordering[i] : i;
-        res(i,0) = masses[idx];
-        res(i,1) = logProbs[idx];
+        unsigned int idx;
+        for(size_t i = 0; i < confs_no; i++)
+        {
+            idx = ordering[i];
+            res(i,0) = masses[idx];
+            res(i,1) = logProbs[idx];
+        }
 
         if(showCounts)
         {
-            confs_idx = idx*isotopesNo;
-            for(size_t j = 0; j < isotopesNo; j++)
-                res(i,2+j) = confs[confs_idx+j];
+            unsigned int confs_idx;
+            for(size_t i = 0; i < confs_no; i++)
+            {
+                confs_idx = ordering[i];
+                for(size_t j = 2; j < isotopesNoplus2; j++)
+                {
+                    res(i,j) = confs[confs_idx];
+                    confs_idx++;
+                }
+            }
         }
     }
+    else
+    {
+        for(size_t i = 0; i < confs_no; i++)
+        {
+            res(i,0) = masses[i];
+            res(i,1) = logProbs[i];
+        }
+
+        if(showCounts)
+        {
+            size_t confs_idx = 0;
+            for(size_t i = 0; i < confs_no; i++)
+            {
+                for(size_t j = 2; j < isotopesNoplus2; j++)
+                {
+                    res(i,j) = confs[confs_idx];
+                    confs_idx++;
+                }
+            }
+        }
 
     colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
 
