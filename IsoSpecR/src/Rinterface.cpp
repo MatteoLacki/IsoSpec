@@ -199,6 +199,7 @@ NumericMatrix Rinterface(
                 }
             }
         }
+    }
 
     colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
 
