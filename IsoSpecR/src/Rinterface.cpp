@@ -136,9 +136,9 @@ NumericMatrix Rinterface(
     // The remaining (layered) algos
     TotalProbFixedEnvelope TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
-    double* logProbs = TAB.lprobs();
-    double* masses = TAB.masses();
-    int* confs = TAB.confs();
+    const double* logProbs = TAB.lprobs();
+    const double* masses = TAB.masses();
+    const int* confs = TAB.confs();
     std::vector<size_t> ordering;
     size_t confs_no = TAB.confs_no();
 

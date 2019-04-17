@@ -34,6 +34,7 @@ public:
     size_t  _confs_no;
     int     allDim;
 
+public:
     FixedEnvelope() : _masses(nullptr),
         _lprobs(nullptr),
         _probs(nullptr),
@@ -52,15 +53,21 @@ public:
     inline size_t    confs_no() const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
 
-    inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
-    inline double*   masses(bool release = false)   { double* ret = _masses; if(release) _masses = nullptr; return ret; };
-    inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
-    inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
+    inline const double*   lprobs()   { return _lprobs; };
+    inline const double*   masses()   { return _masses; };
+    inline const double*   probs()    { return _probs; };
+    inline const int*      confs()    { return _confs; };
 
-    inline double    mass(size_t i)  { return _masses[i]; };
-    inline double    lprob(size_t i) { return _lprobs[i]; };
-    inline double    prob(size_t i)  { return _probs[i];  };
-    inline int*      conf(size_t i) { return _confs + i*allDim; };
+    inline double*   release_lprobs()   { double* ret = _lprobs; _lprobs = nullptr; return ret; };
+    inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; };
+    inline double*   release_probs()    { double* ret = _probs;  _probs  = nullptr; return ret; };
+    inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; };
+
+
+    inline double     mass(size_t i)  { return _masses[i]; };
+    inline double     lprob(size_t i) { return _lprobs[i]; };
+    inline double     prob(size_t i)  { return _probs[i];  };
+    inline const int* conf(size_t i)  { return _confs + i*allDim; };
 
 protected:
     double* tmasses;
@@ -78,15 +85,7 @@ protected:
         if constexpr(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
     }
 
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size)
-    {
-        // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-        if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
-        if constexpr(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-        if constexpr(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
-        if constexpr(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
-    }
-
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size);
 };
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
@@ -104,23 +103,12 @@ public:
         call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
     }
 
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
-    {
-        IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
-
-        size_t tab_size = generator.count_confs();
-        this->allDim = generator.getAllDim();
-        this->allDimSizeofInt = this->allDim * sizeof(int);
-
-        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(tab_size);
-
-        while(generator.advanceToNextConfiguration())
-            store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
-
-        this->_confs_no = tab_size;
-    }
-
     virtual ~ThresholdFixedEnvelope() {};
+
+private:
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
+
+    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 };
 
 
@@ -146,115 +134,12 @@ public:
         }
     }
 
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso)
-    {
-        if(optimize && !tgetProbs)
-        // If we want to optimize, we need the probs
-            throw std::logic_error("Cannot perform quicktrim if we're not computing probabilities");
-
-        IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::max<double>(target_total_prob, 1.0));
-
-        this->allDim = generator.getAllDim();
-        this->allDimSizeofInt = this->allDim*sizeof(int);
-
-
-        this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
-
-        size_t last_switch = 0;
-        double prob_at_last_switch = 0.0;
-        double prob_so_far = 0.0;
-        do
-        { // Store confs until we accumulate more prob than needed - and, if optimizing,
-          // store also the rest of the last layer
-            while(generator.advanceToNextConfigurationWithinLayer())
-            {
-                this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
-                prob_so_far += generator.prob();
-                if(prob_so_far >= target_total_prob)
-                {
-                    if (optimize)
-                    {
-                        while(generator.advanceToNextConfigurationWithinLayer())
-                            this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
-                        break;
-                    }
-                    else
-                        return;
-                }
-            }
-            if(prob_so_far >= target_total_prob)
-                break;
-
-            last_switch = this->_confs_no;
-            prob_at_last_switch = prob_so_far;
-        } while(generator.nextLayer(-3.0));
-
-        if(!optimize || prob_so_far <= target_total_prob)
-            return;
-
-        // Right. We have extra configurations and we have been asked to produce an optimal p-set, so
-        // now we shall trim unneeded configurations, using an algorithm dubbed "quicktrim"
-        // - similar to the quickselect algorithm, except that we use the cumulative sum of elements
-        // left of pivot to decide whether to go left or right, instead of the positional index.
-        // We'll be sorting by the prob array, permuting the other ones in parallel.
-
-        int* conf_swapspace = nullptr;
-        if constexpr(tgetConfs)
-            conf_swapspace = (int*) malloc(this->allDimSizeofInt);
-
-        size_t start = last_switch;
-        size_t end = this->_confs_no;
-        double sum_to_start = prob_at_last_switch;
-
-        while(start < end)
-        {
-            // Partition part
-            size_t len = end - start;
-#if ISOSPEC_BUILDING_R
-            size_t pivot = len/2 + start;
-#else
-            size_t pivot = rand() % len + start;
-#endif
-            double pprob = this->_probs[pivot];
-            swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(pivot, end-1, conf_swapspace);
-
-            double new_csum = sum_to_start;
-
-            size_t loweridx = start;
-            for(size_t ii=start; ii<end-1; ii++)
-                if(this->_probs[ii] > pprob)
-                {
-                    swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, loweridx, conf_swapspace);
-                    new_csum += this->_probs[loweridx];
-                    loweridx++;
-                }
-
-            swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end-1, loweridx, conf_swapspace);
-
-            // Selection part
-            if(new_csum < target_total_prob)
-            {
-                start = loweridx + 1;
-                sum_to_start = new_csum + this->_probs[loweridx];
-            }
-            else
-                end = loweridx;
-        }
-
-        if constexpr(tgetConfs)
-            free(conf_swapspace);
-
-        if(end <= current_size/2)
-            // Overhead in memory of 2x or more, shrink to fit
-            this->template reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end);
-
-        this->_confs_no = end;
-    }
-
-
     virtual ~TotalProbFixedEnvelope() {};
 
 private:
+
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
+
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
         if constexpr(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
@@ -286,6 +171,8 @@ private:
         this->template store_conf<IsoLayeredGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
         this->_confs_no++;
     }
+
+    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
 };
 
