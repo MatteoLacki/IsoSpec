@@ -129,7 +129,7 @@ public:
 
         if(!tgetProbs && optimize)
         {
-            delete[] _probs;
+            free(_probs);
             _probs = nullptr;
         }
     }
