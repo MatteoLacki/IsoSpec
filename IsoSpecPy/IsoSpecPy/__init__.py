@@ -20,7 +20,7 @@ import re
 import types
 from . import PeriodicTbl
 from .confs_passthrough import ConfsPassthrough
-
+from collections import namedtuple
 
 try:
     xrange
@@ -28,6 +28,8 @@ except NameError:
     xrange = range
 
 regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
+ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob')
+
 
 def IsoParamsFromFormula(formula):
     global regex_pattern
@@ -43,37 +45,37 @@ def IsoParamsFromFormula(formula):
     except KeyError:
         raise ValueError("Invalid formula")
 
-    return (atomCounts, masses, probs)
+    return ParsedFormula(atomCounts, masses, probs)
 
 
 
 class Iso(object):
-    def __init__(self, formula=None,
+    def __init__(self, formula="",
                  get_confs=False,
-                 atomCounts=None,
-                 isotopeMasses=None,
-                 isotopeProbabilities=None):
+                 atomCounts=[],
+                 isotopeMasses=[],
+                 isotopeProbabilities=[]):
         """Initialize Iso."""
 
         self.iso = None
 
-        if formula is None and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
+        if not formula and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
             raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
 
-        if formula is not None:
+        if formula:
             if isinstance(formula, dict):
                 formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
         else:
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
 
-        if atomCounts is not None:
+        if atomCounts:
             self.atomCounts.extend(atomCounts)
 
-        if isotopeMasses is not None:
+        if isotopeMasses:
             self.isotopeMasses.extend(isotopeMasses)
 
-        if isotopeProbabilities is not None:
+        if isotopeProbabilities:
             self.isotopeProbabilities.extend(isotopeProbabilities)
 
         for sublist in self.isotopeProbabilities:
