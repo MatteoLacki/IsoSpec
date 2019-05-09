@@ -97,6 +97,13 @@ double NormalPDF(double x, double mean, double stdev)
 
 const double sqrt_pi = 1.772453850905516027298167483341145182798;
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize("O1")
+#endif
+// TODO: investigate. WTH happens? test: ./from_formula_layered_gcc C1H1O2N2Se1Sn1 0.99
+// changes behaviour with -O2 -march=native -mtune=native (==skylake)
+
 double LowerIncompleteGamma2(int a, double x)
 {
     double base;
@@ -142,6 +149,9 @@ double InverseLowerIncompleteGamma2(int a, double x)
     return s;
 }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
 
 
 } // namespace IsoSpec
