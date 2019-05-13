@@ -131,6 +131,10 @@ double LowerIncompleteGamma2(int a, double x)
     return base;
 }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
+
 double InverseLowerIncompleteGamma2(int a, double x)
 {
     double l = 0.0;
@@ -149,9 +153,6 @@ double InverseLowerIncompleteGamma2(int a, double x)
     return s;
 }
 
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC pop_options
-#endif
 
 
 } // namespace IsoSpec
