@@ -43,9 +43,9 @@ int main()
         std::cout << "Visiting configuration: " << std::endl;
         std::cout << "Mass: " << iso.mass(ii) << std::endl;
         std::cout << "log-prob: " << iso.lprob(ii) << std::endl;
-        std::cout << "probability: " << iso.probs(ii) << std::endl;
+        std::cout << "probability: " << iso.prob(ii) << std::endl;
 
-        int* conf = iso.conf(ii);
+        const int* conf = iso.conf(ii);
         // Successive isotopologues are ordered by the appearance in the formula of the element, then by nucleon number, and concatenated into one array
         std::cout << "Protium atoms: " << conf[0] << std::endl;
         std::cout << "Deuterium atoms " << conf[1] << std::endl;
@@ -85,7 +85,7 @@ int main()
     std::cout << "log-prob: " << iso.lprob(0) << std::endl;
     std::cout << "probability: " << iso.prob(0) << std::endl;
 
-    int* conf = iso.conf(0);
+    const int* conf = iso.conf(0);
 
     // Successive isotopologues are ordered by the appearance in the formula of the element, then by nucleon number, and concatenated into one array
     std::cout << "Protium atoms: " << conf[0] << std::endl;
