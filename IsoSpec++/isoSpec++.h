@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <queue>
 #include <limits>
+#include <string>
 #include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -93,6 +94,9 @@ public:
 
     //! Constructor from the formula object.
     Iso(const char* formula);
+
+    //! Constructor from C++ std::string chemical formula.
+    inline Iso(const std::string& formula) : Iso(formula.c_str()) {};
 
     //! The move constructor.
     Iso(Iso&& other);
