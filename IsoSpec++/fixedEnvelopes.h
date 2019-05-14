@@ -26,7 +26,7 @@ namespace IsoSpec
 {
 
 class FixedEnvelope {
-public:
+protected:
     double* _masses;
     double* _lprobs;
     double* _probs;
