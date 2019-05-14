@@ -61,7 +61,6 @@ private:
     */
     void setupMarginals(const double* const * _isotopeMasses,
                         const double* const * _isotopeProbabilities);
-public:
     bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
 protected:
     int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
