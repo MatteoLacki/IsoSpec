@@ -524,7 +524,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
         for(int ii = 0; ii < dimNumber; ii++)
         {
             const int i = marginalResultsUnsorted[ii]->get_isotopeNo();
-            if(i == 1)
+            if(i <= 1)
                 marginal_priorities[ii] = 0.0;
             else
             {
