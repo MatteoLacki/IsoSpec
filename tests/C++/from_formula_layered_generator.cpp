@@ -37,7 +37,7 @@ size_t test_layered_tabulator(const char* formula, double total_prob, bool print
     IsoLayeredGenerator i(formula, 1000, 1000);
     double minlp = 1.0;
     int cnt = 0;
-    int* confspace;
+    int* confspace = nullptr;
     double acc_prob = 0.0;
         
     if(print_confs)
