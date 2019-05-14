@@ -308,16 +308,7 @@ public:
     */
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
 
-    inline ~IsoThresholdGenerator()
-    {
-        delete[] counter;
-        delete[] maxConfsLPSum;
-        if (marginalResultsUnsorted != marginalResults)
-            delete[] marginalResultsUnsorted;
-        dealloc_table(marginalResults, dimNumber);
-        if(marginalOrder != nullptr)
-            delete[] marginalOrder;
-    };
+    ~IsoThresholdGenerator();
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function).

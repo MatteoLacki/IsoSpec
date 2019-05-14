@@ -482,6 +482,18 @@ void IsoThresholdGenerator::reset()
     lProbs_ptr = lProbs_ptr_start - 1;
 }
 
+IsoThresholdGenerator::~IsoThresholdGenerator()
+{
+    delete[] counter;
+    delete[] maxConfsLPSum;
+    if (marginalResultsUnsorted != marginalResults)
+        delete[] marginalResultsUnsorted;
+    dealloc_table(marginalResults, dimNumber);
+    if(marginalOrder != nullptr)
+        delete[] marginalOrder;
+};
+
+
 /*
  * ------------------------------------------------------------------------------------------------------------------------
  */
