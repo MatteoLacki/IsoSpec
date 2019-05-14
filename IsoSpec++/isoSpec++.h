@@ -186,7 +186,7 @@ public:
     */
     virtual double prob() const { return partialProbs[0]; };
 
-    //TODO: what is this???
+    //! Write the signature of configuration into target memory location. It must be large enough to accomodate it.
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
