@@ -455,42 +455,6 @@ public:
         return false;
     }
 
-    ISOSPEC_FORCE_INLINE bool carry()
-    {
-        // If we reached this point, a carry is needed
-
-        int idx = 0;
-
-        int * cntr_ptr = counter;
-
-        while(idx<dimNumber-1)
-        {
-            *cntr_ptr = 0;
-            idx++;
-            cntr_ptr++;
-            (*cntr_ptr)++;
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
-            {
-                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
-                recalc(idx-1);
-                lProbs_ptr = resetPositions[idx];
-
-                while(*lProbs_ptr <= last_lcfmsv)
-                    lProbs_ptr--;
-
-                for(int ii=0; ii<idx; ii++)
-                    resetPositions[ii] = lProbs_ptr;
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
     ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
@@ -515,6 +479,9 @@ public:
     }
 
     virtual bool nextLayer(double offset) override final;
+
+private:
+    bool carry();
 };
 
 
