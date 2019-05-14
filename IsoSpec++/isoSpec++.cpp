@@ -491,7 +491,7 @@ IsoThresholdGenerator::~IsoThresholdGenerator()
     dealloc_table(marginalResults, dimNumber);
     if(marginalOrder != nullptr)
         delete[] marginalOrder;
-};
+}
 
 
 /*
