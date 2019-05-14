@@ -482,6 +482,18 @@ void IsoThresholdGenerator::reset()
     lProbs_ptr = lProbs_ptr_start - 1;
 }
 
+IsoThresholdGenerator::~IsoThresholdGenerator()
+{
+    delete[] counter;
+    delete[] maxConfsLPSum;
+    if (marginalResultsUnsorted != marginalResults)
+        delete[] marginalResultsUnsorted;
+    dealloc_table(marginalResults, dimNumber);
+    if(marginalOrder != nullptr)
+        delete[] marginalOrder;
+}
+
+
 /*
  * ------------------------------------------------------------------------------------------------------------------------
  */
@@ -616,6 +628,42 @@ bool IsoLayeredGenerator::nextLayer(double offset)
     return true;
 }
 
+bool IsoLayeredGenerator::carry()
+{
+    // If we reached this point, a carry is needed
+
+    int idx = 0;
+
+    int * cntr_ptr = counter;
+
+    while(idx<dimNumber-1)
+    {
+        *cntr_ptr = 0;
+        idx++;
+        cntr_ptr++;
+        (*cntr_ptr)++;
+        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
+        {
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
+            recalc(idx-1);
+            lProbs_ptr = resetPositions[idx];
+
+            while(*lProbs_ptr <= last_lcfmsv)
+                lProbs_ptr--;
+
+            for(int ii=0; ii<idx; ii++)
+                resetPositions[ii] = lProbs_ptr;
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 void IsoLayeredGenerator::terminate_search()
 {
     for(int ii=0; ii<dimNumber; ii++)
@@ -626,6 +674,19 @@ void IsoLayeredGenerator::terminate_search()
     partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
     lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
 }
+
+IsoLayeredGenerator::~IsoLayeredGenerator()
+{
+    delete[] counter;
+    delete[] maxConfsLPSum;
+    delete[] resetPositions;
+    if (marginalResultsUnsorted != marginalResults)
+        delete[] marginalResultsUnsorted;
+    dealloc_table(marginalResults, dimNumber);
+    if(marginalOrder != nullptr)
+      delete[] marginalOrder;
+}
+
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------

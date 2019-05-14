@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <queue>
 #include <limits>
+#include <string>
 #include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -61,7 +62,6 @@ private:
     */
     void setupMarginals(const double* const * _isotopeMasses,
                         const double* const * _isotopeProbabilities);
-public:
     bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
 protected:
     int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
@@ -94,6 +94,9 @@ public:
 
     //! Constructor from the formula object.
     Iso(const char* formula);
+
+    //! Constructor from C++ std::string chemical formula.
+    inline Iso(const std::string& formula) : Iso(formula.c_str()) {};
 
     //! The move constructor.
     Iso(Iso&& other);
@@ -183,7 +186,7 @@ public:
     */
     virtual double prob() const { return partialProbs[0]; };
 
-    //TODO: what is this???
+    //! Write the signature of configuration into target memory location. It must be large enough to accomodate it.
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
@@ -305,16 +308,7 @@ public:
     */
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
 
-    inline ~IsoThresholdGenerator()
-    {
-        delete[] counter;
-        delete[] maxConfsLPSum;
-        if (marginalResultsUnsorted != marginalResults)
-            delete[] marginalResultsUnsorted;
-        dealloc_table(marginalResults, dimNumber);
-        if(marginalOrder != nullptr)
-            delete[] marginalOrder;
-    };
+    ~IsoThresholdGenerator();
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
     // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function).
@@ -435,27 +429,9 @@ public:
 
     inline double get_currentLThreshold() const { return currentLThreshold; };
 
-    void printSimpleConf()
-    {
-        std::cout << "SimpleConf: " << lProbs_ptr - lProbs_ptr_start;
-        for(int ii=1; ii<dimNumber; ii++)
-            std::cout << " " << counter[ii];
-        std::cout << std::endl;
-    }
-
     IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99);
 
-    inline ~IsoLayeredGenerator()
-    {
-        delete[] counter;
-        delete[] maxConfsLPSum;
-        delete[] resetPositions;
-        if (marginalResultsUnsorted != marginalResults)
-            delete[] marginalResultsUnsorted;
-        dealloc_table(marginalResults, dimNumber);
-        if(marginalOrder != nullptr)
-          delete[] marginalOrder;
-    };
+    ~IsoLayeredGenerator();
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
@@ -478,42 +454,6 @@ public:
         while(carry());
         return false;
     }
-
-    ISOSPEC_FORCE_INLINE bool carry()
-    {
-        // If we reached this point, a carry is needed
-
-        int idx = 0;
-
-        int * cntr_ptr = counter;
-
-        while(idx<dimNumber-1)
-        {
-            *cntr_ptr = 0;
-            idx++;
-            cntr_ptr++;
-            (*cntr_ptr)++;
-            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
-            {
-                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
-                recalc(idx-1);
-                lProbs_ptr = resetPositions[idx];
-
-                while(*lProbs_ptr <= last_lcfmsv)
-                    lProbs_ptr--;
-
-                for(int ii=0; ii<idx; ii++)
-                    resetPositions[ii] = lProbs_ptr;
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
 
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
@@ -539,6 +479,9 @@ public:
     }
 
     virtual bool nextLayer(double offset) override final;
+
+private:
+    bool carry();
 };
 
 
