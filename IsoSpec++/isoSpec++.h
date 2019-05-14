@@ -431,17 +431,7 @@ public:
 
     IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99);
 
-    inline ~IsoLayeredGenerator()
-    {
-        delete[] counter;
-        delete[] maxConfsLPSum;
-        delete[] resetPositions;
-        if (marginalResultsUnsorted != marginalResults)
-            delete[] marginalResultsUnsorted;
-        dealloc_table(marginalResults, dimNumber);
-        if(marginalOrder != nullptr)
-          delete[] marginalOrder;
-    };
+    ~IsoLayeredGenerator();
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
