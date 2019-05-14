@@ -1,5 +1,5 @@
 /*!
-    Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+    Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
 
     This file is part of IsoSpec.
 
@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <queue>
 #include <limits>
+#include <string>
 #include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -61,7 +62,6 @@ private:
     */
     void setupMarginals(const double* const * _isotopeMasses,
                         const double* const * _isotopeProbabilities);
-public:
     bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
 protected:
     int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
@@ -73,6 +73,9 @@ protected:
     double          modeLProb;      /*!< The log-probability of the mode of the isotopic distribution. */
 
 public:
+
+    Iso();
+
     //! General constructror.
     /*!
         \param _dimNumber The number of elements in the formula, e.g. for C100H202 it would be 2, as there are only carbon and hydrogen atoms.
@@ -91,6 +94,9 @@ public:
 
     //! Constructor from the formula object.
     Iso(const char* formula);
+
+    //! Constructor from C++ std::string chemical formula.
+    inline Iso(const std::string& formula) : Iso(formula.c_str()) {};
 
     //! The move constructor.
     Iso(Iso&& other);
@@ -112,14 +118,17 @@ public:
     double getHeaviestPeakMass() const;
 
     /*!
-        Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as 
-        consisting only of the most frequent isotopes of each element. These are often (but not always) the 
+        Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as
+        consisting only of the most frequent isotopes of each element. These are often (but not always) the
         lightest ones, making this often (but again, not always) equal to getLightestPeakMass()
     */
     double getMonoisotopicPeakMass() const;
 
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
     inline double getModeLProb() const { return modeLProb; };
+
+    //! Get the logprobability of the least probable subisotopologue.
+    double getUnlikeliestPeakLProb() const;
 
     //! Get the mass of the mode-configuration (if there are many modes, it is undefined which one will be selected).
     double getModeMass() const;
@@ -132,6 +141,9 @@ public:
 
     //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; };
+
+    //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
+    void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
 };
 
 
@@ -153,6 +165,9 @@ public:
     */
     virtual bool advanceToNextConfiguration() = 0;
 
+    ISOSPEC_FORCE_INLINE virtual bool advanceToNextConfigurationWithinLayer() { return advanceToNextConfiguration(); };
+    ISOSPEC_FORCE_INLINE virtual bool nextLayer(double) { return false; };
+
     //! Get the log-probability of the current isotopologue.
     /*!
         \return The log-probability of the current isotopologue.
@@ -171,7 +186,7 @@ public:
     */
     virtual double prob() const { return partialProbs[0]; };
 
-    //TODO: what is this???
+    //! Write the signature of configuration into target memory location. It must be large enough to accomodate it.
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
@@ -209,7 +224,7 @@ public:
 
     //! Save the counts of isotopes in the space.
     /*!
-        \param space An array where counts of isotopes shall be written. 
+        \param space An array where counts of isotopes shall be written.
                      Must be as big as the overall number of isotopes.
     */
     inline void get_conf_signature(int* space) const override final
@@ -250,7 +265,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 private:
 
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
-    double*                 maxConfsLPSum;      
+    double*                 maxConfsLPSum;
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
     PrecalculatedMarginal** marginalResultsUnsorted;
@@ -293,19 +308,10 @@ public:
     */
     IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
 
-    inline ~IsoThresholdGenerator()
-    {
-        delete[] counter;
-        delete[] maxConfsLPSum;
-        if (marginalResultsUnsorted != marginalResults)
-            delete[] marginalResultsUnsorted;
-        dealloc_table(marginalResults, dimNumber); 
-        if(marginalOrder != nullptr)
-            delete[] marginalOrder;
-    };
+    ~IsoThresholdGenerator();
 
     // Perform highly aggressive inling as this function is often called as while(advanceToNextConfiguration()) {}
-    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function). 
+    // which leads to an extremely tight loop and some compilers miss this (potentially due to the length of the function).
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         lProbs_ptr++;
@@ -353,7 +359,7 @@ public:
     void terminate_search();
 
     /*! Reset the generator to the beginning of the sequence. Allows it to be reused, eg. to go through the conf space once, calculate
-        the amount of space needed to store configurations, then to allocate that memory, and go through it again, this time saving 
+        the amount of space needed to store configurations, then to allocate that memory, and go through it again, this time saving
         configurations (and *is* in fact faster than allocating a std::vector and depending on it to grow as needed. This is cheaper
         than throwing away the generator and making a new one too: marginal distributions don't need to be recalculated. */
     void reset();
@@ -382,59 +388,102 @@ private:
 
 
 
-//! The class that represents isotopologues above a given joint probability value.
-/*!
-    This class generates subsequent isotopologues that ARE NOT GUARANTEED TO BE ORDERED BY probability.
-    The overal set of isotopologues is guaranteed to surpass a given threshold of probability contained in the
-    isotopic distribution.
-    This calculations are performed in O(N) operations, where N is the total number of the output isotopologues.
 
-    This class is not a true generator yet - the generator methods have been implemented for compatibility, but
-    the class actually performs all computations during the initialization and stores them, and the generator methods
-    only walk through the array of precomputed values. . It will be reimplemented as a true generator in 2.0.
-*/
+
 class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 {
 private:
-    Summator                totalProb;
-    std::vector<void*>      newaccepted;
-    DirtyAllocator allocator;
-    int* candidate;
-    const std::vector<double>** logProbs;                   /*!< Obtained log-probabilities. */
-    const std::vector<double>** masses;                     /*!< Obtained masses. */
-    const std::vector<int*>**   marginalConfs;              /*!< Obtained counts of isotopes. */
-    MarginalTrek** marginalResults;
-    std::vector<void*>*         current;
-    std::vector<void*>*         next;
-    double                      lprobThr;
-    double                      targetCoverage;
-    double                      percentageToExpand;
-    bool                        do_trim;
-    int layers;
-    size_t generator_position;
 
-    bool advanceToNextLayer(); 
+    int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
+    double*                 maxConfsLPSum;
+    double currentLThreshold, lastLThreshold;
+    LayeredMarginal** marginalResults;
+    LayeredMarginal** marginalResultsUnsorted;
+    int* marginalOrder;
+
+    const double* lProbs_ptr;
+    const double* lProbs_ptr_start;
+    const double** resetPositions;
+    double* partialLProbs_second;
+    double partialLProbs_second_val, lcfmsv, last_lcfmsv;
 
 public:
-    bool advanceToNextConfiguration() override final;
-
     inline void get_conf_signature(int* space) const override final
     {
-        int* conf = getConf(newaccepted[generator_position]);
-        for(int ii=0; ii<dimNumber; ii++)
-        {
-            memcpy(space, marginalResults[ii]->confs()[conf[ii]], isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
+        counter[0] = lProbs_ptr - lProbs_ptr_start;
+        if(marginalOrder != nullptr)
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                int jj = marginalOrder[ii];
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+        else
+            for(int ii=0; ii<dimNumber; ii++)
+            {
+                memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+
     };
 
+    inline double get_currentLThreshold() const { return currentLThreshold; };
 
-    IsoLayeredGenerator(Iso&& iso, double _targetCoverage, double _percentageToExpand = 0.3, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
-    virtual ~IsoLayeredGenerator();
+    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99);
 
+    ~IsoLayeredGenerator();
+
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
+    {
+        do
+        {
+            if(advanceToNextConfigurationWithinLayer())
+                return true;
+        } while(nextLayer(-2.0));
+        return false;
+    }
+
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer() override final
+    {
+        do{
+            lProbs_ptr++;
+
+            if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
+                return true;
+        }
+        while(carry());
+        return false;
+    }
+
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
+    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
+
+    //! Block the subsequent search of isotopologues.
     void terminate_search();
 
+
+    //! Recalculate the current partial log-probabilities, masses, and probabilities.
+    ISOSPEC_FORCE_INLINE void recalc(int idx)
+    {
+        for(; idx > 0; idx--)
+        {
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
+        }
+        partialLProbs_second_val = *partialLProbs_second;
+        partialLProbs[0] = partialLProbs_second_val + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = currentLThreshold - partialLProbs_second_val;
+        last_lcfmsv = lastLThreshold - partialLProbs_second_val;
+    }
+
+    virtual bool nextLayer(double offset) override final;
+
+private:
+    bool carry();
 };
+
 
 
 

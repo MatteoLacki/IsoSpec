@@ -40,10 +40,11 @@ NULL
 #' @param isotopes  A named list of isotopic information required for IsoSpec. The names must be valid element symbols, see \code{isotopicData} for examples. Each enlisted object should be a \code{data.frame} containing columns \code{element} (specifying the symbol of the element), \code{mass} (specifying the mass of the isotope), \code{abundance} (specyfying the assumed frequency of finding that isotope).
 #' @param step      The percent of the the percentile of isotopologues in the current isolayer, specyfying the cutoff for the next isolayer. It has been optimised and better not change the default value.
 #' @return A numeric matrix containing the masses, the logarithms of probability, and, optionally, counts of isotopologues. Attention: this matrix does not have to be sorted. Sorting it would also compromise the linear complexity of our algorithm.
+#' @export
 #' @examples
+#' library(IsoSpecR)
 #' res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
 #' print(res)
-#' @export
 IsoSpecify <- function(
         molecule,
         stopCondition,

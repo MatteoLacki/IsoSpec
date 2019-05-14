@@ -31,7 +31,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 cmodule = Extension('IsoSpecCppPy',
                     sources = ['IsoSpec++/unity-build.cpp'],
-                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++11'.split() #+ ['-DDEBUG']
+                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++17'.split() #+ ['-DDEBUG']
                     )
 
 setup_args = {
@@ -41,7 +41,7 @@ setup_args = {
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    'version': '1.9.3',
+    'version': '2.0.0a1',
 
     'description': 'Python interface to IsoSpec++ isotopic envelope calculator library',
     'long_description': 'Python interface to IsoSpec++ isotopic envelope calculator library',
@@ -74,16 +74,18 @@ setup_args = {
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 
     # What does your project relate to?
-    'keywords' : 'isotopic envelope',
+    'keywords' : 'isotopic envelope mass spectrometry',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
@@ -102,16 +104,13 @@ setup_args = {
     # for example:
     # $ pip install -e .[dev,test]
     'extras_require' : {
-#        'dev': ['check-manifest'],
-#        'test': ['coverage'],
+       'test': ["pytest"]
     },
 
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    'package_data' : {
-#        'sample': ['package_data.dat'],
-    },
+    'package_data' : {},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

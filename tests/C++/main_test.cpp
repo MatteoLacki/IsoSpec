@@ -5,6 +5,7 @@
 #include "from_formula_threshold_simple.cpp"
 #include "element_zero.cpp"
 #include "unity-build.cpp"
+#include "empty_iso.cpp"
 #include <vector>
 
 #if !defined(ISOSPEC_TESTS_MEMSAN)
@@ -30,6 +31,7 @@ int main()
             zero_ok = true;
         }
         assert(zero_ok);
+        test_empty_and_print();
         #if !defined(ISOSPEC_SKIP_SLOW_TESTS)
 	char test_formulas[] = "P1 P2 H1 H2 O1 O2 H2O1 C0 P0 C100O0P100 C100 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5 Sn5 Se2Sn2C2O2N2S2B2He2U2Na2Cl2";
         #else
@@ -56,7 +58,7 @@ int main()
 		{
 			TEST(*it_formula, *it_prob, test_threshold_simple);
 			TEST(*it_formula, *it_prob, test_threshold);
-			TEST(*it_formula, *it_prob, test_layered);
+			TEST(*it_formula, *it_prob, test_layered_tabulator);
 			TEST(*it_formula, *it_prob, test_ordered);
 		}
 

@@ -3,14 +3,15 @@ cmake_minimum_required(VERSION 2.6)
 
 set(my_sources
 cwrapper.cpp
-allocator.cpp  
-dirtyAllocator.cpp 
-isoSpec++.cpp 
-isoMath.cpp 
-marginalTrek++.cpp 
+allocator.cpp
+dirtyAllocator.cpp
+isoSpec++.cpp
+isoMath.cpp
+marginalTrek++.cpp
 operators.cpp
 element_tables.cpp
 misc.cpp
+fixedEnvelopes.cpp
 )
 
 ## platform dependent compiler flags:
@@ -22,7 +23,7 @@ if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly tr
   endif()
 
   # Only add those definitions on non-windows systems
-  add_definitions(-std=c++11 -Wall -pedantic -Wextra)
+  add_definitions(-std=c++17 -Wall -pedantic -Wextra)
 else()
   ## On MSVS we need this for mmap
   set(my_sources ${my_sources} mman.cpp)

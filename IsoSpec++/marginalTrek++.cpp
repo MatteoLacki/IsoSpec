@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -152,7 +152,7 @@ double* getMLogProbs(const double* probs, int isoNo)
     /*!
     Here we order the processor to round the numbers up rather than down.
     Rounding down could result in the algorithm falling in an infinite loop
-    because of the numerical instability of summing. 
+    because of the numerical instability of summing.
     */
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
@@ -394,10 +394,10 @@ MarginalTrek::~MarginalTrek()
 
 
 PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
-	double lCutOff,
-	bool sort,
-        int tabSize,
-        int hashSize
+    double lCutOff,
+    bool sort,
+    int tabSize,
+    int hashSize
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
@@ -536,15 +536,19 @@ bool LayeredMarginal::extend(double new_threshold)
                             (opc > lpc || (opc == lpc && ii > jj)))
                         {
                             Conf nc = allocator.makeCopy(currentConf);
+                            currentConf[ii]--;
+                            currentConf[jj]++;
                             visited.insert(nc);
                             if(lpc >= new_threshold)
                                 fringe.push_back(nc);
                             else
                                 new_fringe.push_back(nc);
                         }
-
-                        currentConf[ii]--;
-                        currentConf[jj]++;
+                        else
+                        {
+                            currentConf[ii]--;
+                            currentConf[jj]++;
+                        }
 
                     }
         }
@@ -555,17 +559,11 @@ bool LayeredMarginal::extend(double new_threshold)
 
     std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
 
-    std::cout << "Marginal: lProbs.size(): " << lProbs.size() << std::endl;
-    std::cout << "Marginal: configurations.size(): " << configurations.size() << std::endl;
-
-    std::cout << "Marginal: guardian: " << lProbs[lProbs.size()-1] << std::endl;
-
-
     if(lProbs.capacity() * 2 < configurations.size() + 2)
     {
         // Reserve space for new values
         lProbs.reserve(configurations.size()+2);
-        eProbs.reserve(configurations.size());
+        probs.reserve(configurations.size());
         masses.reserve(configurations.size());
     } // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
       // but don't reallocate on every call
@@ -574,9 +572,8 @@ bool LayeredMarginal::extend(double new_threshold)
 
     for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
     {
-        std::cout << "Marginal: looped" << std::endl;
         lProbs.push_back(logProb(configurations[ii]));
-        eProbs.push_back(exp(lProbs.back()));
+        probs.push_back(exp(lProbs.back()));
         masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
     }
 
@@ -584,14 +581,6 @@ bool LayeredMarginal::extend(double new_threshold)
 
     sorted_up_to_idx = configurations.size();
     guarded_lProbs = lProbs.data()+1; // Vector might have reallocated its backing storage
-
-    printVector(lProbs);
-    printVector(configurations);
-    printVector(masses);
-
-    std::cout << "Marginal: extended to: " << lProbs.size() << " threshold: " << new_threshold << std::endl;
-    std::cout << "Marginal: configurations extended to: " << configurations.size() << " threshold: " << new_threshold << std::endl;
-
 
     return true;
 }

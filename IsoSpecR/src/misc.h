@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -20,6 +20,7 @@
 #include <tuple>
 #include <vector>
 #include <fenv.h>
+#include <string.h>
 #include "isoMath.h"
 
 namespace IsoSpec
@@ -89,8 +90,10 @@ inline bool tupleCmp(
     return std::get<1>(t1) > std::get<1>(t2);
 }
 
-template<typename T> void printArray(const T* array, int size)
+template<typename T> void printArray(const T* array, int size, const char* prefix = "")
 {
+    if (strlen(prefix) > 0)
+        std::cout << prefix << " ";
     for (int i=0; i<size; i++)
         std::cout << array[i] << " ";
     std::cout << std::endl;
@@ -101,6 +104,14 @@ template<typename T> void printVector(const std::vector<T>& vec)
     printArray<T>(vec.data(), vec.size());
 }
 
+template<typename T> void printOffsets(const T** array, int size, const T* offset, const char* prefix = "")
+{
+    if (strlen(prefix) > 0)
+        std::cout << prefix << " ";
+    for (int i=0; i<size; i++)
+        std::cout << array[i] - offset << " ";
+    std::cout << std::endl;
+}
 
 template<typename T> void printNestedArray(const T** array, const int* shape, int size)
 {
@@ -130,6 +141,15 @@ template<typename T> void dealloc_table(T* tbl, int dim)
         delete tbl[i];
     }
     delete[] tbl;
+}
+
+template<typename T> void realloc_append(T** array, T what, size_t old_array_size)
+{
+    T* newT = new T[old_array_size+1];
+    memcpy(newT, *array, old_array_size*sizeof(T));
+    newT[old_array_size] = what;
+    delete[] *array;
+    *array = newT;
 }
 
 } // namespace IsoSpec

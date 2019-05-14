@@ -14,9 +14,17 @@ int main(int argc, char** argv)
 	{
 		std::cout << "Proper usage (for example): ./from_formula_threshold C10000H1000O1000N1000 0.01" << std::endl;
 		std::cout << "...will the configurations with probability above 0.01 for the above molecule" << std::endl;
+                std::cout << "Proper usage (for example): ./from_formula_threshold C10000H1000O1000N1000 0.01 false" << std::endl;
+                std::cout << "...will just count them" << std::endl;
 		return -1;
 	}
-	size_t no_visited = test_threshold(argv[1], atof(argv[2]), true);
+
+        bool print_confs = true;
+
+        if(argc > 3)
+            print_confs = (strcmp(argv[3], "true") == 0);
+
+	size_t no_visited = test_threshold(argv[1], atof(argv[2]), print_confs);
 	
 	std::cout << "The number of visited configurations is:" << no_visited << std::endl;
 

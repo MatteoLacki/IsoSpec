@@ -4,8 +4,8 @@
 \alias{IsoSpecify}
 \title{Calculate the isotopic fine structure peaks.}
 \usage{
-IsoSpecify(molecule, stopCondition, isotopes = NULL, showCounts = FALSE,
-  trim = TRUE, algo = 0, step = 0.25)
+IsoSpecify(molecule, stopCondition, isotopes = NULL,
+  showCounts = FALSE, trim = TRUE, algo = 0, step = 0.25)
 }
 \arguments{
 \item{molecule}{A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.}
@@ -34,7 +34,7 @@ A numeric matrix containing the masses, the logarithms of probability, and, opti
 \code{IsoSpecify} is a wrapper around \code{Rinterface} that calls the C++ implementation of the IsoSpec algorithm. Given a molecular formula, it will calculate the smallest set of infinitely resolved peaks (isotopologues) that jointly is \code{p} probable, where \code{p} is provided by the user.
 }
 \examples{
+library(IsoSpecR)
 res <- IsoSpecify( molecule = c(C=10,H=22,O=1), stopCondition = .9999 )
 print(res)
 }
-

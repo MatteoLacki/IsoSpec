@@ -20,7 +20,7 @@ import re
 import types
 from . import PeriodicTbl
 from .confs_passthrough import ConfsPassthrough
-
+from collections import namedtuple
 
 try:
     xrange
@@ -28,6 +28,8 @@ except NameError:
     xrange = range
 
 regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
+ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob')
+
 
 def IsoParamsFromFormula(formula):
     global regex_pattern
@@ -43,37 +45,37 @@ def IsoParamsFromFormula(formula):
     except KeyError:
         raise ValueError("Invalid formula")
 
-    return (atomCounts, masses, probs)
+    return ParsedFormula(atomCounts, masses, probs)
 
 
 
 class Iso(object):
-    def __init__(self, formula=None,
+    def __init__(self, formula="",
                  get_confs=False,
-                 atomCounts=None,
-                 isotopeMasses=None,
-                 isotopeProbabilities=None):
+                 atomCounts=[],
+                 isotopeMasses=[],
+                 isotopeProbabilities=[]):
         """Initialize Iso."""
 
         self.iso = None
 
-        if formula is None and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
+        if not formula and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
             raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
 
-        if formula is not None:
+        if formula:
             if isinstance(formula, dict):
                 formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
         else:
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
 
-        if atomCounts is not None:
+        if atomCounts:
             self.atomCounts.extend(atomCounts)
 
-        if isotopeMasses is not None:
+        if isotopeMasses:
             self.isotopeMasses.extend(isotopeMasses)
 
-        if isotopeProbabilities is not None:
+        if isotopeProbabilities:
             self.isotopeProbabilities.extend(isotopeProbabilities)
 
         for sublist in self.isotopeProbabilities:
@@ -151,30 +153,23 @@ class IsoThreshold(Iso):
         self.threshold = threshold
         self.absolute = absolute
 
-        self.generator = self.ffi.setupIsoThresholdGenerator(self.iso, threshold, absolute, 1000, 1000)
-        tabulator = self.ffi.setupThresholdTabulator(self.generator, True, True, True, get_confs)
+        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, True, True, True, get_confs)
 
-        self.size = self.ffi.confs_noThresholdTabulator(tabulator)
+        self.size = self.ffi.confs_noThresholdFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesThresholdTabulator(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsThresholdTabulator(tabulator))
-        self.probs  = c("double", self.ffi.probsThresholdTabulator(tabulator))
+        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsThresholdTabulator(tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
-        self.ffi.deleteThresholdTabulator(tabulator)
-
-    def __del__(self):
-        try:
-            self.ffi.deleteIsoThresholdGenerator(self.generator)
-        except AttributeError:
-            pass
+        self.ffi.deleteThresholdFixedEnvelope(tabulator)
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
@@ -186,34 +181,27 @@ class IsoThreshold(Iso):
 
 
 class IsoLayered(Iso):
-    def __init__(self, prob_to_cover, get_confs = False, **kwargs):
+    def __init__(self, prob_to_cover, get_confs = False, get_minimal_pset = True, **kwargs):
         super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        self.generator = self.ffi.setupIsoLayeredGenerator(self.iso, prob_to_cover, 0.3, 1000, 1000, True)
-        tabulator = self.ffi.setupLayeredTabulator(self.generator, True, True, True, get_confs)
+        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
 
-        self.size = self.ffi.confs_noLayeredTabulator(tabulator)
+        self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesLayeredTabulator(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsLayeredTabulator(tabulator))
-        self.probs  = c("double", self.ffi.probsLayeredTabulator(tabulator))
+        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsLayeredTabulator(tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
-        self.ffi.deleteLayeredTabulator(tabulator)
-
-    def __del__(self):
-        try:
-            self.ffi.deleteIsoLayeredGenerator(self.generator)
-        except AttributeError:
-            pass
+        self.ffi.deleteTotalProbFixedEnvelope(tabulator)
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
@@ -269,15 +257,12 @@ class IsoThresholdGenerator(IsoGenerator):
 
 
 class IsoLayeredGenerator(IsoGenerator):
-    def __init__(self, prob_to_cover = 0.99, get_confs=False, do_trim = False, use_lprobs=False, **kwargs):
+    def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
         super(IsoLayeredGenerator, self).__init__(get_confs, **kwargs)
-        self.delta = prob_to_cover
         self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso,
-                                                      self.delta,
-                                                      0.3,
                                                       1000,
                                                       1000,
-                                                      do_trim)
+                                                      )
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.xprob_getter = self.ffi.lprobIsoLayeredGenerator if use_lprobs else self.ffi.probIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator
@@ -311,7 +296,7 @@ class IsoOrderedGenerator(IsoGenerator):
 
 
 
-__version__ = "1.9.3"
+__version__ = "2.0.0a1"
 
 
 # For compatibility with 1.0.X

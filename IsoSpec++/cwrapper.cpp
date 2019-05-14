@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -24,9 +24,10 @@
 #include "misc.h"
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
-#include "tabulator.h"
+#include "fixedEnvelopes.h"
 
 using namespace IsoSpec;
+
 
 extern "C"
 {
@@ -133,19 +134,15 @@ ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
-                     double _target_coverage,
-                     double _percentage_to_expand,
                      int _tabSize,
-                     int _hashSize,
-                     bool _do_trim)
+                     int _hashSize
+                )
 {
     IsoLayeredGenerator* iso_tmp = new IsoLayeredGenerator(
         std::move(*reinterpret_cast<Iso*>(iso)),
-        _target_coverage,
-        _percentage_to_expand,
         _tabSize,
-        _hashSize,
-        _do_trim);
+        _hashSize
+    );
 
     return reinterpret_cast<void*>(iso_tmp);
 }
@@ -166,104 +163,111 @@ void* setupIsoOrderedGenerator(void* iso,
 }
 ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
-//______________________________________________________ Threshold Tabulator
+//______________________________________________________ Threshold FixedEnvelope
 
-void* setupThresholdTabulator(void* generator,
+void* setupThresholdFixedEnvelope(void* iso,
+                     double threshold,
+                     bool absolute,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
                      bool  get_confs)
 {
-    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(reinterpret_cast<IsoThresholdGenerator*>(generator),
+    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
+                                         threshold,
+                                         absolute,
+                                         get_lprobs,
                                          get_masses,
                                          get_probs,
-                                         get_lprobs,
                                          get_confs);
 
     return reinterpret_cast<void*>(tabulator);
 }
 
-void deleteThresholdTabulator(void* t)
+void deleteThresholdFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(t);
+    delete reinterpret_cast<ThresholdFixedEnvelope*>(t);
 }
 
-const double* massesThresholdTabulator(void* tabulator)
+const double* massesThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->masses(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_masses();
 }
 
-const double* lprobsThresholdTabulator(void* tabulator)
+const double* lprobsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->lprobs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
-const double* probsThresholdTabulator(void* tabulator)
+const double* probsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->probs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_probs();
 }
 
-const int*    confsThresholdTabulator(void* tabulator)
+const int*    confsThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs(true);
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_confs();
 }
 
-int confs_noThresholdTabulator(void* tabulator)
+int confs_noThresholdFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs_no();
+    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->confs_no();
 }
 
 
-//______________________________________________________ Layered Tabulator
+//______________________________________________________ Layered FixedEnvelope
 
-void* setupLayeredTabulator(void* generator,
+void* setupTotalProbFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs,
                      bool  get_lprobs,
-                     bool  get_confs)
+                     bool  get_confs,
+                     double target_coverage,
+                     bool optimize)
 {
-    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(reinterpret_cast<IsoLayeredGenerator*>(generator),
+    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
+                                         target_coverage,
+                                         optimize,
+                                         get_lprobs,
                                          get_masses,
                                          get_probs,
-                                         get_lprobs,
                                          get_confs);
 
     return reinterpret_cast<void*>(tabulator);
 }
 
-void deleteLayeredTabulator(void* t)
+void deleteTotalProbFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(t);
+    delete reinterpret_cast<TotalProbFixedEnvelope*>(t);
 }
 
-const double* massesLayeredTabulator(void* tabulator)
+const double* massesTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
 }
 
-const double* lprobsLayeredTabulator(void* tabulator)
+const double* lprobsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
-const double* probsLayeredTabulator(void* tabulator)
+const double* probsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_probs();
 }
 
-const int*    confsLayeredTabulator(void* tabulator)
+const int*    confsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs(true);
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_confs();
 }
 
-int confs_noLayeredTabulator(void* tabulator)
+int confs_noTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs_no();
+    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->confs_no();
 }
 
 void freeReleasedArray(void* array)
 {
     free(array);
 }
-
 }  //extern "C" ends here

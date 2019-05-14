@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -152,7 +152,7 @@ double* getMLogProbs(const double* probs, int isoNo)
     /*!
     Here we order the processor to round the numbers up rather than down.
     Rounding down could result in the algorithm falling in an infinite loop
-    because of the numerical instability of summing. 
+    because of the numerical instability of summing.
     */
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
@@ -394,10 +394,10 @@ MarginalTrek::~MarginalTrek()
 
 
 PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
-	double lCutOff,
-	bool sort,
-        int tabSize,
-        int hashSize
+    double lCutOff,
+    bool sort,
+    int tabSize,
+    int hashSize
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
@@ -479,6 +479,111 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
         delete[] probs;
 }
 
+
+
+
+
+
+
+LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
+: Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize), sorted_up_to_idx(0),
+equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
+{
+    fringe.push_back(mode_conf);
+    lProbs.push_back(std::numeric_limits<double>::infinity());
+    lProbs.push_back(-std::numeric_limits<double>::infinity());
+    guarded_lProbs = lProbs.data()+1;
+}
+
+bool LayeredMarginal::extend(double new_threshold)
+{
+    if(fringe.empty())
+        return false;
+
+    // TODO: Make sorting optional (controlled by argument?)
+    std::vector<Conf> new_fringe;
+    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+
+    for(unsigned int ii = 0; ii<fringe.size(); ii++)
+        visited.insert(fringe[ii]);
+
+    double lpc, opc;
+
+    Conf currentConf;
+    while(!fringe.empty())
+    {
+        currentConf = fringe.back();
+        fringe.pop_back();
+
+        opc = logProb(currentConf);
+
+        if(opc < new_threshold)
+            new_fringe.push_back(currentConf);
+
+        else
+        {
+            configurations.push_back(currentConf);
+            for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                    if( ii != jj && currentConf[jj] > 0 )
+                    {
+                        currentConf[ii]++;
+                        currentConf[jj]--;
+
+                        lpc = logProb(currentConf);
+
+                        if (visited.count(currentConf) == 0 && lpc < current_threshold &&
+                            (opc > lpc || (opc == lpc && ii > jj)))
+                        {
+                            Conf nc = allocator.makeCopy(currentConf);
+                            currentConf[ii]--;
+                            currentConf[jj]++;
+                            visited.insert(nc);
+                            if(lpc >= new_threshold)
+                                fringe.push_back(nc);
+                            else
+                                new_fringe.push_back(nc);
+                        }
+                        else
+                        {
+                            currentConf[ii]--;
+                            currentConf[jj]++;
+                        }
+
+                    }
+        }
+    }
+
+    current_threshold = new_threshold;
+    fringe.swap(new_fringe);
+
+    std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
+
+    if(lProbs.capacity() * 2 < configurations.size() + 2)
+    {
+        // Reserve space for new values
+        lProbs.reserve(configurations.size()+2);
+        probs.reserve(configurations.size());
+        masses.reserve(configurations.size());
+    } // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
+      // but don't reallocate on every call
+
+    lProbs.pop_back(); // The guardian...
+
+    for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
+    {
+        lProbs.push_back(logProb(configurations[ii]));
+        probs.push_back(exp(lProbs.back()));
+        masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
+    }
+
+    lProbs.push_back(-std::numeric_limits<double>::infinity()); // Restore guardian
+
+    sorted_up_to_idx = configurations.size();
+    guarded_lProbs = lProbs.data()+1; // Vector might have reallocated its backing storage
+
+    return true;
+}
 
 
 

@@ -55,7 +55,7 @@ def confs_from_ordered_generator(formula, target_prob):
 
 def confs_from_layered_generator(formula, target_prob):
     ret = ([], [], [])
-    for conf in IsoSpecPy.IsoLayeredGenerator(formula=formula, prob_to_cover = target_prob, get_confs=True, do_trim=True):
+    for conf in IsoSpecPy.IsoLayered(formula=formula, prob_to_cover = target_prob, get_confs=True, get_minimal_pset=True):
         conf = (conf[0], log(conf[1]), conf[2])
         ret[0].append(conf[0])
         ret[1].append(conf[1])
@@ -72,6 +72,17 @@ def confs_from_threshold_generator(formula, target_prob):
         ret[2].append([item for sublist in conf[2] for item in sublist])
 
     return sort_confs(ret)
+
+def confs_from_threshold(formula, target_prob):
+    ret = ([], [], [])
+    for conf in IsoSpecPy.IsoThreshold(formula=formula, threshold = target_prob, absolute = True, get_confs=True):
+        conf = (conf[0], log(conf[1]), conf[2])
+        ret[0].append(conf[0])
+        ret[1].append(conf[1])
+        ret[2].append([item for sublist in conf[2] for item in sublist])
+
+    return sort_confs(ret)
+
 
 
 is_ok = False
@@ -98,6 +109,7 @@ for molecule in molecules:
             new_threshold = 1.1
         new_threshold_res = confs_from_threshold_generator(molecule, new_threshold)
         assert kinda_like(new_ordered, new_threshold_res)
+        assert kinda_like(new_threshold_res, confs_from_threshold(molecule, new_threshold))
 
         if parameter > 0:
             sprint(" thresholded: ")
