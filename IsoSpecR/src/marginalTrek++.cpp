@@ -536,15 +536,19 @@ bool LayeredMarginal::extend(double new_threshold)
                             (opc > lpc || (opc == lpc && ii > jj)))
                         {
                             Conf nc = allocator.makeCopy(currentConf);
+                            currentConf[ii]--;
+                            currentConf[jj]++;
                             visited.insert(nc);
                             if(lpc >= new_threshold)
                                 fringe.push_back(nc);
                             else
                                 new_fringe.push_back(nc);
                         }
-
-                        currentConf[ii]--;
-                        currentConf[jj]++;
+                        else
+                        {
+                            currentConf[ii]--;
+                            currentConf[jj]++;
+                        }
 
                     }
         }

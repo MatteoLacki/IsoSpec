@@ -115,6 +115,9 @@ private:
 class TotalProbFixedEnvelope : public FixedEnvelope
 {
     const bool optimize;
+    double target_total_prob;
+    size_t current_size;
+
 public:
     TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
     FixedEnvelope(),
@@ -154,10 +157,6 @@ private:
             memcpy(c2, conf_swapspace, this->allDimSizeofInt);
         }
     }
-
-
-    double target_total_prob;
-    size_t current_size;
 
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
