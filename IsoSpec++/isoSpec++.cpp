@@ -675,7 +675,7 @@ void IsoLayeredGenerator::terminate_search()
     lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
 }
 
-inline IsoLayeredGenerator::~IsoLayeredGenerator()
+IsoLayeredGenerator::~IsoLayeredGenerator()
 {
     delete[] counter;
     delete[] maxConfsLPSum;
