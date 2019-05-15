@@ -87,7 +87,7 @@ class IsoSpec():
         self.confs  = self.iso.confs
         self.size   = self.iso.size
 
-        if method == 'ordered':
+        if method == 'ordered' and len(self.masses) > 0:
             L = sorted(zip(self.masses, self.lprobs, self.probs, self.confs), key = lambda x: -x[1])
             self.masses, self.lprobs, self.probs, self.confs = zip(*L)
 
