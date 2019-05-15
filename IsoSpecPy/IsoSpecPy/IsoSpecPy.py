@@ -138,6 +138,7 @@ class IsoSpec():
 
 
     def getConfsNumpy(self):
+        import numpy as np
         masses, logProbs, configurations = self.getConfsRaw()
         rows_no = len(masses)
         cols_no = len(configurations)/len(masses)
