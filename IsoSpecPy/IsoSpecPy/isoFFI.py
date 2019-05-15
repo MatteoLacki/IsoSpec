@@ -46,12 +46,12 @@ class IsoFFI:
         double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
         void* setupThresholdFixedEnvelope(void* iso,
-                                      double threshold,
-                                      bool absolute,
-                                      bool get_masses,
-                                      bool get_probs,
-                                      bool get_lprobs,
-                                      bool get_confs);
+                                    double threshold,
+                                    bool absolute,
+                                    bool get_confs,
+                                    bool get_lprobs,
+                                    bool get_masses,
+                                    bool get_probs);
 
         void deleteThresholdFixedEnvelope(void* tabulator);
 
@@ -63,12 +63,12 @@ class IsoFFI:
 
 
         void* setupTotalProbFixedEnvelope(void* iso,
-                                      bool get_masses,
-                                      bool get_probs,
-                                      bool get_lprobs,
-                                      bool get_confs,
                                       double taget_coverage,
-                                      bool optimize);
+                                      bool optimize,
+                                      bool get_confs,
+                                      bool get_lprobs,
+                                      bool get_masses,
+                                      bool get_probs);
 
         void deleteTotalProbFixedEnvelope(void* tabulator);
 

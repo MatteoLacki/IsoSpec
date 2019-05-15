@@ -22,6 +22,8 @@
     #include "mman.cpp"
 #endif
 
+// A poor-man's replacement for LTO. We're small enough that we can do that.
+
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
 #include "isoSpec++.cpp"

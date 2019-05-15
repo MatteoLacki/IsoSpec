@@ -31,12 +31,12 @@ TotalProbFixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool tri
     switch(algo)
     {
         case ISOSPEC_ALGO_LAYERED_ESTIMATE: // Not used anymore, just fall through to the next case
-        case ISOSPEC_ALGO_LAYERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, trim, true, true, false, get_confs);
-        case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, true, true, false, get_confs); // Using the ordered algo in R is *completely* pointless today
-                                                                                                                             // The only point of ordered algo is when one is using the generator
-                                                                                                                             // interface, which we are not exposing in R
-                                                                                                                             // We'll just do layered, trim and sort it afterwards - it's equivalent
-                                                                                                                             // and much faster
+        case ISOSPEC_ALGO_LAYERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, trim, get_confs, true, true, false);
+        case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, get_confs, true, true, false); // Using the ordered algo in R is *completely* pointless today
+                                                                                                                  // The only point of ordered algo is when one is using the generator
+                                                                                                                  // interface, which we are not exposing in R
+                                                                                                                  // We'll just do layered, trim and sort it afterwards - it's equivalent
+                                                                                                                  // and much faster
         case ISOSPEC_ALGO_THRESHOLD_ABSOLUTE:
         case ISOSPEC_ALGO_THRESHOLD_RELATIVE: throw std::logic_error("");
     }

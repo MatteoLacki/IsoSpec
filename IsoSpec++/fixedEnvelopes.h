@@ -95,7 +95,7 @@ class ThresholdFixedEnvelope : public FixedEnvelope
     const double threshold;
     const bool absolute;
 public:
-    ThresholdFixedEnvelope(Iso&& iso, double _threshold, bool _absolute, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
+    ThresholdFixedEnvelope(Iso&& iso, double _threshold, bool _absolute, bool tgetConfs = false, bool tgetlProbs = false, bool tgetMasses = true, bool tgetProbs = true) :
     FixedEnvelope(),
     threshold(_threshold),
     absolute(_absolute)
@@ -119,7 +119,7 @@ class TotalProbFixedEnvelope : public FixedEnvelope
     size_t current_size;
 
 public:
-    TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs) :
+    TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false, bool tgetlProbs = false, bool tgetMasses = true, bool tgetProbs = true) :
     FixedEnvelope(),
     optimize(_optimize),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),

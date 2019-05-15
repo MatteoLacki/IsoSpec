@@ -168,18 +168,18 @@ ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
                      bool absolute,
-                     bool  get_masses,
-                     bool  get_probs,
+                     bool  get_confs,
                      bool  get_lprobs,
-                     bool  get_confs)
+                     bool  get_masses,
+                     bool  get_probs)
 {
     ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
                                          threshold,
                                          absolute,
+                                         get_confs,
                                          get_lprobs,
                                          get_masses,
-                                         get_probs,
-                                         get_confs);
+                                         get_probs);
 
     return reinterpret_cast<void*>(tabulator);
 }
@@ -218,20 +218,20 @@ int confs_noThresholdFixedEnvelope(void* tabulator)
 //______________________________________________________ Layered FixedEnvelope
 
 void* setupTotalProbFixedEnvelope(void* iso,
-                     bool  get_masses,
-                     bool  get_probs,
-                     bool  get_lprobs,
-                     bool  get_confs,
                      double target_coverage,
-                     bool optimize)
+                     bool optimize,
+                     bool  get_confs,
+                     bool  get_lprobs,
+                     bool  get_masses,
+                     bool  get_probs)
 {
     TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
                                          target_coverage,
                                          optimize,
+                                         get_confs,
                                          get_lprobs,
                                          get_masses,
-                                         get_probs,
-                                         get_confs);
+                                         get_probs);
 
     return reinterpret_cast<void*>(tabulator);
 }

@@ -153,7 +153,7 @@ class IsoThreshold(Iso):
         self.threshold = threshold
         self.absolute = absolute
 
-        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, True, True, True, get_confs)
+        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
 
         self.size = self.ffi.confs_noThresholdFixedEnvelope(tabulator)
 
@@ -181,11 +181,11 @@ class IsoThreshold(Iso):
 
 
 class IsoLayered(Iso):
-    def __init__(self, prob_to_cover, get_confs = False, get_minimal_pset = True, **kwargs):
+    def __init__(self, prob_to_cover, get_minimal_pset = True, get_confs = False, **kwargs):
         super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, True, True, True, get_confs, prob_to_cover, get_minimal_pset)
+        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
 
         self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
 
