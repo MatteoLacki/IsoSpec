@@ -14,10 +14,10 @@ print(WATER)
 WATER = IsoSpecify(molecule = water, stopCondition = 1)
 print(WATER)
 
-# The default output consists of a matrix with two columns: mass and log-probability of the 
-# isotopologues (the natural logarithms, with base equal to 'e').
+# The default output consists of a matrix with two columns: mass and probability of the 
+# isotopologues
 print(WATER[,"mass"])
-print(WATER[,"logProb"])
+print(WATER[,"prob"])
 
 # to get the probabilities, simply run
 WATER = IsoSpecify(molecule = water, stopCondition = 1, showCounts=T)
@@ -30,14 +30,14 @@ BOVINE_INSULIN = IsoSpecify(bovine_insulin, .999)
 # exceed .99. This is one of the smallest such sets.
 print(nrow(BOVINE_INSULIN))
 
-total_probability = sum(exp(BOVINE_INSULIN[,'logProb']))
+total_probability = sum(BOVINE_INSULIN[,'prob'])
 print(total_probability)
 
 # there are other ways to get this outcome, but this one is the fastest.
 # if you want to get the isotopologues sorted by probability, you can run the
 # priority-queue version of the algorithm.
 BOVINE_INSULIN = IsoSpecify(bovine_insulin, .999, algo=1)
-is.unsorted(BOVINE_INSULIN[,'logProb'][nrow(BOVINE_INSULIN):1])
+is.unsorted(BOVINE_INSULIN[,'prob'][nrow(BOVINE_INSULIN):1])
 # is.unsorted == FALSE is the same as sorted == TRUE. It's elementary :)
 # using the priority queue has poorer time complexity, which is O(n*log(n)).
 T0 = Sys.time()
@@ -51,7 +51,7 @@ print(T2 - T1)
 # If, for some reason, you just want to generate peaks above certain probability threshold,
 # you could use the third algorithm
 BOVINE_INSULIN_peaks_more_probable_than_10_percent_each = IsoSpecify(bovine_insulin, .1, algo=3)
-print(exp(BOVINE_INSULIN_peaks_more_probable_than_10_percent_each[,'logProb']))
+print(BOVINE_INSULIN_peaks_more_probable_than_10_percent_each[,'prob'])
 
 # ATTENTION: it is not a good idea to do it.
 # Remember, that we supply you with infinitely resolved peaks.
@@ -63,8 +63,8 @@ print(exp(BOVINE_INSULIN_peaks_more_probable_than_10_percent_each[,'logProb']))
 # the height of the heighest peak.
 # You can achieve this with algorithm 3:
 BOVINE_INSULIN_peaks_higher_than_the_one_ten_thousandth_of_the_height_of_the_heighest_peak = IsoSpecify(bovine_insulin, 1e-04, algo=3)
-LP = BOVINE_INSULIN_peaks_higher_than_the_one_ten_thousandth_of_the_height_of_the_heighest_peak[,'logProb']
-print(exp(LP[length(LP)] - LP[1]))
+LP = BOVINE_INSULIN_peaks_higher_than_the_one_ten_thousandth_of_the_height_of_the_heighest_peak[,'prob']
+print(LP[length(LP)] - LP[1])
 # so, as you can see, this is a peak very close to 1/10,000, but still above the threshold.
 # The next most probable that was not yet calculated, would have had that ratio below this number.
 # You are invited to test it yourself :)
