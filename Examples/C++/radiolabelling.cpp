@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include "../../IsoSpec++/isoSpec++.h"
+#include "../../IsoSpec++/fixedEnvelopes.h"
 
 using namespace IsoSpec;
 
@@ -23,17 +23,14 @@ int main()
 
     // Additional radiolabel elements can be added by more calls to addElement
 
-    IsoLayeredGenerator iso(std::move(i), 0.99);
-
-    iso.advanceToNextConfiguration();
+    TotalProbFixedEnvelope iso(std::move(i), 0.99, true, true, true);
 
     std::cout << "The first configuration has the following parameters: " << std::endl;
-    std::cout << "Mass: " << iso.mass() << std::endl;
-    std::cout << "log-prob: " << iso.lprob() << std::endl;
-    std::cout << "probability: " << iso.prob() << std::endl;
+    std::cout << "Mass: " << iso.masses()[0] << std::endl;
+    std::cout << "log-prob: " << iso.lprobs()[0] << std::endl;
+    std::cout << "probability: " << iso.probs()[0] << std::endl;
 
-    int configs[10];
-    iso.get_conf_signature(configs);
+    const int* configs = iso.confs();
 
     // Successive isotopologues are ordered by the appearance in the formula of the element, then by nucleon number, and concatenated into one array
     std::cout << "12C atoms: " << configs[0] + configs[7] << std::endl; // Counting the normal and unsuccesfully radiolabelled atoms
@@ -48,7 +45,7 @@ int main()
 
     std::cout << "Probabilities of the remaining computed configurations of the distribution are: " << std::endl;
 
-    while(iso.advanceToNextConfiguration())
-        std::cout << iso.prob() << std::endl;
+    for(int ii = 1; ii<iso.confs_no(); ii++)
+        std::cout << iso.probs()[ii] << std::endl;
   }
 }
