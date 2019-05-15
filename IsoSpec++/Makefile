@@ -21,6 +21,6 @@ clean:
 	rm -f libIsoSpec++.so
 
 windows:
-	g++ -O3 -std=gnu++11 -O3 -shared -static -static-libstdc++ -static-libgcc unity-build.cpp -o ../IsoSpecPy/IsoSpec++.dll
-	x86_64-w64-mingw32-g++.exe -std=gnu++11 -O3 -shared -static -static-libstdc++ unity-build.cpp -o ../IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++1.9.3-x64.dll
-	i686-w64-mingw32-g++.exe -std=gnu++11 -O3 -shared -static -static-libstdc++ unity-build.cpp -o ../IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++1.9.3-x32.dll
+	g++ -O3 -std=gnu++1z -O3 -shared -static -static-libstdc++ -static-libgcc unity-build.cpp -o ../IsoSpecPy/IsoSpec++.dll
+	x86_64-w64-mingw32-g++.exe -std=gnu++1z -O3 -shared -static -static-libstdc++ unity-build.cpp -o ../IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++1.9.3-x64.dll
+	i686-w64-mingw32-g++.exe -std=gnu++1z -O3 -shared -static -static-libstdc++ unity-build.cpp -o ../IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++1.9.3-x32.dll
