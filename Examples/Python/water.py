@@ -25,14 +25,14 @@ import IsoSpecPy
 from math import exp
 
 try:
-    if IsoSpecPy.__version__[:3] != '1.9':
+    if IsoSpecPy.__version__[:4] != '2.0.':
         raise AttributeError
 except AttributeError:
-    print("This file is meant to be used with IsoSpecPy version 1.9.X. You seem to have a different version installed on your system.")
+    print("This file is meant to be used with IsoSpecPy version 2.0.X. You seem to have a different version installed on your system.")
     import sys
     sys.exit(-1)
 
-i = IsoSpecPy.IsoLayeredGenerator(formula="H2O1", prob_to_cover = 0.999, get_confs=True)
+i = IsoSpecPy.IsoTotalProb(formula="H2O1", prob_to_cover = 0.999, get_confs=True)
 
 print("Calculating isotopic distribution of water. Here's a list of configurations necessary to cover at least 0.999 of total probability:")
 
@@ -54,19 +54,21 @@ oxygen_probs = (0.5, 0.3, 0.2)
 hydrogen_masses = (1.00782503207, 2.0141017778)
 oxygen_masses = (15.99491461956, 16.99913170, 17.9991610)
 
-i = IsoSpecPy.IsoLayeredGenerator(atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), prob_to_cover = 0.999, get_confs=True)
+i = IsoSpecPy.IsoTotalProb(atomCounts = (2, 1), isotopeMasses = (hydrogen_masses, oxygen_masses), isotopeProbabilities = (hydrogen_probs, oxygen_probs), prob_to_cover = 0.999, get_confs=True)
 
 
-mass, prob, conf = next(i.__iter__())
 
 print("The first configuration has the following parameters:")
-print("Mass: " + str(mass))
-print("probability: " + str(prob))
-print("Number of Protium atoms: " + str(conf[0][0]))
-print("Number of Deuterium atoms: " + str(conf[0][1]))
-print("Number of O16 atoms: " + str(conf[1][0]))
-print("Number of O17 atoms: " + str(conf[1][1]))
-print("Number of O18 atoms: " + str(conf[1][2]))
+print("Mass: " + str(i.masses[0]))
+print("probability: " + str(i.probs[0]))
+conf = i.confs[0]
+conf_hydrogen = conf[0]
+conf_oxygen = conf[1]
+print("Number of Protium atoms: " + str(conf_hydrogen[0]))
+print("Number of Deuterium atoms: " + str(conf_hydrogen[1]))
+print("Number of O16 atoms: " + str(conf_oxygen[0]))
+print("Number of O17 atoms: " + str(conf_oxygen[1]))
+print("Number of O18 atoms: " + str(conf_oxygen[2]))
 
 
 
