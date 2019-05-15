@@ -136,6 +136,17 @@ class IsoSpec():
             confs.append([x for sublist in isoCounts[i] for x in sublist])
         return masses, logProbs, confs
 
+
+    def getConfsNumpy(self):
+        masses, logProbs, configurations = self.getConfsRaw()
+        rows_no = len(masses)
+        cols_no = len(configurations)/len(masses)
+        masses  = np.array(list(masses))
+        logProbs= np.array(list(logProbs))
+        configurations = np.array(list(configurations)).reshape((rows_no,cols_no))
+        return masses, logProbs, configurations
+
+
     def splitConf(self, l, offset = 0):
         conf = []
         idx = self.allIsotopeNumber * offset
