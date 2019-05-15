@@ -130,7 +130,6 @@ class IsoSpec():
     def getConfs(self):
         masses, logProbs, isoCounts = self.getConfsRaw()
         rows_no = len(masses)
-        cols_no = len(isoCounts) // len(masses)
         masses  = list(masses)
         logProbs= list(logProbs)
         confs = []
@@ -143,7 +142,9 @@ class IsoSpec():
         import numpy as np
         masses, logProbs, configurations = self.getConfsRaw()
         rows_no = len(masses)
-        cols_no = len(configurations)/len(masses)
+        if rows_no == 0:
+            return np.array([])
+        cols_no = len(configurations)//len(masses)
         masses  = np.array(list(masses))
         logProbs= np.array(list(logProbs))
         configurations = np.array(list(configurations)).reshape((rows_no,cols_no))
