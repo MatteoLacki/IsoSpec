@@ -1,4 +1,4 @@
-from .IsoSpecPyNew import *
+from .IsoSpecPy import *
 
 
 # For backward compatibility with 1.0.X:
