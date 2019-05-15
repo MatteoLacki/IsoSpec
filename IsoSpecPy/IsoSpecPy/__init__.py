@@ -180,9 +180,9 @@ class IsoThreshold(Iso):
 
 
 
-class IsoLayered(Iso):
+class IsoTotalProb(Iso):
     def __init__(self, prob_to_cover, get_minimal_pset = True, get_confs = False, **kwargs):
-        super(IsoLayered, self).__init__(get_confs = get_confs, **kwargs)
+        super(IsoTotalProb, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
         tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
@@ -210,6 +210,8 @@ class IsoLayered(Iso):
         return self.size
 
 
+# Old, deprecated name, for compatibility only
+IsoLayered = IsoTotalProb
 
 class IsoGenerator(Iso):
     def __init__(self, get_confs=False, **kwargs):
@@ -296,7 +298,7 @@ class IsoOrderedGenerator(IsoGenerator):
 
 
 
-__version__ = "2.0.0a1"
+__version__ = "2.0.0a2"
 
 
 # For compatibility with 1.0.X
