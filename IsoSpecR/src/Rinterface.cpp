@@ -31,8 +31,8 @@ TotalProbFixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool tri
     switch(algo)
     {
         case ISOSPEC_ALGO_LAYERED_ESTIMATE: // Not used anymore, just fall through to the next case
-        case ISOSPEC_ALGO_LAYERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, trim, get_confs, true, true, false);
-        case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, get_confs, true, true, false); // Using the ordered algo in R is *completely* pointless today
+        case ISOSPEC_ALGO_LAYERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, trim, get_confs, false, true, true);
+        case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, get_confs, false, true, true); // Using the ordered algo in R is *completely* pointless today
                                                                                                                   // The only point of ordered algo is when one is using the generator
                                                                                                                   // interface, which we are not exposing in R
                                                                                                                   // We'll just do layered, trim and sort it afterwards - it's equivalent
@@ -67,7 +67,7 @@ NumericMatrix Rinterface(
     const NumericVector& abundance = isotopes["abundance"];
     const CharacterVector& molecule_names = molecule.names();
 
-    CharacterVector stdIsotopeTags = CharacterVector::create("mass", "logProb");
+    CharacterVector stdIsotopeTags = CharacterVector::create("mass", "prob");
 
     for (unsigned int i=0; i<dimNumber; i++)
     {
@@ -112,7 +112,7 @@ NumericMatrix Rinterface(
             while(ITG.advanceToNextConfiguration())
             {
                 res(ii,0) = ITG.mass();
-                res(ii,1) = ITG.lprob();
+                res(ii,1) = ITG.prob();
                 ii++;
             }
         else
@@ -121,7 +121,7 @@ NumericMatrix Rinterface(
             while(ITG.advanceToNextConfiguration())
             {
                 res(ii,0) = ITG.mass();
-                res(ii,1) = ITG.lprob();
+                res(ii,1) = ITG.prob();
                 ITG.get_conf_signature(conf_sig);
                 for(size_t jj = 0; jj < isotopesNo; jj++)
                     res(ii, 2+jj) = conf_sig[jj];
@@ -136,7 +136,7 @@ NumericMatrix Rinterface(
     // The remaining (layered) algos
     TotalProbFixedEnvelope TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
-    const double* logProbs = TAB.lprobs();
+    const double* probs = TAB.probs();
     const double* masses = TAB.masses();
     const int* confs = TAB.confs();
     std::vector<size_t> ordering;
@@ -155,14 +155,14 @@ NumericMatrix Rinterface(
         ordering.reserve(confs_no);
         for(size_t i = 0; i < confs_no; i++)
             ordering.push_back(i);
-        std::sort(ordering.begin(), ordering.end(), [&logProbs](size_t idx1, size_t idx2) -> bool { return logProbs[idx1] > logProbs[idx2]; });
+        std::sort(ordering.begin(), ordering.end(), [&probs](size_t idx1, size_t idx2) -> bool { return probs[idx1] > probs[idx2]; });
 
         unsigned int idx;
         for(size_t i = 0; i < confs_no; i++)
         {
             idx = ordering[i];
             res(i,0) = masses[idx];
-            res(i,1) = logProbs[idx];
+            res(i,1) = probs[idx];
         }
 
         if(showCounts)
@@ -184,7 +184,7 @@ NumericMatrix Rinterface(
         for(size_t i = 0; i < confs_no; i++)
         {
             res(i,0) = masses[i];
-            res(i,1) = logProbs[i];
+            res(i,1) = probs[i];
         }
 
         if(showCounts)
