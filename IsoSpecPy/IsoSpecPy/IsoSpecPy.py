@@ -210,9 +210,6 @@ class IsoTotalProb(Iso):
         return self.size
 
 
-# Old, deprecated name, for compatibility only
-IsoLayered = IsoTotalProb
-
 class IsoGenerator(Iso):
     def __init__(self, get_confs=False, **kwargs):
         self.cgen = None
@@ -294,11 +291,3 @@ class IsoOrderedGenerator(IsoGenerator):
                 self.ffi.deleteIsoLayeredGenerator(self.cgen)
         except AttributeError:
             pass
-
-
-
-
-__version__ = "2.0.0a2"
-
-
-
