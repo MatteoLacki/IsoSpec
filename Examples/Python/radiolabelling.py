@@ -7,10 +7,10 @@ from IsoSpecPy import PeriodicTbl
 from math import exp
 
 try:
-    if IsoSpecPy.__version__[:3] != '1.9':
+    if IsoSpecPy.__version__[:4] != '2.0.':
         raise AttributeError
 except AttributeError:
-    print("This file is meant to be used with IsoSpecPy version 1.9.X. You seem to have a different version installed on your system.")
+    print("This file is meant to be used with IsoSpecPy version 2.0.X. You seem to have a different version installed on your system.")
     import sys
     sys.exit(-1)
 
@@ -26,7 +26,7 @@ radiolabelled_carbon_masses = PeriodicTbl.symbol_to_masses["C"] + (14.003241989,
 normal_carbon_probs = PeriodicTbl.symbol_to_probs["C"]
 radiolabelled_carbon_probs = (0.05*normal_carbon_probs[0], 0.05*normal_carbon_probs[1], 0.95)
 
-i = IsoSpecPy.IsoLayeredGenerator(formula = "C4H12O6", # The formula for glucose, sans the radiolabel atoms
+i = IsoSpecPy.IsoTotalProb(formula = "C4H12O6", # The formula for glucose, sans the radiolabel atoms
                                   # Here we specify additional "elements" which occur *in addition* to those from the formula
                                   atomCounts = (2,),
                                   isotopeMasses = (radiolabelled_carbon_masses,), 
