@@ -32,7 +32,7 @@ except NameError:
     xrange = range
 
 import re
-from .IsoSpecPyNew import IsoTotalProb, IsoThreshold
+from .IsoSpecPy import IsoTotalProb, IsoThreshold
 
 class IsoSpec():
     def __init__(
