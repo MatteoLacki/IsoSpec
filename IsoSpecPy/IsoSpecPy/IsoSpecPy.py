@@ -13,276 +13,292 @@
 #
 #   You should have received a copy of the Simplified BSD Licence
 #   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
-#
+# 
 
-
-'''
-Bunch of deprecated functions for 1.0.X compatibility.
-Avoid using them: there is a considerable overhead associated
-with using the old interface... The backward compatibility module
-is also very rudimentary, somewhat incomplete and not very well
-tested too...
-
-The current API is implemented in __init__.py, use that instead
-'''
+from .isoFFI import isoFFI
+import re
+import types
+from . import PeriodicTbl
+from .confs_passthrough import ConfsPassthrough
+from collections import namedtuple
 
 try:
     xrange
 except NameError:
     xrange = range
 
-import re
+regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
+ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob')
 
-class IsoSpec():
-    def __init__(
-                    self,
-                    _atomCounts,
-                    _isotopeMasses,
-                    _isotopeProbabilities,
-                    _stopCondition,
-                    tabSize = 1000,     # ignored
-                    hashSize = 1000,    # ignored
-                    step = 0.3,         # ignored
-                    trim = True,        # True not supported yet, treated as False anyway
-                    method = 'layered'
-                ):
 
-        isoargs = {
-            "formula"           : None,
-            "get_confs"         : True,
-            "atomCounts"        : _atomCounts,
-            "isotopeMasses"     : _isotopeMasses,
-            "isotopeProbabilities"  : _isotopeProbabilities,
-        }
+def IsoParamsFromFormula(formula):
+    global regex_pattern
 
-        self.dimNumber                 = len(_atomCounts)
-        self._isotopeNumbers           = [len(x) for x in _isotopeMasses]
-        self.allIsotopeNumber         = sum(self._isotopeNumbers)
-        self._atomCounts               = _atomCounts
-        self._isotopeMasses            = _isotopeMasses
-        self._isotopeProbabilities     = _isotopeProbabilities
-        self._stopCondition            = _stopCondition
+    symbols = []
+    atomCounts = []
+    for elem, cnt in re.findall(regex_pattern, formula):
+        symbols.append(elem)
+        atomCounts.append(int(cnt) if cnt is not '' else 1)
+    try:
+        masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
+        probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
+    except KeyError:
+        raise ValueError("Invalid formula")
 
-        from .__init__ import IsoThreshold
+    return ParsedFormula(atomCounts, masses, probs)
 
+
+
+class Iso(object):
+    def __init__(self, formula="",
+                 get_confs=False,
+                 atomCounts=[],
+                 isotopeMasses=[],
+                 isotopeProbabilities=[]):
+        """Initialize Iso."""
+
+        self.iso = None
+
+        if not formula and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
+            raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
+
+        if formula:
+            if isinstance(formula, dict):
+                formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
+            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
+        else:
+            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
+
+        if atomCounts:
+            self.atomCounts.extend(atomCounts)
+
+        if isotopeMasses:
+            self.isotopeMasses.extend(isotopeMasses)
+
+        if isotopeProbabilities:
+            self.isotopeProbabilities.extend(isotopeProbabilities)
+
+        for sublist in self.isotopeProbabilities:
+            for prob in sublist:
+                if not (0.0 < prob <= 1.0):
+                    raise ValueError("All isotope probabilities p must fulfill: 0.0 < p <= 1.0")
+
+        self.isotopeNumbers = tuple(map(len, self.isotopeMasses))
+        assert self.isotopeNumbers == tuple(map(len, self.isotopeProbabilities))
+        assert len(self.atomCounts) == len(self.isotopeNumbers) == len(self.isotopeProbabilities)
+
+        self.dimNumber = len(self.isotopeNumbers)
+
+        self.get_confs = get_confs
+        self.ffi = isoFFI.clib
+
+        offsets = []
+
+        if get_confs:
+            i = 0
+            for j in xrange(self.dimNumber):
+                newl = []
+                for k in xrange(self.isotopeNumbers[j]):
+                    newl.append(i)
+                    i += 1
+                offsets.append(tuple(newl))
+            self.offsets = tuple(offsets)
+
+        self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
+                                     self.atomCounts,
+                                     [i for s in self.isotopeMasses for i in s],
+                                     [i for s in self.isotopeProbabilities for i in s])
+
+    def __iter__(self):
+        if self.get_confs:
+            for i in xrange(self.size):
+                yield(self.masses[i], self.probs[i], self.confs[i])
+        else:
+            for i in xrange(self.size):
+                yield (self.masses[i], self.probs[i])
+
+    def __del__(self):
         try:
-            algo = { 'layered' : lambda total_prob: IsoLayered(total_prob, **isoargs),
-              'ordered' : lambda total_prob: IsoLayered(total_prob, **isoargs),
-              'threshold_absolute' : lambda threshold: IsoThreshold(threshold, True, **isoargs),
-              'threshold_relative' : lambda threshold: IsoThreshold(threshold, False, **isoargs),
-              'layered_estimating' : lambda total_prob: IsoLayered(total_prob, **isoargs)
-            }[method]
-        except KeyError:
-            raise Exception("Invalid ISO method")
+            if self.iso is not None:
+                self.ffi.deleteIso(self.iso)
+        except AttributeError:
+            pass
 
-        # Reference to iso needs to be held in this object: it will deallocate masses/lprobs/etc arrays on C++ side if we 
-        # allow GC to collect it prematurely
-        self.iso = algo(_stopCondition)
+    def getLightestPeakMass(self):
+        return self.ffi.getLightestPeakMassIso(self.iso)
 
-        self.masses = self.iso.masses
-        self.lprobs = self.iso.lprobs
-        self.probs  = self.iso.probs
-        self.confs  = self.iso.confs
-        self.size   = self.iso.size
+    def getHeaviestPeakMass(self):
+        return self.ffi.getHeaviestPeakMassIso(self.iso)
 
-        if method == 'ordered':
-            L = sorted(zip(self.masses, self.lprobs, self.probs, self.confs), key = lambda x: -x[1])
-            self.masses, self.lprobs, self.probs, self.confs = zip(*L)
+    def getMonoisotopicPeakMass(self):
+        return self.ffi.getMonoisotopicPeakMassIso(self.iso)
 
-    @staticmethod
-    def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'threshold_relative', step = 0.25, trim = True):
-        # It's much easier to just parse it in python than to use the C parsing function
-        # and retrieve back into Python the relevant object sizes
-        symbols = re.findall("\D+", formula)
-        atom_counts = [int(x) for x in re.findall("\d+", formula)]
+    def getModeLProb(self):
+        return self.ffi.getModeLProbIso(self.iso)
 
-        if not len(symbols) == len(atom_counts):
-            raise ValueError("Invalid formula")
+    def getModeMass(self):
+        return self.ffi.getModeMassIso(self.iso)
 
-        from .PeriodicTbl import symbol_to_masses, symbol_to_probs
-        try:
-            masses = tuple(symbol_to_masses[symbol] for symbol in symbols)
-            probs = tuple(symbol_to_probs[symbol] for symbol in symbols)
-        except KeyError:
-            raise ValueError("Invalid formula")
+    def getTheoreticalAverageMass(self):
+        return self.ffi.getTheoreticalAverageMassIso(self.iso)
 
-        return IsoSpec(atom_counts, masses, probs, cutoff, tabSize, hashSize, step, trim, method)
+    def parse_conf(self, cptr, starting_with = 0):
+        return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 
 
+
+class IsoThreshold(Iso):
+    def __init__(self, threshold, absolute=False, get_confs = False, **kwargs):
+        super(IsoThreshold, self).__init__(get_confs = get_confs, **kwargs)
+        self.threshold = threshold
+        self.absolute = absolute
+
+        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
+
+        self.size = self.ffi.confs_noThresholdFixedEnvelope(tabulator)
+
+        def c(typename, what, mult = 1):
+            return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+
+        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(tabulator))
+
+        if get_confs:
+            self.sum_isotope_numbers = sum(self.isotopeNumbers)
+            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
+            self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+
+        self.ffi.deleteThresholdFixedEnvelope(tabulator)
+
+    def _get_conf(self, idx):
+        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
 
     def __len__(self):
         return self.size
 
-    def getConfsRaw(self):
-        return (self.masses, self.lprobs, self.confs)
-
-#    def get_conf_by_no(self, clist, idx):
-#        idx *= self.allIsotopeNumber
-#        ret = []
-#        for ison in self._isotopeNumbers:
-#            ret.append(tuple(clist[idx:idx+ison]))
-#            idx += ison
-#        return tuple(ret)
-
-
-    def getConfs(self):
-        masses, logProbs, isoCounts = self.getConfsRaw()
-        rows_no = len(masses)
-        cols_no = len(isoCounts) // len(masses)
-        masses  = list(masses)
-        logProbs= list(logProbs)
-        confs = []
-        for i in xrange(rows_no):
-            confs.append([x for sublist in isoCounts[i] for x in sublist])
-        return masses, logProbs, confs
-
-
-    def getConfsNumpy(self):
-        import numpy as np
-        masses, logProbs, configurations = self.getConfsRaw()
-        rows_no = len(masses)
-        cols_no = len(configurations)/len(masses)
-        masses  = np.array(list(masses))
-        logProbs= np.array(list(logProbs))
-        configurations = np.array(list(configurations)).reshape((rows_no,cols_no))
-        return masses, logProbs, configurations
-
-
-    def splitConf(self, l, offset = 0):
-        conf = []
-        idx = self.allIsotopeNumber * offset
-        for i in xrange(self.dimNumber):
-            conf.append(tuple(l[idx:idx+self._isotopeNumbers[i]]))
-            idx += self._isotopeNumbers[i]
-        return tuple(conf)
-
-    def confStr(self, conf):
-        return '\t'.join([' '.join([str(x) for x in y]) for y in conf])
-
-    def printConfs(self):
-        masses, logProbs, isoCounts = self.getConfsRaw()
-        confs = []
-        step = sum(self._isotopeNumbers)
-        for i in xrange(len(masses)):
-            confs.append((masses[i], logProbs[i], self.splitConf(isoCounts, i)))
-
-        for conf in confs:
-            print(("Mass = {0}\t and log-prob = {1} and prob = {2}\t and configuration"\
-                  "=\t{3}").format(conf[0], conf[1], math.exp(conf[1]), self.confStr(conf[2])))
 
 
 
-class IsoPlot(dict):
-    def __init__(self, iso, bin_w):
-        self.iso = iso
-        self.bin_w = bin_w
-        masses, logProbs, _isoCounts = iso.getConfsRaw()
-        dd = defaultdict(Summator)
-        for i in xrange(len(masses)):
-            dd[float(int(masses[i]/bin_w))*bin_w].add(math.exp(logProbs[i]))
-        for key, val in dd.items():
-            self[key] = val.get()
+class IsoTotalProb(Iso):
+    def __init__(self, prob_to_cover, get_minimal_pset = True, get_confs = False, **kwargs):
+        super(IsoTotalProb, self).__init__(get_confs = get_confs, **kwargs)
+        self.prob_to_cover = prob_to_cover
+
+        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
+
+        self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
+
+        def c(typename, what, mult = 1):
+            return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+
+        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(tabulator))
+
+        if get_confs:
+            self.sum_isotope_numbers = sum(self.isotopeNumbers)
+            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
+            self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+
+        self.ffi.deleteTotalProbFixedEnvelope(tabulator)
+
+    def _get_conf(self, idx):
+        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
+
+    def __len__(self):
+        return self.size
 
 
-def IsoSpecify( formula,
-                cutoff,
-                method= 'layered',
-                output_format = 'numpy_arrays',
-                trim  = True,
-                _step = 0.25,
-                _trim = True,
-                _tabSize  = 1000,
-                _hashSize = 1000    ):
-    """
-    Call IsoSpec on a formula with a given cutoff.
+# Old, deprecated name, for compatibility only
+IsoLayered = IsoTotalProb
 
-    This function wraps around the IsoSpec class.
+class IsoGenerator(Iso):
+    def __init__(self, get_confs=False, **kwargs):
+        self.cgen = None
+        super(IsoGenerator, self).__init__(get_confs = get_confs, **kwargs)
+        self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
+        self.firstuse = True
 
-    Parameters
-    ----------
-    formula : char
-        a string of a form '< Element Tag 1 >< Count 1 > ... ',
-        e.g. 'C100H202'. Using IUPAC conventions to name elements.
+    def __iter__(self):
+        if not self.firstuse:
+            raise NotImplementedError("Multiple iterations through the same IsoGenerator object are not supported. Either create a new (identical) generator for a second loop-through, or use one of the non-generator classes, which do support being re-used.")
+        self.firstuse = False
+        cgen = self.cgen
+        if self.get_confs:
+            while self.advancer(cgen):
+                self.conf_getter(cgen, self.conf_space)
+                yield (self.mass_getter(cgen), self.xprob_getter(cgen), self.parse_conf(self.conf_space))
+        else:
+            while self.advancer(cgen):
+                yield (self.mass_getter(cgen), self.xprob_getter(cgen))
 
-    cutoff : float
-        The cutoff value. See description of the method argument.
+        
 
-    method : char
-        Can take one of the following values: 'layered',
-        'layered_estimating', 'threshold_absolute',
-        'threshold_relative', 'ordered'.
+class IsoThresholdGenerator(IsoGenerator):
+    def __init__(self, threshold, absolute=False, get_confs=False, use_lprobs=False, **kwargs):
+        super(IsoThresholdGenerator, self).__init__(get_confs, **kwargs)
+        self.threshold = threshold
+        self.absolute = absolute
+        self.cgen = self.ffi.setupIsoThresholdGenerator(self.iso,
+                                                        threshold,
+                                                        absolute,
+                                                        1000,
+                                                        1000)
+        self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
+        self.xprob_getter = self.ffi.lprobIsoThresholdGenerator if use_lprobs else self.ffi.probIsoThresholdGenerator
+        self.mass_getter = self.ffi.massIsoThresholdGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
 
-        The threshold versions of the algorithm rely on user
-        providing a precise lower bound on the reported peak heights.
-        This can be specified in absolute terms ('threshold_absolute'),
-        i.e. in terms of the limiting probability of the isotopologue,
-        or as a percentage of the heighest peak ('threshold_relative').
-
-        The layered versions of the algorithm rely on calculating
-        consecutive values of peak thresholds on flight.
-        The ultimate goal is to reach a peak probability that assures
-        that the sum of probabilities of the more probable isotopologues
-        exceeds the provided cutoff value.
-        The sequence of consecutive thresholds can be generated in
-        two ways. The default way, 'layered_estimating', estimates
-        the threshold to joint probability function by a progressive
-        linear spline, check Anal Chem. 2017 Mar 21;89(6):3272-3277.
-        doi: 10.1021/acs.analchem.6b01459. Epub 2017 Mar 8.
-        The other way, 'layered', estimates a threshold as a 30%%
-        quantile of the probabilities gathered in the fringe set, i.e.
-        isotopologues that are direct neighbours of the previously
-        accepted layer. Finally, choosing the 'ordered' version will
-        provide a loglinear version of the algorithm that relies on
-        the priority queue. This version automatically sorts
-        the configurations by their probability.
-
-    trim
-        while using a layered method, should one discard superfluously
-        obtained isotopologues, i.e. such that without them the set of
-        reported isotopologues already is an optimal p-set.
-
-    output_format
-        Should the output be presented as lists ('lists'),
-        or as numpy arrays ('numpy_arrays').
-
-    Returns
-    -------
-    masses
-        masses of isotopologues, either a list or a numpy array.
-
-    logProbs
-        logarithms of probabilities (theoretical heights) of isotopologues,
-        either a list or a numpy array.
-
-    confs
-        counts of isotopologues (extended chemical formulas that
-        include counts of isotopes of elements)
-        """
+    def __del__(self):
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoThresholdGenerator(self.cgen)
+        except AttributeError:
+            pass
 
 
-    assert output_format in ('lists', 'numpy_arrays'), "Wrong value of output_format. Should be either 'lists' or 'numpy_arrays'."
+class IsoLayeredGenerator(IsoGenerator):
+    def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
+        super(IsoLayeredGenerator, self).__init__(get_confs, **kwargs)
+        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso,
+                                                      1000,
+                                                      1000,
+                                                      )
+        self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
+        self.xprob_getter = self.ffi.lprobIsoLayeredGenerator if use_lprobs else self.ffi.probIsoLayeredGenerator
+        self.mass_getter = self.ffi.massIsoLayeredGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
 
-    assert method in ('layered', 'ordered', 'threshold_absolute', 'threshold_relative', 'layered_estimating'), "Wrong value of method. Should be among 'layered', 'ordered', 'threshold_absolute', 'threshold_relative', or 'layered_estimating'."
+    def __del__(self):
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        except AttributeError:
+            pass
 
-    assert isinstance(cutoff, float), "Provided cut off ain't a float."
+class IsoOrderedGenerator(IsoGenerator):
+    def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
+        super(IsoOrderedGenerator, self).__init__(get_confs, **kwargs)
+        self.cgen = self.ffi.setupIsoOrderedGenerator(self.iso,
+                                                      1000,
+                                                      1000)
+        self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
+        self.xprob_getter = self.ffi.lprobIsoOrderedGenerator if use_lprobs else self.ffi.probIsoOrderedGenerator
+        self.mass_getter = self.ffi.massIsoOrderedGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoOrderedGenerator
 
-    assert isinstance(formula, str), "Provided formula off ain't a string."
+    def __del__(self):
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoLayeredGenerator(self.cgen)
+        except AttributeError:
+            pass
 
-    iso = IsoSpec.IsoFromFormula(   formula,
-                                    cutoff,
-                                    tabSize = 1000,
-                                    hashSize = 1000,
-                                    classId = None,
-                                    method = method,
-                                    step = 0.25,
-                                    trim = trim )
 
-    if output_format == 'lists':
-        masses, logProbs, confs = iso.getConfs()
-    else:
-        masses, logProbs, confs = iso.getConfsNumpy()
 
-    # print 'Rev Startek is a silly old chump and his mother dresses up silly.'
-    return masses, logProbs, confs
+
+__version__ = "2.0.0a2"
+
 
 
