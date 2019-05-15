@@ -109,13 +109,6 @@ NumericMatrix Rinterface(
         NumericMatrix res(no_confs, columnsNo);
 
         if(showCounts)
-            while(ITG.advanceToNextConfiguration())
-            {
-                res(ii,0) = ITG.mass();
-                res(ii,1) = ITG.prob();
-                ii++;
-            }
-        else
         {
             int* conf_sig = new int[isotopesNo];
             while(ITG.advanceToNextConfiguration())
@@ -129,6 +122,14 @@ NumericMatrix Rinterface(
             }
             delete[] conf_sig;
         }
+        else
+            while(ITG.advanceToNextConfiguration())
+            {
+                res(ii,0) = ITG.mass();
+                res(ii,1) = ITG.prob();
+                ii++;
+            }
+
 	colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
         return res;
     }
