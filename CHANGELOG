@@ -1,6 +1,14 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 
+2.0.0
+----------------------------------
+- Mayor algorithmic improvements in IsoLayered
+- Added support for fixed envelopes, restored quicktrim option
+- R now returns probabilities instead of logprobabilites by default
+- Some API changes
+- Performance improvements and bugfixes all over the place
+
 1.9.3 (C++/Python-only release)
 ----------------------------------
 - Improve API and examples for radiolabelling in C++/Python
