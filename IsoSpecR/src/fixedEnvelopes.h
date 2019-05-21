@@ -25,7 +25,7 @@
 namespace IsoSpec
 {
 
-class FixedEnvelope {
+class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 protected:
     double* _masses;
     double* _lprobs;
@@ -79,10 +79,10 @@ protected:
 
     template<typename T, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
-        if constexpr(tgetlProbs) { *tlprobs = generator.lprob(); tlprobs++; };
-        if constexpr(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
-        if constexpr(tgetProbs)  { *tprobs  = generator.prob();  tprobs++;  };
-        if constexpr(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
+        constexpr_if(tgetlProbs) { *tlprobs = generator.lprob(); tlprobs++; };
+        constexpr_if(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
+        constexpr_if(tgetProbs)  { *tprobs  = generator.prob();  tprobs++;  };
+        constexpr_if(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
     }
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size);
@@ -90,7 +90,7 @@ protected:
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
-class ThresholdFixedEnvelope : public FixedEnvelope
+class ISOSPEC_EXPORT_SYMBOL ThresholdFixedEnvelope : public FixedEnvelope
 {
     const double threshold;
     const bool absolute;
@@ -112,7 +112,7 @@ private:
 };
 
 
-class TotalProbFixedEnvelope : public FixedEnvelope
+class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
 {
     const bool optimize;
     double target_total_prob;
@@ -145,10 +145,10 @@ private:
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
-        if constexpr(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
-        if constexpr(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
-        if constexpr(tgetMasses) std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
-        if constexpr(tgetConfs)
+        constexpr_if(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
+        constexpr_if(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
+        constexpr_if(tgetMasses) std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
+        constexpr_if(tgetConfs)
         {
             int* c1 = this->_confs + (idx1*this->allDim);
             int* c2 = this->_confs + (idx2*this->allDim);

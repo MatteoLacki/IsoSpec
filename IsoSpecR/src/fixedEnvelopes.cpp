@@ -22,10 +22,10 @@ namespace IsoSpec
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    if constexpr(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
-    if constexpr(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-    if constexpr(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
-    if constexpr(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
+    constexpr_if(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
+    constexpr_if(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
+    constexpr_if(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
+    constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
 }
 
 
@@ -99,7 +99,7 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
     // We'll be sorting by the prob array, permuting the other ones in parallel.
 
     int* conf_swapspace = nullptr;
-    if constexpr(tgetConfs)
+    constexpr_if(tgetConfs)
         conf_swapspace = (int*) malloc(this->allDimSizeofInt);
 
     size_t start = last_switch;
@@ -141,7 +141,7 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
             end = loweridx;
     }
 
-    if constexpr(tgetConfs)
+    constexpr_if(tgetConfs)
         free(conf_swapspace);
 
     if(end <= current_size/2)

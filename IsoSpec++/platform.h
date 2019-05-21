@@ -107,3 +107,10 @@
 #else /* it's a can of worms we don't yet want to open ourselves though... */
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
+
+#if ISOSPEC_BUILDING_R && !defined(__cpp_if_constexpr)
+#define constexpr_if if
+#warning "constexpr if not available, expect performance loss"
+#else
+#define constexpr_if if constexpr
+#endif
