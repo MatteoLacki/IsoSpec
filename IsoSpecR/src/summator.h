@@ -17,7 +17,6 @@
 #pragma once
 
 #include <cmath>
-#include <atomic>
 
 namespace IsoSpec
 {

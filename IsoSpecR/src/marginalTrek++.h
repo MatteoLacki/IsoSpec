@@ -19,7 +19,6 @@
 #include <tuple>
 #include <unordered_map>
 #include <queue>
-#include <atomic>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
