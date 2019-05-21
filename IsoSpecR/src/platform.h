@@ -110,7 +110,6 @@
 
 #if ISOSPEC_BUILDING_R && !defined(__cpp_if_constexpr)
 #define constexpr_if if
-#warning "constexpr if not available, expect performance loss"
 #else
 #define constexpr_if if constexpr
 #endif
