@@ -25,7 +25,7 @@
 namespace IsoSpec
 {
 
-class FixedEnvelope {
+class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 protected:
     double* _masses;
     double* _lprobs;
@@ -90,7 +90,7 @@ protected:
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
-class ThresholdFixedEnvelope : public FixedEnvelope
+class ISOSPEC_EXPORT_SYMBOL ThresholdFixedEnvelope : public FixedEnvelope
 {
     const double threshold;
     const bool absolute;
@@ -112,7 +112,7 @@ private:
 };
 
 
-class TotalProbFixedEnvelope : public FixedEnvelope
+class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
 {
     const bool optimize;
     double target_total_prob;
