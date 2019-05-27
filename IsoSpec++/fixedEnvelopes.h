@@ -17,6 +17,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <algorithm>
 
 #include "isoSpec++.h"
 
@@ -79,7 +80,7 @@ private:
     {
         size_t* indices = new size_t[_confs_no];
 
-        int* conf_swapspace;
+        int* conf_swapspace = nullptr;
         constexpr_if(tgetConfs)
             conf_swapspace = new int[allDim];
 
