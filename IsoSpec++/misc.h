@@ -120,9 +120,6 @@ template<typename T> void printNestedArray(const T** array, const int* shape, in
     std::cout << std::endl;
 }
 
-#define mswap(x, y) swapspace = x; x = y; y=swapspace;
-
-
 //! Quickly select the n'th positional statistic, including the weights.
 void* quickselect(void** array, int n, int start, int end);
 
