@@ -53,6 +53,85 @@ void FixedEnvelope::sort_by_prob()
 }
 
 
+void FixedEnvelope::call_sort_by(double* order)
+{
+    if(_confs != nullptr)
+    {
+        if(_probs != nullptr)
+        {
+            if(_masses != nullptr)
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, true, true, true>(order);
+                else
+                    sort_by<false, true, true, true>(order);
+            }
+            else
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, false, true, true>(order);
+                else
+                    sort_by<false, false, true, true>(order);
+            }
+        }
+        else
+        {
+            if(_masses != nullptr)
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, true, false, true>(order);
+                else
+                    sort_by<false, true, false, true>(order);
+            }
+            else
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, false, false, true>(order);
+                else
+                    sort_by<false, false, false, true>(order);
+            }
+        }
+    }
+    else
+    {
+        if(_probs != nullptr)
+        {
+            if(_masses != nullptr)
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, true, true, false>(order);
+                else
+                    sort_by<false, true, true, false>(order);
+            }
+            else
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, false, true, false>(order);
+                else
+                    sort_by<false, false, true, false>(order);
+            }
+        }
+        else
+        {
+            if(_masses != nullptr)
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, true, false, false>(order);
+                else
+                    sort_by<false, true, false, false>(order);
+            }
+            else
+            {
+                if(_lprobs != nullptr)
+                    sort_by<true, false, false, false>(order);
+                else
+                    sort_by<false, false, false, false>(order);
+            }
+        }
+    }
+}
+
+
 
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {

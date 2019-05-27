@@ -79,19 +79,25 @@ private:
     {
         size_t* indices = new size_t[_confs_no];
 
+        int* conf_swapspace;
+        constexpr_if(tgetConfs)
+            conf_swapspace = new int[allDim];
+
         for(size_t ii=0; ii<_confs_no; ii++)
             indices[ii] = ii;
 
-        std::sort(indices, TableOrder(order));
+        std::sort(indices, indices + _confs_no, TableOrder(order));
 
         for(size_t ii=0; ii<_confs_no; ii++)
             while(indices[ii] != ii)
             {
-                swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, indices[ii]);
+                swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, indices[ii], conf_swapspace);
                 std::swap<size_t>(indices[indices[ii]], indices[ii]);
             }
 
         delete[] indices;
+        constexpr_if(tgetConfs)
+            delete[] conf_swapspace;
     }
 
 protected:
@@ -108,6 +114,21 @@ protected:
         constexpr_if(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
         constexpr_if(tgetProbs)  { *tprobs  = generator.prob();  tprobs++;  };
         constexpr_if(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
+    }
+
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
+    {
+        constexpr_if(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
+        constexpr_if(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
+        constexpr_if(tgetMasses) std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
+        constexpr_if(tgetConfs)
+        {
+            int* c1 = this->_confs + (idx1*this->allDim);
+            int* c2 = this->_confs + (idx2*this->allDim);
+            memcpy(conf_swapspace, c1, this->allDimSizeofInt);
+            memcpy(c1, c2, this->allDimSizeofInt);
+            memcpy(c2, conf_swapspace, this->allDimSizeofInt);
+        }
     }
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size);
@@ -167,22 +188,6 @@ public:
 private:
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
-
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
-    {
-        constexpr_if(tgetlProbs) std::swap<double>(this->_lprobs[idx1], this->_lprobs[idx2]);
-        constexpr_if(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
-        constexpr_if(tgetMasses) std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
-        constexpr_if(tgetConfs)
-        {
-            int* c1 = this->_confs + (idx1*this->allDim);
-            int* c2 = this->_confs + (idx2*this->allDim);
-            memcpy(conf_swapspace, c1, this->allDimSizeofInt);
-            memcpy(c1, c2, this->allDimSizeofInt);
-            memcpy(c2, conf_swapspace, this->allDimSizeofInt);
-        }
-    }
-
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
     {
