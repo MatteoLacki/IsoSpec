@@ -19,6 +19,41 @@
 namespace IsoSpec
 {
 
+
+void FixedEnvelope::sort_by_mass()
+{
+    if(_masses == nullptr)
+        throw std::logic_error("Can't sort by masses if masses have not been computed");
+
+    if((_probs == nullptr) && (_lprobs == nullptr) && (_confs == nullptr))
+        std::sort(_masses, _masses + _confs_no);
+    else
+        call_sort_by(_masses);
+}
+
+
+void FixedEnvelope::sort_by_prob()
+{
+    if((_probs == nullptr) && (_lprobs == nullptr))
+        throw std::logic_error("Can't sort by probabilities if neither probs nor logprobs have not been computed");
+
+    if((_masses == nullptr) && (_confs == nullptr))
+    {
+        if(_probs != nullptr)
+            std::sort(_probs, _probs + _confs_no);
+        if(_lprobs != nullptr)
+            std::sort(_lprobs, _lprobs + _confs_no);
+        return;
+    }
+
+    if(_probs == nullptr)
+        call_sort_by(_lprobs);
+    else
+        call_sort_by(_probs);
+}
+
+
+
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...

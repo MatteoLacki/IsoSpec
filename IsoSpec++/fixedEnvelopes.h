@@ -69,6 +69,31 @@ public:
     inline double     prob(size_t i)  { return _probs[i];  };
     inline const int* conf(size_t i)  { return _confs + i*allDim; };
 
+    void sort_by_mass();
+    void sort_by_prob();
+
+private:
+    void call_sort_by(double* order);
+
+    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void sort_by(double* order)
+    {
+        size_t* indices = new size_t[_confs_no];
+
+        for(size_t ii=0; ii<_confs_no; ii++)
+            indices[ii] = ii;
+
+        std::sort(indices, TableOrder(order));
+
+        for(size_t ii=0; ii<_confs_no; ii++)
+            while(indices[ii] != ii)
+            {
+                swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, indices[ii]);
+                std::swap<size_t>(indices[indices[ii]], indices[ii]);
+            }
+
+        delete[] indices;
+    }
+
 protected:
     double* tmasses;
     double* tlprobs;
