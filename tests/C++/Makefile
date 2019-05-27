@@ -20,7 +20,7 @@ main_test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=safe-stack -o main_test_ss
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o main_test_memsan
 
-cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple
+cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple formula_threshold_profile
 
 formula_ordered:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_clang
@@ -42,6 +42,11 @@ formula_threshold:
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_dbg
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -fsanitize=address,undefined -o ./from_formula_threshold_asan
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_threshold_memsan
+
+formula_threshold_profile:
+	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_profile_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_profile_gcc
+
 
 formula_layered:
 	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_clang
