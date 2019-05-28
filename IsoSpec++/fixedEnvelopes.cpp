@@ -28,7 +28,7 @@ void FixedEnvelope::sort_by_mass()
     if((_probs == nullptr) && (_lprobs == nullptr) && (_confs == nullptr))
         std::sort(_masses, _masses + _confs_no);
     else
-        call_sort_by(_masses);
+        sort_by(_masses);
 }
 
 
@@ -47,89 +47,46 @@ void FixedEnvelope::sort_by_prob()
     }
 
     if(_probs == nullptr)
-        call_sort_by(_lprobs);
+        sort_by(_lprobs);
     else
-        call_sort_by(_probs);
+        sort_by(_probs);
 }
 
-
-void FixedEnvelope::call_sort_by(double* order)
+template<typename T> T* reorder_array(T* arr, size_t* order, size_t size)
 {
-    if(_confs != nullptr)
-    {
-        if(_probs != nullptr)
-        {
-            if(_masses != nullptr)
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, true, true, true>(order);
-                else
-                    sort_by<false, true, true, true>(order);
-            }
-            else
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, false, true, true>(order);
-                else
-                    sort_by<false, false, true, true>(order);
-            }
-        }
-        else
-        {
-            if(_masses != nullptr)
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, true, false, true>(order);
-                else
-                    sort_by<false, true, false, true>(order);
-            }
-            else
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, false, false, true>(order);
-                else
-                    sort_by<false, false, false, true>(order);
-            }
-        }
-    }
-    else
-    {
-        if(_probs != nullptr)
-        {
-            if(_masses != nullptr)
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, true, true, false>(order);
-                else
-                    sort_by<false, true, true, false>(order);
-            }
-            else
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, false, true, false>(order);
-                else
-                    sort_by<false, false, true, false>(order);
-            }
-        }
-        else
-        {
-            if(_masses != nullptr)
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, true, false, false>(order);
-                else
-                    sort_by<false, true, false, false>(order);
-            }
-            else
-            {
-                if(_lprobs != nullptr)
-                    sort_by<true, false, false, false>(order);
-                else
-                    sort_by<false, false, false, false>(order);
-            }
-        }
-    }
+    T* ret = (T*) malloc(sizeof(T) * size);
+    for(size_t ii = 0; ii < size; ii++)
+        ret[ii] = arr[order[ii]];
+
+    free(arr);
+    return ret;
 }
+
+void FixedEnvelope::sort_by(double* order)
+{
+    size_t* indices = new size_t[_confs_no];
+
+    for(size_t ii=0; ii<_confs_no; ii++)
+        indices[ii] = ii;
+
+    std::sort<size_t*>(indices, indices + _confs_no, TableOrder<double>(order));
+
+    if(_masses != nullptr) _masses = reorder_array(_masses, indices, _confs_no);
+    if(_probs  != nullptr) _probs  = reorder_array(_probs,  indices, _confs_no);
+    if(_lprobs != nullptr) _lprobs = reorder_array(_lprobs, indices, _confs_no);
+    if(_confs  != nullptr)
+    {
+        const int allDimSizeofInt = sizeof(int) * allDim;
+        int* new_confs = (int*) malloc(_confs_no * allDimSizeofInt);
+        for(size_t ii=0; ii<_confs_no; ii++)
+            memcpy(&new_confs[ii*allDim], &_confs[indices[ii]*allDim], allDimSizeofInt);
+        free(_confs);
+        _confs = new_confs;
+    }
+    delete[] indices;
+}
+
+
 
 
 

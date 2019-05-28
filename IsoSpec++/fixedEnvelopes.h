@@ -74,32 +74,8 @@ public:
     void sort_by_prob();
 
 private:
-    void call_sort_by(double* order);
 
-    template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void sort_by(double* order)
-    {
-        size_t* indices = new size_t[_confs_no];
-
-        int* conf_swapspace = nullptr;
-        constexpr_if(tgetConfs)
-            conf_swapspace = new int[allDim];
-
-        for(size_t ii=0; ii<_confs_no; ii++)
-            indices[ii] = ii;
-
-        std::sort(indices, indices + _confs_no, TableOrder(order));
-
-        for(size_t ii=0; ii<_confs_no; ii++)
-            while(indices[ii] != ii)
-            {
-                swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, indices[ii], conf_swapspace);
-                std::swap<size_t>(indices[indices[ii]], indices[ii]);
-            }
-
-        delete[] indices;
-        constexpr_if(tgetConfs)
-            delete[] conf_swapspace;
-    }
+    void sort_by(double* order);
 
 protected:
     double* tmasses;
