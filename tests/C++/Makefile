@@ -20,7 +20,7 @@ main_test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=safe-stack -o main_test_ss
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o main_test_memsan
 
-cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple formula_threshold_profile
+cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple formula_threshold_profile mass_range
 
 formula_ordered:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_clang
@@ -44,8 +44,10 @@ formula_threshold:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_threshold_memsan
 
 formula_threshold_profile:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_profile_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_profile_gcc
+	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_gprof_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_gprof_gcc
+	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -o ./from_formula_threshold_profile_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -o ./from_formula_threshold_profile_gcc
 
 
 formula_layered:
@@ -61,6 +63,14 @@ formula_layered_generator:
 	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_dbg
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -fsanitize=address,undefined -o ./from_formula_layered_generator_asan
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_generator_memsan
+
+mass_range:
+	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) mass_range.cpp -o ./mass_range_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) mass_range.cpp -o ./mass_range_gcc
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) mass_range.cpp -o ./mass_range_dbg
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) mass_range.cpp -fsanitize=address,undefined -o ./mass_range_asan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) mass_range.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./mass_range_memsan
+
 
 ti:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
