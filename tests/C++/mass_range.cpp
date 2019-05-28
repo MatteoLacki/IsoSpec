@@ -12,21 +12,42 @@ size_t test_threshold_simple(const char* formula1, const char* formula2, double 
 
 int main(int argc, char** argv)
 {
-	if(argc < 3)
+	if(argc < 6)
 	{
-		std::cout << "Proper usage (for example): ./from_formula_threshold C10000H1000O1000N1000 C10000H1000O1000N1000 0.01 1000.0 1001.0" << std::endl;
+		std::cout << "Proper usage (for example): ./mass_range C5047H8014 N1338O1495S48 1e-9 112891.05322716107 112893.05322716107" << std::endl;
 		std::cout << "...will the configurations with probability above 0.01 for the sum of the above molecules" << std::endl;
 		return -1;
 	}
 
-        bool print_confs = true;
+        bool verify = false;
 
-        if(argc > 3)
-            print_confs = (strcmp(argv[3], "true") == 0);
+        if(argc > 6)
+            verify = (strcmp(argv[6], "true") == 0);
+
+        double low = atof(argv[4]);
+        double upper = atof(argv[5]);
 
 	size_t no_visited = test_threshold_simple(argv[1], argv[2], atof(argv[3]), atof(argv[4]), atof(argv[5]));
 	
-	std::cout << "The number of visited configurations is:" << no_visited << std::endl;
+	std::cout << "The number of visited configurations is: " << no_visited << std::endl;
+
+        if(verify)
+        {
+            std::string s1(argv[1]);
+            std::string s2(argv[2]);
+
+            IsoThresholdGenerator tfe(s1+s2, atof(argv[3]), true);
+
+            size_t cnt = 0;
+
+            while (tfe.advanceToNextConfiguration())
+            {
+                double m = tfe.mass();
+                if (low <= m && m <= upper)
+                    cnt++;
+            }
+            std::cout << "The verified number of configurations is: " << cnt << std::endl;
+        }
 
 }
 #endif /* ISOSPEC_TESTS_SKIP_MAIN */
@@ -38,13 +59,14 @@ size_t test_threshold_simple(const char* formula1, const char* formula2, double 
         double acc_prob = 0.0;
 
         Iso iso1(formula1);
+        Iso iso2(formula2);
         double thr1 = exp(iso1.getModeLProb());
-        ThresholdFixedEnvelope tfe1(std::move(iso1), threshold/thr1, true);
+        double thr2 = exp(iso2.getModeLProb());
+
+        ThresholdFixedEnvelope tfe1(std::move(iso1), threshold/thr2, true);
         tfe1.sort_by_mass();
 
-        Iso iso2(formula2);
-        double thr2 = exp(iso2.getModeLProb());
-        ThresholdFixedEnvelope tfe2(std::move(iso2), threshold/thr2, true);
+        ThresholdFixedEnvelope tfe2(std::move(iso2), threshold/thr1, true);
         tfe2.sort_by_mass();
 
 
