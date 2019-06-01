@@ -145,6 +145,17 @@ class Iso(object):
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 
+    def plot(self, **matplotlib_args):
+        '''Convenience, very rudimentary spectrum plotting function'''
+        try:
+            from matplotlib import pyplot as plt
+        except ImportError as e:
+            raise ImportError(e.msg + "\nPlotting spectra requires matplotlib to be installed.")
+
+        plt.vlines(list(self.masses), [0], list(self.probs), linewidth=1, **matplotlib_args)
+        plt.xlabel("Mass (Da)")
+        plt.ylabel("Intensity (relative)")
+        plt.show()
 
 
 class IsoThreshold(Iso):
