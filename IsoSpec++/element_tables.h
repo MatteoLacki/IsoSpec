@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 
-#define ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES 288
+#define ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES 292
 extern const size_t isospec_number_of_isotopic_entries;
 
 extern const int elem_table_ID[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
