@@ -300,8 +300,8 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
     {
         int num = 0;
         int at_idx = *it;
-        int atomicNo = elem_table_atomicNo[at_idx];
-        while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_atomicNo[at_idx] == atomicNo)
+        int elem_ID = elem_table_ID[at_idx];
+        while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_ID[at_idx] == elem_ID)
         {
             at_idx++;
             num++;
