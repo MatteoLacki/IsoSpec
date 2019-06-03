@@ -1,6 +1,10 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 
+2.1.0
+----------------------------------
+- Support for using nominal mass in calculations
+
 2.0.1 (R-only release)
 ----------------------------------
 - Fix compilation of IsoSpecR on Windows
