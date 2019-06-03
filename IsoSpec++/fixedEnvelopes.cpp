@@ -112,6 +112,23 @@ double FixedEnvelope::get_total_prob()
     return total_prob;
 }
 
+void FixedEnvelope::scale(double factor)
+{
+    for(size_t ii = 0; ii<_confs_no; ii++)
+        _probs[ii] *= factor;
+    total_prob *= factor;
+}
+
+void FixedEnvelope::normalize()
+{
+    double tp = get_total_prob();
+    if(tp != 1.0)
+    {
+        scale(1.0/tp);
+        total_prob = 1.0;
+    }
+}
+
 
 
 

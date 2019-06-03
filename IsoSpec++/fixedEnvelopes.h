@@ -77,6 +77,8 @@ public:
     void sort_by_prob();
 
     double get_total_prob();
+    void scale(double factor);
+    void normalize();
 
 private:
 
