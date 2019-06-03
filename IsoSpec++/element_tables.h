@@ -33,7 +33,7 @@ extern const int elem_table_ID[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const int elem_table_atomicNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const double elem_table_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const double elem_table_mass[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
-extern const int elem_table_massNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+extern const double elem_table_massNo[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const int elem_table_extraNeutrons[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const char* elem_table_element[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
 extern const char* elem_table_symbol[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];

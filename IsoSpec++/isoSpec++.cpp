@@ -211,7 +211,7 @@ double Iso::getTheoreticalAverageMass() const
 }
 
 
-Iso::Iso(const char* formula) :
+Iso::Iso(const char* formula, bool use_nominal_masses) :
 disowned(false),
 allDim(0),
 marginals(nullptr),
@@ -220,7 +220,7 @@ modeLProb(0.0)
     std::vector<const double*> isotope_masses;
     std::vector<const double*> isotope_probabilities;
 
-    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
+    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize, use_nominal_masses);
 
     setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
@@ -239,7 +239,7 @@ void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses,
 
 }
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
@@ -311,7 +311,8 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
     for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
-        isotope_masses.push_back(&elem_table_mass[*it]);
+        const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
+        isotope_masses.push_back(&masses[*it]);
         isotope_probabilities.push_back(&elem_table_probability[*it]);
     };
 

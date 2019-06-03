@@ -43,7 +43,8 @@ unsigned int parse_formula(const char* formula,
                            std::vector<const double*>& isotope_probabilities,
                            int** isotopeNumbers,
                            int** atomCounts,
-                           unsigned int* confSize);
+                           unsigned int* confSize,
+                           bool use_nominal_masses = false);
 
 
 //! The Iso class for the calculation of the isotopic distribution.
@@ -93,10 +94,10 @@ public:
     );
 
     //! Constructor from the formula object.
-    Iso(const char* formula);
+    Iso(const char* formula, bool use_nominal_masses = false);
 
     //! Constructor from C++ std::string chemical formula.
-    inline Iso(const std::string& formula) : Iso(formula.c_str()) {};
+    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {};
 
     //! The move constructor.
     Iso(Iso&& other);

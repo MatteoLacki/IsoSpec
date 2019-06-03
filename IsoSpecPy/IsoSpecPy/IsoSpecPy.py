@@ -31,7 +31,7 @@ regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
 ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob')
 
 
-def IsoParamsFromFormula(formula):
+def IsoParamsFromFormula(formula, use_nominal_masses = False):
     global regex_pattern
 
     symbols = []
@@ -40,7 +40,10 @@ def IsoParamsFromFormula(formula):
         symbols.append(elem)
         atomCounts.append(int(cnt) if cnt is not '' else 1)
     try:
-        masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
+        if use_nominal_masses:
+            masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
+        else:
+            masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
         probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
     except KeyError:
         raise ValueError("Invalid formula")
@@ -54,7 +57,8 @@ class Iso(object):
                  get_confs=False,
                  atomCounts=[],
                  isotopeMasses=[],
-                 isotopeProbabilities=[]):
+                 isotopeProbabilities=[],
+                 use_nominal_masses = False):
         """Initialize Iso."""
 
         self.iso = None
@@ -65,7 +69,7 @@ class Iso(object):
         if formula:
             if isinstance(formula, dict):
                 formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
-            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula)
+            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula, use_nominal_masses = use_nominal_masses)
         else:
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
 
