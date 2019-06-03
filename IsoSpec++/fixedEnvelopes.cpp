@@ -19,6 +19,37 @@
 namespace IsoSpec
 {
 
+FixedEnvelope::FixedEnvelope(const FixedEnvelope& other) :
+_masses(array_copy<double>(other._masses, other._confs_no)),
+_lprobs(array_copy<double>(other._lprobs, other._confs_no)),
+_probs(array_copy<double>(other._probs, other._confs_no)),
+_confs(array_copy<int>(other._confs, other._confs_no*other.allDim)),
+_confs_no(other._confs_no),
+allDim(other.allDim),
+sorted_by_mass(other.sorted_by_mass),
+sorted_by_prob(other.sorted_by_prob),
+total_prob(other.total_prob)
+{}
+
+FixedEnvelope::FixedEnvelope(FixedEnvelope&& other) :
+_masses(other._masses),
+_lprobs(other._lprobs),
+_probs(other._probs),
+_confs(other._confs),
+_confs_no(other._confs_no),
+allDim(other.allDim),
+sorted_by_mass(other.sorted_by_mass),
+sorted_by_prob(other.sorted_by_prob),
+total_prob(other.total_prob)
+{
+other._masses = nullptr;
+other._lprobs = nullptr;
+other._probs  = nullptr;
+other._confs  = nullptr;
+other._confs_no = 0;
+other.total_prob = 0.0;
+}
+
 
 void FixedEnvelope::sort_by_mass()
 {

@@ -131,6 +131,13 @@ template <typename T> inline static T* array_copy(const T* A, int size)
     return ret;
 }
 
+template <typename T> static T* array_copy_nptr(const T* A, int size)
+{
+    if(A == nullptr)
+        return nullptr;
+    return array_copy(A, size);
+}
+
 template<typename T> void dealloc_table(T* tbl, int dim)
 {
     for(int i=0; i<dim; i++)

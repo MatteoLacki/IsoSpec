@@ -34,6 +34,9 @@ protected:
     int*    _confs;
     size_t  _confs_no;
     int     allDim;
+    bool sorted_by_mass;
+    bool sorted_by_prob;
+    double total_prob;
 
 public:
     FixedEnvelope() : _masses(nullptr),
@@ -45,6 +48,9 @@ public:
         sorted_by_prob(false),
         total_prob(NAN)
         {};
+
+    FixedEnvelope(const FixedEnvelope& other);
+    FixedEnvelope(FixedEnvelope&& other);
 
     virtual ~FixedEnvelope()
     {
@@ -83,9 +89,6 @@ public:
 private:
 
     void sort_by(double* order);
-    bool sorted_by_mass;
-    bool sorted_by_prob;
-    double total_prob;
 
 protected:
     double* tmasses;
