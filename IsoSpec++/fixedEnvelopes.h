@@ -40,7 +40,10 @@ public:
         _lprobs(nullptr),
         _probs(nullptr),
         _confs(nullptr),
-        _confs_no(0)
+        _confs_no(0),
+        sorted_by_mass(false),
+        sorted_by_prob(false),
+        total_prob(NAN)
         {};
 
     virtual ~FixedEnvelope()
@@ -73,9 +76,14 @@ public:
     void sort_by_mass();
     void sort_by_prob();
 
+    double get_total_prob();
+
 private:
 
     void sort_by(double* order);
+    bool sorted_by_mass;
+    bool sorted_by_prob;
+    double total_prob;
 
 protected:
     double* tmasses;

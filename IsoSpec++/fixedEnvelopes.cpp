@@ -25,10 +25,16 @@ void FixedEnvelope::sort_by_mass()
     if(_masses == nullptr)
         throw std::logic_error("Can't sort by masses if masses have not been computed");
 
+    if(sorted_by_mass)
+        return;
+
     if((_probs == nullptr) && (_lprobs == nullptr) && (_confs == nullptr))
         std::sort(_masses, _masses + _confs_no);
     else
         sort_by(_masses);
+
+    sorted_by_mass = true;
+    sorted_by_prob = false;
 }
 
 
@@ -36,6 +42,9 @@ void FixedEnvelope::sort_by_prob()
 {
     if((_probs == nullptr) && (_lprobs == nullptr))
         throw std::logic_error("Can't sort by probabilities if neither probs nor logprobs have not been computed");
+
+    if(sorted_by_prob)
+        return;
 
     if((_masses == nullptr) && (_confs == nullptr))
     {
@@ -50,6 +59,9 @@ void FixedEnvelope::sort_by_prob()
         sort_by(_lprobs);
     else
         sort_by(_probs);
+
+    sorted_by_prob = true;
+    sorted_by_mass = false;
 }
 
 template<typename T> T* reorder_array(T* arr, size_t* order, size_t size)
@@ -86,6 +98,19 @@ void FixedEnvelope::sort_by(double* order)
     delete[] indices;
 }
 
+
+double FixedEnvelope::get_total_prob()
+{
+    if(_probs == nullptr)
+        throw std::logic_error("Cannot compute total probability if probabilities have not been computed");
+    if(std::isnan(total_prob))
+    {
+        total_prob = 0.0;
+        for(size_t ii=0; ii<_confs_no; ii++)
+            total_prob += _probs[ii];
+    }
+    return total_prob;
+}
 
 
 
