@@ -50,6 +50,18 @@ other._confs_no = 0;
 other.total_prob = 0.0;
 }
 
+FixedEnvelope::FixedEnvelope(double* masses, double* probs, size_t confs_no) :
+_masses(masses),
+_lprobs(nullptr),
+_probs(probs),
+_confs(nullptr),
+_confs_no(confs_no),
+allDim(0),
+sorted_by_mass(false),
+sorted_by_prob(false),
+total_prob(NAN)
+{}
+
 
 void FixedEnvelope::sort_by_mass()
 {

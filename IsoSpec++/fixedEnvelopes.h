@@ -52,6 +52,8 @@ public:
     FixedEnvelope(const FixedEnvelope& other);
     FixedEnvelope(FixedEnvelope&& other);
 
+    FixedEnvelope(double* masses, double* probs, size_t confs_no);
+
     virtual ~FixedEnvelope()
     {
         if( _masses != nullptr ) free(_masses);
