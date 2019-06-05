@@ -62,6 +62,8 @@ public:
         if( _confs  != nullptr ) free(_confs);
     };
 
+    FixedEnvelope operator+(const FixedEnvelope& other) const;
+
     inline size_t    confs_no() const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
 

@@ -62,6 +62,27 @@ sorted_by_prob(false),
 total_prob(NAN)
 {}
 
+FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
+{
+    if(_confs_no > 0)
+        if(_masses == nullptr || _probs == nullptr)
+            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
+    if(other._confs_no > 0)
+        if(other._masses == nullptr || other._probs == nullptr)
+            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
+
+    double* nprobs = (double*) malloc(_confs_no+other._confs_no);
+    double* nmasses = (double*) malloc(_confs_no+other._confs_no);
+
+    memcpy(nprobs, _probs, sizeof(double) * _confs_no);
+    memcpy(nmasses, _masses, sizeof(double) * _confs_no);
+
+    memcpy(nprobs+_confs_no, other._probs, sizeof(double) * other._confs_no);
+    memcpy(nmasses+_confs_no, other._masses, sizeof(double) * other._confs_no);
+
+    return FixedEnvelope(nmasses, nprobs, _confs_no + other._confs_no);
+}
+
 
 void FixedEnvelope::sort_by_mass()
 {
