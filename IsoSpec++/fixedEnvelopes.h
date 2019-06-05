@@ -64,13 +64,13 @@ public:
 
     FixedEnvelope operator+(const FixedEnvelope& other) const;
 
-    inline size_t    confs_no() const { return _confs_no; };
+    inline size_t    confs_no()  const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
 
-    inline const double*   lprobs()   { return _lprobs; };
-    inline const double*   masses()   { return _masses; };
-    inline const double*   probs()    { return _probs; };
-    inline const int*      confs()    { return _confs; };
+    inline const double*   lprobs() const { return _lprobs; };
+    inline const double*   masses() const { return _masses; };
+    inline const double*   probs()  const { return _probs; };
+    inline const int*      confs()  const { return _confs; };
 
     inline double*   release_lprobs()   { double* ret = _lprobs; _lprobs = nullptr; return ret; };
     inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; };
@@ -78,10 +78,10 @@ public:
     inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; };
 
 
-    inline double     mass(size_t i)  { return _masses[i]; };
-    inline double     lprob(size_t i) { return _lprobs[i]; };
-    inline double     prob(size_t i)  { return _probs[i];  };
-    inline const int* conf(size_t i)  { return _confs + i*allDim; };
+    inline double     mass(size_t i)  const { return _masses[i]; };
+    inline double     lprob(size_t i) const { return _lprobs[i]; };
+    inline double     prob(size_t i)  const { return _probs[i];  };
+    inline const int* conf(size_t i)  const { return _confs + i*allDim; };
 
     void sort_by_mass();
     void sort_by_prob();
