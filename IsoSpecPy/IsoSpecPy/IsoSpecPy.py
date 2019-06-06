@@ -47,9 +47,16 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
 
     symbols = []
     atomCounts = []
-    for elem, cnt in re.findall(regex_pattern, formula):
+    last = 0
+    for match in re.finditer(regex_pattern, formula):
+        elem, cnt = match.groups()
         symbols.append(elem)
         atomCounts.append(int(cnt) if cnt is not '' else 1)
+        if last!=match.start():
+            raise ValueError("""Invalid formula (garbage inside: "{}")""".format(formula[last:match.start()]))
+        if elem not in PeriodicTbl.symbol_to_masses:
+            raise ValueError("""Invalid formula (unknown element symbol: "{}")""".format(elem))
+        last = match.end()
     try:
         if use_nominal_masses:
             masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
@@ -58,6 +65,12 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
         probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
     except KeyError:
         raise ValueError("Invalid formula")
+
+    if len(formula) != last:
+        raise ValueError('''Invalid formula (trailing garbage: "{}")'''.format(formula[last:]))
+
+    if len(atomCounts) == 0:
+        raise ValueError("Invalid formula (empty)")
 
     return ParsedFormula(atomCounts, masses, probs)
 
