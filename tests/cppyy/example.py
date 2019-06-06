@@ -14,4 +14,4 @@ i = IsoSpec.Iso("H2O1")
 it = IsoSpec.IsoThresholdGenerator(std.move(i), 0.0001)
 
 while it.advanceToNextConfiguration():
-    print it.mass(), exp(it.lprob())
+    print(it.mass(), exp(it.lprob()))
