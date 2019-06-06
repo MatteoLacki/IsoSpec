@@ -72,6 +72,9 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
     if len(atomCounts) == 0:
         raise ValueError("Invalid formula (empty)")
 
+    if len(symbols) != len(set(symbols)):
+        raise ValueError("""Invalid formula (repeating element: "{}")""".format([x for x in symbols if symbols.count(x) > 1][0]))
+
     return ParsedFormula(atomCounts, masses, probs)
 
 
