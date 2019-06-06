@@ -104,7 +104,7 @@ setup_args = {
     # for example:
     # $ pip install -e .[dev,test]
     'extras_require' : {
-       'test': ["pytest"]
+       'test': ["pytest", "numpy"]
     },
 
     # If there are data files included in your packages that need to be

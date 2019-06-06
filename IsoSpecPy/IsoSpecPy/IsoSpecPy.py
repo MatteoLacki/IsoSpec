@@ -31,7 +31,18 @@ regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
 ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob')
 
 
+
+
 def IsoParamsFromFormula(formula, use_nominal_masses = False):
+    """Parse a chemical formula.
+
+    Args:
+        formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O"
+        use_nominal_masses (boolean): use masses of elements rounded to integer numbers (nominal masses)
+    
+    Returns:
+        ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
+    """
     global regex_pattern
 
     symbols = []
@@ -53,13 +64,23 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
 
 
 class Iso(object):
+    """Virtual class representing an isotopic distribution."""
     def __init__(self, formula="",
                  get_confs=False,
                  atomCounts=[],
                  isotopeMasses=[],
                  isotopeProbabilities=[],
                  use_nominal_masses = False):
-        """Initialize Iso."""
+        """Initialize Iso.
+
+        Args:
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            get_confs (boolean): should we report counts of isotopologues?
+            atomCounts (list): a list of atom counts (alternative to 'formula').
+            isotopeMasses (list): a list of lists of masses of elements with counts in 'atomCounts'.
+            isotopeProbabilities (list): a list of lists of probabilities of elements with counts in 'atomCounts'.
+            use_nominal_masses (boolean): should the masses be rounded to the closest integer values.
+        """
 
         self.iso = None
 
@@ -129,18 +150,25 @@ class Iso(object):
             pass
 
     def getLightestPeakMass(self):
+        """Get the lightest peak in the isotopic distribution."""
         return self.ffi.getLightestPeakMassIso(self.iso)
 
     def getHeaviestPeakMass(self):
+        """Get the heaviest peak in the isotopic distribution."""
         return self.ffi.getHeaviestPeakMassIso(self.iso)
 
     def getMonoisotopicPeakMass(self):
+        """Get the monoisotopic mass of the peak."""
         return self.ffi.getMonoisotopicPeakMassIso(self.iso)
 
     def getModeLProb(self):
+        """Get the log probability of the most probable peak(s) in the isotopic distribution."""
         return self.ffi.getModeLProbIso(self.iso)
 
     def getModeMass(self):
+        """Get the mass of the most probable peak.
+
+        If there are more, return only the mass of one of them."""
         return self.ffi.getModeMassIso(self.iso)
 
     def getTheoreticalAverageMass(self):
@@ -151,9 +179,59 @@ class Iso(object):
 
 
 
-class IsoThreshold(Iso):
-    def __init__(self, threshold, absolute=False, get_confs = False, **kwargs):
-        super(IsoThreshold, self).__init__(get_confs = get_confs, **kwargs)
+class IsoDistribution(Iso):
+    """Isotopoic distribution with precomputed vector of masses and probabilities."""
+    def np_masses(self):
+        """Return computed masses as a numpy array."""
+        try:
+            import numpy as np
+        except ImportError:
+            raise Exception(e.msg + "\nThis requires numpy to be installed.")
+        return np.frombuffer(isoFFI.ffi.buffer(self.masses))
+
+    def np_probs(self):
+        """Return computed probabilities as a numpy array."""
+        try:
+            import numpy as np
+        except ImportError as e:
+            raise Exception(e.msg + "\nThis requires numpy to be installed.")
+        return np.frombuffer(isoFFI.ffi.buffer(self.probs))
+
+    def __len__(self):
+        """Get the number of calculated peaks."""
+        return self.size
+
+    def _get_conf(self, idx):
+        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
+
+    def plot(self, **matplotlib_args):
+        """Plot the isotopic distribution.
+
+        Args:
+            **matplotlib_args: arguments for matplotlib plot.
+        """
+        return plot_spectrum(self, **matplotlib_args)
+
+
+
+class IsoThreshold(IsoDistribution):
+    """Class representing peaks above a given height."""
+    def __init__(self,
+                 threshold,
+                 formula="",
+                 absolute=False,
+                 get_confs=False,
+                 **kwargs):
+        """Initialize the IsoThreshold isotopic distribution. 
+
+        Args:
+            threshold (float): value of the absolute or relative threshold.
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            absolute (boolean): should we report peaks with probabilities above an absolute probability threshold, or above a relative threshold amounting to a given proportion of the most probable peak?
+            get_confs (boolean): should we report counts of isotopologues?
+            **kwds: named arguments to IsoSpectrum.
+        """
+        super(IsoThreshold, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
 
@@ -175,20 +253,21 @@ class IsoThreshold(Iso):
 
         self.ffi.deleteThresholdFixedEnvelope(tabulator)
 
-    def _get_conf(self, idx):
-        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
+    
 
-    def __len__(self):
-        return self.size
+class IsoTotalProb(IsoDistribution):
+    """Class representing the smallest number of peaks with total probability above a given probability."""
+    def __init__(self, prob_to_cover, formula="", get_minimal_pset=True, get_confs=False, **kwargs):
+        """Initialize the IsoTotalProb isotopic distribution.
 
-    def plot(self, **matplotlib_args):
-        return plot_spectrum(self, **matplotlib_args)
-
-
-
-class IsoTotalProb(Iso):
-    def __init__(self, prob_to_cover, get_minimal_pset = True, get_confs = False, **kwargs):
-        super(IsoTotalProb, self).__init__(get_confs = get_confs, **kwargs)
+        Args:
+            prob_to_cover (float): minimal total probability of the reported peaks.
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            get_minimal_pset (boolean): should we trim the last calculated layer of isotopologues so that the reported result is as small as possible?
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
+        super(IsoTotalProb, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
         tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
@@ -209,20 +288,23 @@ class IsoTotalProb(Iso):
 
         self.ffi.deleteTotalProbFixedEnvelope(tabulator)
 
-    def _get_conf(self, idx):
-        return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
-
-    def __len__(self):
-        return self.size
-
-    def plot(self, **matplotlib_args):
-        return plot_spectrum(self, **matplotlib_args)
 
 
 class IsoGenerator(Iso):
-    def __init__(self, get_confs=False, **kwargs):
+    """Virtual class alowing memory-efficient iteration over the isotopic distribution.
+
+    This iterator will stop only after enumerating all isotopologues.
+    """
+    def __init__(self, formula="", get_confs=False, **kwargs):
+        """Initialize the IsoGenerator.
+
+        Args:
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
         self.cgen = None
-        super(IsoGenerator, self).__init__(get_confs = get_confs, **kwargs)
+        super(IsoGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
         self.firstuse = True
 
@@ -242,8 +324,20 @@ class IsoGenerator(Iso):
         
 
 class IsoThresholdGenerator(IsoGenerator):
-    def __init__(self, threshold, absolute=False, get_confs=False, use_lprobs=False, **kwargs):
-        super(IsoThresholdGenerator, self).__init__(get_confs, **kwargs)
+    """Class alowing memory-efficient iteration over the isotopic distribution up till some probability threshold.
+
+    This iterator will stop only after reaching a probability threshold.
+    """
+    def __init__(self, threshold, formula="", absolute=False, get_confs=False, **kwargs):
+        """Initialize IsoThresholdGenerator.
+
+        Args:
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            absolute (boolean): should we report peaks with probabilities above an absolute probability threshold, or above a relative threshold amounting to a given proportion of the most probable peak?
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
+        super(IsoThresholdGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
         self.cgen = self.ffi.setupIsoThresholdGenerator(self.iso,
@@ -252,11 +346,12 @@ class IsoThresholdGenerator(IsoGenerator):
                                                         1000,
                                                         1000)
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
-        self.xprob_getter = self.ffi.lprobIsoThresholdGenerator if use_lprobs else self.ffi.probIsoThresholdGenerator
+        self.xprob_getter = self.ffi.probIsoThresholdGenerator
         self.mass_getter = self.ffi.massIsoThresholdGenerator
         self.conf_getter = self.ffi.get_conf_signatureIsoThresholdGenerator
 
     def __del__(self):
+        """Destructor."""
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoThresholdGenerator(self.cgen)
@@ -265,14 +360,20 @@ class IsoThresholdGenerator(IsoGenerator):
 
 
 class IsoLayeredGenerator(IsoGenerator):
-    def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
-        super(IsoLayeredGenerator, self).__init__(get_confs, **kwargs)
-        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso,
-                                                      1000,
-                                                      1000,
-                                                      )
+    """Class alowing memory-efficient iteration over the isotopic distribution up till some joint probability of the reported peaks."""
+    def __init__(self, formula="", get_confs=False, **kwargs):
+        """Initialize IsoThresholdGenerator.
+
+        Args:
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            absolute (boolean): should we report peaks with probabilities above an absolute probability threshold, or above a relative threshold amounting to a given proportion of the most probable peak?
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
+        super(IsoLayeredGenerator, self).__init__(formual=formula, get_confs=get_confs, **kwargs)
+        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000)
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
-        self.xprob_getter = self.ffi.lprobIsoLayeredGenerator if use_lprobs else self.ffi.probIsoLayeredGenerator
+        self.xprob_getter = self.ffi.probIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator
         self.conf_getter = self.ffi.get_conf_signatureIsoLayeredGenerator
 
@@ -284,13 +385,26 @@ class IsoLayeredGenerator(IsoGenerator):
             pass
 
 class IsoOrderedGenerator(IsoGenerator):
-    def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
-        super(IsoOrderedGenerator, self).__init__(get_confs, **kwargs)
-        self.cgen = self.ffi.setupIsoOrderedGenerator(self.iso,
-                                                      1000,
-                                                      1000)
+    """Class representing an isotopic distribution with peaks ordered by descending probability.
+
+    This generator return probilities ordered with descending probability.
+    It it not optimal to do so, but it might be useful.
+
+    WARNING! This algorithm work in O(N*log(N)) vs O(N) of the threshold and layered algorithms.
+    Also, the order of descending probability will most likely not reflect the order of ascending masses.
+    """
+    def __init__(self, formula="", get_confs=False, **kwargs):
+        """Initialize IsoOrderedGenerator.
+
+        Args:
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
+        super(IsoOrderedGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
+        self.cgen = self.ffi.setupIsoOrderedGenerator(self.iso, 1000, 1000)
         self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
-        self.xprob_getter = self.ffi.lprobIsoOrderedGenerator if use_lprobs else self.ffi.probIsoOrderedGenerator
+        self.xprob_getter = self.ffi.probIsoOrderedGenerator
         self.mass_getter = self.ffi.massIsoOrderedGenerator
         self.conf_getter = self.ffi.get_conf_signatureIsoOrderedGenerator
 
@@ -303,14 +417,13 @@ class IsoOrderedGenerator(IsoGenerator):
 
 
 
-def plot_spectrum(spectrum, **matplotlib_args):
-    '''Convenience, very rudimentary spectrum plotting function'''
+def plot_spectrum(spectrum, show=True, **matplotlib_args):
     try:
         from matplotlib import pyplot as plt
     except ImportError as e:
         raise ImportError(e.msg + "\nPlotting spectra requires matplotlib to be installed.")
-
     plt.vlines(list(spectrum.masses), [0], list(spectrum.probs), linewidth=1, **matplotlib_args)
     plt.xlabel("Mass (Da)")
     plt.ylabel("Intensity (relative)")
-    plt.show()
+    if show:
+        plt.show()
