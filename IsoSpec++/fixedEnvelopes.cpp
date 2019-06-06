@@ -193,8 +193,26 @@ void FixedEnvelope::normalize()
     }
 }
 
+FixedEnvelope FixedEnvelope::ScalarProduct(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
+{
+    size_t ret_size = 0;
+    for(auto spectrum = spectra.begin(); spectrum != spectra.end(); spectrum++)
+        ret_size += (*spectrum)->_confs_no;
 
+    double* newprobs = (double*) malloc(sizeof(double)*ret_size);
+    double* newmasses = (double*) malloc(sizeof(double)*ret_size);
 
+    size_t cntr = 0;
+    for(size_t ii = 0; ii < spectra.size(); ii++)
+    {
+        double mul = intensities[ii];
+        for(size_t jj = 0; jj < spectra[ii]->_confs_no; jj++)
+            newprobs[jj+cntr] = spectra[ii]->_probs[jj] * mul;
+        memcpy(newmasses + cntr, spectra[ii]->_masses, sizeof(double) * spectra[ii]->_confs_no);
+        cntr += spectra[ii]->_confs_no;
+    }
+    return FixedEnvelope(newprobs, newmasses, cntr);
+}
 
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
