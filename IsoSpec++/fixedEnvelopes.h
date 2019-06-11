@@ -90,6 +90,8 @@ public:
     void scale(double factor);
     void normalize();
 
+    double WassersteinDistance(FixedEnvelope& other);
+
     static FixedEnvelope ScalarProduct(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);
 
 private:
