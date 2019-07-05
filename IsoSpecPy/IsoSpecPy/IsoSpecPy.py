@@ -121,6 +121,7 @@ class Iso(object):
         try:
             if self.iso is not None:
                 self.ffi.deleteIso(self.iso)
+                self.iso = None
         except AttributeError:
             pass
 
@@ -173,8 +174,10 @@ class IsoThreshold(Iso):
         try:
             if self.tabulator != None:
                 self.ffi.deleteThresholdFixedEnvelope(self.tabulator)
+                self.tabulator = None
         except AttributeError:
             pass
+        super(IsoThreshold, self).__del__()
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
@@ -216,8 +219,10 @@ class IsoTotalProb(Iso):
         try:
             if self.tabulator != None:
                 self.ffi.deleteTotalProbFixedEnvelope(self.tabulator)
+                self.tabulator = None
         except AttributeError:
             pass
+        super(IsoTotalProb, self).__del__()
 
 
 class IsoGenerator(Iso):
@@ -241,6 +246,9 @@ class IsoGenerator(Iso):
                 yield (self.mass_getter(cgen), self.xprob_getter(cgen))
 
         
+    def __del__(self):
+        super(IsoGenerator).__del__()
+
 
 class IsoThresholdGenerator(IsoGenerator):
     def __init__(self, threshold, absolute=False, get_confs=False, use_lprobs=False, **kwargs):
@@ -261,8 +269,10 @@ class IsoThresholdGenerator(IsoGenerator):
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoThresholdGenerator(self.cgen)
+                self.cgen = None
         except AttributeError:
             pass
+        super(IsoThresholdGenerator, self).__del__()
 
 
 class IsoLayeredGenerator(IsoGenerator):
@@ -281,8 +291,11 @@ class IsoLayeredGenerator(IsoGenerator):
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoLayeredGenerator(self.cgen)
+                self.cgen = None
         except AttributeError:
             pass
+        super(IsoLayeredGenerator, self).__del__()
+
 
 class IsoOrderedGenerator(IsoGenerator):
     def __init__(self, get_confs=False, use_lprobs=False, **kwargs):
@@ -299,5 +312,7 @@ class IsoOrderedGenerator(IsoGenerator):
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoLayeredGenerator(self.cgen)
+                self.cgen = None
         except AttributeError:
             pass
+        super(IsoOrderedGenerator, self).__del__()
