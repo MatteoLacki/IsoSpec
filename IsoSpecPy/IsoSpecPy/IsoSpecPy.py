@@ -153,23 +153,28 @@ class IsoThreshold(Iso):
         self.threshold = threshold
         self.absolute = absolute
 
-        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
+        self.tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
 
-        self.size = self.ffi.confs_noThresholdFixedEnvelope(tabulator)
+        self.size = self.ffi.confs_noThresholdFixedEnvelope(self.tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(tabulator))
-        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(tabulator))
+        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(self.tabulator))
+        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(self.tabulator))
+        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(self.tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(self.tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
-        self.ffi.deleteThresholdFixedEnvelope(tabulator)
+    def __del__(self):
+        try:
+            if self.tabulator != None:
+                self.ffi.deleteThresholdFixedEnvelope(self.tabulator)
+        except AttributeError:
+            pass
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
@@ -185,29 +190,34 @@ class IsoTotalProb(Iso):
         super(IsoTotalProb, self).__init__(get_confs = get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
+        self.tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
 
-        self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
+        self.size = self.ffi.confs_noTotalProbFixedEnvelope(self.tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
-        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(tabulator))
+        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(self.tabulator))
+        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(self.tabulator))
+        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(self.tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(self.tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
-
-        self.ffi.deleteTotalProbFixedEnvelope(tabulator)
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
 
     def __len__(self):
         return self.size
+
+    def __del__(self):
+        try:
+            if self.tabulator != None:
+                self.ffi.deleteTotalProbFixedEnvelope(self.tabulator)
+        except AttributeError:
+            pass
 
 
 class IsoGenerator(Iso):
