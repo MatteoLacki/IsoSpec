@@ -159,9 +159,11 @@ class Iso(object):
                 yield (self.masses[i], self.probs[i])
 
     def __del__(self):
+        print("Iso died")
         try:
             if self.iso is not None:
                 self.ffi.deleteIso(self.iso)
+                self.iso = None
         except AttributeError:
             pass
 
@@ -228,6 +230,8 @@ class IsoDistribution(Iso):
         """
         return plot_spectrum(self, **matplotlib_args)
 
+    def __del__(self):
+        super(IsoDistribution, self).__del__()
 
 
 class IsoThreshold(IsoDistribution):
@@ -268,11 +272,14 @@ class IsoThreshold(IsoDistribution):
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
     def __del__(self):
+        print("IsoThreshold died.")
         try:
             if self.tabulator != None:
                 self.ffi.deleteThresholdFixedEnvelope(self.tabulator)
+                self.tabulator = None
         except AttributeError:
             pass
+        super(IsoThreshold, self).__del__()
 
     
 
@@ -311,8 +318,10 @@ class IsoTotalProb(IsoDistribution):
         try:
             if self.tabulator != None:
                 self.ffi.deleteTotalProbFixedEnvelope(self.tabulator)
+                self.tabulator = None
         except AttributeError:
             pass
+        super(IsoTotalProb, self).__del__()
 
 
 class IsoGenerator(Iso):
@@ -346,6 +355,8 @@ class IsoGenerator(Iso):
             while self.advancer(cgen):
                 yield (self.mass_getter(cgen), self.xprob_getter(cgen))
 
+    def __del__(self):
+        super(IsoGenerator).__del__()
         
 
 class IsoThresholdGenerator(IsoGenerator):
@@ -380,8 +391,10 @@ class IsoThresholdGenerator(IsoGenerator):
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoThresholdGenerator(self.cgen)
+                self.cgen = None
         except AttributeError:
             pass
+        super(IsoThresholdGenerator, self).__del__()
 
 
 class IsoLayeredGenerator(IsoGenerator):
@@ -406,8 +419,10 @@ class IsoLayeredGenerator(IsoGenerator):
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoLayeredGenerator(self.cgen)
+                self.cgen = None
         except AttributeError:
             pass
+        super(IsoLayeredGenerator, self).__del__()
 
 class IsoOrderedGenerator(IsoGenerator):
     """Class representing an isotopic distribution with peaks ordered by descending probability.
@@ -437,8 +452,10 @@ class IsoOrderedGenerator(IsoGenerator):
         try:
             if self.cgen is not None:
                 self.ffi.deleteIsoLayeredGenerator(self.cgen)
+                self.cgen = None
         except AttributeError:
             pass
+        super(IsoOrderedGenerator, self).__del__()
 
 
 
