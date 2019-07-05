@@ -1,9 +1,10 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 
-2.0.1 (R-only release)
+2.0.1 (R & Python-only release)
 ----------------------------------
 - Fix compilation of IsoSpecR on Windows
+- Bugfix for computation of theoretical params of fixed distributions
 
 2.0.0
 ----------------------------------
