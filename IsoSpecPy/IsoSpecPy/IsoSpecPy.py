@@ -247,7 +247,7 @@ class IsoGenerator(Iso):
 
         
     def __del__(self):
-        super(IsoGenerator).__del__()
+        super(IsoGenerator, self).__del__()
 
 
 class IsoThresholdGenerator(IsoGenerator):
