@@ -173,7 +173,7 @@ void* setupThresholdFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs)
 {
-    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
+    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(*reinterpret_cast<const Iso*>(iso),
                                          threshold,
                                          absolute,
                                          get_confs,
@@ -225,7 +225,7 @@ void* setupTotalProbFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs)
 {
-    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(std::move(*reinterpret_cast<Iso*>(iso)),
+    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(*reinterpret_cast<const Iso*>(iso),
                                          target_coverage,
                                          optimize,
                                          get_confs,

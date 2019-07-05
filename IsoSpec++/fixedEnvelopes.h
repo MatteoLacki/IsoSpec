@@ -147,6 +147,9 @@ public:
         call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetlProbs, tgetMasses, tgetProbs, tgetConfs);
     }
 
+    inline ThresholdFixedEnvelope(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false, bool tgetlProbs = false, bool tgetMasses = true, bool tgetProbs = true) :
+    ThresholdFixedEnvelope(Iso(iso, false), _threshold, _absolute, tgetConfs, tgetlProbs, tgetMasses, tgetProbs) {};
+
     virtual ~ThresholdFixedEnvelope() {};
 
 private:
@@ -180,6 +183,9 @@ public:
             _probs = nullptr;
         }
     }
+
+    inline TotalProbFixedEnvelope(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false, bool tgetlProbs = false, bool tgetMasses = true, bool tgetProbs = true) :
+    TotalProbFixedEnvelope(Iso(iso, false), _target_total_prob, _optimize, tgetConfs, tgetlProbs, tgetMasses, tgetProbs) {};
 
     virtual ~TotalProbFixedEnvelope() {};
 
