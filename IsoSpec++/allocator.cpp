@@ -15,7 +15,6 @@
  */
 
 
-#include <iostream>
 #include "allocator.h"
 
 namespace IsoSpec

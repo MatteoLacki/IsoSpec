@@ -15,7 +15,6 @@
  */
 
 
-#include <iostream>
 #include <stdlib.h>
 #include "dirtyAllocator.h"
 
