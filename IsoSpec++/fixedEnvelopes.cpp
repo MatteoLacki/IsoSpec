@@ -100,8 +100,8 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
     for(size_t ii=0; ii<_confs_no; ii++)
         for(size_t jj=0; jj<other._confs_no; jj++)
         {
-            nprobs[tgt_idx]  = probs[ii] * other.probs[jj];
-            nmasses[tgt_idx] = masses[ii] * other.masses[jj];
+            nprobs[tgt_idx]  = _probs[ii] * other._probs[jj];
+            nmasses[tgt_idx] = _masses[ii] * other._masses[jj];
             tgt_idx++;
         }
 
