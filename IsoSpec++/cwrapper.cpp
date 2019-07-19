@@ -265,8 +265,45 @@ int confs_noTotalProbFixedEnvelope(void* tabulator)
     return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->confs_no();
 }
 
+//______________________________________________________ Generic FixedEnvelope
+
+
+void deleteFixedEnvelope(void* t)
+{
+    delete reinterpret_cast<FixedEnvelope*>(t);
+}
+
+const double* massesFixedEnvelope(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
+}
+
+const double* lprobsFixedEnvelope(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_lprobs();
+}
+
+const double* probsFixedEnvelope(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_probs();
+}
+
+const int* confsFixedEnvelope(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_confs();
+}
+
+int confs_noFixedEnvelope(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
+}
+
+
+
+
 void freeReleasedArray(void* array)
 {
     free(array);
 }
+
 }  //extern "C" ends here
