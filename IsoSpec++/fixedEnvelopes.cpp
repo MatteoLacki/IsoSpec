@@ -83,6 +83,30 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
     return FixedEnvelope(nmasses, nprobs, _confs_no + other._confs_no);
 }
 
+FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
+{
+    if(_confs_no > 0)
+        if(_masses == nullptr || _probs == nullptr)
+            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
+    if(other._confs_no > 0)
+        if(other._masses == nullptr || other._probs == nullptr)
+            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
+
+    double* nprobs = (double*) malloc(_confs_no*other._confs_no);
+    double* nmasses = (double*) malloc(_confs_no*other._confs_no);
+
+    size_t tgt_idx = 0;
+
+    for(size_t ii=0; ii<_confs_no; ii++)
+        for(size_t jj=0; jj<other._confs_no; jj++)
+        {
+            nprobs[tgt_idx]  = probs[ii] * other.probs[jj];
+            nmasses[tgt_idx] = masses[ii] * other.masses[jj];
+            tgt_idx++;
+        }
+
+    return FixedEnvelope(nmasses, nprobs, _confs_no + other._confs_no);
+}
 
 void FixedEnvelope::sort_by_mass()
 {
