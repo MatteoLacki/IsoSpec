@@ -63,7 +63,7 @@ public:
     };
 
     FixedEnvelope operator+(const FixedEnvelope& other) const;
-    FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const;
+    FixedEnvelope operator*(const FixedEnvelope& other) const;
 
     inline size_t    confs_no()  const { return _confs_no; };
     inline int       getAllDim() const { return allDim; };
