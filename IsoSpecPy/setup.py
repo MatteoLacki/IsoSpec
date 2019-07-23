@@ -156,6 +156,56 @@ elif 'CYGWIN' in platform.system():
     distutils.sysconfig.get_config_vars() # Precalculate the dict so we can...
     distutils.sysconfig._config_vars['CFLAGS'] = "" # Nuke CFLAGS: they contain gcc stuff not supported by clang
     setup(**setup_args)
+elif 'Darwin' in platform.system():
+    # Okay, so OSX is apparently horribly broken. On OSX the "g++" command can be nonexistent and stuff will be compiled with clang++,
+    # or g++ can be present and behave sanely, or it can be clang pretending to be g++ and behaving somewhat sanely, or it can be broken
+    # clang which needs extra commandline arguments to compile anything that imports stdlib headers. Because hey, it's absolutely normal
+    # that C++ compiler should require extra commandline args to compile a "Hello World" program, and of course those commandline options
+    # are incompatible with g++ it's pretending to be. Someone at Apple should be tarred and feathered for this. For now we will do
+    # some convoluted logic to try to find out experimentally whether "g++" really is g++, or is working clang or is broken clang, and 
+    # which flags are needed to compile stuff. Setuptools don't make this easy to do as well...
+    #
+    # See https://github.com/mciach/wassersteinms/issues/1 for the rationale behind this.
+
+    from distutils.command.build_ext import build_ext
+    import subprocess
+
+    class build_ext_subclass(build_ext):
+        def build_extensions(self):
+            compiler_cmd = self.compiler.compiler_so_cxx[0]
+
+            with open(os.devnull, 'w') as devnull:
+
+                def check_flags(flags_l):
+                    cpp_hello_world = '''#include <iostream>
+
+                    int main()
+                    {
+                        std::cout << "Hello World!" << std::endl;
+                    };
+                    '''
+
+                    proc = subprocess.Popen([compiler_cmd] + ["-x", "c++", "-fsyntax-only", "-"] + flags_l, stdin = subprocess.PIPE, stdout = devnull, stderr = devnull, universal_newlines = True)
+                    proc.stdin.write(cpp_hello_world)
+                    proc.stdin.flush()
+                    proc.stdin.close()
+                    ret = proc.wait()
+                    print("Check flags:", ret == 0, flags_l)
+                    return ret == 0
+
+                if check_flags(["-stdlib=libc++"]):
+                    cmodule.extra_compile_args.append("-stdlib=libc++")
+                elif check_flags(["-stdlib=libstdc++"]):
+                    cmodule.extra_compile_args.append("-stdlib=libstdc++")
+                # else just hope for the best, that is, that the compiler isn't broken...
+            try:
+                super(build_ext_subclass, self).build_extensions()
+            except TypeError: # which means we're on Python 2 and *of course* build_ext is an old-style class...
+                build_ext.build_extensions(self)
+
+    setup_args['cmdclass'] = {'build_ext' : build_ext_subclass}
+    setup(**setup_args)
+
 else:
-    # Assuming UNIX with a working compiler.
+    # Assuming sane UNIX with a working compiler.
     setup(**setup_args)
