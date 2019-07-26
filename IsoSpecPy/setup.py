@@ -133,7 +133,7 @@ import platform
 import sys
 
 
-if platform.system() == 'Windows':
+if 'windows' in platform.system().lower():
     # Probably Anaconda distribution.
     # Of course Windows can't even compile stuff. Install prebuilt C++ lib.
     import copy
@@ -141,7 +141,7 @@ if platform.system() == 'Windows':
     win_setup_args['ext_modules'] = []
     win_setup_args['include_package_data'] = True
     setup(**win_setup_args)
-elif 'CYGWIN' in platform.system():
+elif 'cygwin' in platform.system().lower():
     try:
         import cffi
     except ImportError:
@@ -156,7 +156,7 @@ elif 'CYGWIN' in platform.system():
     distutils.sysconfig.get_config_vars() # Precalculate the dict so we can...
     distutils.sysconfig._config_vars['CFLAGS'] = "" # Nuke CFLAGS: they contain gcc stuff not supported by clang
     setup(**setup_args)
-elif 'Darwin' in platform.system():
+elif 'darwin' in platform.system().lower():
     # Okay, so OSX is apparently horribly broken. On OSX the "g++" command can be nonexistent and stuff will be compiled with clang++,
     # or g++ can be present and behave sanely, or it can be clang pretending to be g++ and behaving somewhat sanely, or it can be broken
     # clang which needs extra commandline arguments to compile anything that imports stdlib headers. Because hey, it's absolutely normal
@@ -172,7 +172,12 @@ elif 'Darwin' in platform.system():
 
     class build_ext_subclass(build_ext):
         def build_extensions(self):
-            compiler_cmd = self.compiler.compiler_so_cxx[0]
+            compiler_cmd = "g++" # sane default in case the next stuff crashes...
+            try:
+                compiler_cmd = self.compiler.compiler_cxx[0]
+                compiler_cmd = self.compiler.compiler_so_cxx[0]
+            except AttributeError:
+                pass
 
             with open(os.devnull, 'w') as devnull:
 
@@ -184,12 +189,15 @@ elif 'Darwin' in platform.system():
                         std::cout << "Hello World!" << std::endl;
                     };
                     '''
+                    try:
+                        proc = subprocess.Popen([compiler_cmd] + ["-x", "c++", "-fsyntax-only", "-"] + flags_l, stdin = subprocess.PIPE, stdout = devnull, stderr = devnull, universal_newlines = True)
+                        proc.stdin.write(cpp_hello_world)
+                        proc.stdin.flush()
+                        proc.stdin.close()
+                        ret = proc.wait()
+                    except (OSError, IOError):
+                        return False
 
-                    proc = subprocess.Popen([compiler_cmd] + ["-x", "c++", "-fsyntax-only", "-"] + flags_l, stdin = subprocess.PIPE, stdout = devnull, stderr = devnull, universal_newlines = True)
-                    proc.stdin.write(cpp_hello_world)
-                    proc.stdin.flush()
-                    proc.stdin.close()
-                    ret = proc.wait()
                     print("Check flags:", ret == 0, flags_l)
                     return ret == 0
 
