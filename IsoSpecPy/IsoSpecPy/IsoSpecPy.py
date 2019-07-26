@@ -159,7 +159,6 @@ class Iso(object):
                 yield (self.masses[i], self.probs[i])
 
     def __del__(self):
-        print("Iso died")
         try:
             if self.iso is not None:
                 self.ffi.deleteIso(self.iso)
@@ -272,7 +271,6 @@ class IsoThreshold(IsoDistribution):
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
     def __del__(self):
-        print("IsoThreshold died.")
         try:
             if self.tabulator != None:
                 self.ffi.deleteThresholdFixedEnvelope(self.tabulator)
