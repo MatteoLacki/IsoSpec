@@ -1,5 +1,8 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+2.0.2 (Python-only release)
+----------------------------------
+- Workaround for Python package failing to build on some OSX platforms
 
 2.0.1 (R & Python-only release)
 ----------------------------------
