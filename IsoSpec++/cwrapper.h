@@ -129,6 +129,7 @@ const double* probsTotalProbFixedEnvelope(void* tabulator);
 const int*    confsTotalProbFixedEnvelope(void* tabulator);
 int confs_noTotalProbFixedEnvelope(void* tabulator);
 
+void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
 void deleteFixedEnvelope(void* tabulator);
 
 const double* massesFixedEnvelope(void* tabulator);

@@ -267,6 +267,11 @@ int confs_noTotalProbFixedEnvelope(void* tabulator)
 
 //______________________________________________________ Generic FixedEnvelope
 
+void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob)
+{
+    FixedEnvelope* ret = new FixedEnvelope(masses, probs, size, mass_sorted, prob_sorted, total_prob);
+    return reinterpret_cast<void*>(ret);
+}
 
 void deleteFixedEnvelope(void* t)
 {
@@ -298,7 +303,10 @@ int confs_noFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }
 
-
+double WSDistance(void* tabulator1, void* tabulator2)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
+}
 
 
 void freeReleasedArray(void* array)
