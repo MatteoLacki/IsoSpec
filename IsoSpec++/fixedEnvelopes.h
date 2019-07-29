@@ -52,7 +52,7 @@ public:
     FixedEnvelope(const FixedEnvelope& other);
     FixedEnvelope(FixedEnvelope&& other);
 
-    FixedEnvelope(double* masses, double* probs, size_t confs_no);
+    FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted = false, bool probs_sorted = false, double _total_prob = NAN);
 
     virtual ~FixedEnvelope()
     {
