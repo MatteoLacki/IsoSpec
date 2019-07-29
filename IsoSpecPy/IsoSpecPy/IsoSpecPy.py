@@ -279,6 +279,8 @@ class IsoThreshold(IsoDistribution, Iso):
 
         self.ffi.deleteThresholdFixedEnvelope(tabulator)
 
+        IsoDistribution.__init__(self)
+
     def __del__(self):
         Iso.__del__(self)
         IsoDistribution.__del__(self)
@@ -317,6 +319,8 @@ class IsoTotalProb(IsoDistribution, Iso):
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
         self.ffi.deleteTotalProbFixedEnvelope(tabulator)
+
+        IsoDistribution.__init__(self)
 
     def __del__(self):
         Iso.__del__(self)
