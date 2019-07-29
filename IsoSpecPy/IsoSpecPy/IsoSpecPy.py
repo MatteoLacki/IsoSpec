@@ -150,14 +150,6 @@ class Iso(object):
                                      [i for s in self.isotopeMasses for i in s],
                                      [i for s in self.isotopeProbabilities for i in s])
 
-    def __iter__(self):
-        if self.get_confs:
-            for i in xrange(self.size):
-                yield(self.masses[i], self.probs[i], self.confs[i])
-        else:
-            for i in xrange(self.size):
-                yield (self.masses[i], self.probs[i])
-
     def __del__(self):
         try:
             if self.iso is not None:
@@ -196,7 +188,7 @@ class Iso(object):
 
 
 
-class IsoDistribution(Iso):
+class IsoDistribution(object):
     """Isotopoic distribution with precomputed vector of masses and probabilities."""
     def np_masses(self):
         """Return computed masses as a numpy array."""
@@ -214,12 +206,23 @@ class IsoDistribution(Iso):
             raise Exception(e.msg + "\nThis requires numpy to be installed.")
         return np.frombuffer(isoFFI.ffi.buffer(self.probs))
 
+    def __iter__(self):
+        if self.get_confs:
+            for i in xrange(self.size):
+                yield(self.masses[i], self.probs[i], self.confs[i])
+        else:
+            for i in xrange(self.size):
+                yield (self.masses[i], self.probs[i])
+
     def __len__(self):
         """Get the number of calculated peaks."""
         return self.size
 
     def _get_conf(self, idx):
         return self.parse_conf(self.raw_confs, starting_with = self.sum_isotope_numbers * idx)
+
+    def __del__(self):
+        pass
 
     def plot(self, **matplotlib_args):
         """Plot the isotopic distribution.
@@ -229,11 +232,15 @@ class IsoDistribution(Iso):
         """
         return plot_spectrum(self, **matplotlib_args)
 
-    def __del__(self):
-        super(IsoDistribution, self).__del__()
 
 
-class IsoThreshold(IsoDistribution):
+class FixedDistribution(IsoDistribution):
+    def __init__(self):
+        pass
+
+
+
+class IsoThreshold(IsoDistribution, Iso):
     """Class representing peaks above a given height."""
     def __init__(self,
                  threshold,
@@ -250,38 +257,35 @@ class IsoThreshold(IsoDistribution):
             get_confs (boolean): should we report counts of isotopologues?
             **kwds: named arguments to IsoSpectrum.
         """
-        super(IsoThreshold, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
+        Iso.__init__(self, formula=formula, get_confs=get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
 
-        self.tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
+        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
 
-        self.size = self.ffi.confs_noThresholdFixedEnvelope(self.tabulator)
+        self.size = self.ffi.confs_noThresholdFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(self.tabulator))
-        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(self.tabulator))
-        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(self.tabulator))
+        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(self.tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
+        self.ffi.deleteThresholdFixedEnvelope(tabulator)
+
     def __del__(self):
-        try:
-            if self.tabulator != None:
-                self.ffi.deleteThresholdFixedEnvelope(self.tabulator)
-                self.tabulator = None
-        except AttributeError:
-            pass
-        super(IsoThreshold, self).__del__()
+        Iso.__del__(self)
+        IsoDistribution.__del__(self)
 
     
 
-class IsoTotalProb(IsoDistribution):
+class IsoTotalProb(IsoDistribution, Iso):
     """Class representing the smallest number of peaks with total probability above a given probability."""
     def __init__(self, prob_to_cover, formula="", get_minimal_pset=True, get_confs=False, **kwargs):
         """Initialize the IsoTotalProb isotopic distribution.
@@ -293,33 +297,30 @@ class IsoTotalProb(IsoDistribution):
             get_confs (boolean): should we report the counts of isotopologues?
             **kwargs: named arguments to the superclass.
         """
-        super(IsoTotalProb, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
+        Iso.__init__(self, formula=formula, get_confs=get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        self.tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
+        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
 
-        self.size = self.ffi.confs_noTotalProbFixedEnvelope(self.tabulator)
+        self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
             return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
 
-        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(self.tabulator))
-        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(self.tabulator))
-        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(self.tabulator))
+        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
+        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
+        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(tabulator))
 
         if get_confs:
             self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(self.tabulator), mult = self.sum_isotope_numbers)
+            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
             self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
+        self.ffi.deleteTotalProbFixedEnvelope(tabulator)
+
     def __del__(self):
-        try:
-            if self.tabulator != None:
-                self.ffi.deleteTotalProbFixedEnvelope(self.tabulator)
-                self.tabulator = None
-        except AttributeError:
-            pass
-        super(IsoTotalProb, self).__del__()
+        Iso.__del__(self)
+        IsoDistribution.__del__(self)
 
 
 class IsoGenerator(Iso):
@@ -354,7 +355,7 @@ class IsoGenerator(Iso):
                 yield (self.mass_getter(cgen), self.xprob_getter(cgen))
 
     def __del__(self):
-        super(IsoGenerator).__del__()
+        super(IsoGenerator, self).__del__()
         
 
 class IsoThresholdGenerator(IsoGenerator):
