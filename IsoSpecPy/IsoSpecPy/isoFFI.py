@@ -78,6 +78,18 @@ class IsoFFI:
         const int* confsTotalProbFixedEnvelope(void* tabulator);
         int confs_noTotalProbFixedEnvelope(void* tabulator);
 
+        void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
+        void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
+
+        const double* massesFixedEnvelope(void* tabulator);
+        const double* lprobsFixedEnvelope(void* tabulator);
+        const double* probsFixedEnvelope(void* tabulator);
+        const int*    confsFixedEnvelope(void* tabulator);
+        int confs_noFixedEnvelope(void* tabulator);
+
+        double wassersteinDistance(void* tabulator1, void* tabulator2);
+
+
         void freeReleasedArray(void* array);
 
         #define NUMBER_OF_ISOTOPIC_ENTRIES 292

@@ -273,9 +273,19 @@ void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_s
     return reinterpret_cast<void*>(ret);
 }
 
-void deleteFixedEnvelope(void* t)
+void deleteFixedEnvelope(void* t, bool release_everything)
 {
-    delete reinterpret_cast<FixedEnvelope*>(t);
+    std::cerr << "deleteFixedEnvelope start" << std::endl;
+    FixedEnvelope* tt = reinterpret_cast<FixedEnvelope*>(t);
+    if(release_everything)
+    {
+        tt->release_lprobs();
+        tt->release_masses();
+        tt->release_probs();
+        tt->release_confs();
+    }
+    delete tt;
+    std::cerr << "deleteFixedEnvelope end" << std::endl;
 }
 
 const double* massesFixedEnvelope(void* tabulator)
@@ -303,7 +313,7 @@ int confs_noFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }
 
-double WSDistance(void* tabulator1, void* tabulator2)
+double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
 }
@@ -311,7 +321,9 @@ double WSDistance(void* tabulator1, void* tabulator2)
 
 void freeReleasedArray(void* array)
 {
+    std::cerr << "FreeReleasedArray: " << array << "...";
     free(array);
+    std::cerr << "Done." << std::endl;
 }
 
 }  //extern "C" ends here

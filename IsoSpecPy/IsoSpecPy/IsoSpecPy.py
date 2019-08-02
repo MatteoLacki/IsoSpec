@@ -224,6 +224,25 @@ class IsoDistribution(object):
     def __del__(self):
         pass
 
+    def __init__(self):
+        self.mass_sorted = False
+        self.prob_sorted = False
+        self.total_prob = float('nan')
+
+    def _get_cobject(self):
+        return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self.total_prob)
+
+    def wassersteinDistance(self, other):
+        x = self._get_cobject()
+        y = other._get_cobject()
+        print("Before Wass dist")
+        ret = isoFFI.clib.wassersteinDistance(x, y)
+        print("After Wass dist")
+        isoFFI.clib.deleteFixedEnvelope(x, True)
+        isoFFI.clib.deleteFixedEnvelope(y, True)
+        print("After deletes")
+        return ret
+
     def plot(self, **matplotlib_args):
         """Plot the isotopic distribution.
 
@@ -234,9 +253,7 @@ class IsoDistribution(object):
 
 
 
-class FixedDistribution(IsoDistribution):
-    def __init__(self):
-        pass
+#class FixedDistribution(IsoDistribution):
 
 
 

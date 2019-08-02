@@ -56,10 +56,10 @@ public:
 
     virtual ~FixedEnvelope()
     {
-        if( _masses != nullptr ) free(_masses);
-        if( _lprobs != nullptr ) free(_lprobs);
-        if( _probs  != nullptr ) free(_probs);
-        if( _confs  != nullptr ) free(_confs);
+        if( _masses != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting mass " << _masses << std::endl; free(_masses); }
+        if( _lprobs != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting lprobs " << _masses << std::endl; free(_lprobs); }
+        if( _probs  != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting probs " << _masses << std::endl; free(_probs); }
+        if( _confs  != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting confs " << _masses << std::endl; free(_confs); }
     };
 
     FixedEnvelope operator+(const FixedEnvelope& other) const;
