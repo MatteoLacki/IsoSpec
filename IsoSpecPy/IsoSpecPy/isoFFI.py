@@ -148,6 +148,8 @@ sure you want to do that, edit the source and disable this check.''')
                 self.clib = self.ffi.dlopen(libpath)
                 break
             except (IndexError, OSError) as e:
+                print("Load libIsoSpec++.so, tried:", libpath)
+                print("Got:", e)
                 pass
 
         if self.clib == None:

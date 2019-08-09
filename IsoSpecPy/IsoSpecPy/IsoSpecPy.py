@@ -233,13 +233,14 @@ class IsoDistribution(object):
         return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self.total_prob)
 
     def wassersteinDistance(self, other):
+        print("Setup cobjects")
         x = self._get_cobject()
         y = other._get_cobject()
         print("Before Wass dist")
         ret = isoFFI.clib.wassersteinDistance(x, y)
         print("After Wass dist")
-        isoFFI.clib.deleteFixedEnvelope(x, True)
-        isoFFI.clib.deleteFixedEnvelope(y, True)
+        isoFFI.clib.deleteFixedEnvelope(x, False)
+        isoFFI.clib.deleteFixedEnvelope(y, False)
         print("After deletes")
         return ret
 
@@ -324,7 +325,10 @@ class IsoTotalProb(IsoDistribution, Iso):
         self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
-            return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+            print("Collecting: formula:", formula)
+            ret = isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+            print ("Done. ret =", ret)
+            return ret
 
         self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
         self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))

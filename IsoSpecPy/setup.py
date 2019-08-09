@@ -31,7 +31,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 cmodule = Extension('IsoSpecCppPy',
                     sources = ['IsoSpec++/unity-build.cpp'],
-                    extra_compile_args = '-O0 -g -DDEBUG -std=c++17'.split() #+ ['-DDEBUG']
+                    extra_compile_args = '-O0 -g -DDEBUG -std=c++17 -fsanitize=address'.split(), #+ ['-DDEBUG']
+                    extra_link_args = '-fsanitize=address'.split(),
                     )
 
 setup_args = {
