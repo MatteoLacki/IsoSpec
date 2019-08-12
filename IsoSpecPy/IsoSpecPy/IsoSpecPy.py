@@ -239,8 +239,8 @@ class IsoDistribution(object):
         print("Before Wass dist")
         ret = isoFFI.clib.wassersteinDistance(x, y)
         print("After Wass dist")
-        isoFFI.clib.deleteFixedEnvelope(x, False)
-        isoFFI.clib.deleteFixedEnvelope(y, False)
+        isoFFI.clib.deleteFixedEnvelope(x, True)
+        isoFFI.clib.deleteFixedEnvelope(y, True)
         print("After deletes")
         return ret
 
