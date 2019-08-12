@@ -87,10 +87,10 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 {
     if(_confs_no > 0)
         if(_masses == nullptr || _probs == nullptr)
-            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
+            throw std::logic_error("Probabilities and masses must be available for spectrum convolution to be meaningful");
     if(other._confs_no > 0)
         if(other._masses == nullptr || other._probs == nullptr)
-            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
+            throw std::logic_error("Probabilities and masses must be available for spectrum convolution to be meaningful");
 
     double* nprobs = (double*) malloc(_confs_no*other._confs_no);
     double* nmasses = (double*) malloc(_confs_no*other._confs_no);
