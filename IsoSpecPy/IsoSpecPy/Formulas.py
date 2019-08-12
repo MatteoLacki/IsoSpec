@@ -13,6 +13,7 @@ cholesterol = "C27H46O1"
 caffeine = "C8H10N4O2"
 water = "H2O1"
 glucose = "C6H12O6"
+surcose = "C12H22O11"
 horse_myoglobin = "C769H1212N210O218S2"
 oxygen = "O2"
 
