@@ -14,6 +14,7 @@ caffeine = "C8H10N4O2"
 water = "H2O1"
 glucose = "C6H12O6"
 horse_myoglobin = "C769H1212N210O218S2"
+oxygen = "O2"
 
 
 
