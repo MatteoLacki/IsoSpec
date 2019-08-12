@@ -310,11 +310,13 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
 
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
+    std::cerr << "Reallocate memory: " << this << std::endl;
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    constexpr_if(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
-    constexpr_if(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-    constexpr_if(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
-    constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
+    constexpr_if(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; std::cerr << "lProbs: " << _lprobs << std::endl; }
+    constexpr_if(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no;  std::cerr << "masses: " << _masses << std::endl; }
+    constexpr_if(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no;  std::cerr << "probs: " << _probs << std::endl; }
+    constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no);  std::cerr << "confs: " << _confs << std::endl; }
+    std::cerr << "Reallocate memory: done" << std::endl;
 }
 
 

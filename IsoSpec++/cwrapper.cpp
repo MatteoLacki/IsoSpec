@@ -242,17 +242,23 @@ void deleteTotalProbFixedEnvelope(void* t)
 
 const double* massesTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
+    auto ret = reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
+    std::cerr << "Release masses: " << ret << std::endl;
+    return ret;//reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
 }
 
 const double* lprobsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
+    auto ret = reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
+    std::cerr << "Release lProbs: " << ret << std::endl;
+    return ret;//reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsTotalProbFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_probs();
+    auto ret = reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_probs();
+    std::cerr << "Release probs: " << ret << std::endl;
+    return ret;//reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_probs();
 }
 
 const int*    confsTotalProbFixedEnvelope(void* tabulator)
@@ -273,24 +279,40 @@ void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_s
     return reinterpret_cast<void*>(ret);
 }
 
-void deleteFixedEnvelope(void* t)
+void deleteFixedEnvelope(void* t, bool release_everything)
 {
-    delete reinterpret_cast<FixedEnvelope*>(t);
+    std::cerr << "deleteFixedEnvelope start. Release everything is: " << release_everything << std::endl;
+    FixedEnvelope* tt = reinterpret_cast<FixedEnvelope*>(t);
+    if(release_everything)
+    {
+        tt->release_lprobs();
+        tt->release_masses();
+        tt->release_probs();
+        tt->release_confs();
+    }
+    delete tt;
+    std::cerr << "deleteFixedEnvelope end" << std::endl;
 }
 
 const double* massesFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
+    auto ret = reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
+    std::cerr << "Release masses: " << ret << std::endl;
+    return ret; //reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
 }
 
 const double* lprobsFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_lprobs();
+    auto ret = reinterpret_cast<FixedEnvelope*>(tabulator)->release_lprobs();
+    std::cerr << "Release lProbs: " << ret << std::endl;
+    return ret;//reinterpret_cast<FixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_probs();
+    auto ret = reinterpret_cast<FixedEnvelope*>(tabulator)->release_probs();
+    std::cerr << "Release probs: " << ret << std::endl;
+    return ret;//reinterpret_cast<FixedEnvelope*>(tabulator)->release_probs();
 }
 
 const int* confsFixedEnvelope(void* tabulator)
@@ -303,7 +325,7 @@ int confs_noFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }
 
-double WSDistance(void* tabulator1, void* tabulator2)
+double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
 }
@@ -311,7 +333,9 @@ double WSDistance(void* tabulator1, void* tabulator2)
 
 void freeReleasedArray(void* array)
 {
+    std::cerr << "FreeReleasedArray: " << array << "...";
     free(array);
+    std::cerr << "Done." << std::endl;
 }
 
 }  //extern "C" ends here

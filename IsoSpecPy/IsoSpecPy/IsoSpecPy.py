@@ -224,6 +224,26 @@ class IsoDistribution(object):
     def __del__(self):
         pass
 
+    def __init__(self):
+        self.mass_sorted = False
+        self.prob_sorted = False
+        self.total_prob = float('nan')
+
+    def _get_cobject(self):
+        return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self.total_prob)
+
+    def wassersteinDistance(self, other):
+        print("Setup cobjects")
+        x = self._get_cobject()
+        y = other._get_cobject()
+        print("Before Wass dist")
+        ret = isoFFI.clib.wassersteinDistance(x, y)
+        print("After Wass dist")
+        isoFFI.clib.deleteFixedEnvelope(x, False)
+        isoFFI.clib.deleteFixedEnvelope(y, False)
+        print("After deletes")
+        return ret
+
     def plot(self, **matplotlib_args):
         """Plot the isotopic distribution.
 
@@ -234,9 +254,7 @@ class IsoDistribution(object):
 
 
 
-class FixedDistribution(IsoDistribution):
-    def __init__(self):
-        pass
+#class FixedDistribution(IsoDistribution):
 
 
 
@@ -307,7 +325,10 @@ class IsoTotalProb(IsoDistribution, Iso):
         self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
 
         def c(typename, what, mult = 1):
-            return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+            print("Collecting: formula:", formula)
+            ret = isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+            print ("Done. ret =", ret)
+            return ret
 
         self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
         self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
