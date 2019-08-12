@@ -152,14 +152,24 @@ void FixedEnvelope::sort_by_prob()
     sorted_by_mass = false;
 }
 
-template<typename T> T* reorder_array(T* arr, size_t* order, size_t size)
+template<typename T> void reorder_array(T* arr, size_t* order, size_t size, bool can_destroy = false)
 {
-    T* ret = (T*) malloc(sizeof(T) * size);
-    for(size_t ii = 0; ii < size; ii++)
-        ret[ii] = arr[order[ii]];
+    if(!can_destroy)
+    {
+        size_t* order_c = new size_t[size];
+        memcpy(order_c, order, sizeof(size_t)*size);
+        order = order_c;
+    }
 
-    free(arr);
-    return ret;
+    for(size_t ii=0; ii<size; ii++)
+        while(order[ii] != ii)
+        {
+            std::swap(arr[ii], arr[order[ii]]);
+            std::swap(order[order[ii]], order[ii]);
+        }
+
+    if(!can_destroy)
+        delete[] order;
 }
 
 void FixedEnvelope::sort_by(double* order)
@@ -171,17 +181,21 @@ void FixedEnvelope::sort_by(double* order)
 
     std::sort<size_t*>(indices, indices + _confs_no, TableOrder<double>(order));
 
-    if(_masses != nullptr) _masses = reorder_array(_masses, indices, _confs_no);
-    if(_probs  != nullptr) _probs  = reorder_array(_probs,  indices, _confs_no);
-    if(_lprobs != nullptr) _lprobs = reorder_array(_lprobs, indices, _confs_no);
+    if(_masses != nullptr) reorder_array(_masses, indices, _confs_no);
+    if(_probs  != nullptr) reorder_array(_probs,  indices, _confs_no);
+    if(_lprobs != nullptr) reorder_array(_lprobs, indices, _confs_no);
     if(_confs  != nullptr)
     {
         const int allDimSizeofInt = sizeof(int) * allDim;
-        int* new_confs = (int*) malloc(_confs_no * allDimSizeofInt);
-        for(size_t ii=0; ii<_confs_no; ii++)
-            memcpy(&new_confs[ii*allDim], &_confs[indices[ii]*allDim], allDimSizeofInt);
-        free(_confs);
-        _confs = new_confs;
+        int* swapspace = new int[allDim];
+        for(size_t ii = 0; ii < _confs_no; ii++)
+            while(order[ii] != ii)
+            {
+                memcpy(swapspace, &_confs[ii*allDim], allDimSizeofInt);
+                memcpy(&_confs[ii*allDim], &_confs[indices[ii]*allDim], allDimSizeofInt);
+                memcpy(&_confs[indices[ii]*allDim], swapspace, allDimSizeofInt);
+            }
+        delete[] swapspace;
     }
     delete[] indices;
 }
