@@ -31,7 +31,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 cmodule = Extension('IsoSpecCppPy',
                     sources = ['IsoSpec++/unity-build.cpp'],
-                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++17'.split() #+ ['-DDEBUG']
+                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++17'.split(),
+#                   # For debugging, comment above line and uncomment below. Run with (sth like): LD_PRELOAD='/usr/lib64/gcc/x86_64-pc-linux-gnu/9.1.0/libasan.so.5.0.0' python ...
+#                    extra_compile_args = '-O0 -g -DDEBUG -std=c++17 -fsanitize=address'.split(),
+#                    extra_link_args = '-fsanitize=address'.split()
+
                     )
 
 setup_args = {
