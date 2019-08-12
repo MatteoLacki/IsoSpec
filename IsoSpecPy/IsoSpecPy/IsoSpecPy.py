@@ -207,7 +207,7 @@ class IsoDistribution(object):
         return np.frombuffer(isoFFI.ffi.buffer(self.probs))
 
     def __iter__(self):
-        if self.get_confs:
+        if hasattr(self, "confs") and self.confs is not None:
             for i in xrange(self.size):
                 yield(self.masses[i], self.probs[i], self.confs[i])
         else:
@@ -244,7 +244,7 @@ class IsoDistribution(object):
             if get_confs:
                 # Must also be a subclass of Iso...
                 self.sum_isotope_numbers = sum(self.isotopeNumbers)
-                self.raw_confs = wrap("int", isoFFI.clib.confsFixedEnvelope(cobject), "confs", mult = self.sum_isotope_numbers)
+                wrap("int", isoFFI.clib.confsFixedEnvelope(cobject), "raw_confs", mult = self.sum_isotope_numbers)
                 self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
         elif probs is not None and masses is not None:
@@ -254,6 +254,14 @@ class IsoDistribution(object):
 
     def _get_cobject(self):
         return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self.total_prob)
+
+    def __add__(self, other):
+        x = self._get_cobject()
+        y = other._get_cobject()
+        cobject = isoFFI.clib.addEnvelopes(x, y)
+        ret = IsoDistribution(cobject = cobject)
+        isoFFI.clib.deleteFixedEnvelope(cobject)
+        return ret
 
     def wassersteinDistance(self, other):
         x = self._get_cobject()
