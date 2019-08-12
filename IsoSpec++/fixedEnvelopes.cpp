@@ -71,13 +71,13 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
         if(other._masses == nullptr || other._probs == nullptr)
             throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
 
-    double* nprobs = (double*) malloc(_confs_no+other._confs_no);
-    double* nmasses = (double*) malloc(_confs_no+other._confs_no);
+    double* nprobs  = (double*) malloc(sizeof(double) * (_confs_no+other._confs_no));
+    double* nmasses = (double*) malloc(sizeof(double) * (_confs_no+other._confs_no));
 
-    memcpy(nprobs, _probs, sizeof(double) * _confs_no);
+    memcpy(nprobs,  _probs,  sizeof(double) * _confs_no);
     memcpy(nmasses, _masses, sizeof(double) * _confs_no);
 
-    memcpy(nprobs+_confs_no, other._probs, sizeof(double) * other._confs_no);
+    memcpy(nprobs+_confs_no,  other._probs,  sizeof(double) * other._confs_no);
     memcpy(nmasses+_confs_no, other._masses, sizeof(double) * other._confs_no);
 
     return FixedEnvelope(nmasses, nprobs, _confs_no + other._confs_no);
@@ -92,15 +92,15 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
         if(other._masses == nullptr || other._probs == nullptr)
             throw std::logic_error("Probabilities and masses must be available for spectrum convolution to be meaningful");
 
-    double* nprobs = (double*) malloc(_confs_no*other._confs_no);
-    double* nmasses = (double*) malloc(_confs_no*other._confs_no);
+    double* nprobs =  (double*) malloc(sizeof(double) * _confs_no * other._confs_no);
+    double* nmasses = (double*) malloc(sizeof(double) * _confs_no * other._confs_no);
 
     size_t tgt_idx = 0;
 
     for(size_t ii=0; ii<_confs_no; ii++)
         for(size_t jj=0; jj<other._confs_no; jj++)
         {
-            nprobs[tgt_idx]  = _probs[ii] * other._probs[jj];
+            nprobs[tgt_idx]  = _probs[ii]  * other._probs[jj];
             nmasses[tgt_idx] = _masses[ii] * other._masses[jj];
             tgt_idx++;
         }
