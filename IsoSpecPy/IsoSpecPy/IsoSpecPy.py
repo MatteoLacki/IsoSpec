@@ -224,10 +224,33 @@ class IsoDistribution(object):
     def __del__(self):
         pass
 
-    def __init__(self):
+    def __init__(self, cobject = None, probs = None, masses = None, get_confs = False):
         self.mass_sorted = False
         self.prob_sorted = False
         self.total_prob = float('nan')
+
+        if cobject is not None:
+            self.size = isoFFI.clib.confs_noFixedEnvelope(cobject)
+
+            def wrap(typename, what, attrname, mult = 1):
+                if what is not None:
+                    x = isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+                    setattr(self, attrname, x)
+
+            wrap("double", isoFFI.clib.massesFixedEnvelope(cobject), "masses")
+            wrap("double", isoFFI.clib.lprobsFixedEnvelope(cobject), "lprobs")
+            wrap("double", isoFFI.clib.probsFixedEnvelope(cobject), "probs")
+
+            if get_confs:
+                # Must also be a subclass of Iso...
+                self.sum_isotope_numbers = sum(self.isotopeNumbers)
+                self.raw_confs = wrap("int", isoFFI.clib.confsFixedEnvelope(cobject), "confs", mult = self.sum_isotope_numbers)
+                self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+
+        elif probs is not None and masses is not None:
+            self.probs  = probs
+            self.size = len(probs)
+            self.masses = masses
 
     def _get_cobject(self):
         return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self.total_prob)
@@ -277,23 +300,10 @@ class IsoThreshold(IsoDistribution, Iso):
 
         tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
 
-        self.size = self.ffi.confs_noThresholdFixedEnvelope(tabulator)
-
-        def c(typename, what, mult = 1):
-            return isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
-
-        self.masses = c("double", self.ffi.massesThresholdFixedEnvelope(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsThresholdFixedEnvelope(tabulator))
-        self.probs  = c("double", self.ffi.probsThresholdFixedEnvelope(tabulator))
-
-        if get_confs:
-            self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsThresholdFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
-            self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+        IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
 
         self.ffi.deleteThresholdFixedEnvelope(tabulator)
 
-        IsoDistribution.__init__(self)
 
     def __del__(self):
         Iso.__del__(self)
@@ -318,24 +328,9 @@ class IsoTotalProb(IsoDistribution, Iso):
 
         tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
 
-        self.size = self.ffi.confs_noTotalProbFixedEnvelope(tabulator)
-
-        def c(typename, what, mult = 1):
-            ret = isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
-            return ret
-
-        self.masses = c("double", self.ffi.massesTotalProbFixedEnvelope(tabulator))
-        self.lprobs = c("double", self.ffi.lprobsTotalProbFixedEnvelope(tabulator))
-        self.probs  = c("double", self.ffi.probsTotalProbFixedEnvelope(tabulator))
-
-        if get_confs:
-            self.sum_isotope_numbers = sum(self.isotopeNumbers)
-            self.raw_confs = c("int", self.ffi.confsTotalProbFixedEnvelope(tabulator), mult = self.sum_isotope_numbers)
-            self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+        IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
 
         self.ffi.deleteTotalProbFixedEnvelope(tabulator)
-
-        IsoDistribution.__init__(self)
 
     def __del__(self):
         Iso.__del__(self)
