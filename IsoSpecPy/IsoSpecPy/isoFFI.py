@@ -88,7 +88,7 @@ class IsoFFI:
         int confs_noFixedEnvelope(void* tabulator);
 
         double wassersteinDistance(void* tabulator1, void* tabulator2);
-
+        void* addEnvelopes(void* tabulator1, void* tabulator2);
 
         void freeReleasedArray(void* array);
 

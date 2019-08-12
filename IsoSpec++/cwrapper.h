@@ -139,6 +139,7 @@ const int*    confsFixedEnvelope(void* tabulator);
 int confs_noFixedEnvelope(void* tabulator);
 
 double wassersteinDistance(void* tabulator1, void* tabulator2);
+void* addEnvelopes(void* tabulator1, void* tabulator2);
 
 #ifdef __cplusplus
 }

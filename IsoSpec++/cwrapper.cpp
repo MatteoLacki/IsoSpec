@@ -316,6 +316,12 @@ double wassersteinDistance(void* tabulator1, void* tabulator2)
     return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
 }
 
+void* addEnvelopes(void* tabulator1, void* tabulator2)
+{
+    // Hopefully the compiler will do the copy elision...
+    return reinterpret_cast<void*>(new FixedEnvelope(std::move(*reinterpret_cast<FixedEnvelope*>(tabulator1)+*reinterpret_cast<FixedEnvelope*>(tabulator2))));
+}
+
 
 void freeReleasedArray(void* array)
 {
