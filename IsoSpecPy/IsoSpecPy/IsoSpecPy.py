@@ -234,7 +234,7 @@ class IsoDistribution(object):
 
             def wrap(typename, what, attrname, mult = 1):
                 if what is not None:
-                    x = isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), self.ffi.freeReleasedArray)
+                    x = isoFFI.ffi.gc(isoFFI.ffi.cast(typename + '[' + str(self.size*mult) + ']', what), isoFFI.clib.freeReleasedArray)
                     setattr(self, attrname, x)
 
             wrap("double", isoFFI.clib.massesFixedEnvelope(cobject), "masses")
@@ -260,7 +260,7 @@ class IsoDistribution(object):
         y = other._get_cobject()
         cobject = isoFFI.clib.addEnvelopes(x, y)
         ret = IsoDistribution(cobject = cobject)
-        isoFFI.clib.deleteFixedEnvelope(cobject)
+        isoFFI.clib.deleteFixedEnvelope(cobject, False)
         return ret
 
     def wassersteinDistance(self, other):
