@@ -56,10 +56,10 @@ public:
 
     virtual ~FixedEnvelope()
     {
-        if( _masses != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting mass " << _masses << std::endl; free(_masses); }
-        if( _lprobs != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting lprobs " << _lprobs << std::endl; free(_lprobs); }
-        if( _probs  != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting probs " << _probs << std::endl; free(_probs); }
-        if( _confs  != nullptr ) { std::cerr << "Fixed envelope " << this << " deleting confs " << _confs << std::endl; free(_confs); }
+        if( _masses != nullptr ) free(_masses);
+        if( _lprobs != nullptr ) free(_lprobs);
+        if( _probs  != nullptr ) free(_probs);
+        if( _confs  != nullptr ) free(_confs);
     };
 
     FixedEnvelope operator+(const FixedEnvelope& other) const;
@@ -73,10 +73,10 @@ public:
     inline const double*   probs()  const { return _probs; };
     inline const int*      confs()  const { return _confs; };
 
-    inline double*   release_lprobs()   { double* ret = _lprobs; std::cerr << "Releasing lprobs" << _lprobs << std::endl; _lprobs = nullptr; return ret; };
-    inline double*   release_masses()   { double* ret = _masses; std::cerr << "Releasing masses" << _masses << std::endl; _masses = nullptr; return ret; };
-    inline double*   release_probs()    { double* ret = _probs;  std::cerr << "Releasing probs" << _probs << std::endl; _probs  = nullptr; return ret; };
-    inline int*      release_confs()    { int*    ret = _confs;  std::cerr << "Releasing confs" << _confs << std::endl; _confs  = nullptr; return ret; };
+    inline double*   release_lprobs()   { double* ret = _lprobs; _lprobs = nullptr; return ret; };
+    inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; };
+    inline double*   release_probs()    { double* ret = _probs;  _probs  = nullptr; return ret; };
+    inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; };
 
 
     inline double     mass(size_t i)  const { return _masses[i]; };
