@@ -276,13 +276,13 @@ class IsoDistribution(object):
         if math.isnan(self._total_prob):
             co = self._get_cobject()
             self._total_prob = isoFFI.clib.getTotalProbOfEnvelope(co)
-            isoFFI.clib.deleteFixedEnvelope(co)
+            isoFFI.clib.deleteFixedEnvelope(co, True)
         return self._total_prob
 
     def normalize(self):
         co = self._get_cobject()
         isoFFI.clib.normalizeEnvelope(co)
-        isoFFI.clib.deleteFixedEnvelope(cobject, True)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob = 1.0
 
     def scale(self, factor):
@@ -290,6 +290,11 @@ class IsoDistribution(object):
         isoFFI.clib.scaleEnvelope(co, factor)
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob *= factor
+
+    def _recalculate_everything(self):
+        self._total_prob = float('nan')
+        self.mass_sorted = False
+        self.prob_sorted = False
 
     def wassersteinDistance(self, other):
         x = self._get_cobject()
