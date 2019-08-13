@@ -181,9 +181,16 @@ void FixedEnvelope::sort_by(double* order)
 
     std::sort<size_t*>(indices, indices + _confs_no, TableOrder<double>(order));
 
-    if(_masses != nullptr) reorder_array(_masses, indices, _confs_no);
-    if(_probs  != nullptr) reorder_array(_probs,  indices, _confs_no);
-    if(_lprobs != nullptr) reorder_array(_lprobs, indices, _confs_no);
+    size_t* inverse = new size_t[_confs_no];
+
+    for(size_t ii=0; ii<_confs_no; ii++)
+        inverse[indices[ii]] = ii;
+
+    delete[] indices;
+
+    if(_masses != nullptr) reorder_array(_masses, inverse, _confs_no);
+    if(_probs  != nullptr) reorder_array(_probs,  inverse, _confs_no);
+    if(_lprobs != nullptr) reorder_array(_lprobs, inverse, _confs_no);
     if(_confs  != nullptr)
     {
         const int allDimSizeofInt = sizeof(int) * allDim;
@@ -192,12 +199,12 @@ void FixedEnvelope::sort_by(double* order)
             while(order[ii] != ii)
             {
                 memcpy(swapspace, &_confs[ii*allDim], allDimSizeofInt);
-                memcpy(&_confs[ii*allDim], &_confs[indices[ii]*allDim], allDimSizeofInt);
-                memcpy(&_confs[indices[ii]*allDim], swapspace, allDimSizeofInt);
+                memcpy(&_confs[ii*allDim], &_confs[inverse[ii]*allDim], allDimSizeofInt);
+                memcpy(&_confs[inverse[ii]*allDim], swapspace, allDimSizeofInt);
             }
         delete[] swapspace;
     }
-    delete[] indices;
+    delete[] inverse;
 }
 
 
