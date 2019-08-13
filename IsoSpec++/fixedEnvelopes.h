@@ -131,6 +131,7 @@ protected:
     }
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size);
+    void slow_reallocate_memory(size_t new_size);
 };
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
