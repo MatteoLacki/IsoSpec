@@ -322,6 +322,28 @@ void* addEnvelopes(void* tabulator1, void* tabulator2)
     return reinterpret_cast<void*>(new FixedEnvelope(std::move(*reinterpret_cast<FixedEnvelope*>(tabulator1)+*reinterpret_cast<FixedEnvelope*>(tabulator2))));
 }
 
+void* convolveEnvelopes(void* tabulator1, void* tabulator2)
+{
+    // Hopefully the compiler will do the copy elision...
+    return reinterpret_cast<void*>(new FixedEnvelope(std::move(*reinterpret_cast<FixedEnvelope*>(tabulator1)**reinterpret_cast<FixedEnvelope*>(tabulator2))));
+}
+
+double getTotalProbOfEnvelope(void* envelope)
+{
+    return reinterpret_cast<FixedEnvelope*>(envelope)->get_total_prob();
+}
+
+void scaleEnvelope(void* envelope, double factor)
+{
+    reinterpret_cast<FixedEnvelope*>(envelope)->scale(factor);
+}
+
+void normalizeEnvelope(void* envelope)
+{
+    reinterpret_cast<FixedEnvelope*>(envelope)->normalize(factor);
+}
+
+
 
 void freeReleasedArray(void* array)
 {

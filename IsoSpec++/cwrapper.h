@@ -140,6 +140,12 @@ int confs_noFixedEnvelope(void* tabulator);
 
 double wassersteinDistance(void* tabulator1, void* tabulator2);
 void* addEnvelopes(void* tabulator1, void* tabulator2);
+void* convolveEnvelopes(void* tabulator1, void* tabulator2);
+
+double getTotalProbOfEnvelope(void* envelope);
+void scaleEnvelope(void* envelope, double factor);
+void normalizeEnvelope(void* envelope);
+
 
 #ifdef __cplusplus
 }

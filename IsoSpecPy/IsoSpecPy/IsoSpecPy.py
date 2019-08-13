@@ -263,6 +263,33 @@ class IsoDistribution(object):
         isoFFI.clib.deleteFixedEnvelope(cobject, False)
         return ret
 
+    def __mul__(self, other):
+        x = self._get_cobject()
+        y = other._get_cobject()
+        cobject = isoFFI.clib.convolveEnvelopes(x, y)
+        ret = IsoDistribution(cobject = cobject)
+        isoFFI.clib.deleteFixedEnvelope(cobject, False)
+        return ret
+
+    def total_prob(self):
+        if math.isnan(self._total_prob):
+            co = self._get_cobject()
+            self._total_prob = isoFFI.clib.getTotalProbOfEnvelope(co)
+            isoFFI.clib.deleteFixedEnvelope(co)
+        return self._total_prob
+
+    def normalize(self):
+        co = self._get_cobject()
+        isoFFI.clib.normalizeEnvelope(co)
+        isoFFI.clib.deleteFixedEnvelope(cobject, True)
+        self.total_prob = 1.0
+
+    def scale(self, factor):
+        co = self._get_cobject()
+        isoFFI.clib.scaleEnvelope(co, factor)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
+        self.total_prob *= factor
+
     def wassersteinDistance(self, other):
         x = self._get_cobject()
         y = other._get_cobject()
