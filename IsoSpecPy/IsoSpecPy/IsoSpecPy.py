@@ -227,7 +227,7 @@ class IsoDistribution(object):
     def __init__(self, cobject = None, probs = None, masses = None, get_confs = False):
         self.mass_sorted = False
         self.prob_sorted = False
-        self.total_prob = float('nan')
+        self._total_prob = float('nan')
 
         if cobject is not None:
             self.size = isoFFI.clib.confs_noFixedEnvelope(cobject)
@@ -253,7 +253,7 @@ class IsoDistribution(object):
             self.masses = masses
 
     def _get_cobject(self):
-        return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self.total_prob)
+        return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
 
     def __add__(self, other):
         x = self._get_cobject()
@@ -282,13 +282,13 @@ class IsoDistribution(object):
         co = self._get_cobject()
         isoFFI.clib.normalizeEnvelope(co)
         isoFFI.clib.deleteFixedEnvelope(cobject, True)
-        self.total_prob = 1.0
+        self._total_prob = 1.0
 
     def scale(self, factor):
         co = self._get_cobject()
         isoFFI.clib.scaleEnvelope(co, factor)
         isoFFI.clib.deleteFixedEnvelope(co, True)
-        self.total_prob *= factor
+        self._total_prob *= factor
 
     def wassersteinDistance(self, other):
         x = self._get_cobject()
