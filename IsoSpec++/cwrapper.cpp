@@ -340,7 +340,7 @@ void scaleEnvelope(void* envelope, double factor)
 
 void normalizeEnvelope(void* envelope)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->normalize(factor);
+    reinterpret_cast<FixedEnvelope*>(envelope)->normalize();
 }
 
 
