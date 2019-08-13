@@ -21,6 +21,7 @@ import types
 from . import PeriodicTbl
 from .confs_passthrough import ConfsPassthrough
 from collections import namedtuple
+import math
 
 try:
     xrange
