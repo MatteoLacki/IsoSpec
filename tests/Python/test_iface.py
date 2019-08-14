@@ -39,14 +39,35 @@ assert(len(list(s)) == len(list(wa)) + len(list(ox)) == 15)
 print("OK!")
 
 
+print("Checking sorting...", end=' ')
+ubiq = IsoSpecPy.IsoTotalProb(0.9999, ubiquitin)
+ubiq.sort_by_mass()
+assert(list(ubiq.masses) == sorted(ubiq.masses))
+ubiq.sort_by_prob()
+assert(list(ubiq.probs) == sorted(ubiq.probs))
+print("OK!")
+
+print("Checking binning...", end= ' ')
+ubiq = IsoSpecPy.IsoTotalProb(0.999999, ubiquitin)
+#ubiq.plot()
+print(len(ubiq), end = ' -> ')
+bu = ubiq.binned()
+ubiq._recalculate_everything()
+print(len(bu), end = ' ')
+bu._recalculate_everything()
+assert(math.isclose(ubiq.total_prob(), bu.total_prob()))
+print("OK!")
+
 print("Checking convolution...", end=' ')
 o = IsoSpecPy.IsoThreshold(0.0, formula="H1")
 print(list(o*o))
 print(list(IsoSpecPy.IsoThreshold(0.0, formula="H2")))
 
+
 sur = IsoSpecPy.IsoThreshold(0.0, formula=surcose)
-(glu*glu).plot()
-(sur*wa).plot()
+
+#(glu*glu).plot()
+#(sur*wa).plot()
 print((sur*wa).wassersteinDistance(glu*glu))
 
 

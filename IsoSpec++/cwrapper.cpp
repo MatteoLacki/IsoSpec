@@ -343,6 +343,23 @@ void normalizeEnvelope(void* envelope)
     reinterpret_cast<FixedEnvelope*>(envelope)->normalize();
 }
 
+void* binnedEnvelope(void* envelope, double width, double middle)
+{
+    // Again, counting on copy elision...
+    return reinterpret_cast<void*>(new FixedEnvelope(reinterpret_cast<FixedEnvelope*>(envelope)->bin(width, middle)));
+}
+
+void sortEnvelopeByMass(void* envelope)
+{
+    reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_mass();
+}
+
+void sortEnvelopeByProb(void* envelope)
+{
+    reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_prob();
+}
+
+
 
 
 void freeReleasedArray(void* array)

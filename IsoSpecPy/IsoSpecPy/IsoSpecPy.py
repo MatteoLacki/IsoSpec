@@ -260,6 +260,8 @@ class IsoDistribution(object):
         x = self._get_cobject()
         y = other._get_cobject()
         cobject = isoFFI.clib.addEnvelopes(x, y)
+        isoFFI.clib.deleteFixedEnvelope(x, True)
+        isoFFI.clib.deleteFixedEnvelope(y, True)
         ret = IsoDistribution(cobject = cobject)
         isoFFI.clib.deleteFixedEnvelope(cobject, False)
         return ret
@@ -268,6 +270,8 @@ class IsoDistribution(object):
         x = self._get_cobject()
         y = other._get_cobject()
         cobject = isoFFI.clib.convolveEnvelopes(x, y)
+        isoFFI.clib.deleteFixedEnvelope(x, True)
+        isoFFI.clib.deleteFixedEnvelope(y, True)
         ret = IsoDistribution(cobject = cobject)
         isoFFI.clib.deleteFixedEnvelope(cobject, False)
         return ret
@@ -291,6 +295,22 @@ class IsoDistribution(object):
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob *= factor
 
+    def sort_by_prob(self):
+        if not self.prob_sorted:
+            co = self._get_cobject()
+            isoFFI.clib.sortEnvelopeByProb(co)
+            isoFFI.clib.deleteFixedEnvelope(co, True)
+            self.mass_sorted = False
+            self.prob_sorted = True
+
+    def sort_by_mass(self):
+        if not self.mass_sorted:
+            co = self._get_cobject()
+            isoFFI.clib.sortEnvelopeByMass(co)
+            isoFFI.clib.deleteFixedEnvelope(co, True)
+            self.mass_sorted = True
+            self.prob_sorted = False
+
     def _recalculate_everything(self):
         self._total_prob = float('nan')
         self.mass_sorted = False
@@ -302,6 +322,14 @@ class IsoDistribution(object):
         ret = isoFFI.clib.wassersteinDistance(x, y)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
+        return ret
+
+    def binned(self, width = 1.0, middle = 0.0):
+        co = self._get_cobject()
+        cbo = isoFFI.clib.binnedEnvelope(co, width, middle)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
+        ret = IsoDistribution(cobject = cbo)
+        isoFFI.clib.deleteFixedEnvelope(cbo, False)
         return ret
 
     def plot(self, **matplotlib_args):

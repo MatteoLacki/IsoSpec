@@ -315,12 +315,46 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
     return ret;
 }
 
+FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
+{
+    sort_by_mass();
+
+    FixedEnvelope ret;
+
+    if(_confs_no == 0)
+        return ret;
+
+    ret.reallocate_memory<false, true, true, false>(ISOSPEC_INIT_TABLE_SIZE);
+    ret.current_size = ISOSPEC_INIT_TABLE_SIZE;
+
+    size_t ii = 0;
+
+    double half_width = 0.5*bin_width;
+
+    while(ii < _confs_no)
+    {
+        double current_bin_middle = floor((_masses[ii]-middle)/bin_width+half_width)*bin_width + middle;
+        double current_bin_end = current_bin_middle + half_width;
+        double bin_prob = 0.0;
+
+        while(ii < _confs_no && _masses[ii] <= current_bin_end)
+        {
+            bin_prob += _probs[ii];
+            ii++;
+        }
+
+        ret.store_conf(current_bin_middle, bin_prob);
+    }
+
+    return ret;
+}
+
 template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
     constexpr_if(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
     constexpr_if(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-    constexpr_if(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double));  tprobs  = _probs  + _confs_no; }
+    constexpr_if(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no; }
     constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
 }
 

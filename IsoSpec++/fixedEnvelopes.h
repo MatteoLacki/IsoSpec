@@ -37,6 +37,7 @@ protected:
     bool sorted_by_mass;
     bool sorted_by_prob;
     double total_prob;
+    size_t current_size;
 
 public:
     FixedEnvelope() : _masses(nullptr),
@@ -46,7 +47,8 @@ public:
         _confs_no(0),
         sorted_by_mass(false),
         sorted_by_prob(false),
-        total_prob(NAN)
+        total_prob(NAN),
+        current_size(0)
         {};
 
     FixedEnvelope(const FixedEnvelope& other);
@@ -95,6 +97,8 @@ public:
 
     static FixedEnvelope ScalarProduct(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);
 
+    FixedEnvelope bin(double bin_width = 1.0, double middle = 0.0);
+
 private:
 
     void sort_by(double* order);
@@ -113,6 +117,22 @@ protected:
         constexpr_if(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
         constexpr_if(tgetProbs)  { *tprobs  = generator.prob();  tprobs++;  };
         constexpr_if(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
+    }
+
+    ISOSPEC_FORCE_INLINE void store_conf(double mass, double prob)
+    {
+        if(_confs_no == current_size)
+        {
+            current_size *= 2;
+            reallocate_memory<false, true, true, false>(current_size);
+        }
+
+        *tprobs = prob;
+	*tmasses = mass;
+	tprobs++;
+	tmasses++;
+
+	_confs_no++;
     }
 
     template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
@@ -165,15 +185,14 @@ class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
 {
     const bool optimize;
     double target_total_prob;
-    size_t current_size;
 
 public:
     TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false, bool tgetlProbs = false, bool tgetMasses = true, bool tgetProbs = true) :
     FixedEnvelope(),
     optimize(_optimize),
-    target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob),
-    current_size(ISOSPEC_INIT_TABLE_SIZE)
+    target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob)
     {
+        current_size = ISOSPEC_INIT_TABLE_SIZE;
         if(_target_total_prob <= 0.0)
             return;
 

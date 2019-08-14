@@ -94,6 +94,10 @@ class IsoFFI:
         double getTotalProbOfEnvelope(void* envelope);
         void scaleEnvelope(void* envelope, double factor);
         void normalizeEnvelope(void* envelope);
+        void* binnedEnvelope(void* envelope, double width, double middle);
+
+        void sortEnvelopeByMass(void* envelope);
+        void sortEnvelopeByProb(void* envelope);
 
         void freeReleasedArray(void* array);
 
