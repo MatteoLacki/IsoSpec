@@ -322,6 +322,10 @@ class IsoDistribution(object):
         ret = isoFFI.clib.wassersteinDistance(x, y)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
+        self.mass_sorted = True
+        self.prob_sorted = False
+        other.mass_sorted = True
+        other.prob_sorted = False
         return ret
 
     def binned(self, width = 1.0, middle = 0.0):
@@ -330,6 +334,10 @@ class IsoDistribution(object):
         isoFFI.clib.deleteFixedEnvelope(co, True)
         ret = IsoDistribution(cobject = cbo)
         isoFFI.clib.deleteFixedEnvelope(cbo, False)
+        self.mass_sorted = True
+        self.prob_sorted = False
+        ret.mass_sorted = True
+        ret.prob_sorted = False
         return ret
 
     def plot(self, **matplotlib_args):
