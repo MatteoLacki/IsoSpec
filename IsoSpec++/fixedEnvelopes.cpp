@@ -240,15 +240,20 @@ void FixedEnvelope::normalize()
 
 FixedEnvelope FixedEnvelope::LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
 {
+    return LinearCombination(spectra.data(), intensities.data(), spectra.size());
+}
+
+FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spectra, const double* intensities, size_t size)
+{
     size_t ret_size = 0;
-    for(auto spectrum = spectra.begin(); spectrum != spectra.end(); spectrum++)
-        ret_size += (*spectrum)->_confs_no;
+    for(size_t ii = 0; ii < size; ii++)
+        ret_size += spectra[ii]->_confs_no;
 
     double* newprobs = (double*) malloc(sizeof(double)*ret_size);
     double* newmasses = (double*) malloc(sizeof(double)*ret_size);
 
     size_t cntr = 0;
-    for(size_t ii = 0; ii < spectra.size(); ii++)
+    for(size_t ii = 0; ii < size; ii++)
     {
         double mul = intensities[ii];
         for(size_t jj = 0; jj < spectra[ii]->_confs_no; jj++)
