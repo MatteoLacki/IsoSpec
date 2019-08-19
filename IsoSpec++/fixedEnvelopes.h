@@ -95,7 +95,7 @@ public:
 
     double WassersteinDistance(FixedEnvelope& other);
 
-    static FixedEnvelope ScalarProduct(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);
+    static FixedEnvelope LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);
 
     FixedEnvelope bin(double bin_width = 1.0, double middle = 0.0);
 

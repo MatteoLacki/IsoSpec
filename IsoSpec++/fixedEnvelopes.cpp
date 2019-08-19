@@ -238,7 +238,7 @@ void FixedEnvelope::normalize()
     }
 }
 
-FixedEnvelope FixedEnvelope::ScalarProduct(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
+FixedEnvelope FixedEnvelope::LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
 {
     size_t ret_size = 0;
     for(auto spectrum = spectra.begin(); spectrum != spectra.end(); spectrum++)
