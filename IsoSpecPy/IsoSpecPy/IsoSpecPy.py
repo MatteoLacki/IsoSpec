@@ -340,6 +340,20 @@ class IsoDistribution(object):
         ret.prob_sorted = False
         return ret
 
+
+    @staticmethod
+    def LinearCombination(envelopes, intensities):
+        envelope_objs = [x._get_cobject() for x in envelopes]
+        if type(intensities) != list:
+            intensities = list(intensities)
+        cobject = isoFFI.clib.linearCombination(envelope_objs, intensities, len(envelope_objs))
+        for x in envelope_objs:
+            isoFFI.clib.deleteFixedEnvelope(x, True)
+        ret = IsoDistribution(cobject = cobject)
+        isoFFI.clib.deleteFixedEnvelope(cobject, False)
+        return ret
+
+
     def plot(self, **matplotlib_args):
         """Plot the isotopic distribution.
 
@@ -348,9 +362,6 @@ class IsoDistribution(object):
         """
         return plot_spectrum(self, **matplotlib_args)
 
-
-
-#class FixedDistribution(IsoDistribution):
 
 
 
