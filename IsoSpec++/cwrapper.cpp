@@ -349,6 +349,12 @@ void* binnedEnvelope(void* envelope, double width, double middle)
     return reinterpret_cast<void*>(new FixedEnvelope(reinterpret_cast<FixedEnvelope*>(envelope)->bin(width, middle)));
 }
 
+void* linearCombination(void* const * const envelopes, const double* intensities, size_t count)
+{
+    // Same...
+    return reinterpret_cast<void*>(new FixedEnvelope(FixedEnvelope::LinearCombination(reinterpret_cast<const FixedEnvelope* const *>(envelopes), intensities, count)));
+}
+
 void sortEnvelopeByMass(void* envelope)
 {
     reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_mass();
