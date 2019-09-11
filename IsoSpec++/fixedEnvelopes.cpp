@@ -261,7 +261,7 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
         memcpy(newmasses + cntr, spectra[ii]->_masses, sizeof(double) * spectra[ii]->_confs_no);
         cntr += spectra[ii]->_confs_no;
     }
-    return FixedEnvelope(newprobs, newmasses, cntr);
+    return FixedEnvelope(newmasses, newprobs, cntr);
 }
 
 double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
