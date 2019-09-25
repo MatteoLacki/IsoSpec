@@ -43,7 +43,7 @@ static inline double minuslogFactorial(int n)
 }
 
 const double pi = 3.14159265358979323846264338328;
-const double log2pluslogpi = log(2.0) + log(pi);
+const double logpi = 1.144729885849400174143427351353058711647294812915311571513623071472137769884826079783623270275489708;
 
 double NormalCDFInverse(double p);
 double NormalCDFInverse(double p, double mean, double stdev);

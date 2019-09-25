@@ -536,23 +536,23 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
 
         for(int ii = 0; ii < dimNumber; ii++)
         {
-            const int i = marginalResultsUnsorted[ii]->get_isotopeNo();
+            const double i = static_cast<double>(marginalResultsUnsorted[ii]->get_isotopeNo());
             if(i <= 1)
-                marginal_priorities[ii] = 0.0;
+                marginal_priorities[ii] = -std::numeric_limits<double>::infinity();
             else
             {
-                double k = static_cast<double>(i - 1);
-                const int n = atomCounts[ii];
+                double k = i - 1.0;
+                const double n = static_cast<double>(atomCounts[ii]);
 
                 double sum_lprobs = 0.0;
                 for(int jj = 0; jj < i; jj++)
                     sum_lprobs += marginalResultsUnsorted[ii]->get_lProbs()[jj];
 
-                double sum_rademacher = 0.0;
-                for(int jj = 1; jj < i; jj++)
-                    sum_rademacher += log1p((static_cast<double>(jj)) / static_cast<double>(n));
+                double log_V_simplex = k * log(n) - lgamma(i);
+                double log_N_simplex = lgamma(n+i) - lgamma(n-1.0) - lgamma(i);
+                double log_V_ellipsoid = k * (log(n) + logpi + log_R2) * 0.5 + sum_lprobs * 0.5 - lgamma((i+1)*0.5);
 
-                marginal_priorities[ii] = -(sum_lprobs/2.0 + sum_rademacher - lgamma((k+2.0)/2.0) + k/2.0 * (log_R2 + log2pluslogpi + log(n)));
+                marginal_priorities[ii] = log_N_simplex + log_V_ellipsoid - log_V_simplex;
             }
         }
 
