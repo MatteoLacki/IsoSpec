@@ -408,7 +408,7 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
     double prob_so_far = 0.0;
     double layer_delta;
 
-    const double sum_above = log_gap_percentage + log1p(-target_total_prob) - 2.3025850929940455; // log(0.1);
+    const double sum_above = log1p(-target_total_prob) - 2.3025850929940455; // log(0.1);
 
     do
     { // Store confs until we accumulate more prob than needed - and, if optimizing,
