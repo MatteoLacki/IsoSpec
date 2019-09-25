@@ -406,6 +406,10 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
     size_t last_switch = 0;
     double prob_at_last_switch = 0.0;
     double prob_so_far = 0.0;
+    double layer_delta;
+
+    const double sum_above = log_gap_percentage + log1p(-target_total_prob) - 2.3025850929940455; // log(0.1);
+
     do
     { // Store confs until we accumulate more prob than needed - and, if optimizing,
       // store also the rest of the last layer
@@ -430,7 +434,10 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
 
         last_switch = this->_confs_no;
         prob_at_last_switch = prob_so_far;
-    } while(generator.nextLayer(-3.0));
+
+        layer_delta = sum_above - log1p(-prob_so_far);
+        layer_delta = std::max(std::min(layer_delta, -0.1), -5.0);
+    } while(generator.nextLayer(layer_delta));
 
     if(!optimize || prob_so_far <= target_total_prob)
         return;
