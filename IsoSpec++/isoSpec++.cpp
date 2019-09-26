@@ -550,7 +550,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
 
                 double log_V_simplex = k * log(n) - lgamma(i);
                 double log_N_simplex = lgamma(n+i) - lgamma(n-1.0) - lgamma(i);
-                double log_V_ellipsoid = k * (log(n) + logpi + log_R2) * 0.5 + sum_lprobs * 0.5 - lgamma((i+1)*0.5);
+                double log_V_ellipsoid = (k * (log(n) + logpi + log_R2) + sum_lprobs) * 0.5 - lgamma((i+1)*0.5);
 
                 marginal_priorities[ii] = log_N_simplex + log_V_ellipsoid - log_V_simplex;
             }
