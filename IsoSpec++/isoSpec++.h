@@ -146,8 +146,8 @@ public:
     //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
     void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
 
-    //! Save estimates of target sizes of marginals using Gaussian approximation into argument array. Array priorities must have length equal to dimNumber.
-    void saveMarginalSizeEstimates(double* priorities, double target_total_prob);
+    //! Save estimates of logarithms of target sizes of marginals using Gaussian approximation into argument array. Array priorities must have length equal to dimNumber.
+    void saveMarginalLogSizeEstimates(double* priorities, double target_total_prob) const;
 };
 
 

@@ -147,6 +147,9 @@ public:
         \return The log-probability of the input subisotopologue.
     */
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
+
+    //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
+    double getLogSizeEstimate(double logEllipsoidRadius) const;
 };
 
 

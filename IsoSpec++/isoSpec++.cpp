@@ -239,7 +239,7 @@ void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses,
 
 }
 
-void Iso::saveMarginalSizeEstimates(double* priorities, double target_total_prob)
+void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_prob) const
 {
     /*
      * We shall now use Gaussian approximations of the marginal multinomial distributions to estimate
@@ -256,26 +256,7 @@ void Iso::saveMarginalSizeEstimates(double* priorities, double target_total_prob
     double log_R2 = log(InverseChiSquareCDF2(K, target_total_prob));
 
     for(int ii = 0; ii < dimNumber; ii++)
-    {
-        const double i = static_cast<double>(marginals[ii]->get_isotopeNo());
-        if(i <= 1)
-            priorities[ii] = -std::numeric_limits<double>::infinity();
-        else
-        {
-            double k = i - 1.0;
-            const double n = static_cast<double>(atomCounts[ii]);
-
-            double sum_lprobs = 0.0;
-            for(int jj = 0; jj < i; jj++)
-                sum_lprobs += marginals[ii]->get_lProbs()[jj];
-
-            double log_V_simplex = k * log(n) - lgamma(i);
-            double log_N_simplex = lgamma(n+i) - lgamma(n-1.0) - lgamma(i);
-            double log_V_ellipsoid = (k * (log(n) + logpi + log_R2) + sum_lprobs) * 0.5 - lgamma((i+1)*0.5);
-
-            priorities[ii] = log_N_simplex + log_V_ellipsoid - log_V_simplex;
-        }
-    }
+        priorities[ii] = marginals[ii]->getLogSizeEstimate(log_R2);
 }
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
@@ -559,7 +540,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     {
         double* marginal_priorities = new double[dimNumber];
 
-        saveMarginalSizeEstimates(marginal_priorities, t_prob_hint);
+        saveMarginalLogSizeEstimates(marginal_priorities, t_prob_hint);
 
         int* tmpMarginalOrder = new int[dimNumber];
 

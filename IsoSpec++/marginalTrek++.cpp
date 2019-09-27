@@ -279,6 +279,27 @@ double Marginal::getTheoreticalAverageMass() const
     return ret * atomCnt;
 }
 
+double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
+{
+    if(isotopeNo <= 1)
+        return -std::numeric_limits<double>::infinity();
+
+    const double i = static_cast<double>(isotopeNo);
+    const double k = i - 1.0;
+    const double n = static_cast<double>(atomCnt);
+
+    double sum_lprobs = 0.0;
+    for(int jj = 0; jj < i; jj++)
+        sum_lprobs += atom_lProbs[jj];
+
+    double log_V_simplex = k * log(n) - lgamma(i);
+    double log_N_simplex = lgamma(n+i) - lgamma(n-1.0) - lgamma(i);
+    double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma((i+1)*0.5);
+
+    return log_N_simplex + log_V_ellipsoid - log_V_simplex;
+}
+
+
 // this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
     Marginal&& m,
