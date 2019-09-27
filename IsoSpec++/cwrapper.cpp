@@ -90,6 +90,14 @@ double getTheoreticalAverageMassIso(void* iso)
     return reinterpret_cast<Iso*>(iso)->getTheoreticalAverageMass();
 }
 
+double* getMarginalLogSizeEstimates(void* iso, double target_total_prob)
+{
+    Iso* i = reinterpret_cast<Iso*>(iso);
+    double* ret = reinterpret_cast<double*>(malloc(sizeof(double)*i->getDimNumber()));
+    i->saveMarginalLogSizeEstimates(ret, target_total_prob);
+    return ret;
+}
+
 
 
 #define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
