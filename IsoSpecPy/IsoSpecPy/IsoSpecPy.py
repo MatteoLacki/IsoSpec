@@ -184,6 +184,12 @@ class Iso(object):
     def getTheoreticalAverageMass(self):
         return self.ffi.getTheoreticalAverageMassIso(self.iso)
 
+    def getMarginalLogSizeEstimates(self, prob):
+        cbuf = isoFFI.clib.getMarginalLogSizeEstimates(self.iso, prob)
+        ret = list(isoFFI.ffi.cast('double[' + str(self.dimNumber) + ']', cbuf))
+        isoFFI.clib.freeReleasedArray(cbuf)
+        return ret
+
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 

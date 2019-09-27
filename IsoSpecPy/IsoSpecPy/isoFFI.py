@@ -21,6 +21,7 @@ class IsoFFI:
         double getModeLProbIso(void* iso);
         double getModeMassIso(void* iso);
         double getTheoreticalAverageMassIso(void* iso);
+        double* getMarginalLogSizeEstimates(void* iso, double target_total_prob);
 
         void deleteIso(void* iso);
 
