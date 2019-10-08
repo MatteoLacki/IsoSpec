@@ -29,7 +29,7 @@ except NameError:
     xrange = range
 
 regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
-ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob')
+ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob elems')
 
 
 
@@ -49,8 +49,10 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
     symbols = []
     atomCounts = []
     last = 0
+    elems = []
     for match in re.finditer(regex_pattern, formula):
         elem, cnt = match.groups()
+        elems.append(elem)
         symbols.append(elem)
         atomCounts.append(int(cnt) if cnt is not '' else 1)
         if last!=match.start():
@@ -76,7 +78,7 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
     if len(symbols) != len(set(symbols)):
         raise ValueError("""Invalid formula (repeating element: "{}")""".format([x for x in symbols if symbols.count(x) > 1][0]))
 
-    return ParsedFormula(atomCounts, masses, probs)
+    return ParsedFormula(atomCounts, masses, probs, elems)
 
 
 

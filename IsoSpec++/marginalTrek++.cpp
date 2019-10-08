@@ -293,7 +293,7 @@ double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
         sum_lprobs += atom_lProbs[jj];
 
     double log_V_simplex = k * log(n) - lgamma(i);
-    double log_N_simplex = lgamma(n+i) - lgamma(n-1.0) - lgamma(i);
+    double log_N_simplex = lgamma(n+i) - lgamma(n+1.0) - lgamma(i);
     double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma((i+1)*0.5);
 
     return log_N_simplex + log_V_ellipsoid - log_V_simplex;
