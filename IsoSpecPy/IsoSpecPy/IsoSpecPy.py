@@ -34,12 +34,11 @@ ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob elems')
 
 
 
-def IsoParamsFromFormula(formula, use_nominal_masses = False):
+def ParseFormula(formula):
     """Parse a chemical formula.
 
     Args:
         formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O"
-        use_nominal_masses (boolean): use masses of elements rounded to integer numbers (nominal masses)
     
     Returns:
         ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
@@ -49,10 +48,8 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
     symbols = []
     atomCounts = []
     last = 0
-    elems = []
     for match in re.finditer(regex_pattern, formula):
         elem, cnt = match.groups()
-        elems.append(elem)
         symbols.append(elem)
         atomCounts.append(int(cnt) if cnt is not '' else 1)
         if last!=match.start():
@@ -60,14 +57,6 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
         if elem not in PeriodicTbl.symbol_to_masses:
             raise ValueError("""Invalid formula (unknown element symbol: "{}")""".format(elem))
         last = match.end()
-    try:
-        if use_nominal_masses:
-            masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
-        else:
-            masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
-        probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
-    except KeyError:
-        raise ValueError("Invalid formula")
 
     if len(formula) != last:
         raise ValueError('''Invalid formula (trailing garbage: "{}")'''.format(formula[last:]))
@@ -78,7 +67,30 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
     if len(symbols) != len(set(symbols)):
         raise ValueError("""Invalid formula (repeating element: "{}")""".format([x for x in symbols if symbols.count(x) > 1][0]))
 
-    return ParsedFormula(atomCounts, masses, probs, elems)
+    return symbols, atomCounts
+
+
+def IsoParamsFromFormula(formula, use_nominal_masses = False):
+    """Produces a set of IsoSpec parameters from a chemical formula.
+
+    Args:
+        formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O"
+        use_nominal_masses (boolean): use masses of elements rounded to integer numbers (nominal masses)
+
+    Returns:
+        ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
+    """
+    symbols, atomCounts = ParseFormula(formula)
+    try:
+        if use_nominal_masses:
+            masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
+        else:
+            masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
+        probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
+    except KeyError:
+        raise ValueError("Invalid formula")
+
+    return ParsedFormula(atomCounts, masses, probs, symbols)
 
 
 
