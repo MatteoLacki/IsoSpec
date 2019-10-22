@@ -1,8 +1,7 @@
 """Here we store formulas for approximating numbers of isotopologues and subisotopologues."""
 from math import exp, log, lgamma, pi
 
-from IsoSpecPy.IsoSpecPy import IsoParamsFromFormula
-
+from .IsoSpecPy import IsoParamsFromFormula
 
 
 def log_multinomial_confs_cnt(n, i):
@@ -121,12 +120,12 @@ def approximate_subisotopologues(molecule, P):
 	from scipy.stats import chi2
 	assert P >= 0 and P <= 1, 'That is not a probability.'
 	mol = IsoParamsFromFormula(molecule)
-	chi2_df = sum(len(p) for p in mol.prob) - len(mol.prob)
+	chi2_df = sum(len(p) for p in mol.probs) - len(mol.probs)
 	R2 = chi2.ppf(q=P, df=chi2_df)
 	return {e: subisotopologue_cnt(n, p, R2) for n, p, e in \
-			zip(mol.atomCount, mol.prob, mol.elems)}
+			zip(mol.atomCounts, mol.probs, mol.elems)}
 
 
-if __module__ == '__main__':
+if __name__ == '__main__':
 	print(approximate_subisotopologues('C100H202', .999))
 	print(approximate_subisotopologues("C100H100", .999))
