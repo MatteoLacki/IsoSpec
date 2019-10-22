@@ -3,6 +3,14 @@ import IsoSpecPy
 from IsoSpecPy.Formulas import *
 import math
 
+
+try:
+    math.isclose
+except AttributeError:
+    def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+        return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+    math.isclose = isclose
+
 glu = IsoSpecPy.IsoThreshold(0.0, formula=glucose)
 ca = IsoSpecPy.IsoThreshold(0.0, formula=caffeine)
 
