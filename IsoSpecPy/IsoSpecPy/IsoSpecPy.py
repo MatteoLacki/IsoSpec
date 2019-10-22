@@ -29,7 +29,7 @@ except NameError:
     xrange = range
 
 regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
-ParsedFormula = namedtuple('ParsedFormula', 'atomCount mass prob elems')
+ParsedFormula = namedtuple('ParsedFormula', 'atomCounts masses probs elems')
 
 
 
@@ -41,7 +41,7 @@ def ParseFormula(formula):
         formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O"
     
     Returns:
-        ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
+        A tuple containing element symbols and atomCounts of elements in the parsed formula.
     """
     global regex_pattern
 
@@ -121,7 +121,7 @@ class Iso(object):
         if formula:
             if isinstance(formula, dict):
                 formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
-            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = IsoParamsFromFormula(formula, use_nominal_masses = use_nominal_masses)
+            self.atomCounts, self.isotopeMasses, self.isotopeProbabilities, _ = IsoParamsFromFormula(formula, use_nominal_masses = use_nominal_masses)
         else:
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
 
