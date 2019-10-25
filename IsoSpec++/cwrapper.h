@@ -75,7 +75,8 @@ ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
                                int _tabSize,
-                               int _hashSize);
+                               int _hashSize,
+                               double t_prob_hint);
 ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR
