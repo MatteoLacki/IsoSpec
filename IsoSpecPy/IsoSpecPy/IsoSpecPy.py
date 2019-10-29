@@ -485,7 +485,7 @@ class IsoThresholdGenerator(IsoGenerator):
 
     This iterator will stop only after reaching a probability threshold.
     """
-    def __init__(self, threshold, formula="", absolute=False, get_confs=False, **kwargs):
+    def __init__(self, threshold, formula="", absolute=False, get_confs=False, reorder_marginals = True, **kwargs):
         """Initialize IsoThresholdGenerator.
 
         Args:
@@ -501,7 +501,8 @@ class IsoThresholdGenerator(IsoGenerator):
                                                         threshold,
                                                         absolute,
                                                         1000,
-                                                        1000)
+                                                        1000,
+                                                        reorder_marginals)
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
         self.xprob_getter = self.ffi.probIsoThresholdGenerator
         self.mass_getter = self.ffi.massIsoThresholdGenerator
@@ -529,8 +530,8 @@ class IsoLayeredGenerator(IsoGenerator):
             get_confs (boolean): should we report the counts of isotopologues?
             **kwargs: named arguments to the superclass.
         """
-        super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
-        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000, t_prob_hint)
+        super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, reorder_marginals = True, **kwargs)
+        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000, reorder_marginals, t_prob_hint)
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.xprob_getter = self.ffi.probIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator

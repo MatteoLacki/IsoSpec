@@ -125,14 +125,16 @@ void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
                                  int _tabSize,
-                                 int _hashSize)
+                                 int _hashSize,
+                                 bool reorder_marginals)
 {
     IsoThresholdGenerator* iso_tmp = new IsoThresholdGenerator(
         std::move(*reinterpret_cast<Iso*>(iso)),
         threshold,
         _absolute,
         _tabSize,
-        _hashSize);
+        _hashSize,
+        reorder_marginals);
 
     return reinterpret_cast<void*>(iso_tmp);
 }
@@ -143,6 +145,7 @@ ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 void* setupIsoLayeredGenerator(void* iso,
                      int _tabSize,
                      int _hashSize,
+                     bool reorder_marginals,
                      double t_prob_hint
                 )
 {
@@ -150,7 +153,7 @@ void* setupIsoLayeredGenerator(void* iso,
         std::move(*reinterpret_cast<Iso*>(iso)),
         _tabSize,
         _hashSize,
-        true,
+        reorder_marginals,
         t_prob_hint
     );
 
