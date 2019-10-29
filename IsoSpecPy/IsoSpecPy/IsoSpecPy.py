@@ -521,7 +521,7 @@ class IsoThresholdGenerator(IsoGenerator):
 
 class IsoLayeredGenerator(IsoGenerator):
     """Class alowing memory-efficient iteration over the isotopic distribution up till some joint probability of the reported peaks."""
-    def __init__(self, formula="", get_confs=False, t_prob_hint = 0.99, **kwargs):
+    def __init__(self, formula="", get_confs=False, reorder_marginals = True, t_prob_hint = 0.99, **kwargs):
         """Initialize IsoThresholdGenerator.
 
         Args:
@@ -530,7 +530,7 @@ class IsoLayeredGenerator(IsoGenerator):
             get_confs (boolean): should we report the counts of isotopologues?
             **kwargs: named arguments to the superclass.
         """
-        super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, reorder_marginals = True, **kwargs)
+        super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000, reorder_marginals, t_prob_hint)
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.xprob_getter = self.ffi.probIsoLayeredGenerator
