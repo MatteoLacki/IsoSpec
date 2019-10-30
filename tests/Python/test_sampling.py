@@ -37,26 +37,34 @@ def sample_isospec(formula, count, precision):
     pprob = 0.0
     cprob = 0.0
     pidx = 0
+    accumulated = 0
     iso_iter = population.__iter__()
     while count > 0:
+        if accumulated > 0:
+            yield (pop_next, accumulated)
+            accumulated = 0
         pop_next, prob_next = next(iso_iter)
         pprob += prob_next
         # Beta mode
         while (pprob - cprob) * count / (1.0 - cprob) < 1.0:
             cprob += _beta_1_b(count) * (1.0 - cprob)
             while pprob < cprob:
+                if accumulated > 0: 
+                    yield (pop_next, accumulated)
+                    accumulated = 0
                 pop_next, prob_next = next(iso_iter)
                 pprob += prob_next
-            yield (pop_next, 1)
+            accumulated += 1
             count -= 1
             if count == 0: break
         if count == 0: break
         # Binomial mode
         nrtaken = _safe_binom(count, (pprob-cprob)/(1.0-cprob))
-        if nrtaken > 0:
-            yield (pop_next, nrtaken)
-            count -= nrtaken
+        accumulated += nrtaken
+        count -= nrtaken
         cprob = pprob
+    if accumulated > 0:
+        yield (pop_next, accumulated)
 
 
 '''
@@ -90,20 +98,20 @@ from scipy.stats import chisquare
 import sys
 
 if __name__ == '__main__':
-    test_mol = substance_p
+    test_mol = surcose
     count = 100000000
 
     print("Starting...")
     X = sorted(x for x in IsoSpecPy.IsoThresholdGenerator(formula=test_mol, threshold=sys.float_info.min, reorder_marginals = False) if x[1] > 0)
 
-    print("Count: " + str(len(X)))
+    print("No configs: " + str(len(X)))
 
     Y = dict([(v[0], 0) for v in X])
     #print(Y)
 
     
     for x in sample_isospec(test_mol, count, 0.9999):
-        Y[x[0]] += x[1]
+        Y[x[0]] = x[1]
 
     #print(X)
     #print(Y)
