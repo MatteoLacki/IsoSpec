@@ -137,6 +137,12 @@ public:
     //! Get the theoretical average mass of the molecule.
     double getTheoreticalAverageMass() const;
 
+    //! Get the theoretical variance of the distribution.
+    double variance() const;
+
+    //! Get the standard deviation of the theoretical distribution.
+    double stddev() const { return sqrt(variance()); };
+
     //! Get the number of elements in the chemical formula of the molecule.
     inline int getDimNumber() const { return dimNumber; };
 

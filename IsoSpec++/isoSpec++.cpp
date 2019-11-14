@@ -210,6 +210,14 @@ double Iso::getTheoreticalAverageMass() const
     return mass;
 }
 
+double Iso::variance() const
+{
+    double ret = 0.0;
+    for(int ii=0; ii<dimNumber; ii++)
+        ret += marginals[ii]->variance();
+    return ret;
+}
+
 
 Iso::Iso(const char* formula, bool use_nominal_masses) :
 disowned(false),

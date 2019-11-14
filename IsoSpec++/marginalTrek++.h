@@ -135,11 +135,17 @@ public:
     */
     inline double getSmallestLProb() const { return smallest_lprob; };
 
+    //! The average mass of a single atom.
+    /*!
+        \return The average mass of a single atom.
+     */
+    double getAtomAverageMass() const;
+
     //! The theoretical average mass of the molecule.
     /*!
         \return The theoretical average mass of the molecule.
      */
-    double getTheoreticalAverageMass() const;
+    inline double getTheoreticalAverageMass() const { return getAtomAverageMass() * atomCnt; };
 
     //! Calculate the log-probability of a given subisotopologue.
     /*!
@@ -147,6 +153,9 @@ public:
         \return The log-probability of the input subisotopologue.
     */
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
+
+    //! Calculate the variance of the theoretical distribution describing the subisotopologue
+    double variance() const;
 
     //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
     double getLogSizeEstimate(double logEllipsoidRadius) const;

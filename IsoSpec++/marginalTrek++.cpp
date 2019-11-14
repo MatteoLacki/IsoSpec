@@ -271,12 +271,24 @@ double Marginal::getMonoisotopicConfMass() const
     return found_mass*atomCnt;
 }
 
-double Marginal::getTheoreticalAverageMass() const
+double Marginal::getAtomAverageMass() const
 {
     double ret = 0.0;
     for(unsigned int ii = 0; ii < isotopeNo; ii++)
         ret += exp(atom_lProbs[ii]) * atom_masses[ii];
-    return ret * atomCnt;
+    return ret;
+}
+
+double Marginal::variance() const
+{
+    double ret = 0.0;
+    double mean = getAtomAverageMass();
+    for(size_t ii = 0; ii < isotopeNo; ii++)
+    {
+        double msq = atom_masses[ii] - mean;
+        ret += exp(atom_lProbs[ii]) * msq * msq;
+    }
+    return ret;
 }
 
 double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
