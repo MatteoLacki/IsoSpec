@@ -335,10 +335,11 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
     size_t ii = 0;
 
     double half_width = 0.5*bin_width;
+    double hwmm = half_width-middle;
 
     while(ii < _confs_no)
     {
-        double current_bin_middle = floor((_masses[ii]-middle)/bin_width+half_width)*bin_width + middle;
+        double current_bin_middle = floor((_masses[ii]+hwmm)/bin_width)*bin_width + middle;
         double current_bin_end = current_bin_middle + half_width;
         double bin_prob = 0.0;
 
@@ -347,7 +348,6 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
             bin_prob += _probs[ii];
             ii++;
         }
-
         ret.store_conf(current_bin_middle, bin_prob);
     }
 
