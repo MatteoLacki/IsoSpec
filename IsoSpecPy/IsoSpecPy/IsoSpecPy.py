@@ -198,6 +198,12 @@ class Iso(object):
     def getTheoreticalAverageMass(self):
         return self.ffi.getTheoreticalAverageMassIso(self.iso)
 
+    def variance(self):
+        return self.ffi.getIsoVariance(self.iso)
+
+    def stddev(self):
+        return self.ffi.getIsoStddev(self.iso)
+
     def getMarginalLogSizeEstimates(self, prob):
         cbuf = isoFFI.clib.getMarginalLogSizeEstimates(self.iso, prob)
         ret = list(isoFFI.ffi.cast('double[' + str(self.dimNumber) + ']', cbuf))

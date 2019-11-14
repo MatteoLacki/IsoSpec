@@ -90,6 +90,17 @@ double getTheoreticalAverageMassIso(void* iso)
     return reinterpret_cast<Iso*>(iso)->getTheoreticalAverageMass();
 }
 
+double getIsoVariance(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->variance();
+}
+
+double getIsoStddev(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->stddev();
+}
+
+
 double* getMarginalLogSizeEstimates(void* iso, double target_total_prob)
 {
     Iso* i = reinterpret_cast<Iso*>(iso);
