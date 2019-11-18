@@ -338,7 +338,14 @@ int confs_noFixedEnvelope(void* tabulator)
 
 double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
+    try
+    {
+        return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
+    }
+    catch(std::logic_error&)
+    {
+        return NAN;
+    }
 }
 
 void* addEnvelopes(void* tabulator1, void* tabulator2)

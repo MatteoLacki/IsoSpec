@@ -352,6 +352,8 @@ class IsoDistribution(object):
         self.prob_sorted = False
         other.mass_sorted = True
         other.prob_sorted = False
+        if math.isnan(ret):
+            raise ValueError("Both spectra must be normalized before Wasserstein distance can be computed.")
         return ret
 
     def binned(self, width = 1.0, middle = 0.0):
