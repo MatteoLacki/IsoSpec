@@ -267,7 +267,8 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
 double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
 {
     double ret = 0.0;
-    if((get_total_prob()*0.999<other.get_total_prob()) || (other.get_total_prob()<get_total_prob()*1.001))
+    std::cout << get_total_prob() << " " << other.get_total_prob() << std::endl;
+    if(!((get_total_prob()*0.999<other.get_total_prob()) || (other.get_total_prob()<get_total_prob()*1.001)))
         throw std::logic_error("Spectra must be normalized before computing Wasserstein Distance");
 
     if(_confs_no == 0 || other._confs_no == 0)
