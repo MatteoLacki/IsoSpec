@@ -78,6 +78,9 @@ public:
     Marginal(Marginal& other) = delete;
     Marginal& operator= (const Marginal& other) = delete;
 
+    //! Copy constructor
+    Marginal(const Marginal& other);
+
     //! Move constructor.
     Marginal(Marginal&& other);
 

@@ -212,6 +212,21 @@ mode_prob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {}
 
+Marginal::Marginal(const Marginal& other) :
+disowned(false),
+isotopeNo(other.isotopeNo),
+atomCnt(other.atomCnt),
+atom_lProbs(array_copy<double>(_probs, isotopeNo)),
+atom_masses(array_copy<double>(_masses, isotopeNo)),
+loggamma_nominator(other.loggamma_nominator),
+mode_conf(array_copy<Conf>(other.mode_conf, isotopeNo)),
+mode_lprob(other.mode_lprob),
+mode_mass(other.mode_mass),
+mode_prob(other.mode_prob),
+smallest_lprob(other.smallest_lprob)
+{}
+
+
 // the move-constructor: used in the specialization of the marginal.
 Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),
