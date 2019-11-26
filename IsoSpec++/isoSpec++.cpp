@@ -423,7 +423,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     if(reorder_marginals && dimNumber > 1)
     {
-        OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
+        OrderMarginalsBySizeDecresing<PrecalculatedMarginal> comparator(marginalResultsUnsorted);
         int* tmpMarginalOrder = new int[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)

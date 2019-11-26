@@ -127,12 +127,12 @@ class PrecalculatedMarginal; // In case marginalTrek++.h us including us, and ca
 namespace IsoSpec
 {
 
-class OrderMarginalsBySizeDecresing
+template<typename T> class OrderMarginalsBySizeDecresing
 {
-    PrecalculatedMarginal const* const* const T;
+    T const* const* const MT;
 public:
-    OrderMarginalsBySizeDecresing(PrecalculatedMarginal const* const * const _T);
-    bool operator()(int m1, int m2);
+    OrderMarginalsBySizeDecresing(T const* const * const _MT) : MT(_MT) {};
+    inline bool operator()(int m1, int m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); };
 };
 
 
