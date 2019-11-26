@@ -532,8 +532,9 @@ IsoThresholdGenerator::~IsoThresholdGenerator()
  */
 
 
-IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals, double t_prob_hint)
-: IsoGenerator(std::move(iso))
+IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, bool _reorder_marginals)
+: IsoGenerator(std::move(iso)),
+reorder_marginals(_reorder_marginals && dimNumber > 1)
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
@@ -548,36 +549,18 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
         marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
     }
 
-    if(reorder_marginals && dimNumber > 1)
+    if(reorder_marginals)
     {
-        double* marginal_priorities = new double[dimNumber];
-
-        saveMarginalLogSizeEstimates(marginal_priorities, t_prob_hint);
-
-        int* tmpMarginalOrder = new int[dimNumber];
-
-        for(int ii=0; ii<dimNumber; ii++)
-            tmpMarginalOrder[ii] = ii;
-
-        TableOrder<double> TO(marginal_priorities);
-
-        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, TO);
-        marginalResults = new LayeredMarginal*[dimNumber];
-
-        for(int ii=0; ii<dimNumber; ii++)
-            marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
-
         marginalOrder = new int[dimNumber];
-        for(int ii = 0; ii<dimNumber; ii++)
-            marginalOrder[tmpMarginalOrder[ii]] = ii;
-
-        delete[] tmpMarginalOrder;
-        delete[] marginal_priorities;
+	tmpMarginalOrder = new int[dimNumber];
+	marginalResults = new LayeredMarginal*[dimNumber];
+	memcpy(marginalResults, marginalResultsUnsorted, sizeof(LayeredMarginal*)*dimNumber);
     }
     else
     {
         marginalResults = marginalResultsUnsorted;
-        marginalOrder = nullptr;
+	marginalOrder = nullptr;
+	tmpMarginalOrder = nullptr;
     }
 
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
@@ -599,6 +582,25 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     nextLayer(-0.00001);
 }
 
+void IsoLayeredGenerator::do_reorder_marginals()
+{
+    if(reorder_marginals)
+    {
+        OrderMarginalsBySizeDecresing<LayeredMarginal> comparator(marginalResultsUnsorted);
+
+        for(int ii=0; ii<dimNumber; ii++)
+            tmpMarginalOrder[ii] = ii;
+
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
+
+        for(int ii=0; ii<dimNumber; ii++)
+            marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
+
+        for(int ii = 0; ii<dimNumber; ii++)
+            marginalOrder[tmpMarginalOrder[ii]] = ii;
+    }
+}
+
 bool IsoLayeredGenerator::nextLayer(double offset)
 {
     size_t first_mrg_size = marginalResults[0]->get_no_confs();
@@ -614,6 +616,8 @@ bool IsoLayeredGenerator::nextLayer(double offset)
         marginalResults[ii]->extend(currentLThreshold - modeLProb + marginalResults[ii]->getModeLProb());
         counter[ii] = 0;
     }
+
+    do_reorder_marginals();
 
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr(); // vector relocation might have happened
 
@@ -682,8 +686,11 @@ IsoLayeredGenerator::~IsoLayeredGenerator()
     if (marginalResultsUnsorted != marginalResults)
         delete[] marginalResultsUnsorted;
     dealloc_table(marginalResults, dimNumber);
-    if(marginalOrder != nullptr)
+    if(reorder_marginals)
+    {
       delete[] marginalOrder;
+      delete[] tmpMarginalOrder;
+    }
 }
 
 

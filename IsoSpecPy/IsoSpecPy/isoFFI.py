@@ -40,8 +40,7 @@ class IsoFFI:
         void* setupIsoLayeredGenerator(void* iso,
                                        int _tabSize,
                                        int _hashSize,
-                                       bool reorder_marginals,
-                                       double t_prob_hint);
+                                       bool reorder_marginals);
         double massIsoLayeredGenerator(void* generator); double lprobIsoLayeredGenerator(void* generator); double probIsoLayeredGenerator(void* generator); void methodIsoLayeredGenerator(void* generator); bool advanceToNextConfigurationIsoLayeredGenerator(void* generator); void deleteIsoLayeredGenerator(void* generator); void get_conf_signatureIsoLayeredGenerator(void* generator, int* space);
 
 
