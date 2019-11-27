@@ -410,14 +410,12 @@ private:
     LayeredMarginal** marginalResults;
     LayeredMarginal** marginalResultsUnsorted;
     int* marginalOrder;
-    int* tmpMarginalOrder;
 
     const double* lProbs_ptr;
     const double* lProbs_ptr_start;
     const double** resetPositions;
     double* partialLProbs_second;
     double partialLProbs_second_val, lcfmsv, last_lcfmsv;
-    bool reorder_marginals;
 
 public:
     inline void get_conf_signature(int* space) const override final
@@ -441,7 +439,7 @@ public:
 
     inline double get_currentLThreshold() const { return currentLThreshold; };
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
+    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99);
 
     ~IsoLayeredGenerator();
 
@@ -493,7 +491,6 @@ public:
     virtual bool nextLayer(double offset) override final;
 
 private:
-    void do_reorder_marginals();
     bool carry();
 };
 

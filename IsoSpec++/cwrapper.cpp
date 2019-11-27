@@ -156,14 +156,16 @@ ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 void* setupIsoLayeredGenerator(void* iso,
                      int _tabSize,
                      int _hashSize,
-                     bool reorder_marginals
+                     bool reorder_marginals,
+                     double t_prob_hint
                 )
 {
     IsoLayeredGenerator* iso_tmp = new IsoLayeredGenerator(
         std::move(*reinterpret_cast<Iso*>(iso)),
         _tabSize,
         _hashSize,
-        reorder_marginals
+        reorder_marginals,
+        t_prob_hint
     );
 
     return reinterpret_cast<void*>(iso_tmp);
