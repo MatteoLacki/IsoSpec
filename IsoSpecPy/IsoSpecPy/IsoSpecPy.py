@@ -53,19 +53,19 @@ def ParseFormula(formula):
         symbols.append(elem)
         atomCounts.append(int(cnt) if cnt is not '' else 1)
         if last!=match.start():
-            raise ValueError("""Invalid formula (garbage inside: "{}")""".format(formula[last:match.start()]))
+            raise ValueError("""Invalid formula: {}  (garbage inside: "{}")""".format(formula, formula[last:match.start()]))
         if elem not in PeriodicTbl.symbol_to_masses:
-            raise ValueError("""Invalid formula (unknown element symbol: "{}")""".format(elem))
+            raise ValueError("""Invalid formula: {} (unknown element symbol: "{}")""".format(formula, elem))
         last = match.end()
 
     if len(formula) != last:
-        raise ValueError('''Invalid formula (trailing garbage: "{}")'''.format(formula[last:]))
+        raise ValueError('''Invalid formula: {}  (trailing garbage: "{}")'''.format(formula, formula[last:]))
 
     if len(atomCounts) == 0:
         raise ValueError("Invalid formula (empty)")
 
     if len(symbols) != len(set(symbols)):
-        raise ValueError("""Invalid formula (repeating element: "{}")""".format([x for x in symbols if symbols.count(x) > 1][0]))
+        raise ValueError("""Invalid formula: {} (repeating element: "{}")""".format(formula, [x for x in symbols if symbols.count(x) > 1][0]))
 
     return symbols, atomCounts
 
@@ -96,11 +96,11 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
 
 class Iso(object):
     """Virtual class representing an isotopic distribution."""
-    def __init__(self, formula="",
+    def __init__(self, formula=None,
                  get_confs=False,
-                 atomCounts=[],
-                 isotopeMasses=[],
-                 isotopeProbabilities=[],
+                 atomCounts=None,
+                 isotopeMasses=None,
+                 isotopeProbabilities=None,
                  use_nominal_masses = False):
         """Initialize Iso.
 
@@ -115,23 +115,23 @@ class Iso(object):
 
         self.iso = None
 
-        if not formula and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
+        if formula is None and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
             raise Exception("Either formula or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
 
-        if formula:
+        if not (formula is None):
             if isinstance(formula, dict):
                 formula = ''.join(key + str(val) for key, val in formula.items() if val > 0)
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities, _ = IsoParamsFromFormula(formula, use_nominal_masses = use_nominal_masses)
         else:
             self.atomCounts, self.isotopeMasses, self.isotopeProbabilities = [], [], []
 
-        if atomCounts:
+        if not (atomCounts is None):
             self.atomCounts.extend(atomCounts)
 
-        if isotopeMasses:
+        if not (isotopeMasses is None):
             self.isotopeMasses.extend(isotopeMasses)
 
-        if isotopeProbabilities:
+        if not (isotopeProbabilities is None):
             self.isotopeProbabilities.extend(isotopeProbabilities)
 
         for sublist in self.isotopeProbabilities:
@@ -395,7 +395,7 @@ class IsoThreshold(IsoDistribution, Iso):
     """Class representing peaks above a given height."""
     def __init__(self,
                  threshold,
-                 formula="",
+                 formula=None,
                  absolute=False,
                  get_confs=False,
                  **kwargs):
@@ -427,7 +427,7 @@ class IsoThreshold(IsoDistribution, Iso):
 
 class IsoTotalProb(IsoDistribution, Iso):
     """Class representing the smallest number of peaks with total probability above a given probability."""
-    def __init__(self, prob_to_cover, formula="", get_minimal_pset=True, get_confs=False, **kwargs):
+    def __init__(self, prob_to_cover, formula=None, get_minimal_pset=True, get_confs=False, **kwargs):
         """Initialize the IsoTotalProb isotopic distribution.
 
         Args:
@@ -456,7 +456,7 @@ class IsoGenerator(Iso):
 
     This iterator will stop only after enumerating all isotopologues.
     """
-    def __init__(self, formula="", get_confs=False, **kwargs):
+    def __init__(self, formula=None, get_confs=False, **kwargs):
         """Initialize the IsoGenerator.
 
         Args:
@@ -491,7 +491,7 @@ class IsoThresholdGenerator(IsoGenerator):
 
     This iterator will stop only after reaching a probability threshold.
     """
-    def __init__(self, threshold, formula="", absolute=False, get_confs=False, reorder_marginals = True, **kwargs):
+    def __init__(self, threshold, formula=None, absolute=False, get_confs=False, reorder_marginals = True, **kwargs):
         """Initialize IsoThresholdGenerator.
 
         Args:
@@ -527,7 +527,7 @@ class IsoThresholdGenerator(IsoGenerator):
 
 class IsoLayeredGenerator(IsoGenerator):
     """Class alowing memory-efficient iteration over the isotopic distribution up till some joint probability of the reported peaks."""
-    def __init__(self, formula="", get_confs=False, reorder_marginals = True, t_prob_hint = 0.99, **kwargs):
+    def __init__(self, formula=None, get_confs=False, reorder_marginals = True, t_prob_hint = 0.99, **kwargs):
         """Initialize IsoThresholdGenerator.
 
         Args:
@@ -561,7 +561,7 @@ class IsoOrderedGenerator(IsoGenerator):
     WARNING! This algorithm work in O(N*log(N)) vs O(N) of the threshold and layered algorithms.
     Also, the order of descending probability will most likely not reflect the order of ascending masses.
     """
-    def __init__(self, formula="", get_confs=False, **kwargs):
+    def __init__(self, formula=None, get_confs=False, **kwargs):
         """Initialize IsoOrderedGenerator.
 
         Args:
