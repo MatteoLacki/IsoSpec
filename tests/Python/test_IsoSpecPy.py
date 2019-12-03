@@ -87,7 +87,7 @@ def confs_from_threshold(formula, target_prob):
 
 is_ok = False
 try:
-    i = IsoSpecPy.IsoThreshold(0.1, False, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
+    i = IsoSpecPy.IsoThreshold(0.1, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
     for x in i:
         print(x)
 except ValueError:
