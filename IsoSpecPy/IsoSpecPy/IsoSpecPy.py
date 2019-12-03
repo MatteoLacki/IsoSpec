@@ -352,6 +352,8 @@ class IsoDistribution(object):
         self.prob_sorted = False
         other.mass_sorted = True
         other.prob_sorted = False
+        if math.isnan(ret):
+            raise ValueError("Both spectra must be normalized before Wasserstein distance can be computed.")
         return ret
 
     def binned(self, width = 1.0, middle = 0.0):
@@ -591,7 +593,7 @@ def plot_spectrum(spectrum, show=True, **matplotlib_args):
     try:
         from matplotlib import pyplot as plt
     except ImportError as e:
-        raise ImportError(e.msg + "\nPlotting spectra requires matplotlib to be installed.")
+        raise ImportError(str(e) + "\nPlotting spectra requires matplotlib to be installed.")
     plt.vlines(list(spectrum.masses), [0], list(spectrum.probs), linewidth=1, **matplotlib_args)
     plt.xlabel("Mass (Da)")
     plt.ylabel("Intensity (relative)")

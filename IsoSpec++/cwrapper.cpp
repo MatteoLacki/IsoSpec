@@ -197,7 +197,7 @@ void* setupThresholdFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs)
 {
-    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(*reinterpret_cast<const Iso*>(iso),
+    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          threshold,
                                          absolute,
                                          get_confs,
@@ -249,14 +249,13 @@ void* setupTotalProbFixedEnvelope(void* iso,
                      bool  get_masses,
                      bool  get_probs)
 {
-    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(*reinterpret_cast<const Iso*>(iso),
+    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
                                          get_confs,
                                          get_lprobs,
                                          get_masses,
                                          get_probs);
-
     return reinterpret_cast<void*>(tabulator);
 }
 
@@ -338,7 +337,14 @@ int confs_noFixedEnvelope(void* tabulator)
 
 double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
+    try
+    {
+        return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
+    }
+    catch(std::logic_error&)
+    {
+        return NAN;
+    }
 }
 
 void* addEnvelopes(void* tabulator1, void* tabulator2)

@@ -102,15 +102,19 @@ modeLProb(other.modeLProb)
 
 
 Iso::Iso(const Iso& other, bool fullcopy) :
-disowned(fullcopy ? throw std::logic_error("Not implemented") : true),
+disowned(!fullcopy),
 dimNumber(other.dimNumber),
 isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : other.isotopeNumbers),
 atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(fullcopy ? throw std::logic_error("Not implemented") : other.marginals),
+marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals),
 modeLProb(other.modeLProb)
-{}
+{
+    if(fullcopy)
+        for(ssize_t ii = 0; ii<dimNumber; ii++)
+            marginals[ii] = new Marginal(*other.marginals[ii]);
+}
 
 
 inline void Iso::setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities)
@@ -419,7 +423,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     if(reorder_marginals && dimNumber > 1)
     {
-        OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
+        OrderMarginalsBySizeDecresing<PrecalculatedMarginal> comparator(marginalResultsUnsorted);
         int* tmpMarginalOrder = new int[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)

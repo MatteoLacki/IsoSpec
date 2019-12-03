@@ -74,9 +74,11 @@ public:
         int _atomCnt
     );
 
-    // Get rid of the C++ generated copy and assignment constructors.
-    Marginal(Marginal& other) = delete;
+    // Get rid of the C++ generated assignment constructor.
     Marginal& operator= (const Marginal& other) = delete;
+
+    //! Copy constructor
+    Marginal(const Marginal& other);
 
     //! Move constructor.
     Marginal(Marginal&& other);
