@@ -1,5 +1,8 @@
-/* This file was taken from Boost, with slight modifications
- * boost random/binomial_distribution.hpp header file, at version 1.71
+/* This file was taken from Boost, as permitted by Boost licence,
+ * with slight modifications. The reason is: we don't want to introduce
+ * dependency on the whole Boost just for this one thing.
+ *
+ * Source: boost random/binomial_distribution.hpp header file, at version 1.71
  *
  * Copyright Steven Watanabe 2010
  * Distributed under the Boost Software License, Version 1.0. (See
@@ -7,7 +10,6 @@
  * http://www.boost.org/LICENSE_1_0.txt)
  *
  * See http://www.boost.org for most recent version including documentation.
- *
  *
  */
 
