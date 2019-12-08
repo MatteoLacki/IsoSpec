@@ -95,7 +95,28 @@ public:
                                    RealType p_arg = RealType(0.5))
       : _t(t_arg), _p(p_arg)
     {
-        init();
+        using std::sqrt;
+        using std::pow;
+
+        RealType p = (0.5 < _p)? (1 - _p) : _p;
+        IntType t = _t;
+
+        m = static_cast<IntType>((t+1)*p);
+
+        if(use_inversion()) {
+            _u.q_n = pow((1 - p), static_cast<RealType>(t));
+        } else {
+            _u.btrd.r = p/(1-p);
+            _u.btrd.nr = (t+1)*_u.btrd.r;
+            _u.btrd.npq = t*p*(1-p);
+            RealType sqrt_npq = sqrt(_u.btrd.npq);
+            _u.btrd.b = 1.15 + 2.53 * sqrt_npq;
+            _u.btrd.a = -0.0873 + 0.0248*_u.btrd.b + 0.01*p;
+            _u.btrd.c = t*p + 0.5;
+            _u.btrd.alpha = (2.83 + 5.1/_u.btrd.b) * sqrt_npq;
+            _u.btrd.v_r = 0.92 - 4.2/_u.btrd.b;
+            _u.btrd.u_rv_r = 0.86*_u.btrd.v_r;
+        }
     }
 
 
@@ -136,32 +157,6 @@ private:
             return (RealType(1)/12
                  - (RealType(1)/360
                  - (RealType(1)/1260)*(ikp1*ikp1))*(ikp1*ikp1))*ikp1;
-        }
-    }
-
-    void init()
-    {
-        using std::sqrt;
-        using std::pow;
-
-        RealType p = (0.5 < _p)? (1 - _p) : _p;
-        IntType t = _t;
-
-        m = static_cast<IntType>((t+1)*p);
-
-        if(use_inversion()) {
-            _u.q_n = pow((1 - p), static_cast<RealType>(t));
-        } else {
-            _u.btrd.r = p/(1-p);
-            _u.btrd.nr = (t+1)*_u.btrd.r;
-            _u.btrd.npq = t*p*(1-p);
-            RealType sqrt_npq = sqrt(_u.btrd.npq);
-            _u.btrd.b = 1.15 + 2.53 * sqrt_npq;
-            _u.btrd.a = -0.0873 + 0.0248*_u.btrd.b + 0.01*p;
-            _u.btrd.c = t*p + 0.5;
-            _u.btrd.alpha = (2.83 + 5.1/_u.btrd.b) * sqrt_npq;
-            _u.btrd.v_r = 0.92 - 4.2/_u.btrd.b;
-            _u.btrd.u_rv_r = 0.86*_u.btrd.v_r;
         }
     }
 
