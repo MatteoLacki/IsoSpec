@@ -24,7 +24,6 @@
 #include <unordered_set>
 #include <queue>
 #include <utility>
-#include <iostream>
 #include <string.h>
 #include <string>
 #include <limits>
@@ -154,6 +153,10 @@ double* getMLogProbs(const double* probs, int isoNo)
     Rounding down could result in the algorithm falling in an infinite loop
     because of the numerical instability of summing.
     */
+    for(int ii = 0; ii < isoNo; ii++)
+        if(probs[ii] <= 0.0 || probs[ii] > 1.0)
+            throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
+
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
@@ -183,6 +186,12 @@ double get_loggamma_nominator(int x)
     return ret;
 }
 
+int verify_atom_cnt(int atomCnt)
+{
+    if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
+        throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
+    return atomCnt;
+}
 
 Marginal::Marginal(
     const double* _masses,
@@ -192,40 +201,39 @@ Marginal::Marginal(
 ) :
 disowned(false),
 isotopeNo(_isotopeNo),
-atomCnt(_atomCnt),
-atom_masses(array_copy<double>(_masses, _isotopeNo)),
+atomCnt(verify_atom_cnt(_atomCnt)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
+atom_masses(array_copy<double>(_masses, _isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
 mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo)),
 mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
 mode_prob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
-{
-    try
-    {
-        if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
-            throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
-        for(size_t ii = 0; ii < isotopeNo; ii++)
-            if(_probs[ii] <= 0.0 || _probs[ii] > 1.0)
-                throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
-    }
-    catch(...)
-    {
-        delete[] atom_masses;
-        delete[] atom_lProbs;
-        delete[] mode_conf;
-        throw;
-    }
-}
+{}
+
+Marginal::Marginal(const Marginal& other) :
+disowned(false),
+isotopeNo(other.isotopeNo),
+atomCnt(other.atomCnt),
+atom_lProbs(array_copy<double>(other.atom_lProbs, isotopeNo)),
+atom_masses(array_copy<double>(other.atom_masses, isotopeNo)),
+loggamma_nominator(other.loggamma_nominator),
+mode_conf(array_copy<int>(other.mode_conf, isotopeNo)),
+mode_lprob(other.mode_lprob),
+mode_mass(other.mode_mass),
+mode_prob(other.mode_prob),
+smallest_lprob(other.smallest_lprob)
+{}
+
 
 // the move-constructor: used in the specialization of the marginal.
 Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),
 isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
-atom_masses(other.atom_masses),
 atom_lProbs(other.atom_lProbs),
+atom_masses(other.atom_masses),
 loggamma_nominator(other.loggamma_nominator),
 mode_conf(other.mode_conf),
 mode_lprob(other.mode_lprob),
@@ -278,13 +286,46 @@ double Marginal::getMonoisotopicConfMass() const
     return found_mass*atomCnt;
 }
 
-double Marginal::getTheoreticalAverageMass() const
+double Marginal::getAtomAverageMass() const
 {
     double ret = 0.0;
     for(unsigned int ii = 0; ii < isotopeNo; ii++)
         ret += exp(atom_lProbs[ii]) * atom_masses[ii];
-    return ret * atomCnt;
+    return ret;
 }
+
+double Marginal::variance() const
+{
+    double ret = 0.0;
+    double mean = getAtomAverageMass();
+    for(size_t ii = 0; ii < isotopeNo; ii++)
+    {
+        double msq = atom_masses[ii] - mean;
+        ret += exp(atom_lProbs[ii]) * msq * msq;
+    }
+    return ret;
+}
+
+double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
+{
+    if(isotopeNo <= 1)
+        return -std::numeric_limits<double>::infinity();
+
+    const double i = static_cast<double>(isotopeNo);
+    const double k = i - 1.0;
+    const double n = static_cast<double>(atomCnt);
+
+    double sum_lprobs = 0.0;
+    for(int jj = 0; jj < i; jj++)
+        sum_lprobs += atom_lProbs[jj];
+
+    double log_V_simplex = k * log(n) - lgamma(i);
+    double log_N_simplex = lgamma(n+i) - lgamma(n+1.0) - lgamma(i);
+    double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma((i+1)*0.5);
+
+    return log_N_simplex + log_V_ellipsoid - log_V_simplex;
+}
+
 
 // this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(

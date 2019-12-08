@@ -43,7 +43,8 @@ unsigned int parse_formula(const char* formula,
                            std::vector<const double*>& isotope_probabilities,
                            int** isotopeNumbers,
                            int** atomCounts,
-                           unsigned int* confSize);
+                           unsigned int* confSize,
+                           bool use_nominal_masses = false);
 
 
 //! The Iso class for the calculation of the isotopic distribution.
@@ -93,10 +94,10 @@ public:
     );
 
     //! Constructor from the formula object.
-    Iso(const char* formula);
+    Iso(const char* formula, bool use_nominal_masses = false);
 
     //! Constructor from C++ std::string chemical formula.
-    inline Iso(const std::string& formula) : Iso(formula.c_str()) {};
+    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {};
 
     //! The move constructor.
     Iso(Iso&& other);
@@ -136,6 +137,12 @@ public:
     //! Get the theoretical average mass of the molecule.
     double getTheoreticalAverageMass() const;
 
+    //! Get the theoretical variance of the distribution.
+    double variance() const;
+
+    //! Get the standard deviation of the theoretical distribution.
+    double stddev() const { return sqrt(variance()); };
+
     //! Get the number of elements in the chemical formula of the molecule.
     inline int getDimNumber() const { return dimNumber; };
 
@@ -144,6 +151,9 @@ public:
 
     //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
     void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
+
+    //! Save estimates of logarithms of target sizes of marginals using Gaussian approximation into argument array. Array priorities must have length equal to dimNumber.
+    void saveMarginalLogSizeEstimates(double* priorities, double target_total_prob) const;
 };
 
 

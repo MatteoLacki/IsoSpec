@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cmath>
+#include <random>
 #include <fenv.h>
 
 #if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
@@ -42,7 +43,7 @@ static inline double minuslogFactorial(int n)
 }
 
 const double pi = 3.14159265358979323846264338328;
-const double log2pluslogpi = log(2.0) + log(pi);
+const double logpi = 1.144729885849400174143427351353058711647294812915311571513623071472137769884826079783623270275489708;
 
 double NormalCDFInverse(double p);
 double NormalCDFInverse(double p, double mean, double stdev);
@@ -60,6 +61,24 @@ inline double InverseChiSquareCDF2(int k, double x)
 {
     return InverseLowerIncompleteGamma2(k, x*tgamma(static_cast<double>(k)/2.0)) * 2.0;
 }
+
+extern std::mt19937 random_gen;
+extern std::uniform_real_distribution<double> stdunif;
+
+inline double rdvariate_beta_1_b(double b, std::mt19937& rgen = random_gen)
+{
+    return 1.0 - pow(stdunif(rgen), 1.0/b);
+}
+
+
+inline int rdvariate_binom(int tries, double succ_prob, std::mt19937& rgen = random_gen)
+{
+    if (succ_prob >= 1.0)
+        return tries;
+    std::binomial_distribution<> bd(tries, succ_prob);
+    return bd(rgen);
+}
+
 
 
 

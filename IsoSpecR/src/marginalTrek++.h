@@ -48,8 +48,8 @@ private:
 protected:
     const unsigned int isotopeNo;       /*!< The number of isotopes of the given element. */
     const unsigned int atomCnt;         /*!< The number of atoms of the given element. */
-    const double* const atom_masses;    /*!< Table of atomic masses of all the isotopeNo isotopes. */
     const double* const atom_lProbs;    /*!< Table of log-probabilities of all the isotopeNo isotopes. */
+    const double* const atom_masses;    /*!< Table of atomic masses of all the isotopeNo isotopes. */
     const double loggamma_nominator;    /*!< The constant nominator that appears in the expressions for the multinomial probabilities. */
     const Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
     const double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
@@ -74,9 +74,11 @@ public:
         int _atomCnt
     );
 
-    // Get rid of the C++ generated copy and assignment constructors.
-    Marginal(Marginal& other) = delete;
+    // Get rid of the C++ generated assignment constructor.
     Marginal& operator= (const Marginal& other) = delete;
+
+    //! Copy constructor
+    Marginal(const Marginal& other);
 
     //! Move constructor.
     Marginal(Marginal&& other);
@@ -135,11 +137,17 @@ public:
     */
     inline double getSmallestLProb() const { return smallest_lprob; };
 
+    //! The average mass of a single atom.
+    /*!
+        \return The average mass of a single atom.
+     */
+    double getAtomAverageMass() const;
+
     //! The theoretical average mass of the molecule.
     /*!
         \return The theoretical average mass of the molecule.
      */
-    double getTheoreticalAverageMass() const;
+    inline double getTheoreticalAverageMass() const { return getAtomAverageMass() * atomCnt; };
 
     //! Calculate the log-probability of a given subisotopologue.
     /*!
@@ -147,6 +155,12 @@ public:
         \return The log-probability of the input subisotopologue.
     */
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
+
+    //! Calculate the variance of the theoretical distribution describing the subisotopologue
+    double variance() const;
+
+    //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
+    double getLogSizeEstimate(double logEllipsoidRadius) const;
 };
 
 

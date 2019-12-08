@@ -41,6 +41,9 @@ double getMonoisotopicPeakMassIso(void* iso);
 double getModeLProbIso(void* iso);
 double getModeMassIso(void* iso);
 double getTheoreticalAverageMassIso(void* iso);
+double getIsoVariance(void* iso);
+double getIsoStddev(void* iso);
+double* getMarginalLogSizeEstimates(void* iso, double target_total_prob);
 
 
 void deleteIso(void* iso);
@@ -67,14 +70,17 @@ void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
                                  int _tabSize,
-                                 int _hashSize);
+                                 int _hashSize,
+                                 bool reorder_marginals);
 ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
                                int _tabSize,
-                               int _hashSize);
+                               int _hashSize,
+                               bool reorder_marginals,
+                               double t_prob_hint);
 ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR
@@ -120,6 +126,38 @@ const int*    confsTotalProbFixedEnvelope(void* tabulator);
 int confs_noTotalProbFixedEnvelope(void* tabulator);
 
 void freeReleasedArray(void* array);
+
+void deleteTotalProbFixedEnvelope(void* tabulator);
+
+const double* massesTotalProbFixedEnvelope(void* tabulator);
+const double* lprobsTotalProbFixedEnvelope(void* tabulator);
+const double* probsTotalProbFixedEnvelope(void* tabulator);
+const int*    confsTotalProbFixedEnvelope(void* tabulator);
+int confs_noTotalProbFixedEnvelope(void* tabulator);
+
+void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
+void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
+
+const double* massesFixedEnvelope(void* tabulator);
+const double* lprobsFixedEnvelope(void* tabulator);
+const double* probsFixedEnvelope(void* tabulator);
+const int*    confsFixedEnvelope(void* tabulator);
+int confs_noFixedEnvelope(void* tabulator);
+
+double wassersteinDistance(void* tabulator1, void* tabulator2);
+void* addEnvelopes(void* tabulator1, void* tabulator2);
+void* convolveEnvelopes(void* tabulator1, void* tabulator2);
+
+double getTotalProbOfEnvelope(void* envelope);
+void scaleEnvelope(void* envelope, double factor);
+void normalizeEnvelope(void* envelope);
+void* binnedEnvelope(void* envelope, double width, double middle);
+void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
+
+void sortEnvelopeByMass(void* envelope);
+void sortEnvelopeByProb(void* envelope);
+
+
 
 #ifdef __cplusplus
 }

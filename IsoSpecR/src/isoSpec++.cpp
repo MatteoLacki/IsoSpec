@@ -102,15 +102,19 @@ modeLProb(other.modeLProb)
 
 
 Iso::Iso(const Iso& other, bool fullcopy) :
-disowned(fullcopy ? throw std::logic_error("Not implemented") : true),
+disowned(!fullcopy),
 dimNumber(other.dimNumber),
 isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : other.isotopeNumbers),
 atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(fullcopy ? throw std::logic_error("Not implemented") : other.marginals),
+marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals),
 modeLProb(other.modeLProb)
-{}
+{
+    if(fullcopy)
+        for(ssize_t ii = 0; ii<dimNumber; ii++)
+            marginals[ii] = new Marginal(*other.marginals[ii]);
+}
 
 
 inline void Iso::setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities)
@@ -210,8 +214,16 @@ double Iso::getTheoreticalAverageMass() const
     return mass;
 }
 
+double Iso::variance() const
+{
+    double ret = 0.0;
+    for(int ii=0; ii<dimNumber; ii++)
+        ret += marginals[ii]->variance();
+    return ret;
+}
 
-Iso::Iso(const char* formula) :
+
+Iso::Iso(const char* formula, bool use_nominal_masses) :
 disowned(false),
 allDim(0),
 marginals(nullptr),
@@ -220,7 +232,7 @@ modeLProb(0.0)
     std::vector<const double*> isotope_masses;
     std::vector<const double*> isotope_probabilities;
 
-    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize);
+    dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize, use_nominal_masses);
 
     setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
@@ -239,7 +251,27 @@ void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses,
 
 }
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
+void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_prob) const
+{
+    /*
+     * We shall now use Gaussian approximations of the marginal multinomial distributions to estimate
+     * how many configurations we shall need to visit from each marginal. This should be approximately
+     * proportional to the volume of the optimal P-ellipsoid of the marginal, which, in turn is defined
+     * by the quantile function of the chi-square distribution plus some modifications.
+     *
+     * We're dropping the constant factor and the (monotonic) exp() transform - these will be used as keys
+     * for sorting, so only the ordering is important.
+     */
+
+    double K = allDim - dimNumber;
+
+    double log_R2 = log(InverseChiSquareCDF2(K, target_total_prob));
+
+    for(int ii = 0; ii < dimNumber; ii++)
+        priorities[ii] = marginals[ii]->getLogSizeEstimate(log_R2);
+}
+
+unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
@@ -300,8 +332,8 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
     {
         int num = 0;
         int at_idx = *it;
-        int atomicNo = elem_table_atomicNo[at_idx];
-        while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_atomicNo[at_idx] == atomicNo)
+        int elem_ID = elem_table_ID[at_idx];
+        while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_ID[at_idx] == elem_ID)
         {
             at_idx++;
             num++;
@@ -311,7 +343,8 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
     for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
-        isotope_masses.push_back(&elem_table_mass[*it]);
+        const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
+        isotope_masses.push_back(&masses[*it]);
         isotope_probabilities.push_back(&elem_table_probability[*it]);
     };
 
@@ -390,7 +423,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     if(reorder_marginals && dimNumber > 1)
     {
-        OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
+        OrderMarginalsBySizeDecresing<PrecalculatedMarginal> comparator(marginalResultsUnsorted);
         int* tmpMarginalOrder = new int[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)
@@ -519,41 +552,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     {
         double* marginal_priorities = new double[dimNumber];
 
-        /*
-         * We shall now use Gaussian approximations of the marginal multinomial distributions to estimate
-         * how many configurations we shall need to visit from each marginal. This should be approximately
-         * proportional to the volume of the optimal P-ellipsoid of the marginal, which, in turn is defined
-         * by the quantile function of the chi-square distribution plus some modifications.
-         *
-         * We're dropping the constant factor and the (monotonic) exp() transform - these will be used as keys
-         * for sorting, so only the ordering is important.
-         */
-
-        double K = allDim - dimNumber;
-
-        double log_R2 = log(InverseChiSquareCDF2(K, t_prob_hint));
-
-        for(int ii = 0; ii < dimNumber; ii++)
-        {
-            const int i = marginalResultsUnsorted[ii]->get_isotopeNo();
-            if(i <= 1)
-                marginal_priorities[ii] = 0.0;
-            else
-            {
-                double k = static_cast<double>(i - 1);
-                const int n = atomCounts[ii];
-
-                double sum_lprobs = 0.0;
-                for(int jj = 0; jj < i; jj++)
-                    sum_lprobs += marginalResultsUnsorted[ii]->get_lProbs()[jj];
-
-                double sum_rademacher = 0.0;
-                for(int jj = 1; jj < i; jj++)
-                    sum_rademacher += log1p((static_cast<double>(jj)) / static_cast<double>(n));
-
-                marginal_priorities[ii] = -(sum_lprobs/2.0 + sum_rademacher - lgamma((k+2.0)/2.0) + k/2.0 * (log_R2 + log2pluslogpi + log(n)));
-            }
-        }
+        saveMarginalLogSizeEstimates(marginal_priorities, t_prob_hint);
 
         int* tmpMarginalOrder = new int[dimNumber];
 

@@ -120,9 +120,6 @@ template<typename T> void printNestedArray(const T** array, const int* shape, in
     std::cout << std::endl;
 }
 
-#define mswap(x, y) swapspace = x; x = y; y=swapspace;
-
-
 //! Quickly select the n'th positional statistic, including the weights.
 void* quickselect(void** array, int n, int start, int end);
 
@@ -132,6 +129,13 @@ template <typename T> inline static T* array_copy(const T* A, int size)
     T* ret = new T[size];
     memcpy(ret, A, size*sizeof(T));
     return ret;
+}
+
+template <typename T> static T* array_copy_nptr(const T* A, int size)
+{
+    if(A == nullptr)
+        return nullptr;
+    return array_copy(A, size);
 }
 
 template<typename T> void dealloc_table(T* tbl, int dim)
