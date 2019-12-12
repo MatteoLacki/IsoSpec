@@ -36,7 +36,6 @@ def sample_isospec(formula, count, precision):
     '''
     pprob = 0.0
     cprob = 0.0
-    pidx = 0
     accumulated = 0
     iso_iter = population.__iter__()
     while count > 0:
