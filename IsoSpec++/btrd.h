@@ -62,6 +62,7 @@ class binomial_distribution {
     // parameters
     IntType _t;
     RealType _p;
+    RealType p;
 
     // common data
     IntType m;
@@ -98,7 +99,7 @@ public:
         using std::sqrt;
         using std::pow;
 
-        RealType p = (0.5 < _p)? (1 - _p) : _p;
+        p = (0.5 < _p)? (1 - _p) : _p;
         IntType t = _t;
 
         m = static_cast<IntType>((t+1)*p);
@@ -128,9 +129,9 @@ public:
     {
         if(use_inversion()) {
             if(0.5 < _p) {
-                return _t - invert(_t, 1-_p, urng);
+                return _t - invert(urng);
             } else {
-                return invert(_t, _p, urng);
+                return invert(urng);
             }
         } else if(0.5 < _p) {
             return _t - generate(urng);
@@ -232,11 +233,11 @@ private:
         }
     }
 
-    IntType invert(IntType t, RealType p, std::mt19937& urng = random_gen) const
+    IntType invert(std::mt19937& urng = random_gen) const
     {
         RealType q = 1 - p;
         RealType s = p / q;
-        RealType a = (t + 1) * s;
+        RealType a = (_t + 1) * s;
         RealType r = _u.q_n;
         RealType u = stdunif(urng);
         IntType x = 0;
