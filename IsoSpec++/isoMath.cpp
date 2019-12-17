@@ -151,8 +151,7 @@ int rdvariate_binom(int tries, double succ_prob, std::mt19937& rgen = random_gen
 {
     if (succ_prob >= 1.0)
         return tries;
-    IsoSpec::binomial_distribution bd(tries, succ_prob);
-    return bd(rgen);
+    return IsoSpec::boost_binomial_distribution_variate(tries, succ_prob, rgen);
 }
 
 
