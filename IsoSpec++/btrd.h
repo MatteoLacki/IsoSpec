@@ -67,23 +67,6 @@ class binomial_distribution {
     // common data
     IntType m;
 
-    union {
-        // for btrd
-        struct {
-            RealType r;
-            RealType nr;
-            RealType npq;
-            RealType b;
-            RealType a;
-            RealType c;
-            RealType alpha;
-            RealType v_r;
-            RealType u_rv_r;
-        } btrd;
-        // for inversion
-        RealType q_n;
-    } _u;
-
 public:
 
     /**
@@ -104,20 +87,6 @@ public:
 
         m = static_cast<IntType>((t+1)*p);
 
-        if(use_inversion()) {
-            _u.q_n = pow((1 - p), static_cast<RealType>(t));
-        } else {
-            _u.btrd.r = p/(1-p);
-            _u.btrd.nr = (t+1)*_u.btrd.r;
-            _u.btrd.npq = t*p*(1-p);
-            RealType sqrt_npq = sqrt(_u.btrd.npq);
-            _u.btrd.b = 1.15 + 2.53 * sqrt_npq;
-            _u.btrd.a = -0.0873 + 0.0248*_u.btrd.b + 0.01*p;
-            _u.btrd.c = t*p + 0.5;
-            _u.btrd.alpha = (2.83 + 5.1/_u.btrd.b) * sqrt_npq;
-            _u.btrd.v_r = 0.92 - 4.2/_u.btrd.b;
-            _u.btrd.u_rv_r = 0.86*_u.btrd.v_r;
-        }
     }
 
 
@@ -167,27 +136,38 @@ private:
         using std::abs;
         using std::log;
 
+        RealType btrd_r = p/(1-p);
+        RealType btrd_nr = (_t+1)*btrd_r;
+        RealType btrd_npq = _t*p*(1-p);
+        RealType sqrt_npq = sqrt(btrd_npq);
+        RealType btrd_b = 1.15 + 2.53 * sqrt_npq;
+        RealType btrd_a = -0.0873 + 0.0248*btrd_b + 0.01*p;
+        RealType btrd_c = _t*p + 0.5;
+        RealType btrd_alpha = (2.83 + 5.1/btrd_b) * sqrt_npq;
+        RealType btrd_v_r = 0.92 - 4.2/btrd_b;
+        RealType btrd_u_rv_r = 0.86*btrd_v_r;
+
         while(true) {
             RealType u;
             RealType v = stdunif(urng);
-            if(v <= _u.btrd.u_rv_r) {
-                u = v/_u.btrd.v_r - 0.43;
+            if(v <= btrd_u_rv_r) {
+                u = v/btrd_v_r - 0.43;
                 return static_cast<IntType>(floor(
-                    (2*_u.btrd.a/(0.5 - abs(u)) + _u.btrd.b)*u + _u.btrd.c));
+                    (2*btrd_a/(0.5 - abs(u)) + btrd_b)*u + btrd_c));
             }
 
-            if(v >= _u.btrd.v_r) {
+            if(v >= btrd_v_r) {
                 u = stdunif(urng) - 0.5;
             } else {
-                u = v/_u.btrd.v_r - 0.93;
+                u = v/btrd_v_r - 0.93;
                 u = ((u < 0)? -0.5 : 0.5) - u;
-                v = stdunif(urng) * _u.btrd.v_r;
+                v = stdunif(urng) * btrd_v_r;
             }
 
             RealType us = 0.5 - abs(u);
-            IntType k = static_cast<IntType>(floor((2*_u.btrd.a/us + _u.btrd.b)*u + _u.btrd.c));
+            IntType k = static_cast<IntType>(floor((2*btrd_a/us + btrd_b)*u + btrd_c));
             if(k < 0 || k > _t) continue;
-            v = v*_u.btrd.alpha/(_u.btrd.a/(us*us) + _u.btrd.b);
+            v = v*btrd_alpha/(btrd_a/(us*us) + btrd_b);
             RealType km = abs(k - m);
             if(km <= 15) {
                 RealType f = 1;
@@ -195,13 +175,13 @@ private:
                     IntType i = m;
                     do {
                         ++i;
-                        f = f*(_u.btrd.nr/i - _u.btrd.r);
+                        f = f*(btrd_nr/i - btrd_r);
                     } while(i != k);
                 } else if(m > k) {
                     IntType i = k;
                     do {
                         ++i;
-                        v = v*(_u.btrd.nr/i - _u.btrd.r);
+                        v = v*(btrd_nr/i - btrd_r);
                     } while(i != m);
                 }
                 if(v <= f) return k;
@@ -210,18 +190,18 @@ private:
                 // final acceptance/rejection
                 v = log(v);
                 RealType rho =
-                    (km/_u.btrd.npq)*(((km/3. + 0.625)*km + 1./6)/_u.btrd.npq + 0.5);
-                RealType t = -km*km/(2*_u.btrd.npq);
+                    (km/btrd_npq)*(((km/3. + 0.625)*km + 1./6)/btrd_npq + 0.5);
+                RealType t = -km*km/(2*btrd_npq);
                 if(v < t - rho) return k;
                 if(v > t + rho) continue;
 
                 IntType nm = _t - m + 1;
-                RealType h = (m + 0.5)*log((m + 1)/(_u.btrd.r*nm))
+                RealType h = (m + 0.5)*log((m + 1)/(btrd_r*nm))
                            + fc(m) + fc(_t - m);
 
                 IntType nk = _t - k + 1;
                 if(v <= h + (_t+1)*log(static_cast<RealType>(nm)/nk)
-                          + (k + 0.5)*log(nk*_u.btrd.r/(k+1))
+                          + (k + 0.5)*log(nk*btrd_r/(k+1))
                           - fc(k)
                           - fc(_t - k))
                 {
@@ -238,7 +218,7 @@ private:
         RealType q = 1 - p;
         RealType s = p / q;
         RealType a = (_t + 1) * s;
-        RealType r = _u.q_n;
+        RealType r = pow((1 - p), static_cast<RealType>(_t));
         RealType u = stdunif(urng);
         IntType x = 0;
         while(u > r) {
