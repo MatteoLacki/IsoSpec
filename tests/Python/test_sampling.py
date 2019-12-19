@@ -3,6 +3,7 @@ import IsoSpecPy
 
 from random import uniform
 from numpy.random import binomial
+from math import inf, nan
 
 
 def _beta_1_b(b):
@@ -66,31 +67,63 @@ def sample_isospec(formula, count, precision):
         yield (pop_next, accumulated)
 
 
-'''
+class Sampler:
+    def __init__(self, iso, ionic_current, accuracy, beta_bias):
+        self.iso = iso.__iter__()
+        self.accumulated_prob = 0.0
+        self.chasing_prob = 0.0
+        self.ionic_current = ionic_current
+        self.accuracy = accuracy
+        self.beta_bias = beta_bias
+        self.accumulated = 0
+        self.current_count = nan
+    def advance(self):
+        if self.ionic_current == 0:
+            return False
+        while self.chasing_prob >= self.accumulated_prob:
+            self.mass, self.cconf_prob = next(self.iso)
+            self.accumulated_prob += self.cconf_prob
+        prob_diff = self.accumulated_prob - self.chasing_prob
+        expected_mols = prob_diff * self.ionic_current
+        rem_interval = self.accuracy - self.chasing_prob
+        while True:
+            print ("Beta appr:", expected_mols / rem_interval)
+            if expected_mols / rem_interval < self.beta_bias:
+                self.current_count = self.accumulated
+                self.ionic_current -= self.accumulated
+                self.accumulated = 1
+                while self.ionic_current > 0 and self.chasing_prob < self.accumulated_prob:
+                    self.chasing_prob += _beta_1_b(self.ionic_current) * rem_interval
+                    self.ionic_current -= 1
+                    self.current_count += 1
+                    rem_interval = self.accuracy - self.chasing_prob
+                return self.current_count > 0
+            else:
+                self.current_count = _safe_binom(self.ionic_current, prob_diff / rem_interval) + self.accumulated
+                self.accumulated = 0
+                self.chasing_prob = self.accumulated_prob
+                if self.current_count > 0:
+                    self.ionic_current -= self.current_count
+                    return True
+                self.mass, self.cconf_prob = next(self.iso)
+                self.accumulated_prob += self.cconf_prob
+                prob_diff = self.cconf_prob
+                expected_mols = prob_diff * self.ionic_current
+                rem_interval = self.accuracy - self.chasing_prob
 
-    population_iter = population.__iter__()
-    probabilities_iter = probabilities.__iter__()
-    population_next = next(population_iter)
-    while sample_size > 0:
-        pprob += next(probabilities_iter)
-        # Beta mode
-        while (pprob - cprob) * sample_size / (1.0 - cprob) < 1.0:
-            cprob += _beta_1_b(sample_size) * (1.0 - cprob)
-            while pprob < cprob:
-                population_next = next(population_iter)
-                pprob += next(probabilities_iter)
-#            yield (population_next, 1)
-            sample_size -= 1
-            if sample_size == 0: break
-        if sample_size == 0: break
-        # Binomial mode
-        nrtaken = _safe_binom(sample_size, (pprob-cprob)/(1.0-cprob))
-        if nrtaken > 0:
-#            yield (population_next, nrtaken)
-            sample_size -= nrtaken
-        population_next = next(population_iter)
-        cprob = pprob
-'''
+
+    def current(self):
+        return (self.mass, self.current_count)
+
+
+
+def sample_isospec2(formula, count, precision):
+    population = IsoSpecPy.IsoLayeredGenerator(formula, t_prob_hint = precision, reorder_marginals = False)
+    S = Sampler(population, count, precision, 100.0)
+    while S.advance():
+        yield S.current()
+
+
 
 from IsoSpecPy.Formulas import *
 from scipy.stats import chisquare
@@ -108,9 +141,12 @@ if __name__ == '__main__':
     Y = dict([(v[0], 0) for v in X])
     #print(Y)
 
-    
-    for x in sample_isospec(test_mol, count, 0.9999):
+    s = 0
+    for x in sample_isospec2(test_mol, count, 1.0):
+        print(x)
         Y[x[0]] = x[1]
+        s += x[1]
+    print(s)
 
     #print(X)
     #print(Y)
