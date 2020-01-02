@@ -496,7 +496,7 @@ private:
 
 
 
-class IsoStochastic
+class IsoStochasticGenerator
 {
     IsoLayeredGenerator ILG;
     size_t to_sample_left;
@@ -507,7 +507,7 @@ class IsoStochastic
     size_t current_count;
 
 public:
-    IsoStochastic(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
+    IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
 
     ISOSPEC_FORCE_INLINE size_t count() const { return current_count; };
 
@@ -521,6 +521,9 @@ public:
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration()
     {
+        /* This function will be used mainly in very small, tight loops, therefore it makes sense to
+         * aggressively inline it, despite its seemingly large body.
+         */
         while(true)
         {
             double curr_conf_prob_left, current_prob;
