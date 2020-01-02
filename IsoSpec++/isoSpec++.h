@@ -496,6 +496,22 @@ private:
 
 
 
+class IsoStochastic
+{
+    IsoLayeredGenerator ILG;
+    size_t to_sample_left;
+    double precision;
+    double beta_bias;
+    double confs_prob;
+    double chasing_prob;
+
+public:
+    IsoStochastic(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
+
+    ISOSPEC_FORCE_INLINE bool next()
+    {
+    }
+};
 
 
 #if !ISOSPEC_BUILDING_R
