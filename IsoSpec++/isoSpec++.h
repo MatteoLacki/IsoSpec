@@ -496,7 +496,7 @@ private:
 
 
 
-class IsoStochasticGenerator
+class IsoStochasticGenerator : Iso
 {
     IsoLayeredGenerator ILG;
     size_t to_sample_left;
