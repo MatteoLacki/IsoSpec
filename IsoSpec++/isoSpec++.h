@@ -500,8 +500,8 @@ class IsoStochasticGenerator
 {
     IsoLayeredGenerator ILG;
     size_t to_sample_left;
-    double precision;
-    double beta_bias;
+    const double precision;
+    const double beta_bias;
     double confs_prob;
     double chasing_prob;
     size_t current_count;
