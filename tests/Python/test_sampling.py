@@ -146,61 +146,60 @@ class CIIC:
         self.precision = precision
         self.beta_bias = beta_bias
     def next(self):
-        if self.to_sample_left <= 0:
-            return False
-        if self.confs_prob < self.chasing_prob:
-            # Beta was last
-            self.current_count = 1
-            self.to_sample_left -= 1
-            self.current_conf, self.current_prob = next(self.iso)
-            self.confs_prob += self.current_prob
-            while self.confs_prob <= self.chasing_prob:
+        while True:
+            if self.to_sample_left <= 0:
+                return False
+            if self.confs_prob < self.chasing_prob:
+                # Beta was last
+                self.current_count = 1
+                self.to_sample_left -= 1
                 self.current_conf, self.current_prob = next(self.iso)
                 self.confs_prob += self.current_prob
-            if self.to_sample_left <= 0:
-                assert self.current_count > 0
-                return True
-            curr_conf_prob_left = self.confs_prob - self.chasing_prob
-        else:
-            # Binomial was last
-            self.current_count = 0
-            self.current_conf, self.current_prob = next(self.iso)
-            self.confs_prob += self.current_prob
-            curr_conf_prob_left = self.current_prob
-
-        assert self.to_sample_left > 0
-        assert self.chasing_prob < self.confs_prob
-
-        prob_left_to_1 = self.precision - self.chasing_prob
-        expected_confs = curr_conf_prob_left * self.to_sample_left / prob_left_to_1
-
-        if self.beta_bias < 0.0:
-            cond = choice([True, False])
-            print("RAND")
-        else:
-            cond = expected_confs <= self.beta_bias
-        if cond:
-            # Beta mode: we keep making beta jumps until we leave the current configuration
-            self.chasing_prob += _beta_1_b(self.to_sample_left) * prob_left_to_1
-            while self.chasing_prob <= self.confs_prob:
-                self.current_count += 1
-                self.to_sample_left -= 1
-                if self.to_sample_left == 0:
+                while self.confs_prob <= self.chasing_prob:
+                    self.current_conf, self.current_prob = next(self.iso)
+                    self.confs_prob += self.current_prob
+                if self.to_sample_left <= 0:
+                    assert self.current_count > 0
                     return True
-                prob_left_to_1 = self.precision - self.chasing_prob
+                curr_conf_prob_left = self.confs_prob - self.chasing_prob
+            else:
+                # Binomial was last
+                self.current_count = 0
+                self.current_conf, self.current_prob = next(self.iso)
+                self.confs_prob += self.current_prob
+                curr_conf_prob_left = self.current_prob
+
+            assert self.to_sample_left > 0
+            assert self.chasing_prob < self.confs_prob
+
+            prob_left_to_1 = self.precision - self.chasing_prob
+            expected_confs = curr_conf_prob_left * self.to_sample_left / prob_left_to_1
+
+            if self.beta_bias < 0.0:
+                cond = choice([True, False])
+                print("RAND")
+            else:
+                cond = expected_confs <= self.beta_bias
+            if cond:
+                # Beta mode: we keep making beta jumps until we leave the current configuration
                 self.chasing_prob += _beta_1_b(self.to_sample_left) * prob_left_to_1
-            if self.current_count == 0:
-                return self.next() # There will be no more than two recursive calls
-            return True
-        else:
-            # Binomial mode: a single binomial step
-            rbin = _safe_binom(self.to_sample_left, curr_conf_prob_left/prob_left_to_1)
-            self.current_count += rbin
-            self.to_sample_left -= rbin
-            self.chasing_prob = self.confs_prob
-            if self.current_count == 0:
-                return self.next()
-            return True
+                while self.chasing_prob <= self.confs_prob:
+                    self.current_count += 1
+                    self.to_sample_left -= 1
+                    if self.to_sample_left == 0:
+                        return True
+                    prob_left_to_1 = self.precision - self.chasing_prob
+                    self.chasing_prob += _beta_1_b(self.to_sample_left) * prob_left_to_1
+                if self.current_count > 0:
+                    return True
+            else:
+                # Binomial mode: a single binomial step
+                rbin = _safe_binom(self.to_sample_left, curr_conf_prob_left/prob_left_to_1)
+                self.current_count += rbin
+                self.to_sample_left -= rbin
+                self.chasing_prob = self.confs_prob
+                if self.current_count > 0:
+                    return True
 
 
 
