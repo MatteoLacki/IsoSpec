@@ -89,6 +89,11 @@ void* setupIsoOrderedGenerator(void* iso,
                                int _hashSize);
 ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
+void* setupIsoStrochasticGenerator(void* iso,
+                                   size_t no_molecules,
+                                   double precision,
+                                   double beta_bias);
+ISOSPEC_C_FN_HEADERS(IsoStochasticGenerator)
 
 
 void* setupThresholdFixedEnvelope(void* iso,

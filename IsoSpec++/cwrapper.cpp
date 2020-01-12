@@ -187,6 +187,22 @@ void* setupIsoOrderedGenerator(void* iso,
 }
 ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
+//______________________________________________________STOCHASTIC GENERATOR
+void* setupIsoStochasticGenerator(void* iso,
+                                  size_t no_molecules,
+                                  double precision,
+                                  double beta_bias)
+{
+    IsoStochasticGenerator* iso_tmp = new IsoStochasticGenerator(
+        std::move(*reinterpret_cast<Iso*>(iso)),
+        no_molecules,
+        precision,
+        beta_bias);
+
+    return reinterpret_cast<void*>(iso_tmp);
+}
+ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
+
 //______________________________________________________ Threshold FixedEnvelope
 
 void* setupThresholdFixedEnvelope(void* iso,
