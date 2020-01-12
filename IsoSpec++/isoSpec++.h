@@ -496,7 +496,7 @@ private:
 
 
 
-class IsoStochasticGenerator : Iso
+class IsoStochasticGenerator : IsoGenerator
 {
     IsoLayeredGenerator ILG;
     size_t to_sample_left;
@@ -513,9 +513,9 @@ public:
 
     ISOSPEC_FORCE_INLINE double mass() const { return ILG.mass(); };
 
-    ISOSPEC_FORCE_INLINE double prob() const { return ILG.prob(); };
+    ISOSPEC_FORCE_INLINE double prob() const { return static_cast<double>(count()); };
 
-    ISOSPEC_FORCE_INLINE double lprob() const { return ILG.lprob(); };
+    ISOSPEC_FORCE_INLINE double lprob() const { return log(prob()); };
 
     ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const { ILG.get_conf_signature(space); };
 

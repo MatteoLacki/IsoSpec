@@ -803,7 +803,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
 
 IsoStochasticGenerator::IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double _precision, double _beta_bias) :
-Iso(std::move(iso)),
+IsoGenerator(std::move(iso)),
 ILG(std::move(*this)),
 to_sample_left(no_molecules),
 precision(_precision),
