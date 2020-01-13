@@ -122,7 +122,7 @@ class IsoFFI:
         mod_dir = os.path.dirname(os.path.abspath(__file__))
 
         if os.path.exists(os.path.join(mod_dir, '..', 'setup.py')):
-            raise Exception('''Attempted to load IsoSpecPy module from its build directory. This usually
+            raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
 won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
 sure you want to do that, edit the source and disable this check.''')
 
@@ -168,7 +168,7 @@ sure you want to do that, edit the source and disable this check.''')
                 pass
 
         if self.clib == None:
-            raise Exception("Cannot find or load the C++ part of the library")
+            raise ImportError("Cannot find or load the C++ part of the library")
 
 
 isoFFI = IsoFFI()  # This is done while including the module
