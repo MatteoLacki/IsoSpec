@@ -157,18 +157,19 @@ sure you want to do that, edit the source and disable this check.''')
 
         paths_to_check = sum(map(glob.glob, paths_to_check), [])
 
+        errors = []
+
         self.clib = None
         for libpath in set(paths_to_check):
             try:
                 self.clib = self.ffi.dlopen(libpath)
                 break
             except (IndexError, OSError) as e:
-                print("Load libIsoSpec++.so, tried:", libpath)
-                print("Got:", e)
-                pass
+                errmsg = "Load libIsoSpec++.so, tried: " + libpath + '\n' + "Got error: " + str(type(e)) + ": " + str(e)
+                errors.append(errmsg)
 
         if self.clib == None:
-            raise ImportError("Cannot find or load the C++ part of the library")
+            raise ImportError("Cannot find or load the C++ part of the library\n" + '\n'.join(errors))
 
 
 isoFFI = IsoFFI()  # This is done while including the module
