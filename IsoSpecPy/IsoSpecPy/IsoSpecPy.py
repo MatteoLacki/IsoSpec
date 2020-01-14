@@ -241,6 +241,12 @@ class IsoDistribution(object):
             for i in xrange(self.size):
                 yield (self.masses[i], self.probs[i])
 
+    def __getitem__(self, idx):
+        try:
+            return (self.masses[idx], self.probs[idx], self.confs[idx])
+        except (AttributeError, TypeError):
+            return (self.masses[idx], self.probs[idx])
+
     def __len__(self):
         """Get the number of calculated peaks."""
         return self.size
