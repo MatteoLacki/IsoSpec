@@ -22,5 +22,4 @@ def neighbours(conf):
             yield tuple(conf[j] if j != i else si_neigh for j in range(len(conf)))
 
 
-print(list(neighbours(((10,0,0),(5,5)))))
                 
