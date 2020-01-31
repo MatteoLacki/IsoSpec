@@ -105,7 +105,7 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
             tgt_idx++;
         }
 
-    return FixedEnvelope(nmasses, nprobs, _confs_no + other._confs_no);
+    return FixedEnvelope(nmasses, nprobs, tgt_idx);
 }
 
 void FixedEnvelope::sort_by_mass()
