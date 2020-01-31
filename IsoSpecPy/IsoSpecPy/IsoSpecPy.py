@@ -281,9 +281,10 @@ class IsoDistribution(object):
                 self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
 
         elif probs is not None and masses is not None:
-            self.probs  = probs
             self.size = len(probs)
-            self.masses = masses
+            type_str = "double["+str(self.size)+"]"
+            self.probs  = isoFFI.ffi.new(type_str, probs)
+            self.masses = isoFFI.ffi.new(type_str, masses)
 
     def _get_cobject(self):
         return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
