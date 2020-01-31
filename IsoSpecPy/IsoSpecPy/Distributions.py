@@ -70,6 +70,8 @@ class Distribution(IsoDistribution):
 
         super(Distribution, self).__init__(masses = masses, probs = probs)
 
+        self.mass_sorted = True
+
 
 
 class Gaussian(Distribution):
