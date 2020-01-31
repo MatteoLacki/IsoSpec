@@ -52,8 +52,8 @@ class Distribution(IsoDistribution):
         last_bin_start = start - half_bin_width
         last_cdf = cdf(last_bin_start)
         
-        probs = []
-        masses = []
+        probs = [0.0]
+        masses = [last_bin_start - half_bin_width]
 
         while last_bin_start < end:
             next_bin_start = last_bin_start + bin_width
@@ -67,6 +67,9 @@ class Distribution(IsoDistribution):
 
         sprobs = 1.0/sum(probs)
         probs = [p*sprobs for p in probs]
+
+        probs.append(0.0)
+        masses.append(last_bin_start + half_bin_width)
 
         super(Distribution, self).__init__(masses = masses, probs = probs)
 

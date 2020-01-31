@@ -389,13 +389,25 @@ class IsoDistribution(object):
         return ret
 
 
-    def plot(self, **matplotlib_args):
+    def plot(self, plot_type = "bars", show = True, **matplotlib_args):
         """Plot the isotopic distribution.
 
         Args:
             **matplotlib_args: arguments for matplotlib plot.
         """
-        return plot_spectrum(self, **matplotlib_args)
+        try:
+            from matplotlib import pyplot as plt
+        except ImportError as e:
+            raise ImportError(str(e) + "\nPlotting spectra requires matplotlib to be installed.")
+        if plot_type == "bars":
+            plt.vlines(list(self.masses), [0], list(self.probs), linewidth=1, **matplotlib_args)
+        elif plot_type == "profile":
+            self.sort_by_mass()
+            plt.plot(list(self.masses), list(self.probs), **matplotlib_args)
+        plt.xlabel("Mass (Da)")
+        plt.ylabel("Intensity (relative)")
+        if show:
+            plt.show()
 
 
 
@@ -595,14 +607,3 @@ class IsoOrderedGenerator(IsoGenerator):
         super(IsoOrderedGenerator, self).__del__()
 
 
-
-def plot_spectrum(spectrum, show=True, **matplotlib_args):
-    try:
-        from matplotlib import pyplot as plt
-    except ImportError as e:
-        raise ImportError(str(e) + "\nPlotting spectra requires matplotlib to be installed.")
-    plt.vlines(list(spectrum.masses), [0], list(spectrum.probs), linewidth=1, **matplotlib_args)
-    plt.xlabel("Mass (Da)")
-    plt.ylabel("Intensity (relative)")
-    if show:
-        plt.show()
