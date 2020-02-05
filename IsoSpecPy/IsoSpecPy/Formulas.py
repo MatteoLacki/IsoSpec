@@ -9,6 +9,7 @@ titin = "C169719H270466N45688O52238S911"
 bovine_insulin = "C254H377N65O75S6"
 ubiquitin = "C378H629N105O118S1"
 substance_p = "C63H98N18O13S1"
+protein_p16 = "C681H1100N216O208S5"
 cholesterol = "C27H46O1"
 caffeine = "C8H10N4O2"
 water = "H2O1"
@@ -48,3 +49,23 @@ def averagine_dct(target_avg_mass):
 
 def averagine(target_avg_mass):
     return ''.join(str(key)+str(val) for key, val in sorted(averagine_dct(target_avg_mass).items(), key= lambda x: x[0]))
+
+
+acgt_avg_base = Counter({
+'C' : 9.75,
+'H' : 12.25,
+'N' : 3.75,
+'O' : 6.0,
+'P' : 1.0
+})
+
+def acgt_dct(no_bases, add_water = True):
+    c = {key : int(val*no_bases+0.5) for key, val in acgt_avg_base.items()}
+    if add_water:
+        c['H'] += 2
+        c['O'] += 1
+    return c
+
+def acgt(no_bases, add_water = True):
+    c = acgt_dct(no_bases, add_water = add_water)
+    return ''.join(str(key)+str(val) for key, val in sorted(c.items(), key= lambda x: x[0]))
