@@ -22,4 +22,11 @@ def neighbours(conf):
             yield tuple(conf[j] if j != i else si_neigh for j in range(len(conf)))
 
 
-                
+
+
+def conf_mass(iso, conf):
+    return sum(sum(mass * cnt for mass, cnt in zip(masses, cnts)) for masses, cnts in zip(iso.isotopeMasses, conf))
+
+
+from IsoSpecPy import Iso
+Iso.conf_mass = conf_mass
