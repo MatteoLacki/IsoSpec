@@ -109,7 +109,7 @@ public:
     //! Get the mass of the monoisotopic subisotopologue.
     /*! The monoisotopic subisotopologue is defined as the molecule consiting only
         of the most likely isotope. This is frequently the lightest subisotopologue,
-        making this frequently (but not always) eqial to getLightestconfMass()
+        making this frequently (but not always) equal to getLightestConfMass()
     */
     double getMonoisotopicConfMass() const;
 
