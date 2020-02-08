@@ -375,6 +375,12 @@ public:
 
     //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
     inline unsigned int get_no_confs() const { return configurations.size(); };
+
+    //! Get the minimal mass in current layer
+    double get_min_mass() const;
+
+    //! Get the maximal mass in current layer
+    double get_max_mass() const;
 };
 
 
