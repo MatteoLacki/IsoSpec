@@ -301,17 +301,19 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
         }
     }
 
+    acc_prob = std::abs(acc_prob);
+
     while(idx_this < _confs_no)
     {
-        ret += (_masses[idx_this] - last_point) * std::abs(acc_prob);
-        acc_prob += _probs[idx_this];
+        ret += (_masses[idx_this] - last_point) * acc_prob;
+        acc_prob -= _probs[idx_this];
         last_point = _masses[idx_this];
         idx_this++;
     }
 
     while(idx_other < other._confs_no)
     {
-        ret += (other._masses[idx_other] - last_point) * std::abs(acc_prob);
+        ret += (other._masses[idx_other] - last_point) * acc_prob;
         acc_prob -= other._probs[idx_other];
         last_point = other._masses[idx_other];
         idx_other++;
