@@ -209,7 +209,6 @@ void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
                      bool absolute,
                      bool  get_confs,
-                     bool  get_lprobs,
                      bool  get_masses,
                      bool  get_probs)
 {
@@ -217,7 +216,6 @@ void* setupThresholdFixedEnvelope(void* iso,
                                          threshold,
                                          absolute,
                                          get_confs,
-                                         get_lprobs,
                                          get_masses,
                                          get_probs);
 
@@ -232,11 +230,6 @@ void deleteThresholdFixedEnvelope(void* t)
 const double* massesThresholdFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* lprobsThresholdFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsThresholdFixedEnvelope(void* tabulator)
@@ -261,7 +254,6 @@ void* setupTotalProbFixedEnvelope(void* iso,
                      double target_coverage,
                      bool optimize,
                      bool  get_confs,
-                     bool  get_lprobs,
                      bool  get_masses,
                      bool  get_probs)
 {
@@ -269,7 +261,6 @@ void* setupTotalProbFixedEnvelope(void* iso,
                                          target_coverage,
                                          optimize,
                                          get_confs,
-                                         get_lprobs,
                                          get_masses,
                                          get_probs);
     return reinterpret_cast<void*>(tabulator);
@@ -283,11 +274,6 @@ void deleteTotalProbFixedEnvelope(void* t)
 const double* massesTotalProbFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* lprobsTotalProbFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsTotalProbFixedEnvelope(void* tabulator)
@@ -318,7 +304,6 @@ void deleteFixedEnvelope(void* t, bool release_everything)
     FixedEnvelope* tt = reinterpret_cast<FixedEnvelope*>(t);
     if(release_everything)
     {
-        tt->release_lprobs();
         tt->release_masses();
         tt->release_probs();
         tt->release_confs();
@@ -329,11 +314,6 @@ void deleteFixedEnvelope(void* t, bool release_everything)
 const double* massesFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* lprobsFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsFixedEnvelope(void* tabulator)

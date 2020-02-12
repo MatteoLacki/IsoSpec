@@ -100,7 +100,6 @@ void* setupThresholdFixedEnvelope(void* iso,
                               double threshold,
                               bool absolute,
                               bool get_confs,
-                              bool get_lprobs,
                               bool get_masses,
                               bool get_probs);
 
@@ -118,7 +117,6 @@ void* setupTotalProbFixedEnvelope(void* iso,
                               double taget_coverage,
                               bool optimize,
                               bool get_confs,
-                              bool get_lprobs,
                               bool get_masses,
                               bool get_probs);
 

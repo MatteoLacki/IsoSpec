@@ -21,7 +21,6 @@ namespace IsoSpec
 
 FixedEnvelope::FixedEnvelope(const FixedEnvelope& other) :
 _masses(array_copy<double>(other._masses, other._confs_no)),
-_lprobs(array_copy<double>(other._lprobs, other._confs_no)),
 _probs(array_copy<double>(other._probs, other._confs_no)),
 _confs(array_copy<int>(other._confs, other._confs_no*other.allDim)),
 _confs_no(other._confs_no),
@@ -33,7 +32,6 @@ total_prob(other.total_prob)
 
 FixedEnvelope::FixedEnvelope(FixedEnvelope&& other) :
 _masses(other._masses),
-_lprobs(other._lprobs),
 _probs(other._probs),
 _confs(other._confs),
 _confs_no(other._confs_no),
@@ -43,7 +41,6 @@ sorted_by_prob(other.sorted_by_prob),
 total_prob(other.total_prob)
 {
 other._masses = nullptr;
-other._lprobs = nullptr;
 other._probs  = nullptr;
 other._confs  = nullptr;
 other._confs_no = 0;
@@ -52,7 +49,6 @@ other.total_prob = 0.0;
 
 FixedEnvelope::FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
 _masses(masses),
-_lprobs(nullptr),
 _probs(probs),
 _confs(nullptr),
 _confs_no(confs_no),
@@ -116,7 +112,7 @@ void FixedEnvelope::sort_by_mass()
     if(sorted_by_mass)
         return;
 
-    if((_probs == nullptr) && (_lprobs == nullptr) && (_confs == nullptr))
+    if((_probs == nullptr) && (_confs == nullptr))
         std::sort(_masses, _masses + _confs_no);
     else
         sort_by(_masses);
@@ -128,7 +124,7 @@ void FixedEnvelope::sort_by_mass()
 
 void FixedEnvelope::sort_by_prob()
 {
-    if((_probs == nullptr) && (_lprobs == nullptr))
+    if(_probs == nullptr)
         throw std::logic_error("Can't sort by probabilities if neither probs nor logprobs have not been computed");
 
     if(sorted_by_prob)
@@ -138,15 +134,10 @@ void FixedEnvelope::sort_by_prob()
     {
         if(_probs != nullptr)
             std::sort(_probs, _probs + _confs_no);
-        if(_lprobs != nullptr)
-            std::sort(_lprobs, _lprobs + _confs_no);
         return;
     }
 
-    if(_probs == nullptr)
-        sort_by(_lprobs);
-    else
-        sort_by(_probs);
+    sort_by(_probs);
 
     sorted_by_prob = true;
     sorted_by_mass = false;
@@ -190,7 +181,6 @@ void FixedEnvelope::sort_by(double* order)
 
     if(_masses != nullptr) reorder_array(_masses, inverse, _confs_no);
     if(_probs  != nullptr) reorder_array(_probs,  inverse, _confs_no);
-    if(_lprobs != nullptr) reorder_array(_lprobs, inverse, _confs_no);
     if(_confs  != nullptr)
     {
         const int allDimSizeofInt = sizeof(int) * allDim;
@@ -388,7 +378,7 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
     if(_confs_no == 0)
         return ret;
 
-    ret.reallocate_memory<false, true, true, false>(ISOSPEC_INIT_TABLE_SIZE);
+    ret.reallocate_memory<true, true, false>(ISOSPEC_INIT_TABLE_SIZE);
     ret.current_size = ISOSPEC_INIT_TABLE_SIZE;
 
     size_t ii = 0;
@@ -413,10 +403,9 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
     return ret;
 }
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
+template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    constexpr_if(tgetlProbs) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
     constexpr_if(tgetMasses) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
     constexpr_if(tgetProbs)  { _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no; }
     constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
@@ -425,13 +414,12 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    if(_lprobs != nullptr) { _lprobs = (double*) realloc(_lprobs, new_size * sizeof(double)); tlprobs = _lprobs + _confs_no; }
     if(_masses != nullptr) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
     if(_probs  != nullptr) { _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no; }
     if(_confs  != nullptr) { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
 }
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void ThresholdFixedEnvelope::init(Iso&& iso)
+template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void ThresholdFixedEnvelope::init(Iso&& iso)
 {
     IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
 
@@ -439,16 +427,16 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
     this->allDim = generator.getAllDim();
     this->allDimSizeofInt = this->allDim * sizeof(int);
 
-    this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(tab_size);
+    this->reallocate_memory<tgetMasses, tgetProbs, tgetConfs>(tab_size);
 
     while(generator.advanceToNextConfiguration())
-        store_conf<IsoThresholdGenerator, tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
+        store_conf<IsoThresholdGenerator, tgetMasses, tgetProbs, tgetConfs>(generator);
 
     this->_confs_no = tab_size;
 }
 
 
-template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
+template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
 {
     if(optimize && !tgetProbs)
     // If we want to optimize, we need the probs
@@ -460,7 +448,7 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
     this->allDimSizeofInt = this->allDim*sizeof(int);
 
 
-    this->reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
+    this->reallocate_memory<tgetMasses, tgetProbs, tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
 
     size_t last_switch = 0;
     double prob_at_last_switch = 0.0;
@@ -474,14 +462,14 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
       // store also the rest of the last layer
         while(generator.advanceToNextConfigurationWithinLayer())
         {
-            this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
+            this->template addConf<tgetMasses, tgetProbs, tgetConfs>(generator);
             prob_so_far += generator.prob();
             if(prob_so_far >= target_total_prob)
             {
                 if (optimize)
                 {
                     while(generator.advanceToNextConfigurationWithinLayer())
-                        this->template addConf<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(generator);
+                        this->template addConf<tgetMasses, tgetProbs, tgetConfs>(generator);
                     break;
                 }
                 else
@@ -525,7 +513,7 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
         size_t pivot = rand() % len + start;
 #endif
         double pprob = this->_probs[pivot];
-        swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(pivot, end-1, conf_swapspace);
+        swap<tgetMasses, tgetProbs, tgetConfs>(pivot, end-1, conf_swapspace);
 
         double new_csum = sum_to_start;
 
@@ -533,12 +521,12 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
         for(size_t ii=start; ii<end-1; ii++)
             if(this->_probs[ii] > pprob)
             {
-                swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(ii, loweridx, conf_swapspace);
+                swap<tgetMasses, tgetProbs, tgetConfs>(ii, loweridx, conf_swapspace);
                 new_csum += this->_probs[loweridx];
                 loweridx++;
             }
 
-        swap<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end-1, loweridx, conf_swapspace);
+        swap<tgetMasses, tgetProbs, tgetConfs>(end-1, loweridx, conf_swapspace);
 
         // Selection part
         if(new_csum < target_total_prob)
@@ -555,30 +543,28 @@ template<bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs> void 
 
     if(end <= current_size/2)
         // Overhead in memory of 2x or more, shrink to fit
-        this->template reallocate_memory<tgetlProbs, tgetMasses, tgetProbs, tgetConfs>(end);
+        this->template reallocate_memory<tgetMasses, tgetProbs, tgetConfs>(end);
 
     this->_confs_no = end;
 }
 
-template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs)
+template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs)
 {
-    if(tgetlProbs)
-    {
         if(tgetMasses)
         {
             if(tgetProbs)
             {
                 if(tgetConfs)
-                    tabulator->template init<true, true, true, true>(std::move(iso));
+                    tabulator->template init<true, true, true>(std::move(iso));
                 else
-                    tabulator->template init<true, true, true, false>(std::move(iso));
+                    tabulator->template init<true, true, false>(std::move(iso));
             }
             else
             {
                 if(tgetConfs)
-                    tabulator->template init<true, true, false, true>(std::move(iso));
+                    tabulator->template init<true, false, true>(std::move(iso));
                 else
-                    tabulator->template init<true, true, false, false>(std::move(iso));
+                    tabulator->template init<true, false, false>(std::move(iso));
             }
         }
         else
@@ -586,36 +572,33 @@ template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bo
             if(tgetProbs)
             {
                 if(tgetConfs)
-                    tabulator->template init<true, false, true, true>(std::move(iso));
+                    tabulator->template init<false, true, true>(std::move(iso));
                 else
-                    tabulator->template init<true, false, true, false>(std::move(iso));
+                    tabulator->template init<false, true, false>(std::move(iso));
             }
             else
             {
                 if(tgetConfs)
-                    tabulator->template init<true, false, false, true>(std::move(iso));
+                    tabulator->template init<false, false, true>(std::move(iso));
                 else
-                    tabulator->template init<true, false, false, false>(std::move(iso));
+                    tabulator->template init<false, false, false>(std::move(iso));
             }
         }
-    }
-    else
-    {
         if(tgetMasses)
         {
             if(tgetProbs)
             {
                 if(tgetConfs)
-                    tabulator->template init<false, true, true, true>(std::move(iso));
+                    tabulator->template init<true, true, true>(std::move(iso));
                 else
-                    tabulator->template init<false, true, true, false>(std::move(iso));
+                    tabulator->template init<true, true, false>(std::move(iso));
             }
             else
             {
                 if(tgetConfs)
-                    tabulator->template init<false, true, false, true>(std::move(iso));
+                    tabulator->template init<true, false, true>(std::move(iso));
                 else
-                    tabulator->template init<false, true, false, false>(std::move(iso));
+                    tabulator->template init<true, false, false>(std::move(iso));
             }
         }
         else
@@ -623,23 +606,22 @@ template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetlProbs, bo
             if(tgetProbs)
             {
                 if(tgetConfs)
-                    tabulator->template init<false, false, true, true>(std::move(iso));
+                    tabulator->template init<false, true, true>(std::move(iso));
                 else
-                    tabulator->template init<false, false, true, false>(std::move(iso));
+                    tabulator->template init<false, true, false>(std::move(iso));
             }
             else
             {
                 if(tgetConfs)
-                    tabulator->template init<false, false, false, true>(std::move(iso));
+                    tabulator->template init<false, false, true>(std::move(iso));
                 else
-                    tabulator->template init<false, false, false, false>(std::move(iso));
+                    tabulator->template init<false, false, false>(std::move(iso));
             }
         }
-    }
 }
 
-template void call_init<TotalProbFixedEnvelope>(TotalProbFixedEnvelope* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
-template void call_init<ThresholdFixedEnvelope>(ThresholdFixedEnvelope* tabulator, Iso&& iso, bool tgetlProbs, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+template void call_init<TotalProbFixedEnvelope>(TotalProbFixedEnvelope* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+template void call_init<ThresholdFixedEnvelope>(ThresholdFixedEnvelope* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs);
 
 
 } // namespace IsoSpec
