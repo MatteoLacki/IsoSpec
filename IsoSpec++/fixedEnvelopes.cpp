@@ -584,40 +584,6 @@ template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetMasses, bo
                     tabulator->template init<false, false, false>(std::move(iso));
             }
         }
-        if(tgetMasses)
-        {
-            if(tgetProbs)
-            {
-                if(tgetConfs)
-                    tabulator->template init<true, true, true>(std::move(iso));
-                else
-                    tabulator->template init<true, true, false>(std::move(iso));
-            }
-            else
-            {
-                if(tgetConfs)
-                    tabulator->template init<true, false, true>(std::move(iso));
-                else
-                    tabulator->template init<true, false, false>(std::move(iso));
-            }
-        }
-        else
-        {
-            if(tgetProbs)
-            {
-                if(tgetConfs)
-                    tabulator->template init<false, true, true>(std::move(iso));
-                else
-                    tabulator->template init<false, true, false>(std::move(iso));
-            }
-            else
-            {
-                if(tgetConfs)
-                    tabulator->template init<false, false, true>(std::move(iso));
-                else
-                    tabulator->template init<false, false, false>(std::move(iso));
-            }
-        }
 }
 
 template void call_init<TotalProbFixedEnvelope>(TotalProbFixedEnvelope* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs);
