@@ -363,6 +363,19 @@ double wassersteinDistance(void* tabulator1, void* tabulator2)
     }
 }
 
+double orientedWassersteinDistance(void* tabulator1, void* tabulator2)
+{
+    try
+    {
+        return reinterpret_cast<FixedEnvelope*>(tabulator1)->OrientedWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
+    }
+    catch(std::logic_error&)
+    {
+        return NAN;
+    }
+}
+
+
 void* addEnvelopes(void* tabulator1, void* tabulator2)
 {
     // Hopefully the compiler will do the copy elision...

@@ -363,6 +363,20 @@ class IsoDistribution(object):
             raise ValueError("Both spectra must be normalized before Wasserstein distance can be computed.")
         return ret
 
+    def orientedWassersteinDistance(self, other):
+        x = self._get_cobject()
+        y = other._get_cobject()
+        ret = isoFFI.clib.orientedWassersteinDistance(x, y)
+        isoFFI.clib.deleteFixedEnvelope(x, True)
+        isoFFI.clib.deleteFixedEnvelope(y, True)
+        self.mass_sorted = True
+        self.prob_sorted = False
+        other.mass_sorted = True
+        other.prob_sorted = False
+        if math.isnan(ret):
+            raise ValueError("Both spectra must be normalized before Wasserstein distance can be computed.")
+        return ret
+
     def binned(self, width = 1.0, middle = 0.0):
         co = self._get_cobject()
         cbo = isoFFI.clib.binnedEnvelope(co, width, middle)
