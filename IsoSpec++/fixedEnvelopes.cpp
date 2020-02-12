@@ -322,6 +322,63 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
     return ret;
 }
 
+
+double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
+{
+    double ret = 0.0;
+    if((get_total_prob()*0.999>other.get_total_prob()) || (other.get_total_prob()>get_total_prob()*1.001))
+        throw std::logic_error("Spectra must be normalized before computing Wasserstein Distance");
+
+    if(_confs_no == 0 || other._confs_no == 0)
+        return 0.0;
+
+    sort_by_mass();
+    other.sort_by_mass();
+
+    size_t idx_this = 0;
+    size_t idx_other = 0;
+
+    double acc_prob = 0.0;
+    double last_point = 0.0;
+
+
+    while(idx_this < _confs_no && idx_other < other._confs_no)
+    {
+        if(_masses[idx_this] < other._masses[idx_other])
+        {
+            ret += (_masses[idx_this] - last_point) * acc_prob;
+            acc_prob += _probs[idx_this];
+            last_point = _masses[idx_this];
+            idx_this++;
+        }
+        else
+        {
+            ret += (other._masses[idx_other] - last_point) * acc_prob;
+            acc_prob -= other._probs[idx_other];
+            last_point = other._masses[idx_other];
+            idx_other++;
+        }
+    }
+
+    while(idx_this < _confs_no)
+    {
+        ret += (_masses[idx_this] - last_point) * acc_prob;
+        acc_prob -= _probs[idx_this];
+        last_point = _masses[idx_this];
+        idx_this++;
+    }
+
+    while(idx_other < other._confs_no)
+    {
+        ret += (other._masses[idx_other] - last_point) * acc_prob;
+        acc_prob -= other._probs[idx_other];
+        last_point = other._masses[idx_other];
+        idx_other++;
+    }
+
+    return ret;
+}
+
 FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 {
     sort_by_mass();

@@ -94,6 +94,7 @@ public:
     void normalize();
 
     double WassersteinDistance(FixedEnvelope& other);
+    double OrientedWassersteinDistance(FixedEnvelope& other);
 
     static FixedEnvelope LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);
     static FixedEnvelope LinearCombination(const FixedEnvelope* const * spectra, const double* intensities, size_t size);
