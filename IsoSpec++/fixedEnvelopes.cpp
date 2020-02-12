@@ -60,13 +60,6 @@ total_prob(_total_prob)
 
 FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 {
-    if(_confs_no > 0)
-        if(_masses == nullptr || _probs == nullptr)
-            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
-    if(other._confs_no > 0)
-        if(other._masses == nullptr || other._probs == nullptr)
-            throw std::logic_error("Probabilities and masses must be available for spectrum addition to be meaningful");
-
     double* nprobs  = (double*) malloc(sizeof(double) * (_confs_no+other._confs_no));
     double* nmasses = (double*) malloc(sizeof(double) * (_confs_no+other._confs_no));
 
@@ -81,13 +74,6 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 
 FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 {
-    if(_confs_no > 0)
-        if(_masses == nullptr || _probs == nullptr)
-            throw std::logic_error("Probabilities and masses must be available for spectrum convolution to be meaningful");
-    if(other._confs_no > 0)
-        if(other._masses == nullptr || other._probs == nullptr)
-            throw std::logic_error("Probabilities and masses must be available for spectrum convolution to be meaningful");
-
     double* nprobs =  (double*) malloc(sizeof(double) * _confs_no * other._confs_no);
     double* nmasses = (double*) malloc(sizeof(double) * _confs_no * other._confs_no);
 
@@ -106,16 +92,10 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 
 void FixedEnvelope::sort_by_mass()
 {
-    if(_masses == nullptr)
-        throw std::logic_error("Can't sort by masses if masses have not been computed");
-
     if(sorted_by_mass)
         return;
 
-    if((_probs == nullptr) && (_confs == nullptr))
-        std::sort(_masses, _masses + _confs_no);
-    else
-        sort_by(_masses);
+    sort_by(_masses);
 
     sorted_by_mass = true;
     sorted_by_prob = false;
@@ -124,18 +104,8 @@ void FixedEnvelope::sort_by_mass()
 
 void FixedEnvelope::sort_by_prob()
 {
-    if(_probs == nullptr)
-        throw std::logic_error("Can't sort by probabilities if neither probs nor logprobs have not been computed");
-
     if(sorted_by_prob)
         return;
-
-    if((_masses == nullptr) && (_confs == nullptr))
-    {
-        if(_probs != nullptr)
-            std::sort(_probs, _probs + _confs_no);
-        return;
-    }
 
     sort_by(_probs);
 
@@ -179,8 +149,8 @@ void FixedEnvelope::sort_by(double* order)
 
     delete[] indices;
 
-    if(_masses != nullptr) reorder_array(_masses, inverse, _confs_no);
-    if(_probs  != nullptr) reorder_array(_probs,  inverse, _confs_no);
+    reorder_array(_masses, inverse, _confs_no);
+    reorder_array(_probs,  inverse, _confs_no);
     if(_confs  != nullptr)
     {
         const int allDimSizeofInt = sizeof(int) * allDim;
@@ -200,8 +170,6 @@ void FixedEnvelope::sort_by(double* order)
 
 double FixedEnvelope::get_total_prob()
 {
-    if(_probs == nullptr)
-        throw std::logic_error("Cannot compute total probability if probabilities have not been computed");
     if(std::isnan(total_prob))
     {
         total_prob = 0.0;
@@ -414,8 +382,8 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    if(_masses != nullptr) { _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no; }
-    if(_probs  != nullptr) { _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no; }
+    _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no;
+    _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no;
     if(_confs  != nullptr) { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
 }
 
