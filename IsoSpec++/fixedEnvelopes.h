@@ -107,10 +107,10 @@ protected:
 
     int allDimSizeofInt;
 
-    template<typename T, bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
+    template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
-        constexpr_if(tgetMasses) { *tmasses = generator.mass();  tmasses++; };
-        constexpr_if(tgetProbs)  { *tprobs  = generator.prob();  tprobs++;  };
+        *tmasses = generator.mass();  tmasses++;
+        *tprobs  = generator.prob();  tprobs++;
         constexpr_if(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
     }
 
@@ -119,7 +119,7 @@ protected:
         if(_confs_no == current_size)
         {
             current_size *= 2;
-            reallocate_memory<true, true, false>(current_size);
+            reallocate_memory<false>(current_size);
         }
 
         *tprobs = prob;
@@ -130,10 +130,10 @@ protected:
 	_confs_no++;
     }
 
-    template<bool tgetMasses, bool tgetProbs, bool tgetConfs> ISOSPEC_FORCE_INLINE void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
+    template<bool tgetConfs> ISOSPEC_FORCE_INLINE void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
-        constexpr_if(tgetProbs)  std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
-        constexpr_if(tgetMasses) std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
+        std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
+        std::swap<double>(this->_masses[idx1], this->_masses[idx2]);
         constexpr_if(tgetConfs)
         {
             int* c1 = this->_confs + (idx1*this->allDim);
@@ -144,34 +144,34 @@ protected:
         }
     }
 
-    template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void reallocate_memory(size_t new_size);
+    template<bool tgetConfs> void reallocate_memory(size_t new_size);
     void slow_reallocate_memory(size_t new_size);
 };
 
-template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 
 class ISOSPEC_EXPORT_SYMBOL ThresholdFixedEnvelope : public FixedEnvelope
 {
     const double threshold;
     const bool absolute;
 public:
-    ThresholdFixedEnvelope(Iso&& iso, double _threshold, bool _absolute, bool tgetConfs = false, bool tgetMasses = true, bool tgetProbs = true) :
+    ThresholdFixedEnvelope(Iso&& iso, double _threshold, bool _absolute, bool tgetConfs = false) :
     FixedEnvelope(),
     threshold(_threshold),
     absolute(_absolute)
     {
-        call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetMasses, tgetProbs, tgetConfs);
+        call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetConfs);
     }
 
-    inline ThresholdFixedEnvelope(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false, bool tgetMasses = true, bool tgetProbs = true) :
-    ThresholdFixedEnvelope(Iso(iso, false), _threshold, _absolute, tgetConfs, tgetMasses, tgetProbs) {};
+    inline ThresholdFixedEnvelope(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false) :
+    ThresholdFixedEnvelope(Iso(iso, false), _threshold, _absolute, tgetConfs) {};
 
     virtual ~ThresholdFixedEnvelope() {};
 
 private:
-    template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
+    template<bool tgetConfs> void init(Iso&& iso);
 
-    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 };
 
 
@@ -181,7 +181,7 @@ class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
     double target_total_prob;
 
 public:
-    TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false, bool tgetMasses = true, bool tgetProbs = true) :
+    TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false) :
     FixedEnvelope(),
     optimize(_optimize),
     target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob)
@@ -190,37 +190,31 @@ public:
         if(_target_total_prob <= 0.0)
             return;
 
-        call_init(this, std::move(iso), tgetMasses, tgetProbs || _optimize, tgetConfs);
-
-        if(!tgetProbs && optimize)
-        {
-            free(_probs);
-            _probs = nullptr;
-        }
+        call_init(this, std::move(iso), tgetConfs);
     }
 
-    inline TotalProbFixedEnvelope(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false, bool tgetMasses = true, bool tgetProbs = true) :
-    TotalProbFixedEnvelope(Iso(iso, false), _target_total_prob, _optimize, tgetConfs, tgetMasses, tgetProbs) {};
+    inline TotalProbFixedEnvelope(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false) :
+    TotalProbFixedEnvelope(Iso(iso, false), _target_total_prob, _optimize, tgetConfs) {};
 
     virtual ~TotalProbFixedEnvelope() {};
 
 private:
 
-    template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void init(Iso&& iso);
+    template<bool tgetConfs> void init(Iso&& iso);
 
-    template<bool tgetMasses, bool tgetProbs, bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
+    template<bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
     {
         if(this->_confs_no == this->current_size)
         {
             this->current_size *= 2;
-            this->template reallocate_memory<tgetMasses, tgetProbs, tgetConfs>(this->current_size);
+            this->template reallocate_memory<tgetConfs>(this->current_size);
         }
 
-        this->template store_conf<IsoLayeredGenerator, tgetMasses, tgetProbs, tgetConfs>(generator);
+        this->template store_conf<IsoLayeredGenerator, tgetConfs>(generator);
         this->_confs_no++;
     }
 
-    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetMasses, bool tgetProbs, bool tgetConfs);
+    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 
 };
 

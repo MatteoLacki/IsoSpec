@@ -208,16 +208,12 @@ ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
 void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
                      bool absolute,
-                     bool  get_confs,
-                     bool  get_masses,
-                     bool  get_probs)
+                     bool  get_confs)
 {
     ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          threshold,
                                          absolute,
-                                         get_confs,
-                                         get_masses,
-                                         get_probs);
+                                         get_confs);
 
     return reinterpret_cast<void*>(tabulator);
 }
@@ -253,16 +249,12 @@ int confs_noThresholdFixedEnvelope(void* tabulator)
 void* setupTotalProbFixedEnvelope(void* iso,
                      double target_coverage,
                      bool optimize,
-                     bool  get_confs,
-                     bool  get_masses,
-                     bool  get_probs)
+                     bool get_confs)
 {
     TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
-                                         get_confs,
-                                         get_masses,
-                                         get_probs);
+                                         get_confs);
     return reinterpret_cast<void*>(tabulator);
 }
 
