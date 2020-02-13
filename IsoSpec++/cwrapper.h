@@ -99,10 +99,7 @@ ISOSPEC_C_FN_HEADERS(IsoStochasticGenerator)
 void* setupThresholdFixedEnvelope(void* iso,
                               double threshold,
                               bool absolute,
-                              bool get_confs,
-                              bool get_lprobs,
-                              bool get_masses,
-                              bool get_probs);
+                              bool get_confs);
 
 void deleteThresholdFixedEnvelope(void* tabulator);
 
@@ -117,10 +114,7 @@ int confs_noThresholdFixedEnvelope(void* tabulator);
 void* setupTotalProbFixedEnvelope(void* iso,
                               double taget_coverage,
                               bool optimize,
-                              bool get_confs,
-                              bool get_lprobs,
-                              bool get_masses,
-                              bool get_probs);
+                              bool get_confs);
 
 void deleteTotalProbFixedEnvelope(void* tabulator);
 

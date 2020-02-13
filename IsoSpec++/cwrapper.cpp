@@ -208,18 +208,12 @@ ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
 void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
                      bool absolute,
-                     bool  get_confs,
-                     bool  get_lprobs,
-                     bool  get_masses,
-                     bool  get_probs)
+                     bool  get_confs)
 {
     ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          threshold,
                                          absolute,
-                                         get_confs,
-                                         get_lprobs,
-                                         get_masses,
-                                         get_probs);
+                                         get_confs);
 
     return reinterpret_cast<void*>(tabulator);
 }
@@ -232,11 +226,6 @@ void deleteThresholdFixedEnvelope(void* t)
 const double* massesThresholdFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* lprobsThresholdFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsThresholdFixedEnvelope(void* tabulator)
@@ -260,18 +249,12 @@ int confs_noThresholdFixedEnvelope(void* tabulator)
 void* setupTotalProbFixedEnvelope(void* iso,
                      double target_coverage,
                      bool optimize,
-                     bool  get_confs,
-                     bool  get_lprobs,
-                     bool  get_masses,
-                     bool  get_probs)
+                     bool get_confs)
 {
     TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
-                                         get_confs,
-                                         get_lprobs,
-                                         get_masses,
-                                         get_probs);
+                                         get_confs);
     return reinterpret_cast<void*>(tabulator);
 }
 
@@ -283,11 +266,6 @@ void deleteTotalProbFixedEnvelope(void* t)
 const double* massesTotalProbFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* lprobsTotalProbFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsTotalProbFixedEnvelope(void* tabulator)
@@ -318,7 +296,6 @@ void deleteFixedEnvelope(void* t, bool release_everything)
     FixedEnvelope* tt = reinterpret_cast<FixedEnvelope*>(t);
     if(release_everything)
     {
-        tt->release_lprobs();
         tt->release_masses();
         tt->release_probs();
         tt->release_confs();
@@ -329,11 +306,6 @@ void deleteFixedEnvelope(void* t, bool release_everything)
 const double* massesFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* lprobsFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_lprobs();
 }
 
 const double* probsFixedEnvelope(void* tabulator)

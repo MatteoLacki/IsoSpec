@@ -271,7 +271,6 @@ class IsoDistribution(object):
                     setattr(self, attrname, x)
 
             wrap("double", isoFFI.clib.massesFixedEnvelope(cobject), "masses")
-            wrap("double", isoFFI.clib.lprobsFixedEnvelope(cobject), "lprobs")
             wrap("double", isoFFI.clib.probsFixedEnvelope(cobject), "probs")
 
             if get_confs:
@@ -447,7 +446,7 @@ class IsoThreshold(IsoDistribution, Iso):
         self.threshold = threshold
         self.absolute = absolute
 
-        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True, True)
+        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True)
 
         IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
 
@@ -475,7 +474,7 @@ class IsoTotalProb(IsoDistribution, Iso):
         Iso.__init__(self, formula=formula, get_confs=get_confs, **kwargs)
         self.prob_to_cover = prob_to_cover
 
-        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True, True)
+        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True)
 
         IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
 
