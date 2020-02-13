@@ -169,18 +169,14 @@ template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 
 class ISOSPEC_EXPORT_SYMBOL ThresholdFixedEnvelope : public FixedEnvelope
 {
-    const double threshold;
-    const bool absolute;
 public:
-    ThresholdFixedEnvelope(Iso&& iso, double _threshold, bool _absolute, bool tgetConfs = false) :
-    FixedEnvelope(),
-    threshold(_threshold),
-    absolute(_absolute)
+    ThresholdFixedEnvelope(Iso&& iso, double threshold, bool absolute, bool tgetConfs = false) :
+    FixedEnvelope()
     {
         if(tgetConfs)
-            threshold_init<true>(std::move(iso), _threshold, _absolute);
+            threshold_init<true>(std::move(iso), threshold, absolute);
         else
-            threshold_init<false>(std::move(iso), _threshold, _absolute);
+            threshold_init<false>(std::move(iso), threshold, absolute);
     }
 
     inline ThresholdFixedEnvelope(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false) :
@@ -193,18 +189,17 @@ public:
 
 class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
 {
-    const bool optimize;
-    double target_total_prob;
-
 public:
-    TotalProbFixedEnvelope(Iso&& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false) :
-    FixedEnvelope(),
-    optimize(_optimize),
-    target_total_prob(_target_total_prob >= 1.0 ? std::numeric_limits<double>::infinity() : _target_total_prob)
+    TotalProbFixedEnvelope(Iso&& iso, double target_total_prob, bool optimize, bool tgetConfs = false) :
+    FixedEnvelope()
     {
-        current_size = ISOSPEC_INIT_TABLE_SIZE;
-        if(_target_total_prob <= 0.0)
+        if(target_total_prob >= 1.0)
+            target_total_prob = std::numeric_limits<double>::infinity();
+
+        if(target_total_prob <= 0.0)
             return;
+
+        current_size = ISOSPEC_INIT_TABLE_SIZE;
 
         if(tgetConfs)
             total_prob_init<true>(std::move(iso), target_total_prob, optimize);
@@ -219,10 +214,7 @@ public:
 
 private:
 
-//    template<bool tgetConfs> void init(Iso&& iso);
-
     template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
-
 };
 
 
