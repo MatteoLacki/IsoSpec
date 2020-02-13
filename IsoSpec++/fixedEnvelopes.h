@@ -165,8 +165,6 @@ public:
     template<bool tgetConfs> void total_prob_init(Iso&& iso, double target_prob, bool trim);
 };
 
-template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
-
 class ISOSPEC_EXPORT_SYMBOL ThresholdFixedEnvelope : public FixedEnvelope
 {
 public:
@@ -211,10 +209,6 @@ public:
     TotalProbFixedEnvelope(Iso(iso, false), _target_total_prob, _optimize, tgetConfs) {};
 
     virtual ~TotalProbFixedEnvelope() {};
-
-private:
-
-    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 };
 
 
