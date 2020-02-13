@@ -404,7 +404,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
 }
 
 
-template<bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
+template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double target_total_prob, bool optimize)
 {
     IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::min<double>(target_total_prob, 0.9999));
 
@@ -426,14 +426,14 @@ template<bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
       // store also the rest of the last layer
         while(generator.advanceToNextConfigurationWithinLayer())
         {
-            this->template addConf<tgetConfs>(generator);
+            this->template addConfILG<tgetConfs>(generator);
             prob_so_far += generator.prob();
             if(prob_so_far >= target_total_prob)
             {
                 if (optimize)
                 {
                     while(generator.advanceToNextConfigurationWithinLayer())
-                        this->template addConf<tgetConfs>(generator);
+                        this->template addConfILG<tgetConfs>(generator);
                     break;
                 }
                 else
@@ -511,17 +511,5 @@ template<bool tgetConfs> void TotalProbFixedEnvelope::init(Iso&& iso)
 
     this->_confs_no = end;
 }
-
-template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs)
-{
-    if(tgetConfs)
-        tabulator->template init<true>(std::move(iso));
-    else
-        tabulator->template init<false>(std::move(iso));
-}
-
-template void call_init<TotalProbFixedEnvelope>(TotalProbFixedEnvelope* tabulator, Iso&& iso, bool tgetConfs);
-//template void call_init<ThresholdFixedEnvelope>(ThresholdFixedEnvelope* tabulator, Iso&& iso, bool tgetConfs);
-
 
 } // namespace IsoSpec

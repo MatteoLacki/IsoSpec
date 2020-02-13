@@ -149,6 +149,20 @@ protected:
 
 public:
     template<bool tgetConfs> void threshold_init(Iso&& iso, double threshold, bool absolute);
+
+    template<bool tgetConfs> void addConfILG(IsoLayeredGenerator& generator)
+    {
+        if(this->_confs_no == this->current_size)
+        {
+            this->current_size *= 2;
+            this->template reallocate_memory<tgetConfs>(this->current_size);
+        }
+
+        this->template store_conf<IsoLayeredGenerator, tgetConfs>(generator);
+        this->_confs_no++;
+    }
+
+    template<bool tgetConfs> void total_prob_init(Iso&& iso, double target_prob, bool trim);
 };
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
@@ -192,7 +206,10 @@ public:
         if(_target_total_prob <= 0.0)
             return;
 
-        call_init(this, std::move(iso), tgetConfs);
+        if(tgetConfs)
+            total_prob_init<true>(std::move(iso), target_total_prob, optimize);
+        else
+            total_prob_init<false>(std::move(iso), target_total_prob, optimize);
     }
 
     inline TotalProbFixedEnvelope(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false) :
@@ -202,19 +219,7 @@ public:
 
 private:
 
-    template<bool tgetConfs> void init(Iso&& iso);
-
-    template<bool tgetConfs> void addConf(IsoLayeredGenerator& generator)
-    {
-        if(this->_confs_no == this->current_size)
-        {
-            this->current_size *= 2;
-            this->template reallocate_memory<tgetConfs>(this->current_size);
-        }
-
-        this->template store_conf<IsoLayeredGenerator, tgetConfs>(generator);
-        this->_confs_no++;
-    }
+//    template<bool tgetConfs> void init(Iso&& iso);
 
     template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 
