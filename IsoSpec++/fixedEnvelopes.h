@@ -146,6 +146,9 @@ protected:
 
     template<bool tgetConfs> void reallocate_memory(size_t new_size);
     void slow_reallocate_memory(size_t new_size);
+
+public:
+    template<bool tgetConfs> void threshold_init(Iso&& iso, double threshold, bool absolute);
 };
 
 template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
@@ -160,7 +163,10 @@ public:
     threshold(_threshold),
     absolute(_absolute)
     {
-        call_init<ThresholdFixedEnvelope>(this, std::move(iso), tgetConfs);
+        if(tgetConfs)
+            threshold_init<true>(std::move(iso), _threshold, _absolute);
+        else
+            threshold_init<false>(std::move(iso), _threshold, _absolute);
     }
 
     inline ThresholdFixedEnvelope(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false) :
@@ -168,10 +174,6 @@ public:
 
     virtual ~ThresholdFixedEnvelope() {};
 
-private:
-    template<bool tgetConfs> void init(Iso&& iso);
-
-    template<typename T> friend void call_init(T* tabulator, Iso&& iso, bool tgetConfs);
 };
 
 

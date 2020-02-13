@@ -387,7 +387,7 @@ void FixedEnvelope::slow_reallocate_memory(size_t new_size)
     if(_confs  != nullptr) { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
 }
 
-template<bool tgetConfs> void ThresholdFixedEnvelope::init(Iso&& iso)
+template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double threshold, bool absolute)
 {
     IsoThresholdGenerator generator(std::move(iso), threshold, absolute);
 
@@ -521,7 +521,7 @@ template<typename T> void call_init(T* tabulator, Iso&& iso, bool tgetConfs)
 }
 
 template void call_init<TotalProbFixedEnvelope>(TotalProbFixedEnvelope* tabulator, Iso&& iso, bool tgetConfs);
-template void call_init<ThresholdFixedEnvelope>(ThresholdFixedEnvelope* tabulator, Iso&& iso, bool tgetConfs);
+//template void call_init<ThresholdFixedEnvelope>(ThresholdFixedEnvelope* tabulator, Iso&& iso, bool tgetConfs);
 
 
 } // namespace IsoSpec
