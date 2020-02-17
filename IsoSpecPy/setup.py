@@ -158,6 +158,13 @@ elif 'cygwin' in platform.system().lower():
     import distutils.sysconfig
     distutils.sysconfig.get_config_vars() # Precalculate the dict so we can...
     distutils.sysconfig._config_vars['CFLAGS'] = "" # Nuke CFLAGS: they contain gcc stuff not supported by clang
+
+    from distutils.command.build_ext import build_ext
+    class build_ext_subclass(build_ext):
+        def get_libraries(self, ext):
+            return ext.libraries # Override default function which wants to link in libpython on Windows. We're using CFFI and don't need that.
+    setup_args['cmdclass'] = {'build_ext' : bes}
+
     setup(**setup_args)
 elif 'darwin' in platform.system().lower():
     # Okay, so OSX is apparently horribly broken. On OSX the "g++" command can be nonexistent and stuff will be compiled with clang++,
