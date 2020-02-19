@@ -117,7 +117,6 @@ void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_s
 void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
 
 const double* massesFixedEnvelope(void* tabulator);
-const double* lprobsFixedEnvelope(void* tabulator);
 const double* probsFixedEnvelope(void* tabulator);
 const int*    confsFixedEnvelope(void* tabulator);
 int confs_noFixedEnvelope(void* tabulator);
