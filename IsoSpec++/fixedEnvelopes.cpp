@@ -406,6 +406,14 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
 
 template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double target_total_prob, bool optimize)
 {
+    if(target_total_prob <= 0.0)
+        return;
+
+    if(target_total_prob >= 1.0)
+        target_total_prob = std::numeric_limits<double>::infinity();
+
+    current_size = ISOSPEC_INIT_TABLE_SIZE;
+
     IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::min<double>(target_total_prob, 0.9999));
 
     this->allDim = generator.getAllDim();

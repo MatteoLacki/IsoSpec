@@ -231,16 +231,18 @@ void* setupTotalProbFixedEnvelope(void* iso,
                      bool optimize,
                      bool get_confs)
 {
-    TotalProbFixedEnvelope* tabulator = new TotalProbFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
+    FixedEnvelope* ret = new FixedEnvelope( // Use copy elision to allocate on heap with named constructor
+            FixedEnvelope::FromTotalProb(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
                                          get_confs);
-    return reinterpret_cast<void*>(tabulator);
+
+    return reinterpret_cast<void*>(ret);
 }
 
 void deleteTotalProbFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<TotalProbFixedEnvelope*>(t);
+    delete reinterpret_cast<FixedEnvelope*>(t);
 }
 
 //______________________________________________________ Generic FixedEnvelope

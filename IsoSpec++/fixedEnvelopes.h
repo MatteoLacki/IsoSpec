@@ -179,34 +179,22 @@ public:
     {
         return FromThreshold(Iso(iso, false), _threshold, _absolute, tgetConfs);
     }
-};
 
-class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
-{
-public:
-    TotalProbFixedEnvelope(Iso&& iso, double target_total_prob, bool optimize, bool tgetConfs = false) :
-    FixedEnvelope()
+    static FixedEnvelope FromTotalProb(Iso&& iso, double target_total_prob, bool optimize, bool tgetConfs = false)
     {
-        if(target_total_prob >= 1.0)
-            target_total_prob = std::numeric_limits<double>::infinity();
-
-        if(target_total_prob <= 0.0)
-            return;
-
-        current_size = ISOSPEC_INIT_TABLE_SIZE;
+        FixedEnvelope ret;
 
         if(tgetConfs)
-            total_prob_init<true>(std::move(iso), target_total_prob, optimize);
+            ret.total_prob_init<true>(std::move(iso), target_total_prob, optimize);
         else
-            total_prob_init<false>(std::move(iso), target_total_prob, optimize);
+            ret.total_prob_init<false>(std::move(iso), target_total_prob, optimize);
     }
 
-    inline TotalProbFixedEnvelope(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false) :
-    TotalProbFixedEnvelope(Iso(iso, false), _target_total_prob, _optimize, tgetConfs) {};
-
-    virtual ~TotalProbFixedEnvelope() {};
+    inline static FixedEnvelope FromTotalProb(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false)
+    {
+        return FromTotalProb(Iso(iso, false), _target_total_prob, _optimize, tgetConfs);
+    }
 };
-
 
 } // namespace IsoSpec
 
