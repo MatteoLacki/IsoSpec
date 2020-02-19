@@ -126,14 +126,6 @@ int confs_noTotalProbFixedEnvelope(void* tabulator);
 
 void freeReleasedArray(void* array);
 
-void deleteTotalProbFixedEnvelope(void* tabulator);
-
-const double* massesTotalProbFixedEnvelope(void* tabulator);
-const double* lprobsTotalProbFixedEnvelope(void* tabulator);
-const double* probsTotalProbFixedEnvelope(void* tabulator);
-const int*    confsTotalProbFixedEnvelope(void* tabulator);
-int confs_noTotalProbFixedEnvelope(void* tabulator);
-
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
 void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
 
