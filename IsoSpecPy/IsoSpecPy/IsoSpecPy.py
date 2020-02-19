@@ -450,7 +450,7 @@ class IsoThreshold(IsoDistribution, Iso):
 
         IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
 
-        self.ffi.deleteThresholdFixedEnvelope(tabulator)
+        self.ffi.deleteFixedEnvelope(tabulator)
 
 
     def __del__(self):
@@ -478,7 +478,7 @@ class IsoTotalProb(IsoDistribution, Iso):
 
         IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
 
-        self.ffi.deleteTotalProbFixedEnvelope(tabulator)
+        self.ffi.deleteFixedEnvelope(tabulator)
 
     def __del__(self):
         Iso.__del__(self)

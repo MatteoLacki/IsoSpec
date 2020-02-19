@@ -203,7 +203,7 @@ void* setupIsoStochasticGenerator(void* iso,
 }
 ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
 
-//______________________________________________________ Threshold FixedEnvelope
+//______________________________________________________ FixedEnvelopes
 
 void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
@@ -219,13 +219,6 @@ void* setupThresholdFixedEnvelope(void* iso,
     return reinterpret_cast<void*>(ret);
 }
 
-void deleteThresholdFixedEnvelope(void* t)
-{
-    delete reinterpret_cast<FixedEnvelope*>(t);
-}
-
-//______________________________________________________ Layered FixedEnvelope
-
 void* setupTotalProbFixedEnvelope(void* iso,
                      double target_coverage,
                      bool optimize,
@@ -239,13 +232,6 @@ void* setupTotalProbFixedEnvelope(void* iso,
 
     return reinterpret_cast<void*>(ret);
 }
-
-void deleteTotalProbFixedEnvelope(void* t)
-{
-    delete reinterpret_cast<FixedEnvelope*>(t);
-}
-
-//______________________________________________________ Generic FixedEnvelope
 
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob)
 {

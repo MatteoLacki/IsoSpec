@@ -57,17 +57,12 @@ class IsoFFI:
                                     bool get_masses,
                                     bool get_probs);
 
-        void deleteThresholdFixedEnvelope(void* tabulator);
-
-
         void* setupTotalProbFixedEnvelope(void* iso,
                                       double taget_coverage,
                                       bool optimize,
                                       bool get_confs,
                                       bool get_masses,
                                       bool get_probs);
-
-        void deleteTotalProbFixedEnvelope(void* tabulator);
 
 
         void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);

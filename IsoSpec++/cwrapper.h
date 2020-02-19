@@ -101,15 +101,10 @@ void* setupThresholdFixedEnvelope(void* iso,
                               bool absolute,
                               bool get_confs);
 
-void deleteThresholdFixedEnvelope(void* tabulator);
-
-
 void* setupTotalProbFixedEnvelope(void* iso,
                               double taget_coverage,
                               bool optimize,
                               bool get_confs);
-
-void deleteTotalProbFixedEnvelope(void* tabulator);
 
 void freeReleasedArray(void* array);
 
