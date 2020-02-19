@@ -63,10 +63,10 @@ size_t test_threshold_simple(const char* formula1, const char* formula2, double 
         double thr1 = exp(iso1.getModeLProb());
         double thr2 = exp(iso2.getModeLProb());
 
-        ThresholdFixedEnvelope tfe1(std::move(iso1), threshold/thr2, true);
+        FixedEnvelope tfe1 = FixedEnvelope::FromThreshold(std::move(iso1), threshold/thr2, true);
         tfe1.sort_by_mass();
 
-        ThresholdFixedEnvelope tfe2(std::move(iso2), threshold/thr1, true);
+        FixedEnvelope tfe2 = FixedEnvelope::FromThreshold(std::move(iso2), threshold/thr1, true);
         tfe2.sort_by_mass();
 
 
