@@ -163,27 +163,23 @@ public:
     }
 
     template<bool tgetConfs> void total_prob_init(Iso&& iso, double target_prob, bool trim);
-};
 
-class ISOSPEC_EXPORT_SYMBOL ThresholdFixedEnvelope : public FixedEnvelope
-{
-public:
-    ThresholdFixedEnvelope(Iso&& iso, double threshold, bool absolute, bool tgetConfs = false) :
-    FixedEnvelope()
+    static FixedEnvelope FromThreshold(Iso&& iso, double threshold, bool absolute, bool tgetConfs = false)
     {
+        FixedEnvelope ret;
+
         if(tgetConfs)
-            threshold_init<true>(std::move(iso), threshold, absolute);
+            ret.threshold_init<true>(std::move(iso), threshold, absolute);
         else
-            threshold_init<false>(std::move(iso), threshold, absolute);
+            ret.threshold_init<false>(std::move(iso), threshold, absolute);
+        return ret;
     }
 
-    inline ThresholdFixedEnvelope(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false) :
-    ThresholdFixedEnvelope(Iso(iso, false), _threshold, _absolute, tgetConfs) {};
-
-    virtual ~ThresholdFixedEnvelope() {};
-
+    inline static FixedEnvelope FromThreshold(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false)
+    {
+        return FromThreshold(Iso(iso, false), _threshold, _absolute, tgetConfs);
+    }
 };
-
 
 class ISOSPEC_EXPORT_SYMBOL TotalProbFixedEnvelope : public FixedEnvelope
 {

@@ -210,17 +210,18 @@ void* setupThresholdFixedEnvelope(void* iso,
                      bool absolute,
                      bool  get_confs)
 {
-    ThresholdFixedEnvelope* tabulator = new ThresholdFixedEnvelope(Iso(*reinterpret_cast<const Iso*>(iso), true),
+    FixedEnvelope* ret = new FixedEnvelope( // Use copy elision to allocate on heap with named constructor
+            FixedEnvelope::FromThreshold(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          threshold,
                                          absolute,
-                                         get_confs);
+                                         get_confs));
 
-    return reinterpret_cast<void*>(tabulator);
+    return reinterpret_cast<void*>(ret);
 }
 
 void deleteThresholdFixedEnvelope(void* t)
 {
-    delete reinterpret_cast<ThresholdFixedEnvelope*>(t);
+    delete reinterpret_cast<FixedEnvelope*>(t);
 }
 
 //______________________________________________________ Layered FixedEnvelope
