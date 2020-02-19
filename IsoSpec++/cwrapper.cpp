@@ -223,27 +223,6 @@ void deleteThresholdFixedEnvelope(void* t)
     delete reinterpret_cast<ThresholdFixedEnvelope*>(t);
 }
 
-const double* massesThresholdFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* probsThresholdFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_probs();
-}
-
-const int*    confsThresholdFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->release_confs();
-}
-
-int confs_noThresholdFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<ThresholdFixedEnvelope*>(tabulator)->confs_no();
-}
-
-
 //______________________________________________________ Layered FixedEnvelope
 
 void* setupTotalProbFixedEnvelope(void* iso,
@@ -261,26 +240,6 @@ void* setupTotalProbFixedEnvelope(void* iso,
 void deleteTotalProbFixedEnvelope(void* t)
 {
     delete reinterpret_cast<TotalProbFixedEnvelope*>(t);
-}
-
-const double* massesTotalProbFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_masses();
-}
-
-const double* probsTotalProbFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_probs();
-}
-
-const int*    confsTotalProbFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->release_confs();
-}
-
-int confs_noTotalProbFixedEnvelope(void* tabulator)
-{
-    return reinterpret_cast<TotalProbFixedEnvelope*>(tabulator)->confs_no();
 }
 
 //______________________________________________________ Generic FixedEnvelope

@@ -103,13 +103,6 @@ void* setupThresholdFixedEnvelope(void* iso,
 
 void deleteThresholdFixedEnvelope(void* tabulator);
 
-const double* massesThresholdFixedEnvelope(void* tabulator);
-const double* lprobsThresholdFixedEnvelope(void* tabulator);
-const double* probsThresholdFixedEnvelope(void* tabulator);
-const int*    confsThresholdFixedEnvelope(void* tabulator);
-int confs_noThresholdFixedEnvelope(void* tabulator);
-
-
 
 void* setupTotalProbFixedEnvelope(void* iso,
                               double taget_coverage,
@@ -117,12 +110,6 @@ void* setupTotalProbFixedEnvelope(void* iso,
                               bool get_confs);
 
 void deleteTotalProbFixedEnvelope(void* tabulator);
-
-const double* massesTotalProbFixedEnvelope(void* tabulator);
-const double* lprobsTotalProbFixedEnvelope(void* tabulator);
-const double* probsTotalProbFixedEnvelope(void* tabulator);
-const int*    confsTotalProbFixedEnvelope(void* tabulator);
-int confs_noTotalProbFixedEnvelope(void* tabulator);
 
 void freeReleasedArray(void* array);
 
