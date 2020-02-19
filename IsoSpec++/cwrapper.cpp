@@ -228,7 +228,7 @@ void* setupTotalProbFixedEnvelope(void* iso,
             FixedEnvelope::FromTotalProb(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
-                                         get_confs);
+                                         get_confs));
 
     return reinterpret_cast<void*>(ret);
 }

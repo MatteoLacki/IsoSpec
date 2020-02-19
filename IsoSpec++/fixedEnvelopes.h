@@ -188,6 +188,8 @@ public:
             ret.total_prob_init<true>(std::move(iso), target_total_prob, optimize);
         else
             ret.total_prob_init<false>(std::move(iso), target_total_prob, optimize);
+
+        return ret;
     }
 
     inline static FixedEnvelope FromTotalProb(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false)
