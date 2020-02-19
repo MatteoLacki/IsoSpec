@@ -59,11 +59,6 @@ class IsoFFI:
 
         void deleteThresholdFixedEnvelope(void* tabulator);
 
-        const double* massesThresholdFixedEnvelope(void* tabulator);
-        const double* probsThresholdFixedEnvelope(void* tabulator);
-        const int* confsThresholdFixedEnvelope(void* tabulator);
-        int confs_noThresholdFixedEnvelope(void* tabulator);
-
 
         void* setupTotalProbFixedEnvelope(void* iso,
                                       double taget_coverage,
@@ -74,10 +69,6 @@ class IsoFFI:
 
         void deleteTotalProbFixedEnvelope(void* tabulator);
 
-        const double* massesTotalProbFixedEnvelope(void* tabulator);
-        const double* probsTotalProbFixedEnvelope(void* tabulator);
-        const int* confsTotalProbFixedEnvelope(void* tabulator);
-        int confs_noTotalProbFixedEnvelope(void* tabulator);
 
         void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
         void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
