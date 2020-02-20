@@ -153,7 +153,6 @@ void FixedEnvelope::sort_by(double* order)
     reorder_array(_probs,  inverse, _confs_no);
     if(_confs  != nullptr)
     {
-        const int allDimSizeofInt = sizeof(int) * allDim;
         int* swapspace = new int[allDim];
         for(size_t ii = 0; ii < _confs_no; ii++)
             while(order[ii] != ii)

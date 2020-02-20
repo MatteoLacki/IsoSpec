@@ -22,8 +22,8 @@ namespace IsoSpec
 {
 
 DirtyAllocator::DirtyAllocator(
-    const int dim, const int tabSize
-): tabSize(tabSize)
+    const int dim, const int tabSize_
+): tabSize(tabSize_)
 {
     cellSize        = sizeof(double) + sizeof(int) * dim;
     // Fix memory alignment problems for SPARC
