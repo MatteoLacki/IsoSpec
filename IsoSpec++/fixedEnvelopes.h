@@ -56,9 +56,9 @@ public:
 
     virtual ~FixedEnvelope()
     {
-        if( _masses != nullptr ) free(_masses);
-        if( _probs  != nullptr ) free(_probs);
-        if( _confs  != nullptr ) free(_confs);
+        free(_masses);
+        free(_probs);
+        free(_confs);
     };
 
     FixedEnvelope operator+(const FixedEnvelope& other) const;
