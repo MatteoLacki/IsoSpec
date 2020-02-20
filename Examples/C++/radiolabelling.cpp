@@ -23,11 +23,10 @@ int main()
 
     // Additional radiolabel elements can be added by more calls to addElement
 
-    TotalProbFixedEnvelope iso(std::move(i), 0.99, true, true, true);
+    FixedEnvelope iso = FixedEnvelope::FromTotalProb(std::move(i), 0.99, true, true);
 
     std::cout << "The first configuration has the following parameters: " << std::endl;
     std::cout << "Mass: " << iso.masses()[0] << std::endl;
-    std::cout << "log-prob: " << iso.lprobs()[0] << std::endl;
     std::cout << "probability: " << iso.probs()[0] << std::endl;
 
     const int* configs = iso.confs();

@@ -36,13 +36,12 @@ int main()
     // (for example: binned with some resolution) on the fly, without ever being stored in memory - 
     // which might matter for large spectra.
 
-    TotalProbFixedEnvelope iso("H2O1", 0.999, true, true, true);
+    FixedEnvelope iso = FixedEnvelope::FromTotalProb("H2O1", 0.999, true, true);
 
     for(int ii = 0; ii < iso.confs_no(); ii++)
     {
         std::cout << "Visiting configuration: " << std::endl;
         std::cout << "Mass: " << iso.mass(ii) << std::endl;
-        std::cout << "log-prob: " << iso.lprob(ii) << std::endl;
         std::cout << "probability: " << iso.prob(ii) << std::endl;
 
         const int* conf = iso.conf(ii);
@@ -78,11 +77,10 @@ int main()
 
     const double* probs[2] = {hydrogen_probs, oxygen_probs};
  
-    TotalProbFixedEnvelope iso(Iso(elementNumber, isotopeNumbers, atomCounts, isotope_masses, probs), 0.99, true, true, true);
+    FixedEnvelope iso = FixedEnvelope::FromTotalProb(Iso(elementNumber, isotopeNumbers, atomCounts, isotope_masses, probs), 0.99, true, true);
 
     std::cout << "The first configuration has the following parameters: " << std::endl;
     std::cout << "Mass: " << iso.mass(0) << std::endl;
-    std::cout << "log-prob: " << iso.lprob(0) << std::endl;
     std::cout << "probability: " << iso.prob(0) << std::endl;
 
     const int* conf = iso.conf(0);
