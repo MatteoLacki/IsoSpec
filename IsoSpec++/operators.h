@@ -31,7 +31,7 @@ private:
 public:
     KeyHasher(int dim);
 
-    inline std::size_t operator()(const int* conf) const
+    inline std::size_t operator()(const int* conf) const noexcept
     {
         // Following Boost...
         std::size_t seed = 0;
