@@ -45,7 +45,7 @@ public:
         _confs_no(0),
         sorted_by_mass(false),
         sorted_by_prob(false),
-        total_prob(NAN),
+        total_prob(0.0),
         current_size(0)
         {};
 
