@@ -7,7 +7,7 @@ from IsoSpecPy import PeriodicTbl
 from math import exp
 
 try:
-    if IsoSpecPy.__version__[:4] != '2.0.':
+    if IsoSpecPy.__version__[:4] != '2.1.':
         raise AttributeError
 except AttributeError:
     print("This file is meant to be used with IsoSpecPy version 2.0.X. You seem to have a different version installed on your system.")
