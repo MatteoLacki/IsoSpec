@@ -213,6 +213,12 @@ class Iso(object):
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 
+    def _get_parse_conf_fun(self):
+        # Can't just use the above function as lambda, as the entire class instance will be in closure
+        offsets = self.offsets
+        def pc(cptr, starting_with = 0):
+            return tuple(tuple(cptr[i+starting_with] for i in o) for o in offsets)
+        return pc
 
 
 class IsoDistribution(object):
@@ -257,7 +263,7 @@ class IsoDistribution(object):
     def __del__(self):
         pass
 
-    def __init__(self, cobject = None, probs = None, masses = None, get_confs = False):
+    def __init__(self, cobject = None, probs = None, masses = None, get_confs = False, iso = None):
         self.mass_sorted = False
         self.prob_sorted = False
         self._total_prob = float('nan')
@@ -275,9 +281,10 @@ class IsoDistribution(object):
 
             if get_confs:
                 # Must also be a subclass of Iso...
-                self.sum_isotope_numbers = sum(self.isotopeNumbers)
+                self.sum_isotope_numbers = sum(iso.isotopeNumbers)
                 wrap("int", isoFFI.clib.confsFixedEnvelope(cobject), "raw_confs", mult = self.sum_isotope_numbers)
                 self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
+                self.parse_conf = iso._get_parse_conf_fun()
 
         elif probs is not None and masses is not None:
             self.size = len(probs)
@@ -425,44 +432,33 @@ class IsoDistribution(object):
 
 
 
-class IsoThreshold(IsoDistribution, Iso):
-    """Class representing peaks above a given height."""
-    def __init__(self,
-                 threshold,
+def IsoThreshold(threshold,
                  formula=None,
                  absolute=False,
                  get_confs=False,
                  **kwargs):
-        """Initialize the IsoThreshold isotopic distribution. 
+    """Initialize the IsoDistribution isotopic distribution by threshold.
 
-        Args:
-            threshold (float): value of the absolute or relative threshold.
-            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
-            absolute (boolean): should we report peaks with probabilities above an absolute probability threshold, or above a relative threshold amounting to a given proportion of the most probable peak?
-            get_confs (boolean): should we report counts of isotopologues?
-            **kwds: named arguments to IsoSpectrum.
-        """
-        Iso.__init__(self, formula=formula, get_confs=get_confs, **kwargs)
-        self.threshold = threshold
-        self.absolute = absolute
-
-        tabulator = self.ffi.setupThresholdFixedEnvelope(self.iso, threshold, absolute, get_confs, True, True)
-
-        IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
-
-        self.ffi.deleteFixedEnvelope(tabulator)
+    Args:
+        threshold (float): value of the absolute or relative threshold.
+        formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+        absolute (boolean): should we report peaks with probabilities above an absolute probability threshold, or above a relative threshold amounting to a given proportion of the most probable peak?
+        get_confs (boolean): should we report counts of isotopologues?
+        **kwds: named arguments to IsoSpectrum.
+    """
+    iso = Iso(formula = formula, get_confs = get_confs, **kwargs)
+    tabulator = isoFFI.clib.setupThresholdFixedEnvelope(iso.iso, threshold, absolute, get_confs, True, True)
+    ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
+    isoFFI.clib.deleteFixedEnvelope(tabulator, False)
+    return ido
 
 
-    def __del__(self):
-        Iso.__del__(self)
-        IsoDistribution.__del__(self)
-
-    
-
-class IsoTotalProb(IsoDistribution, Iso):
-    """Class representing the smallest number of peaks with total probability above a given probability."""
-    def __init__(self, prob_to_cover, formula=None, get_minimal_pset=True, get_confs=False, **kwargs):
-        """Initialize the IsoTotalProb isotopic distribution.
+def IsoTotalProb(prob_to_cover,
+                 formula=None,
+                 get_minimal_pset=True,
+                 get_confs=False,
+                 **kwargs):
+        """Initialize the IsoDistribution isotopic distribution by total probability.
 
         Args:
             prob_to_cover (float): minimal total probability of the reported peaks.
@@ -471,18 +467,11 @@ class IsoTotalProb(IsoDistribution, Iso):
             get_confs (boolean): should we report the counts of isotopologues?
             **kwargs: named arguments to the superclass.
         """
-        Iso.__init__(self, formula=formula, get_confs=get_confs, **kwargs)
-        self.prob_to_cover = prob_to_cover
-
-        tabulator = self.ffi.setupTotalProbFixedEnvelope(self.iso, prob_to_cover, get_minimal_pset, get_confs, True, True)
-
-        IsoDistribution.__init__(self, cobject = tabulator, get_confs = get_confs)
-
-        self.ffi.deleteFixedEnvelope(tabulator)
-
-    def __del__(self):
-        Iso.__del__(self)
-        IsoDistribution.__del__(self)
+        iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
+        tabulator = isoFFI.clib.setupTotalProbFixedEnvelope(iso.iso, prob_to_cover, get_minimal_pset, get_confs, True, True)
+        ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
+        isoFFI.clib.deleteFixedEnvelope(tabulator, False)
+        return ido
 
 
 class IsoGenerator(Iso):
