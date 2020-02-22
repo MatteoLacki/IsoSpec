@@ -396,8 +396,18 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
 
     this->reallocate_memory<tgetConfs>(tab_size);
 
+    double* ttmasses = this->_masses;
+    double* ttprobs = this->_probs;
+    [[maybe_unused]] int* ttconfs;
+    constexpr_if(tgetConfs)
+        ttconfs = _confs;
+
     while(generator.advanceToNextConfiguration())
-        store_conf<IsoThresholdGenerator, tgetConfs>(generator);
+    {
+        *ttmasses = generator.mass(); ttmasses++;
+        *ttprobs = generator.prob(); ttprobs++;
+        constexpr_if(tgetConfs)  { generator.get_conf_signature(ttconfs); ttconfs += allDim; };
+    }
 
     this->_confs_no = tab_size;
 }
