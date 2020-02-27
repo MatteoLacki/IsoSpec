@@ -15,6 +15,10 @@ import os
 import glob
 import shutil
 
+
+# For debugging, set the below to True. Run with (sth like): LD_PRELOAD='/usr/lib64/gcc/x86_64-pc-linux-gnu/9.2.0/libasan.so.5.0.0' python ...
+use_asan = False
+
 if not os.path.exists("IsoSpec++"):
     try:
         os.symlink("../IsoSpec++", "IsoSpec++")
@@ -29,13 +33,18 @@ here = os.path.abspath(os.path.dirname(__file__))
 #with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
 #    long_description = f.read()
 
-cmodule = Extension('IsoSpecCppPy',
+if use_asan:
+    cmodule = Extension('IsoSpecCppPy',
+                    sources = ['IsoSpec++/unity-build.cpp'],
+                    extra_compile_args = '-O0 -g -DISOSPEC_DEBUG -std=c++17 -fsanitize=address'.split(),
+                    extra_link_args = '-fsanitize=address'.split()
+                    )
+else:
+    cmodule = Extension('IsoSpecCppPy',
                     sources = ['IsoSpec++/unity-build.cpp'],
                     extra_compile_args = '-mtune=native -march=native -O3 -std=c++17'.split(),
-#                   # For debugging, comment above line and uncomment below. Run with (sth like): LD_PRELOAD='/usr/lib64/gcc/x86_64-pc-linux-gnu/9.1.0/libasan.so.5.0.0' python ...
-#                    extra_compile_args = '-O0 -g -DDEBUG -std=c++17 -fsanitize=address'.split(),
-#                    extra_link_args = '-fsanitize=address'.split()
                     )
+
 
 setup_args = {
 #setup(
