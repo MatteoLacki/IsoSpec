@@ -6,14 +6,21 @@ def sprint(s):
     sys.stdout.write(str(s))
     sys.stdout.flush()
 
-try: 
-    import OldIsoSpecPy
-except ImportError:
-    print("This test compares the results of installed IsoSpec with IsoSpec version 1.0.7, installed as OldIsoSpecPy")
-    print("You must install it, using:")
-    print("pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
-    sys.exit(1)
 
+silentish_run = False
+
+if len(sys.argv) < 2:
+    try:
+        import OldIsoSpecPy
+    except ImportError:
+        print("This test compares the results of installed IsoSpec with IsoSpec version 1.0.7, installed as OldIsoSpecPy")
+        print("You must install it, using:")
+        print("pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
+        print("Or run only the new algo: python " + sys.argv[0] + " True")
+        sys.exit(1)
+else:
+    print("Running only new algo...")
+    silentish_run = True
 
 # Correctness tests comparing IsoSpecPy 1.0.7 and HEAD. The trouble here is that due to slightly different way things are calculated
 # we get different rounding errors, and therefore slightly different results - and that's OK. The function kinda_like reflects that
@@ -94,32 +101,39 @@ except ValueError:
     is_ok = True
 assert is_ok
 
+total_confs = 0
+
 for molecule in molecules:
     for parameter in parameters:
-        sprint("{} {}... ".format(molecule, parameter))
-        old_ordered = OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="ordered").getConfs()
-        sprint(len(old_ordered[0]))
+        if not silentish_run:
+            sprint("{} {}... ".format(molecule, parameter))
+            old_ordered = OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="ordered").getConfs()
+            sprint(len(old_ordered[0]))
         new_ordered = confs_from_ordered_generator(molecule, parameter)
-        assert kinda_like(new_ordered, old_ordered)
+        total_confs += len(new_ordered[0])
+        if not silentish_run: assert kinda_like(new_ordered, old_ordered)
         new_layered = confs_from_layered_generator(molecule, parameter)
-        assert kinda_like(new_layered, new_ordered)
+        total_confs += len(new_layered[0])
+        if not silentish_run: assert kinda_like(new_layered, new_ordered)
         if len(new_ordered[1]) > 0:
             new_threshold = exp(new_ordered[1][-1]-0.00000001)
         else:
             new_threshold = 1.1
         new_threshold_res = confs_from_threshold_generator(molecule, new_threshold)
-        assert kinda_like(new_ordered, new_threshold_res)
-        assert kinda_like(new_threshold_res, confs_from_threshold(molecule, new_threshold))
+        total_confs += len(new_threshold_res[0])
+        if not silentish_run:
+            assert kinda_like(new_ordered, new_threshold_res)
+            assert kinda_like(new_threshold_res, confs_from_threshold(molecule, new_threshold))
 
         if parameter > 0:
-            sprint(" thresholded: ")
+            if not silentish_run: sprint(" thresholded: ")
             new_thr_r = confs_from_threshold_generator(molecule, parameter)
-            sprint(len(new_thr_r[0]))
-            old_thr_r = sort_confs(OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="threshold_absolute").getConfs())
+            if not silentish_run:
+                sprint(len(new_thr_r[0]))
+                old_thr_r = sort_confs(OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="threshold_absolute").getConfs())
+                assert kinda_like(new_thr_r, old_thr_r)
 
-            assert kinda_like(new_thr_r, old_thr_r)
+        if not silentish_run:
+            print("... OK!")
 
-        print("... OK!")
-
-            
-
+sprint("Total confs: " + str(total_confs) + "\n")
