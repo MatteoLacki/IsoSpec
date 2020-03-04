@@ -30,7 +30,7 @@ public:
     inline SSummator()
     { maxpart = 0; }
 
-    inline SSummator(SSummator& other)
+    inline SSummator(const SSummator& other)
     {
         this->partials = other.partials;
         this->maxpart = other.maxpart;
