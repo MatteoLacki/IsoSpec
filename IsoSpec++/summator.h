@@ -30,11 +30,10 @@ public:
     inline SSummator()
     { maxpart = 0; }
 
-    inline SSummator(const SSummator& other)
-    {
-        this->partials = other.partials;
-        this->maxpart = other.maxpart;
-    }
+    inline SSummator(const SSummator& other) :
+        partials(other.partials),
+        maxpart(other.maxpart) {};
+
     inline void add(double x)
     {
         unsigned int i=0;
