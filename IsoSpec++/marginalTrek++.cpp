@@ -299,7 +299,7 @@ double Marginal::variance() const
         double msq = atom_masses[ii] - mean;
         ret += exp(atom_lProbs[ii]) * msq * msq;
     }
-    return ret;
+    return ret * atomCnt;
 }
 
 double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
