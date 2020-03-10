@@ -208,7 +208,6 @@ loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
 mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo)),
 mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
-mode_prob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {}
 
@@ -222,7 +221,6 @@ loggamma_nominator(other.loggamma_nominator),
 mode_conf(array_copy<int>(other.mode_conf, isotopeNo)),
 mode_lprob(other.mode_lprob),
 mode_mass(other.mode_mass),
-mode_prob(other.mode_prob),
 smallest_lprob(other.smallest_lprob)
 {}
 
@@ -238,7 +236,6 @@ loggamma_nominator(other.loggamma_nominator),
 mode_conf(other.mode_conf),
 mode_lprob(other.mode_lprob),
 mode_mass(other.mode_mass),
-mode_prob(other.mode_prob),
 smallest_lprob(other.smallest_lprob)
 {
     other.disowned = true;

@@ -54,7 +54,6 @@ protected:
     const Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
     const double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
     const double mode_mass;             /*!< The mass of the mode subisotopologue.*/
-    const double mode_prob;             /*!< The probability of the mode subisotopologue.*/
     const double smallest_lprob;        /*!< The smallest-achievable log-probability in the distribution of subisotopologues. */
 
 
@@ -129,7 +128,7 @@ public:
     /*!
         \return The probability of a/the most probable subisotopologue.
     */
-    inline double getModeProb() const { return mode_prob; };
+    inline double getModeProb() const { return exp(getModeLProb()); };
 
     //! The the log-probability of the lightest subisotopologue.
     /*!
