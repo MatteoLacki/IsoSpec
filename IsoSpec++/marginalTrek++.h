@@ -53,7 +53,6 @@ protected:
     const double loggamma_nominator;    /*!< The constant nominator that appears in the expressions for the multinomial probabilities. */
     const Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
     const double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
-    const double mode_mass;             /*!< The mass of the mode subisotopologue.*/
     const double smallest_lprob;        /*!< The smallest-achievable log-probability in the distribution of subisotopologues. */
 
 
@@ -122,7 +121,7 @@ public:
     /*!
         \return The mass of one of the most probable subisotopologues.
     */
-    inline double getModeMass() const { return mode_mass; };
+    inline double getModeMass() const { return mass(mode_conf, atom_masses, isotopeNo); };
 
     //! The the probability of the mode subisotopologue.
     /*!
