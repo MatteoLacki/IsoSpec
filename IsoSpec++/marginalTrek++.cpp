@@ -51,13 +51,12 @@ namespace IsoSpec
     \param atomCnt
 
 */
-Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
+void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs, int* res)
 {
     /*!
     Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
     We start from the point close to the mean of the underlying multinomial distribution.
     */
-    Conf res = new int[isotopeNo];
 
     // This approximates the mode (heuristics: the mean is close to the mode).
     for(int i = 0; i < isotopeNo; ++i )
@@ -123,6 +122,12 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 
     }
+}
+
+Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
+{
+    Conf res = new int[isotopeNo];
+    writeInitialConfiguration(atomCnt, isotopeNo, probs, lprobs, res);
     return res;
 }
 
