@@ -206,8 +206,7 @@ atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 atom_masses(array_copy<double>(_masses, _isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
-mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo)),
-smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
+mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo))
 {}
 
 Marginal::Marginal(const Marginal& other) :
@@ -218,8 +217,7 @@ atom_lProbs(array_copy<double>(other.atom_lProbs, isotopeNo)),
 atom_masses(array_copy<double>(other.atom_masses, isotopeNo)),
 loggamma_nominator(other.loggamma_nominator),
 mode_conf(array_copy<int>(other.mode_conf, isotopeNo)),
-mode_lprob(other.mode_lprob),
-smallest_lprob(other.smallest_lprob)
+mode_lprob(other.mode_lprob)
 {}
 
 
@@ -232,8 +230,7 @@ atom_lProbs(other.atom_lProbs),
 atom_masses(other.atom_masses),
 loggamma_nominator(other.loggamma_nominator),
 mode_conf(other.mode_conf),
-mode_lprob(other.mode_lprob),
-smallest_lprob(other.smallest_lprob)
+mode_lprob(other.mode_lprob)
 {
     other.disowned = true;
 }
