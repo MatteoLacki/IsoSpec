@@ -52,6 +52,7 @@ protected:
     const double* const atom_masses;    /*!< Table of atomic masses of all the isotopeNo isotopes. */
     const double loggamma_nominator;    /*!< The constant nominator that appears in the expressions for the multinomial probabilities. */
     const Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
+private:
     const double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
 
 
