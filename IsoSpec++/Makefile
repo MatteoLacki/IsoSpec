@@ -24,3 +24,5 @@ windows:
 	g++ -O3 -std=gnu++1z -O3 -shared -static -static-libstdc++ -static-libgcc unity-build.cpp -o ../IsoSpecPy/IsoSpec++.dll
 	x86_64-w64-mingw32-g++.exe -std=gnu++1z -O3 -shared -static -static-libstdc++ unity-build.cpp -o ../IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++1.9.3-x64.dll
 	i686-w64-mingw32-g++.exe -std=gnu++1z -O3 -shared -static -static-libstdc++ unity-build.cpp -o ../IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++1.9.3-x32.dll
+check:
+	cppcheck --std=c++17 --language=c++ --enable=performance -q --force *.cpp *.h
