@@ -400,7 +400,7 @@ IsoGenerator::~IsoGenerator()
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize, bool reorder_marginals)
 : IsoGenerator(std::move(iso)),
-Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
+Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + getModeLProb()))
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
@@ -412,7 +412,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
+                                                        Lcutoff - getModeLProb() + marginals[ii]->getModeLProb(),
                                                         true,
                                                         tabSize,
                                                         hashSize);
@@ -611,7 +611,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
 
     for(int ii=0; ii<dimNumber; ii++)
     {
-        marginalResults[ii]->extend(currentLThreshold - modeLProb + marginalResults[ii]->getModeLProb());
+        marginalResults[ii]->extend(currentLThreshold - getModeLProb() + marginalResults[ii]->getModeLProb());
         counter[ii] = 0;
     }
 
