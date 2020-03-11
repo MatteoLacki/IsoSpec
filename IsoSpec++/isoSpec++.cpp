@@ -395,11 +395,11 @@ IsoGenerator::~IsoGenerator()
  * ----------------------------------------------------------------------------------------------------------
  */
 
-
+static const double minsqrt = -1.3407796239501852e+154; // == constexpr(-sqrt(std::numeric_limits<double>::max()));
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize, bool reorder_marginals)
 : IsoGenerator(std::move(iso)),
-Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + getModeLProb()))
+Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_threshold) + getModeLProb()))
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
