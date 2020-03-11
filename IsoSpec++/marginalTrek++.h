@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <tuple>
 #include <unordered_map>
 #include <queue>
 #include "conf.h"
@@ -30,8 +29,6 @@ namespace IsoSpec
 
 Conf initialConfigure(int atomCnt, int isotopeNo, const double* lprobs);
 
-
-void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim);
 
 //! The marginal distribution class (a subisotopologue).
 /*!
