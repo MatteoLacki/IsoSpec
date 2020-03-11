@@ -133,7 +133,7 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
                         isotopeNumbers[ii],
                         atomCounts[ii]
                     );
-                modeLProb += marginals[ii]->getModeLProb();
+                modeLProb += marginals[ii]->computeModeLProb();
                 ii++;
             }
         }
@@ -240,7 +240,7 @@ modeLProb(0.0)
 void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities)
 {
     Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
-    modeLProb += m->getModeLProb();
+    modeLProb += m->computeModeLProb();
     realloc_append<int>(&isotopeNumbers, noIsotopes, dimNumber);
     realloc_append<int>(&atomCounts, atomCount, dimNumber);
     realloc_append<Marginal*>(&marginals, m, dimNumber);
@@ -411,7 +411,7 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - getModeLProb() + marginals[ii]->getModeLProb(),
+                                                        Lcutoff - getModeLProb() + marginals[ii]->computeModeLProb(),
                                                         true,
                                                         tabSize,
                                                         hashSize);

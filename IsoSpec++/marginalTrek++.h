@@ -49,7 +49,6 @@ protected:
     const double* const atom_masses;    /*!< Table of atomic masses of all the isotopeNo isotopes. */
     const double loggamma_nominator;    /*!< The constant nominator that appears in the expressions for the multinomial probabilities. */
     const Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
-private:
     const double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
 
 
@@ -108,23 +107,23 @@ public:
     */
     double getMonoisotopicConfMass() const;
 
-    //! Get the log-probability of the mode subisotopologue.
-    /*!
-        \return The log-probability of a/the most probable subisotopologue.
-    */
-    inline double getModeLProb() const { return mode_lprob; };
-
     //! The the mass of the mode subisotopologue.
     /*!
         \return The mass of one of the most probable subisotopologues.
     */
     inline double getModeMass() const { return mass(mode_conf, atom_masses, isotopeNo); };
 
+    //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue.
+    */
+    inline double computeModeLProb() const { return mode_lprob; };
+
     //! The the probability of the mode subisotopologue.
     /*!
         \return The probability of a/the most probable subisotopologue.
     */
-    inline double getModeProb() const { return exp(getModeLProb()); };
+//    inline double getModeProb() const { return exp(getModeLProb()); };
 
     //! The the log-probability of the lightest subisotopologue.
     /*!
@@ -205,6 +204,12 @@ public:
                 return false;
         return true;
     }
+
+    //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue.
+    */
+    inline double getModeLProb() const { return mode_lprob; };
 
 
     //! Calculate subisotopologues with probability above or equal to the cut-off.
@@ -314,6 +319,13 @@ public:
         \return The number of precomputed subisotopologues.
     */
     inline unsigned int get_no_confs() const { return no_confs; };
+
+    //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue.
+    */
+    inline double getModeLProb() const { return mode_lprob; };
+
 };
 
 
@@ -376,6 +388,13 @@ public:
 
     //! Get the maximal mass in current layer
     double get_max_mass() const;
+
+    //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue.
+    */
+    inline double getModeLProb() const { return mode_lprob; };
+
 };
 
 
