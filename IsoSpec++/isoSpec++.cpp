@@ -819,41 +819,6 @@ chasing_prob(0.0)
 
 
 
-#if !ISOSPEC_BUILDING_R
-
-void printConfigurations(
-    const   std::tuple<double*,double*,int*,int>& results,
-    int     dimNumber,
-    int*    isotopeNumbers
-){
-    int m = 0;
-
-    for(int i=0; i<std::get<3>(results); i++){
-
-        std::cout << "Mass = "  << std::get<0>(results)[i] <<
-        "\tand log-prob = "     << std::get<1>(results)[i] <<
-        "\tand prob = "                 << exp(std::get<1>(results)[i]) <<
-        "\tand configuration =\t";
-
-
-        for(int j=0; j<dimNumber; j++){
-            for(int k=0; k<isotopeNumbers[j]; k++ )
-            {
-                std::cout << std::get<2>(results)[m] << " ";
-                m++;
-            }
-            std::cout << '\t';
-        }
-
-
-        std::cout << std::endl;
-    }
-}
-
-#endif /* !ISOSPEC_BUILDING_R */
-
-
-
 
 } // namespace IsoSpec
 
