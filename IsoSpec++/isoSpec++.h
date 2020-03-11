@@ -594,14 +594,5 @@ public:
 };
 
 
-#if !ISOSPEC_BUILDING_R
-
-void printConfigurations(
-    const   std::tuple<double*,double*,int*,int>& results,
-    int     dimNumber,
-    int*    isotopeNumbers
-);
-#endif /* !ISOSPEC_BUILDING_R */
-
 } // namespace IsoSpec
 

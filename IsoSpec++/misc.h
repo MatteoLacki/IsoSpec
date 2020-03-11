@@ -17,7 +17,6 @@
 #pragma once
 
 #include <iostream>
-#include <tuple>
 #include <vector>
 #include <fenv.h>
 #include <string.h>
@@ -83,12 +82,6 @@ inline double mass(const int* conf, const double* masses, int dim)
 }
 
 
-inline bool tupleCmp(
-    std::tuple<double,double,int*> t1,
-    std::tuple<double,double,int*> t2
-){
-    return std::get<1>(t1) > std::get<1>(t2);
-}
 
 template<typename T> void printArray(const T* array, int size, const char* prefix = "")
 {
