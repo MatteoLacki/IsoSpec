@@ -28,7 +28,7 @@
 namespace IsoSpec
 {
 
-Conf initialConfigure(int atomCnt, int isotopeNo, const double* probs);
+Conf initialConfigure(int atomCnt, int isotopeNo, const double* lprobs);
 
 
 void printMarginal(const std::tuple<double*,double*,int*,int>& results, int dim);

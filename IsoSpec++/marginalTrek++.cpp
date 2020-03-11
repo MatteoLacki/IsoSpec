@@ -51,7 +51,7 @@ namespace IsoSpec
     \param atomCnt
 
 */
-void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs, int* res)
+void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const double* lprobs, int* res)
 {
     /*!
     Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
@@ -60,7 +60,7 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
 
     // This approximates the mode (heuristics: the mean is close to the mode).
     for(int i = 0; i < isotopeNo; ++i )
-        res[i] = int( atomCnt * probs[i] ) + 1;
+        res[i] = int( atomCnt * exp(lprobs[i]) ) + 1;
 
     // The number of assigned atoms above.
     int s = 0;
@@ -124,10 +124,10 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     }
 }
 
-Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
+Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* lprobs)
 {
     Conf res = new int[isotopeNo];
-    writeInitialConfiguration(atomCnt, isotopeNo, probs, lprobs, res);
+    writeInitialConfiguration(atomCnt, isotopeNo, lprobs, res);
     return res;
 }
 
@@ -210,7 +210,7 @@ atomCnt(verify_atom_cnt(_atomCnt)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 atom_masses(array_copy<double>(_masses, _isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
-mode_conf(initialConfigure(atomCnt, isotopeNo, _probs, atom_lProbs)),
+mode_conf(initialConfigure(atomCnt, isotopeNo, atom_lProbs)),
 mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo))
 {}
 
