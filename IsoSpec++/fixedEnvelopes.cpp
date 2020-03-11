@@ -373,6 +373,8 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+    // NON-fixme: Deliberately not handling out-of-memory condition here. On systems with overcommit_memory (or equivalent) (which is
+    // probably like 99% of our users) we'll get a non-NULL pointer here, and get killed by OOM killer when we use it.
     _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no;
     _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no;
     constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
@@ -381,6 +383,8 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+    // NON-fixme: Deliberately not handling out-of-memory condition here. On systems with overcommit_memory (or equivalent) (which is
+    // probably like 99% of our users) we'll get a non-NULL pointer here, and get killed by OOM killer when we use it.
     _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no;
     _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no;
     if(_confs  != nullptr) { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
