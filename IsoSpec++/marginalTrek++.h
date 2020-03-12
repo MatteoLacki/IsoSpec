@@ -123,6 +123,7 @@ public:
     */
 //    inline double getModeProb() const { return exp(getModeLProb()); };
 
+    //! Computes and returns the mode configuration, a isotopeNo-large array that the caller is responsible for delete[]-ing.
     Conf computeModeConf() const;
 
     //! The the log-probability of the lightest subisotopologue.
