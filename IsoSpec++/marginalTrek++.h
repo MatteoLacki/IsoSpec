@@ -117,7 +117,7 @@ public:
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double computeModeLProb() const { return mode_lprob; };
+    inline double computeModeLProb() const { return loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo); };
 
     //! The the probability of the mode subisotopologue.
     /*!
