@@ -28,9 +28,6 @@
 namespace IsoSpec
 {
 
-Conf initialConfigure(int atomCnt, int isotopeNo, const double* lprobs);
-
-
 //! The marginal distribution class (a subisotopologue).
 /*!
     This class mostly provides some basic common API for subclasses, but itself is not abstract.
@@ -126,6 +123,8 @@ public:
     */
 //    inline double getModeProb() const { return exp(getModeLProb()); };
 
+    Conf computeModeConf() const;
+
     //! The the log-probability of the lightest subisotopologue.
     /*!
         \return The logarithm of the  smallest non-zero probability of a subisotopologue.
@@ -149,8 +148,9 @@ public:
         \param conf A subisotopologue (a table of integers describing subsequent isotope-counts).
         \return The log-probability of the input subisotopologue.
     */
+protected:
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
-
+public:
     //! Calculate the variance of the theoretical distribution describing the subisotopologue
     double variance() const;
 

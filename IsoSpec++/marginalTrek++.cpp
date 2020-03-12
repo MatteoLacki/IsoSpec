@@ -123,13 +123,12 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     }
 }
 
-Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* lprobs)
+Conf Marginal::computeModeConf() const
 {
     Conf res = new int[isotopeNo];
-    writeInitialConfiguration(atomCnt, isotopeNo, lprobs, res);
+    writeInitialConfiguration(atomCnt, isotopeNo, atom_lProbs, res);
     return res;
 }
-
 
 
 
@@ -192,7 +191,7 @@ atomCnt(verify_atom_cnt(_atomCnt)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 atom_masses(array_copy<double>(_masses, _isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
-mode_conf(initialConfigure(atomCnt, isotopeNo, atom_lProbs)),
+mode_conf(computeModeConf()),
 mode_lprob(computeModeLProb())
 {}
 
