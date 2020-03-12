@@ -193,7 +193,7 @@ atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 atom_masses(array_copy<double>(_masses, _isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(initialConfigure(atomCnt, isotopeNo, atom_lProbs)),
-mode_lprob(loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo))
+mode_lprob(computeModeLProb())
 {}
 
 Marginal::Marginal(const Marginal& other) :
