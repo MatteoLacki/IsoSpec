@@ -18,6 +18,7 @@
 
 #include <unordered_map>
 #include <queue>
+#include <algorithm>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
