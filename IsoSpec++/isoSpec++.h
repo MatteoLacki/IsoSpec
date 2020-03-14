@@ -38,8 +38,8 @@ namespace IsoSpec
 
 // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
 unsigned int parse_formula(const char* formula,
-                           std::vector<const double*>& isotope_masses,
-                           std::vector<const double*>& isotope_probabilities,
+                           std::vector<double>& isotope_masses,
+                           std::vector<double>& isotope_probabilities,
                            int** isotopeNumbers,
                            int** atomCounts,
                            unsigned int* confSize,

@@ -88,6 +88,8 @@ marginals(nullptr)
             ++idx;
         }
 
+    allDim = 0; // setupMarginals will recalculate it, assuming it's set to 0
+
     try{
         setupMarginals(masses.get(), probs.get());
     }
@@ -271,13 +273,12 @@ disowned(false),
 allDim(0),
 marginals(nullptr)
 {
-    std::vector<const double*> isotope_masses;
-    std::vector<const double*> isotope_probabilities;
+    std::vector<double> isotope_masses;
+    std::vector<double> isotope_probabilities;
 
     dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize, use_nominal_masses);
 
-    throw std::logic_error("Not implemented");
-    //setupMarginals(isotope_masses.data(), isotope_probabilities.data());
+    setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
 
 
@@ -313,7 +314,7 @@ void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_p
         priorities[ii] = marginals[ii]->getLogSizeEstimate(log_R2);
 }
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
+unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
@@ -369,6 +370,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
     }
 
     vector<int> _isotope_numbers;
+    const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
 
     for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
@@ -377,18 +379,13 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         int elem_ID = elem_table_ID[at_idx];
         while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_ID[at_idx] == elem_ID)
         {
+            isotope_masses.push_back(masses[at_idx]);
+            isotope_probabilities.push_back(elem_table_probability[at_idx]);
             at_idx++;
             num++;
         }
         _isotope_numbers.push_back(num);
     }
-
-    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
-    {
-        const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
-        isotope_masses.push_back(&masses[*it]);
-        isotope_probabilities.push_back(&elem_table_probability[*it]);
-    };
 
     const unsigned int dimNumber = elements.size();
 
