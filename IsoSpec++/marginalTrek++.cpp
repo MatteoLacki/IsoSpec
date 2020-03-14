@@ -123,14 +123,6 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     }
 }
 
-Conf Marginal::computeModeConf() const
-{
-    Conf res = new int[isotopeNo];
-    writeInitialConfiguration(atomCnt, isotopeNo, atom_lProbs, res);
-    return res;
-}
-
-
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
@@ -191,8 +183,8 @@ atomCnt(verify_atom_cnt(_atomCnt)),
 atom_lProbs(getMLogProbs(_probs, isotopeNo)),
 atom_masses(array_copy<double>(_masses, _isotopeNo)),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
-mode_conf(computeModeConf()),
-mode_lprob(computeModeLProb())
+mode_conf(nullptr)
+// Deliberately not initializing mode_lprob
 {}
 
 Marginal::Marginal(const Marginal& other) :
@@ -201,10 +193,19 @@ isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
 atom_lProbs(array_copy<double>(other.atom_lProbs, isotopeNo)),
 atom_masses(array_copy<double>(other.atom_masses, isotopeNo)),
-loggamma_nominator(other.loggamma_nominator),
-mode_conf(array_copy<int>(other.mode_conf, isotopeNo)),
-mode_lprob(other.mode_lprob)
-{}
+loggamma_nominator(other.loggamma_nominator)
+{
+    if(other.mode_conf == nullptr)
+    {
+        mode_conf = nullptr;
+        // Deliberately not initializing mode_lprob. In this state other.mode_lprob is uninitialized too.
+    }
+    else
+    {
+        mode_conf = array_copy<int>(other.mode_conf, isotopeNo);
+        mode_lprob = other.mode_lprob;
+    }
+}
 
 
 // the move-constructor: used in the specialization of the marginal.
@@ -214,11 +215,19 @@ isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
 atom_lProbs(other.atom_lProbs),
 atom_masses(other.atom_masses),
-loggamma_nominator(other.loggamma_nominator),
-mode_conf(other.mode_conf),
-mode_lprob(other.mode_lprob)
+loggamma_nominator(other.loggamma_nominator)
 {
     other.disowned = true;
+    if(other.mode_conf == nullptr)
+    {
+        mode_conf = nullptr;
+        // Deliberately not initializing mode_lprob. In this state other.mode_lprob is uninitialized too.
+    }
+    else
+    {
+        mode_conf = array_copy<int>(other.mode_conf, isotopeNo);
+        mode_lprob = other.mode_lprob;
+    }
 }
 
 Marginal::~Marginal()
@@ -229,6 +238,21 @@ Marginal::~Marginal()
         delete[] atom_lProbs;
         delete[] mode_conf;
     }
+}
+
+
+Conf Marginal::computeModeConf() const
+{
+    Conf res = new int[isotopeNo];
+    writeInitialConfiguration(atomCnt, isotopeNo, atom_lProbs, res);
+    return res;
+}
+
+void Marginal::setupMode()
+{
+    ISOSPEC_IMPOSSIBLE(mode_conf != nullptr);
+    mode_conf = computeModeConf();
+    mode_lprob = logProb(mode_conf);
 }
 
 

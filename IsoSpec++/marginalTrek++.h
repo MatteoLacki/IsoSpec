@@ -46,8 +46,8 @@ protected:
     const double* const atom_lProbs;    /*!< Table of log-probabilities of all the isotopeNo isotopes. */
     const double* const atom_masses;    /*!< Table of atomic masses of all the isotopeNo isotopes. */
     const double loggamma_nominator;    /*!< The constant nominator that appears in the expressions for the multinomial probabilities. */
-    const Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
-    const double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
+    Conf mode_conf;               /*!< A subisotopologue with most probability. If not unique, one of the representatives of that class of subisotopologues. */
+    double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
 
 
 public:
@@ -115,7 +115,7 @@ public:
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double computeModeLProb() const { return loggamma_nominator+unnormalized_logProb(mode_conf, atom_lProbs, isotopeNo); };
+    inline double computeModeLProb() { ensureModeConf(); return mode_lprob; };
 
     //! The the probability of the mode subisotopologue.
     /*!
@@ -157,6 +157,10 @@ public:
 
     //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
     double getLogSizeEstimate(double logEllipsoidRadius) const;
+
+private:
+    inline void ensureModeConf() { if (mode_conf != nullptr) return; setupMode(); };
+    void setupMode();
 };
 
 
