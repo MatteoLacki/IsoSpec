@@ -115,7 +115,7 @@ public:
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double computeModeLProb() { ensureModeConf(); return mode_lprob; };
+    inline double getModeLProb() { ensureModeConf(); return mode_lprob; };
 
     //! The the probability of the mode subisotopologue.
     /*!

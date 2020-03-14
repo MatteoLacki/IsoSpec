@@ -204,7 +204,7 @@ double Iso::getModeLProb() const
 {
     double ret = 0.0;
     for (int ii=0; ii<dimNumber; ii++)
-        ret += marginals[ii]->computeModeLProb();
+        ret += marginals[ii]->getModeLProb();
     return ret;
 }
 
@@ -414,7 +414,7 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - getModeLProb() + marginals[ii]->computeModeLProb(),
+                                                        Lcutoff - getModeLProb() + marginals[ii]->getModeLProb(),
                                                         true,
                                                         tabSize,
                                                         hashSize);
