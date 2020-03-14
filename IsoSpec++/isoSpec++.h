@@ -124,7 +124,7 @@ public:
     double getMonoisotopicPeakMass() const;
 
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
-    inline double getModeLProb() const;
+    double getModeLProb() const;
 
     //! Get the logprobability of the least probable subisotopologue.
     double getUnlikeliestPeakLProb() const;
