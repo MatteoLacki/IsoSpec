@@ -54,8 +54,7 @@ isotopeNumbers(new int[0]),
 atomCounts(new int[0]),
 confSize(0),
 allDim(0),
-marginals(new Marginal*[0]),
-modeLProb(0.0)
+marginals(new Marginal*[0])
 {}
 
 
@@ -72,8 +71,7 @@ isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
-marginals(nullptr),
-modeLProb(0.0)
+marginals(nullptr)
 {
     try{
         setupMarginals(_isotopeMasses, _isotopeProbabilities);
@@ -93,8 +91,7 @@ isotopeNumbers(other.isotopeNumbers),
 atomCounts(other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(other.marginals),
-modeLProb(other.modeLProb)
+marginals(other.marginals)
 {
     other.disowned = true;
 }
@@ -107,8 +104,7 @@ isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : oth
 atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals),
-modeLProb(other.modeLProb)
+marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 {
     if(fullcopy)
         for(ssize_t ii = 0; ii<dimNumber; ii++)
@@ -133,7 +129,6 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
                         isotopeNumbers[ii],
                         atomCounts[ii]
                     );
-                modeLProb += marginals[ii]->computeModeLProb();
                 ii++;
             }
         }
@@ -205,6 +200,14 @@ double Iso::getModeMass() const
     return mass;
 }
 
+double Iso::getModeLProb() const
+{
+    double ret = 0.0;
+    for (int ii=0; ii<dimNumber; ii++)
+        ret += marginals[ii]->computeModeLProb();
+    return ret;
+}
+
 double Iso::getTheoreticalAverageMass() const
 {
     double mass = 0.0;
@@ -225,8 +228,7 @@ double Iso::variance() const
 Iso::Iso(const char* formula, bool use_nominal_masses) :
 disowned(false),
 allDim(0),
-marginals(nullptr),
-modeLProb(0.0)
+marginals(nullptr)
 {
     std::vector<const double*> isotope_masses;
     std::vector<const double*> isotope_probabilities;
@@ -240,7 +242,6 @@ modeLProb(0.0)
 void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities)
 {
     Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
-    modeLProb += m->computeModeLProb();
     realloc_append<int>(&isotopeNumbers, noIsotopes, dimNumber);
     realloc_append<int>(&atomCounts, atomCount, dimNumber);
     realloc_append<Marginal*>(&marginals, m, dimNumber);
@@ -370,6 +371,8 @@ IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     partialMasses(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
 {
+    for(int ii=0; ii<dimNumber; ++ii)
+        marginals[ii]->ensureModeConf();
     if(alloc_partials)
     {
         partialLProbs[dimNumber] = 0.0;

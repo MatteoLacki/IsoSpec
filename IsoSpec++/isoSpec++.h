@@ -70,8 +70,6 @@ protected:
     unsigned int    confSize;       /*!< The number of bytes needed to represent the counts of isotopes present in the extended chemical formula. */
     int             allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H20 it is 2+3=5. */
     Marginal**      marginals;      /*!< The table of pointers to the distributions of individual subisotopologues. */
-private:
-    double          modeLProb;      /*!< The log-probability of the mode of the isotopic distribution. */
 
 public:
 
@@ -126,7 +124,7 @@ public:
     double getMonoisotopicPeakMass() const;
 
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
-    inline double getModeLProb() const { return modeLProb; };
+    inline double getModeLProb() const;
 
     //! Get the logprobability of the least probable subisotopologue.
     double getUnlikeliestPeakLProb() const;
