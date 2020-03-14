@@ -161,6 +161,9 @@ public:
 */
 class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
 {
+public:
+    const double mode_lprob;
+
 protected:
     double* partialLProbs;  /*!< The prefix sum of the log-probabilities of the current isotopologue. */
     double* partialMasses;  /*!< The prefix sum of the masses of the current isotopologue. */

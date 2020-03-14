@@ -367,6 +367,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
 IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     Iso(std::move(iso)),
+    mode_lprob(getModeLProb()),
     partialLProbs(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialMasses(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
@@ -402,7 +403,7 @@ static const double minsqrt = -1.3407796239501852e+154; // == constexpr(-sqrt(st
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize, bool reorder_marginals)
 : IsoGenerator(std::move(iso)),
-Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_threshold) + getModeLProb()))
+Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_threshold) + mode_lprob))
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
@@ -414,7 +415,7 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - getModeLProb() + marginals[ii]->getModeLProb(),
+                                                        Lcutoff - mode_lprob + marginals[ii]->getModeLProb(),
                                                         true,
                                                         tabSize,
                                                         hashSize);
@@ -539,7 +540,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
-    currentLThreshold = nextafter(getModeLProb(), -std::numeric_limits<double>::infinity());
+    currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
     lastLThreshold = std::numeric_limits<double>::min();
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
@@ -613,7 +614,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
 
     for(int ii=0; ii<dimNumber; ii++)
     {
-        marginalResults[ii]->extend(currentLThreshold - getModeLProb() + marginalResults[ii]->getModeLProb());
+        marginalResults[ii]->extend(currentLThreshold - mode_lprob + marginalResults[ii]->getModeLProb());
         counter[ii] = 0;
     }
 
