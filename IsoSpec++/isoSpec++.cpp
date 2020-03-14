@@ -117,9 +117,9 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
     if (marginals == nullptr)
     {
         int ii = 0;
+        marginals = new Marginal*[dimNumber];
         try
         {
-            marginals = new Marginal*[dimNumber];
             while(ii < dimNumber)
             {
                 allDim += isotopeNumbers[ii];
