@@ -35,21 +35,7 @@ void * setupIso(int             dimNumber,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities)
 {
-    const double** IM = new const double*[dimNumber];
-    const double** IP = new const double*[dimNumber];
-    int idx = 0;
-    for(int i=0; i<dimNumber; i++)
-    {
-        IM[i] = &isotopeMasses[idx];
-        IP[i] = &isotopeProbabilities[idx];
-        idx += isotopeNumbers[i];
-    }
-    //TODO in place (maybe pass a numpy matrix??)
-
-    Iso* iso = new Iso(dimNumber, isotopeNumbers, atomCounts, IM, IP);
-
-    delete[] IM;
-    delete[] IP;
+    Iso* iso = new Iso(dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
 
     return reinterpret_cast<void*>(iso);
 }
