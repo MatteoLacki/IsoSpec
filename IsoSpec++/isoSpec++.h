@@ -60,8 +60,8 @@ private:
         \param _isotopeProbabilities A table of isotope frequencies of the elements in the chemical formula,
                                      e.g. {.989212, .010788, .999885, .000115} for C100H202.
     */
-    void setupMarginals(const double* const * _isotopeMasses,
-                        const double* const * _isotopeProbabilities);
+    void setupMarginals(const double* _isotopeMasses,
+                        const double* _isotopeProbabilities);
     bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
 protected:
     int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
@@ -83,6 +83,13 @@ public:
         \param _isotopeMasses A table of tables of masses of isotopes of the elements in the chemical formula, e.g. {{12.0, 13.003355}, {1.007825, 2.014102}} for C100H202.
         \param _isotopeProbabilities A table of tables of isotope frequencies of the elements in the chemical formula, e.g. {{.989212, .010788}, {.999885, .000115}} for C100H202.
     */
+    Iso(
+        int             _dimNumber,
+        const int*      _isotopeNumbers,
+        const int*      _atomCounts,
+        const double*   _isotopeMasses,
+        const double*   _isotopeProbabilities
+    );
     Iso(
         int             _dimNumber,
         const int*      _isotopeNumbers,

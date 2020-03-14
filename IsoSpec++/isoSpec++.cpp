@@ -73,6 +73,47 @@ confSize(_dimNumber * sizeof(int)),
 allDim(0),
 marginals(nullptr)
 {
+    for(int ii=0; ii<dimNumber; ++ii)
+        allDim += isotopeNumbers[ii];
+
+    unique_ptr<double[]> masses = make_unique<double[]>(allDim);
+    unique_ptr<double[]> probs  = make_unique<double[]>(allDim);
+    size_t idx = 0;
+
+    for(int ii=0; ii<dimNumber; ++ii)
+        for(int jj=0; jj<isotopeNumbers[ii]; ++jj)
+        {
+            masses[idx] = _isotopeMasses[ii][jj];
+            probs[idx]  = _isotopeProbabilities[ii][jj];
+            ++idx;
+        }
+
+    try{
+        setupMarginals(masses.get(), probs.get());
+    }
+    catch(...)
+    {
+        delete[] isotopeNumbers;
+        delete[] atomCounts;
+        throw;
+    }
+}
+
+Iso::Iso(
+    int             _dimNumber,
+    const int*      _isotopeNumbers,
+    const int*      _atomCounts,
+    const double*   _isotopeMasses,
+    const double*   _isotopeProbabilities
+) :
+disowned(false),
+dimNumber(_dimNumber),
+isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
+atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
+confSize(_dimNumber * sizeof(int)),
+allDim(0),
+marginals(nullptr)
+{
     try{
         setupMarginals(_isotopeMasses, _isotopeProbabilities);
     }
@@ -112,7 +153,7 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 }
 
 
-inline void Iso::setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities)
+inline void Iso::setupMarginals(const double* _isotopeMasses, const double* _isotopeProbabilities)
 {
     if (marginals == nullptr)
     {
@@ -122,13 +163,13 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
         {
             while(ii < dimNumber)
             {
-                allDim += isotopeNumbers[ii];
                 marginals[ii] = new Marginal(
-                        _isotopeMasses[ii],
-                        _isotopeProbabilities[ii],
+                        &_isotopeMasses[allDim],
+                        &_isotopeProbabilities[allDim],
                         isotopeNumbers[ii],
                         atomCounts[ii]
                     );
+                allDim += isotopeNumbers[ii];
                 ii++;
             }
         }
@@ -235,7 +276,8 @@ marginals(nullptr)
 
     dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize, use_nominal_masses);
 
-    setupMarginals(isotope_masses.data(), isotope_probabilities.data());
+    throw std::logic_error("Not implemented");
+    //setupMarginals(isotope_masses.data(), isotope_probabilities.data());
 }
 
 
