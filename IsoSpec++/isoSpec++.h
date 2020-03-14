@@ -104,6 +104,17 @@ public:
     //! Constructor from C++ std::string chemical formula.
     inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {};
 
+    //! Constructor (named) from aminoacid FASTA sequence as C string.
+    /*!
+        \param fasta An aminoacid FASTA sequence. May be upper/lower/mixed case, may contain selenocystein (U). Subisotopologues will be in order: CHNOS, possibly with Se added at an end if present.
+        \use_nominal_masses Whether to use nucleon number instead of the real mass of each isotope during calculations.
+        \add_water Whether the chain should have the terminating -H and -OH groups at the N and C terminus, respectively.
+    */
+    static Iso FromFASTA(const char* fasta, bool use_nominal_masses = false, bool add_water = true);
+
+    //! Constructor (named) from aminoacid FASTA sequence as C++ std::string. See above for details.
+    static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); };
+
     //! The move constructor.
     Iso(Iso&& other);
 

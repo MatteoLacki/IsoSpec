@@ -1,3 +1,5 @@
+#pragma once
+
 namespace IsoSpec{
 
 // We will work with C H N O S Se tuples */

@@ -40,6 +40,7 @@
 #include "isoSpec++.h"
 #include "misc.h"
 #include "element_tables.h"
+#include "fasta.h"
 
 
 using namespace std;
@@ -154,6 +155,27 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
             marginals[ii] = new Marginal(*other.marginals[ii]);
 }
 
+Iso Iso::FromFASTA(const char* fasta, bool use_nominal_masses, bool add_water)
+{
+    int atomCounts[6] = {0,0,0,0,0,0};
+
+    if(add_water)
+    {
+        atomCounts[1] = 2;
+        atomCounts[3] = 1;
+    }
+
+    for(size_t idx = 0; fasta[idx] != '\0'; ++idx)
+    {
+        const int* counts = &aa_symbol_to_elem_counts[fasta[idx]*6];
+        for(int ii = 0; ii < 6; ++ii)
+            atomCounts[ii] += counts[ii];
+    }
+
+    const int dimNr = atomCounts[5] > 0 ? 6 : 5;
+
+    return Iso(dimNr, aa_isotope_numbers, atomCounts, use_nominal_masses ? aa_elem_nominal_masses : aa_elem_masses, aa_elem_probabilities);
+}
 
 inline void Iso::setupMarginals(const double* _isotopeMasses, const double* _isotopeProbabilities)
 {
