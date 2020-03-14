@@ -76,7 +76,7 @@
 
 // Note: __GNUC__ is defined by clang and gcc
 #ifdef __GNUC__
-#define ISOSPEC_IMPOSSIBLE(condition) if(condition) __builtin_unreachable;
+#define ISOSPEC_IMPOSSIBLE(condition) if(condition) __builtin_unreachable();
 #define ISOSPEC_LIKELY(condition) __builtin_expect(static_cast<bool>(condition), 1)
 #define ISOSPEC_UNLIKELY(condition) __builtin_expect(static_cast<bool>(condition), 0)
 // For aggressive inlining
