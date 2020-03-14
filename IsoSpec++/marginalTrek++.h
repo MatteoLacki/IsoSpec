@@ -109,7 +109,7 @@ public:
     /*!
         \return The mass of one of the most probable subisotopologues.
     */
-    inline double getModeMass() const { return mass(mode_conf, atom_masses, isotopeNo); };
+    inline double getModeMass() { ensureModeConf(); return mass(mode_conf, atom_masses, isotopeNo); };
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
