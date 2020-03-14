@@ -415,7 +415,7 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - mode_lprob + marginals[ii]->getModeLProb(),
+                                                        Lcutoff - mode_lprob + marginals[ii]->fastGetModeLProb(),
                                                         true,
                                                         tabSize,
                                                         hashSize);
@@ -454,10 +454,10 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
 
     if(dimNumber > 1)
-        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+        maxConfsLPSum[0] = marginalResults[0]->fastGetModeLProb();
 
     for(int ii=1; ii<dimNumber-1; ii++)
-        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->fastGetModeLProb();
 
     lProbs_ptr = lProbs_ptr_start;
 
@@ -586,10 +586,10 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
 
     if(dimNumber > 1)
-        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+        maxConfsLPSum[0] = marginalResults[0]->fastGetModeLProb();
 
     for(int ii=1; ii<dimNumber-1; ii++)
-        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->fastGetModeLProb();
 
     lProbs_ptr = lProbs_ptr_start;
 
@@ -614,7 +614,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
 
     for(int ii=0; ii<dimNumber; ii++)
     {
-        marginalResults[ii]->extend(currentLThreshold - mode_lprob + marginalResults[ii]->getModeLProb());
+        marginalResults[ii]->extend(currentLThreshold - mode_lprob + marginalResults[ii]->fastGetModeLProb());
         counter[ii] = 0;
     }
 
