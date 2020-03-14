@@ -31,6 +31,7 @@
 #include "marginalTrek++.cpp"
 #include "operators.cpp"
 #include "element_tables.cpp"
+#include "fasta.cpp"
 #include "cwrapper.cpp"
 #include "fixedEnvelopes.cpp"
 #include "misc.cpp"
