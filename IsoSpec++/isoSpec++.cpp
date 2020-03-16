@@ -357,15 +357,13 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
             throw invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
 
     size_t position = 0;
-    size_t elem_end = 0;
-    size_t digit_end = 0;
 
     while(position < slen)
     {
-        elem_end = position;
+        size_t elem_end = position;
         while(isalpha(formula[elem_end]))
             elem_end++;
-        digit_end = elem_end;
+        size_t digit_end = elem_end;
         while(isdigit(formula[digit_end]))
             digit_end++;
         elements.emplace_back(&formula[position], elem_end-position);
