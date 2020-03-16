@@ -528,7 +528,7 @@ class IsoStochasticGenerator : IsoGenerator
 public:
     IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
 
-    ISOSPEC_FORCE_INLINE size_t count() const override final { return current_count; };
+    ISOSPEC_FORCE_INLINE size_t count() const { return current_count; };
 
     ISOSPEC_FORCE_INLINE double mass() const override final { return ILG.mass(); };
 
