@@ -40,6 +40,13 @@ void * setupIso(int             dimNumber,
     return reinterpret_cast<void*>(iso);
 }
 
+void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water)
+{
+    Iso* iso = new Iso(Iso::FromFASTA(fasta, use_nominal_masses, add_water));
+
+    return reinterpret_cast<void*>(iso);
+}
+
 void deleteIso(void* iso)
 {
     delete reinterpret_cast<Iso*>(iso);

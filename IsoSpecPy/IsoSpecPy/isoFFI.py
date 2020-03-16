@@ -15,6 +15,8 @@ class IsoFFI:
                 const double* isotopeMasses,
                 const double* isotopeProbabilities);
 
+        void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water);
+
         double getLightestPeakMassIso(void* iso);
         double getHeaviestPeakMassIso(void* iso);
         double getMonoisotopicPeakMassIso(void* iso);
