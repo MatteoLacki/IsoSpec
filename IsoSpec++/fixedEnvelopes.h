@@ -43,7 +43,7 @@ protected:
     int allDimSizeofInt;
 
 public:
-    FixedEnvelope() : _masses(nullptr),
+    ISOSPEC_FORCE_INLINE FixedEnvelope() : _masses(nullptr),
         _probs(nullptr),
         _confs(nullptr),
         _confs_no(0),
