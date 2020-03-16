@@ -24,11 +24,7 @@ typedef double RealType;
 typedef ssize_t IntType;
 
 
-struct binomial_table {
-    static const RealType table[10];
-};
-
-const RealType binomial_table::table[10] = {
+static const RealType btrd_binomial_table[10] = {
     0.08106146679532726,
     0.04134069595540929,
     0.02767792568499834,
@@ -64,7 +60,7 @@ const RealType binomial_table::table[10] = {
 // for log(k!)
 static RealType fc(IntType k)
 {
-    if(k < 10) return binomial_table::table[k];
+    if(k < 10) return btrd_binomial_table[k];
     else {
         RealType ikp1 = RealType(1) / (k + 1);
         return (RealType(1)/12
