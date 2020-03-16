@@ -29,7 +29,7 @@ class KeyHasher
 private:
     int dim;
 public:
-    KeyHasher(int dim);
+    explicit KeyHasher(int dim);
 
     inline std::size_t operator()(const int* conf) const noexcept
     {
@@ -47,7 +47,7 @@ class ConfEqual
 private:
     int size;
 public:
-    ConfEqual(int dim);
+    explicit ConfEqual(int dim);
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
@@ -114,7 +114,7 @@ template<typename T> class TableOrder
 {
         const T* tbl;
 public:
-        inline TableOrder(const T* _tbl) : tbl(_tbl) {};
+        inline explicit TableOrder(const T* _tbl) : tbl(_tbl) {};
         inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
 
