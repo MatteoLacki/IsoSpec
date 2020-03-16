@@ -129,11 +129,11 @@ double InverseLowerIncompleteGamma2(int a, double x)
 {
     double l = 0.0;
     double p = tgamma(a);
-    double s, v;
+    double s;
 
     do {
         s = (l+p) / 2.0;
-        v = LowerIncompleteGamma2(a, s);
+        double v = LowerIncompleteGamma2(a, s);
         if (x < v)
             p = s;
         else
