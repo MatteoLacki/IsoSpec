@@ -75,10 +75,10 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     // Too much: trying to redistribute the difference: hopefully the first element is the largest.
     if( diff < 0 ){
         diff = abs(diff);
-        int i = 0, coordDiff = 0;
+        int i = 0;
 
         while( diff > 0){
-            coordDiff = res[i] - diff;
+            int coordDiff = res[i] - diff;
 
             if( coordDiff >= 0 ){
                 res[i] -= diff;
