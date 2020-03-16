@@ -372,7 +372,7 @@ bool MarginalTrek::add_next_conf()
     visited[topConf] = current_count;
 
     _confs.push_back(topConf);
-    _conf_masses.push_back(mass(topConf, atom_masses, isotopeNo));
+    _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
     double logprob = logProb(topConf);
     _conf_lprobs.push_back(logprob);
 
@@ -505,7 +505,7 @@ allocator(isotopeNo, tabSize)
     {
         lProbs[ii] = logProb(confs[ii]);
         probs[ii] = exp(lProbs[ii]);
-        masses[ii] = mass(confs[ii], atom_masses, isotopeNo);
+        masses[ii] = calc_mass(confs[ii], atom_masses, isotopeNo);
     }
     lProbs[no_confs] = -std::numeric_limits<double>::infinity();
 }
@@ -616,7 +616,7 @@ bool LayeredMarginal::extend(double new_threshold)
     {
         lProbs.push_back(logProb(configurations[ii]));
         probs.push_back(exp(lProbs.back()));
-        masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
+        masses.push_back(calc_mass(configurations[ii], atom_masses, isotopeNo));
     }
 
     lProbs.push_back(-std::numeric_limits<double>::infinity()); // Restore guardian

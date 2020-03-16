@@ -69,7 +69,7 @@ inline double unnormalized_logProb(const int* conf, const double* logProbs, int 
     return res;
 }
 
-inline double mass(const int* conf, const double* masses, int dim)
+inline double calc_mass(const int* conf, const double* masses, int dim)
 {
     double res = 0.0;
 
