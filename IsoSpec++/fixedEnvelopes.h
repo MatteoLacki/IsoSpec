@@ -37,6 +37,10 @@ protected:
     bool sorted_by_prob;
     double total_prob;
     size_t current_size;
+    double* tmasses;
+    double* tprobs;
+    int*    tconfs;
+    int allDimSizeofInt;
 
 public:
     FixedEnvelope() : _masses(nullptr),
@@ -47,7 +51,9 @@ public:
         sorted_by_mass(false),
         sorted_by_prob(false),
         total_prob(0.0),
-        current_size(0)
+        current_size(0),
+        allDimSizeofInt(0)
+        // Deliberately not initializing tmasses, tprobs, tconfs
         {};
 
     FixedEnvelope(const FixedEnvelope& other);
@@ -102,11 +108,6 @@ private:
     void sort_by(double* order);
 
 protected:
-    double* tmasses;
-    double* tprobs;
-    int*    tconfs;
-
-    int allDimSizeofInt;
 
     template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
