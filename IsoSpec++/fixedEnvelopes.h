@@ -43,6 +43,7 @@ public:
         _probs(nullptr),
         _confs(nullptr),
         _confs_no(0),
+        allDim(0),
         sorted_by_mass(false),
         sorted_by_prob(false),
         total_prob(0.0),
