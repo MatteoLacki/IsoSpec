@@ -37,7 +37,7 @@ private:
     const int       dim, tabSize;
     std::vector<T*>  prevTabs;
 public:
-    Allocator(const int dim, const int tabSize = 10000);
+    explicit Allocator(const int dim, const int tabSize = 10000);
     ~Allocator();
 
     void shiftTables();
