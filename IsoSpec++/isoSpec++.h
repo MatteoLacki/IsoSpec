@@ -528,15 +528,15 @@ class IsoStochasticGenerator : IsoGenerator
 public:
     IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
 
-    ISOSPEC_FORCE_INLINE size_t count() const { return current_count; };
+    ISOSPEC_FORCE_INLINE size_t count() const override final { return current_count; };
 
-    ISOSPEC_FORCE_INLINE double mass() const { return ILG.mass(); };
+    ISOSPEC_FORCE_INLINE double mass() const override final { return ILG.mass(); };
 
-    ISOSPEC_FORCE_INLINE double prob() const { return static_cast<double>(count()); };
+    ISOSPEC_FORCE_INLINE double prob() const override final { return static_cast<double>(count()); };
 
-    ISOSPEC_FORCE_INLINE double lprob() const { return log(prob()); };
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return log(prob()); };
 
-    ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const { ILG.get_conf_signature(space); };
+    ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const override final { ILG.get_conf_signature(space); };
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration()
     {
