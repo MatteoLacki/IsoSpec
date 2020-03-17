@@ -538,7 +538,7 @@ public:
 
     ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const override final { ILG.get_conf_signature(space); };
 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration()
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
         /* This function will be used mainly in very small, tight loops, therefore it makes sense to
          * aggressively inline it, despite its seemingly large body.
