@@ -131,7 +131,7 @@ template<typename T> class OrderMarginalsBySizeDecresing
 {
     T const* const* const MT;
 public:
-    OrderMarginalsBySizeDecresing(T const* const * const _MT) : MT(_MT) {};
+    explicit OrderMarginalsBySizeDecresing(T const* const * const _MT) : MT(_MT) {};
     inline bool operator()(int m1, int m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); };
 };
 
