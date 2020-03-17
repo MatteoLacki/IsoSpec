@@ -549,15 +549,13 @@ bool LayeredMarginal::extend(double new_threshold)
     for(unsigned int ii = 0; ii<fringe.size(); ii++)
         visited.insert(fringe[ii]);
 
-    double lpc, opc;
-
     Conf currentConf;
     while(!fringe.empty())
     {
         currentConf = fringe.back();
         fringe.pop_back();
 
-        opc = logProb(currentConf);
+        double opc = logProb(currentConf);
 
         if(opc < new_threshold)
             new_fringe.push_back(currentConf);
@@ -572,7 +570,7 @@ bool LayeredMarginal::extend(double new_threshold)
                         currentConf[ii]++;
                         currentConf[jj]--;
 
-                        lpc = logProb(currentConf);
+                        double lpc = logProb(currentConf);
 
                         if (visited.count(currentConf) == 0 && lpc < current_threshold &&
                             (opc > lpc || (opc == lpc && ii > jj)))
