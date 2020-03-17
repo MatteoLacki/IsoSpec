@@ -468,7 +468,7 @@ public:
         {
             if(advanceToNextConfigurationWithinLayer())
                 return true;
-        } while(nextLayer(-2.0));
+        } while(IsoLayeredGenerator::nextLayer(-2.0));
         return false;
     }
 

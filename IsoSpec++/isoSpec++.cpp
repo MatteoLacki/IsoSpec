@@ -658,7 +658,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     counter[0]--;
     lProbs_ptr--;
     lastLThreshold = 10.0;
-    nextLayer(-0.00001);
+    IsoLayeredGenerator::nextLayer(-0.00001);
 }
 
 bool IsoLayeredGenerator::nextLayer(double offset)
