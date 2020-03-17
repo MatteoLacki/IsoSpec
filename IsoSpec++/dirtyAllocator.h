@@ -31,7 +31,7 @@ private:
     int     cellSize;
     std::vector<void*>  prevTabs;
 public:
-    DirtyAllocator(const int dim, const int tabSize = 10000);
+    explicit DirtyAllocator(const int dim, const int tabSize = 10000);
     ~DirtyAllocator();
 
     void shiftTables();
