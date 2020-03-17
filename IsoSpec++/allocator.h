@@ -40,6 +40,9 @@ public:
     explicit Allocator(const int dim, const int tabSize = 10000);
     ~Allocator();
 
+    Allocator(const Allocator& other) = delete;
+    Allocator operator=(const Allocator& other) = delete;
+
     void shiftTables();
 
     inline T* newConf()

@@ -34,6 +34,9 @@ public:
     explicit DirtyAllocator(const int dim, const int tabSize = 10000);
     ~DirtyAllocator();
 
+    DirtyAllocator(const DirtyAllocator& other) = delete;
+    DirtyAllocator operator=(const DirtyAllocator& other) = delete;
+
     void shiftTables();
 
     inline void* newConf()
