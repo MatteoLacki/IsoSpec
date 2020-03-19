@@ -16,8 +16,10 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
+#include <vector>
+#include <utility>
 
 #include "isoSpec++.h"
 
