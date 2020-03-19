@@ -199,6 +199,9 @@ public:
         int hashSize = 1000
     );
 
+    MarginalTrek(const MarginalTrek& other) = delete;
+    MarginalTrek& operator=(const MarginalTrek& other) = delete;
+
     //! Check if the table of computed subisotopologues does not have to be extended.
     /*!
         This function checks if the idx-th most probable subisotopologue was memoized and if not, computes it and memoizes it.
@@ -272,6 +275,9 @@ public:
         int tabSize = 1000,
         int hashSize = 1000
     );
+
+    PrecalculatedMarginal(const PrecalculatedMarginal& other) = delete;
+    PrecalculatedMarginal& operator=(const PrecalculatedMarginal& other) = delete;
 
     //! Destructor.
     virtual ~PrecalculatedMarginal();
@@ -366,6 +372,9 @@ public:
         \param hashSize The size of the hash table used to store visited subisotopologues.
     */
     LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
+
+    LayeredMarginal(const LayeredMarginal& other) = delete;
+    LayeredMarginal& operator=(const LayeredMarginal& other) = delete;
 
     //! Extend the set of computed subisotopologues to those above the new threshold.
     /*!
