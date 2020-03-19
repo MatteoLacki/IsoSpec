@@ -60,8 +60,8 @@ total_prob(_total_prob)
 
 FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 {
-    double* nprobs  = (double*) malloc(sizeof(double) * (_confs_no+other._confs_no));
-    double* nmasses = (double*) malloc(sizeof(double) * (_confs_no+other._confs_no));
+    double* nprobs  = reinterpret_cast<double*>(malloc(sizeof(double) * (_confs_no+other._confs_no)));
+    double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * (_confs_no+other._confs_no)));
 
     memcpy(nprobs,  _probs,  sizeof(double) * _confs_no);
     memcpy(nmasses, _masses, sizeof(double) * _confs_no);
@@ -74,8 +74,8 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 
 FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 {
-    double* nprobs =  (double*) malloc(sizeof(double) * _confs_no * other._confs_no);
-    double* nmasses = (double*) malloc(sizeof(double) * _confs_no * other._confs_no);
+    double* nprobs =  reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
+    double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
 
     size_t tgt_idx = 0;
 
@@ -206,8 +206,8 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
     for(size_t ii = 0; ii < size; ii++)
         ret_size += spectra[ii]->_confs_no;
 
-    double* newprobs = (double*) malloc(sizeof(double)*ret_size);
-    double* newmasses = (double*) malloc(sizeof(double)*ret_size);
+    double* newprobs  = reinterpret_cast<double*>(malloc(sizeof(double)*ret_size));
+    double* newmasses = reinterpret_cast<double*>(malloc(sizeof(double)*ret_size));
 
     size_t cntr = 0;
     for(size_t ii = 0; ii < size; ii++)
@@ -375,9 +375,9 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
     // NON-fixme: Deliberately not handling out-of-memory condition here. On systems with overcommit_memory (or equivalent) (which is
     // probably like 99% of our users) we'll get a non-NULL pointer here, and get killed by OOM killer when we use it.
-    _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no;
-    _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no;
-    constexpr_if(tgetConfs)  { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
+    _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double))); tmasses = _masses + _confs_no;
+    _probs  = reinterpret_cast<double*>(realloc(_probs,  new_size * sizeof(double))); tprobs  = _probs  + _confs_no;
+    constexpr_if(tgetConfs)  { _confs  = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt)); tconfs = _confs + (allDim * _confs_no); }
 }
 
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
@@ -385,9 +385,9 @@ void FixedEnvelope::slow_reallocate_memory(size_t new_size)
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
     // NON-fixme: Deliberately not handling out-of-memory condition here. On systems with overcommit_memory (or equivalent) (which is
     // probably like 99% of our users) we'll get a non-NULL pointer here, and get killed by OOM killer when we use it.
-    _masses = (double*) realloc(_masses, new_size * sizeof(double)); tmasses = _masses + _confs_no;
-    _probs  = (double*) realloc(_probs,  new_size * sizeof(double)); tprobs  = _probs  + _confs_no;
-    if(_confs  != nullptr) { _confs  = (int*)    realloc(_confs,  new_size * allDimSizeofInt); tconfs = _confs + (allDim * _confs_no); }
+    _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double))); tmasses = _masses + _confs_no;
+    _probs  = reinterpret_cast<double*>(realloc(_probs,  new_size * sizeof(double))); tprobs  = _probs  + _confs_no;
+    if(_confs  != nullptr) { _confs = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt)); tconfs = _confs + (allDim * _confs_no); }
 }
 
 template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double threshold, bool absolute)
@@ -482,7 +482,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 
     int* conf_swapspace = nullptr;
     constexpr_if(tgetConfs)
-        conf_swapspace = (int*) malloc(this->allDimSizeofInt);
+        conf_swapspace = reinterpret_cast<int*>(malloc(this->allDimSizeofInt));
 
     size_t start = last_switch;
     size_t end = this->_confs_no;
