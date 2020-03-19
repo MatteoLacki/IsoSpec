@@ -22,7 +22,7 @@
     #include "mman.cpp" // NOLINT(build/include)
 #endif
 
-// A poor-man's replacement for LTO. We're small enough that we can do that. And 
+// A poor-man's replacement for LTO. We're small enough that we can do that. And
 // ignore cpplint's complaints about it.
 
 #include "allocator.cpp"        // NOLINT(build/include)
