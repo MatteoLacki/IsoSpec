@@ -18,8 +18,8 @@
 
 #include <iostream>
 #include <vector>
-#include <fenv.h>
-#include <string.h>
+#include <cfenv>
+#include <cstring>
 #include "isoMath.h"
 
 namespace IsoSpec
