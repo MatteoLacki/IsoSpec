@@ -118,6 +118,9 @@ public:
     //! The move constructor.
     Iso(Iso&& other);
 
+    /* We're not exactly following standard copy and assign semantics with Iso objects, so delete the default assign constructor just in case, so noone tries to use it. Copy ctor declared below. */
+    Iso operator=(const Iso& other) = delete;
+
     //! The copy constructor.
     /*!
         \param other The other instance of the Iso class.
