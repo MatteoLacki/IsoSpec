@@ -141,7 +141,7 @@ double InverseLowerIncompleteGamma2(int a, double x)
             p = s;
         else
             l = s;
-    } while((p-l)*1000.0>p);
+    } while((p-l)*1000.0 > p);
 
     return s;
 }
