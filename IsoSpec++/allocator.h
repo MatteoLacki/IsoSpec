@@ -17,7 +17,7 @@
 #pragma once
 
 #include <vector>
-#include <string.h>
+#include <cstring>
 #include "conf.h"
 
 namespace IsoSpec
