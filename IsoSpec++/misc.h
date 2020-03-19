@@ -29,7 +29,7 @@ inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
 ){
     double res = 0.0;
-    for(int i=0; i<dimNumber;i++)
+    for(int i=0; i<dimNumber; i++)
         res += (*(valuesContainer[i]))[conf[i]];
     return res;
 }
