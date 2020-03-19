@@ -17,6 +17,8 @@
 #pragma once
 
 #include <cmath>
+#include <vector>
+#include <utility>
 
 namespace IsoSpec
 {
