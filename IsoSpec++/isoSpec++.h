@@ -28,11 +28,6 @@
 #include "marginalTrek++.h"
 
 
-#if ISOSPEC_BUILDING_R
-#include <Rcpp.h>
-using namespace Rcpp;
-#endif /* ISOSPEC_BUILDING_R */
-
 
 namespace IsoSpec
 {
