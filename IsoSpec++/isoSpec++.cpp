@@ -29,6 +29,7 @@
 #include <stdexcept>
 #include <string>
 #include <limits>
+#include <memory>
 #include <assert.h>
 #include <ctype.h>
 #include "platform.h"
@@ -43,7 +44,6 @@
 #include "fasta.h"
 
 
-using namespace std;
 
 namespace IsoSpec
 {
@@ -77,8 +77,8 @@ marginals(nullptr)
     for(int ii=0; ii<dimNumber; ++ii)
         allDim += isotopeNumbers[ii];
 
-    unique_ptr<double[]> masses = make_unique<double[]>(allDim);
-    unique_ptr<double[]> probs  = make_unique<double[]>(allDim);
+    std::unique_ptr<double[]> masses = std::make_unique<double[]>(allDim);
+    std::unique_ptr<double[]> probs  = std::make_unique<double[]>(allDim);
     size_t idx = 0;
 
     for(int ii=0; ii<dimNumber; ++ii)
@@ -157,7 +157,7 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 
 Iso Iso::FromFASTA(const char* fasta, bool use_nominal_masses, bool add_water)
 {
-    int atomCounts[6] = {0,0,0,0,0,0};
+    int atomCounts[6] = {0, 0, 0, 0, 0, 0};
 
     if(add_water)
     {
@@ -210,7 +210,6 @@ inline void Iso::setupMarginals(const double* _isotopeMasses, const double* _iso
             throw;
         }
     }
-
 }
 
 Iso::~Iso()
@@ -313,7 +312,6 @@ void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses,
     dimNumber++;
     confSize += sizeof(int);
     allDim += noIsotopes;
-
 }
 
 void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_prob) const
@@ -347,14 +345,14 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     std::vector<int> numbers;
 
     if(slen == 0)
-        throw invalid_argument("Invalid formula: can't be empty");
+        throw std::invalid_argument("Invalid formula: can't be empty");
 
     if(!isdigit(formula[slen-1]))
-        throw invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
+        throw std::invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
 
     for(size_t ii=0; ii<slen; ii++)
         if(!isdigit(formula[ii]) && !isalpha(formula[ii]))
-            throw invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
+            throw std::invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
 
     size_t position = 0;
 
@@ -385,14 +383,14 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
             }
         }
         if(idx < 0)
-            throw invalid_argument("Invalid formula");
+            throw std::invalid_argument("Invalid formula");
         element_indexes.push_back(idx);
     }
 
-    vector<int> _isotope_numbers;
+    std::vector<int> _isotope_numbers;
     const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
 
-    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
+    for(std::vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         int num = 0;
         int at_idx = *it;
@@ -414,7 +412,6 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     *confSize = dimNumber * sizeof(int);
 
     return dimNumber;
-
 }
 
 
@@ -502,7 +499,6 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
             marginalOrder[tmpMarginalOrder[ii]] = ii;
 
         delete[] tmpMarginalOrder;
-
     }
     else
     {
@@ -534,9 +530,6 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
         terminate_search();
         lcfmsv = std::numeric_limits<double>::infinity();
     }
-
-
-
 }
 
 void IsoThresholdGenerator::terminate_search()
@@ -766,9 +759,9 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     for(int i = 0; i<dimNumber; i++)
         marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
 
-    logProbs        = new const vector<double>*[dimNumber];
-    masses          = new const vector<double>*[dimNumber];
-    marginalConfs   = new const vector<int*>*[dimNumber];
+    logProbs        = new const std::vector<double>*[dimNumber];
+    masses          = new const std::vector<double>*[dimNumber];
+    marginalConfs   = new const std::vector<int*>*[dimNumber];
 
     for(int i = 0; i<dimNumber; i++)
     {
@@ -792,7 +785,6 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     );
 
     pq.push(topConf);
-
 }
 
 
