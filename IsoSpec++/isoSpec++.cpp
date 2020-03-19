@@ -15,10 +15,11 @@
  */
 
 
+#include "isoSpec++.h"
 #include <cmath>
 #include <algorithm>
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
 #include <string.h>
 #include <unordered_map>
 #include <queue>
@@ -30,15 +31,14 @@
 #include <string>
 #include <limits>
 #include <memory>
-#include <assert.h>
-#include <ctype.h>
+#include <cassert>
+#include <cctype>
 #include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
 #include "summator.h"
 #include "marginalTrek++.h"
-#include "isoSpec++.h"
 #include "misc.h"
 #include "element_tables.h"
 #include "fasta.h"
