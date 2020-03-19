@@ -19,7 +19,6 @@
 #include <cstdlib>
 #include "platform.h"
 
-#define mswap(x, y) swapspace = x; x = y; y = swapspace;
 
 
 namespace IsoSpec
@@ -27,8 +26,6 @@ namespace IsoSpec
 
 void* quickselect(void** array, int n, int start, int end)
 {
-    void* swapspace;
-
     if(start == end)
         return array[start];
 
@@ -43,17 +40,17 @@ void* quickselect(void** array, int n, int start, int end)
 #endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);
-        mswap(array[pivot], array[end-1]);
+        std::swap(array[pivot], array[end-1]);
         int loweridx = start;
         for(int i = start; i < end-1; i++)
         {
             if(getLProb(array[i]) < pprob)
             {
-                mswap(array[i], array[loweridx]);
+                std::swap(array[i], array[loweridx]);
                 loweridx++;
             }
         }
-        mswap(array[end-1], array[loweridx]);
+        std::swap(array[end-1], array[loweridx]);
 
         // Selection part
         if(n == loweridx)
