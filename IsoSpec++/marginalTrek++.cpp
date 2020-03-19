@@ -58,8 +58,8 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     */
 
     // This approximates the mode (heuristics: the mean is close to the mode).
-    for(int i = 0; i < isotopeNo; ++i )
-        res[i] = int( atomCnt * exp(lprobs[i]) ) + 1;
+    for(int i = 0; i < isotopeNo; ++i)
+        res[i] = static_cast<int>( atomCnt * exp(lprobs[i]) ) + 1;
 
     // The number of assigned atoms above.
     int s = 0;
@@ -101,25 +101,23 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     {
         modified = false;
         for(int ii = 0; ii<isotopeNo; ii++)
-        for(int jj = 0; jj<isotopeNo; jj++)
-            if(ii != jj && res[ii] > 0)
-        {
-            res[ii]--;
-            res[jj]++;
-            NLP = unnormalized_logProb(res, lprobs, isotopeNo);
-            if(NLP>LP || (NLP==LP && ii>jj))
-            {
-                modified = true;
-            LP = NLP;
-            }
-            else
-            {
-                res[ii]++;
-            res[jj]--;
-            }
-        }
-
-
+            for(int jj = 0; jj<isotopeNo; jj++)
+                if(ii != jj && res[ii] > 0)
+                {
+                    res[ii]--;
+                    res[jj]++;
+                    NLP = unnormalized_logProb(res, lprobs, isotopeNo);
+                    if(NLP>LP || (NLP==LP && ii>jj))
+                    {
+                        modified = true;
+                        LP = NLP;
+                    }
+                    else
+                    {
+                        res[ii]++;
+                        res[jj]--;
+                    }
+                }
     }
 }
 
@@ -339,7 +337,7 @@ current_count(0),
 keyHasher(isotopeNo),
 equalizer(isotopeNo),
 orderMarginal(atom_lProbs, isotopeNo),
-visited(hashSize,keyHasher,equalizer),
+visited(hashSize, keyHasher, equalizer),
 pq(orderMarginal),
 totalProb(),
 candidate(new int[isotopeNo]),
@@ -447,7 +445,7 @@ allocator(isotopeNo, tabSize)
     const KeyHasher keyHasher(isotopeNo);
     const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
 
-    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+    std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 
     Conf currentConf = allocator.makeCopy(mode_conf);
     if(logProb(currentConf) >= lCutOff)
@@ -484,7 +482,6 @@ allocator(isotopeNo, tabSize)
 
                     currentConf[ii]--;
                     currentConf[jj]++;
-
                 }
     }
 
@@ -544,7 +541,7 @@ bool LayeredMarginal::extend(double new_threshold)
 
     // TODO: Make sorting optional (controlled by argument?)
     std::vector<Conf> new_fringe;
-    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
+    std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 
     for(unsigned int ii = 0; ii<fringe.size(); ii++)
         visited.insert(fringe[ii]);
@@ -589,7 +586,6 @@ bool LayeredMarginal::extend(double new_threshold)
                             currentConf[ii]--;
                             currentConf[jj]++;
                         }
-
                     }
         }
     }
