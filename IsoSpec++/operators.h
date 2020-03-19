@@ -67,7 +67,7 @@ class ConfOrder
 {
 //configurations comparator
 public:
-    inline bool operator()(void* conf1,void* conf2) const
+    inline bool operator()(void* conf1, void* conf2) const
     {
         return *reinterpret_cast<double*>(conf1) < *reinterpret_cast<double*>(conf2);
     };
@@ -85,7 +85,7 @@ public:
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {// Return true if conf1 is less probable than conf2.
-        return unnormalized_logProb(conf1,logProbs,dim) < unnormalized_logProb(conf2,logProbs,dim);
+        return unnormalized_logProb(conf1, logProbs, dim) < unnormalized_logProb(conf2, logProbs, dim);
     };
 };
 
@@ -99,7 +99,7 @@ public:
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {// Return true if conf1 is less probable than conf2.
-        return unnormalized_logProb(conf1,logProbs,dim) > unnormalized_logProb(conf2,logProbs,dim);
+        return unnormalized_logProb(conf1, logProbs, dim) > unnormalized_logProb(conf2, logProbs, dim);
     };
 };
 
@@ -107,7 +107,7 @@ template<typename T> class ReverseOrder
 {
 public:
     inline ReverseOrder() {};
-    inline bool operator()(const T a,const T b) const { return a > b; };
+    inline bool operator()(const T a, const T b) const { return a > b; };
 };
 
 template<typename T> class TableOrder
