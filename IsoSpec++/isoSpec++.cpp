@@ -20,13 +20,12 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
 #include <unordered_map>
 #include <queue>
 #include <utility>
 #include <iostream>
 #include <iomanip>
-#include <cctype>
 #include <stdexcept>
 #include <string>
 #include <limits>
