@@ -47,4 +47,4 @@ void Allocator<T>::shiftTables()
 
 template class Allocator<int>;
 
-}
+} // namespace IsoSpec
