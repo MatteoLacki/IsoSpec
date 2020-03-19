@@ -19,6 +19,7 @@
 #include <unordered_map>
 #include <queue>
 #include <algorithm>
+#include <vector>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
@@ -175,8 +176,8 @@ private:
     const KeyHasher keyHasher;
     const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
-    std::unordered_map<Conf,int,KeyHasher,ConfEqual> visited;
-    std::priority_queue<Conf,std::vector<Conf>,ConfOrderMarginal> pq;
+    std::unordered_map<Conf, int, KeyHasher, ConfEqual> visited;
+    std::priority_queue<Conf, std::vector<Conf>, ConfOrderMarginal> pq;
     Summator totalProb;
     Conf candidate;
     Allocator<int> allocator;
@@ -197,7 +198,7 @@ public:
         Marginal&& m,
         int tabSize = 1000,
         int hashSize = 1000
-    );
+    ); // NOLINT(runtime/explicit) - Constructor deliberately left usable as a conversion.
 
     MarginalTrek(const MarginalTrek& other) = delete;
     MarginalTrek& operator=(const MarginalTrek& other) = delete;
@@ -340,8 +341,8 @@ public:
         \return The log-probability of a/the most probable subisotopologue.
     */
     inline double getModeLProb() const { return mode_lprob; };
-
 };
+
 
 
 //! LayeredMarginal class
@@ -371,7 +372,7 @@ public:
         \param tabSize The size of the table used to store configurations in the allocator.
         \param hashSize The size of the hash table used to store visited subisotopologues.
     */
-    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);
+    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000); // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
 
     LayeredMarginal(const LayeredMarginal& other) = delete;
     LayeredMarginal& operator=(const LayeredMarginal& other) = delete;
@@ -412,8 +413,8 @@ public:
         \return The log-probability of a/the most probable subisotopologue.
     */
     inline double getModeLProb() const { return mode_lprob; };
-
 };
+
 
 
 } // namespace IsoSpec
