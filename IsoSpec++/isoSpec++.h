@@ -20,6 +20,7 @@
 #include <queue>
 #include <limits>
 #include <string>
+#include <vector>
 #include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -52,7 +53,6 @@ unsigned int parse_formula(const char* formula,
 */
 class ISOSPEC_EXPORT_SYMBOL Iso {
 private:
-
     //! Set up the marginal isotopic envelopes, corresponding to subisotopologues.
     /*!
         \param _isotopeMasses A table of masses of isotopes of the elements in the chemical formula,
@@ -63,6 +63,7 @@ private:
     void setupMarginals(const double* _isotopeMasses,
                         const double* _isotopeProbabilities);
     bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
+
 protected:
     int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
     int*            isotopeNumbers; /*!< A table with numbers of isotopes for each element. */
@@ -72,7 +73,6 @@ protected:
     Marginal**      marginals;      /*!< The table of pointers to the distributions of individual subisotopologues. */
 
 public:
-
     Iso();
 
     //! General constructror.
@@ -99,10 +99,10 @@ public:
     );
 
     //! Constructor from the formula object.
-    Iso(const char* formula, bool use_nominal_masses = false);
+    Iso(const char* formula, bool use_nominal_masses = false); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor from C++ std::string chemical formula.
-    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {};
+    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {}; // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor (named) from aminoacid FASTA sequence as C string.
     /*!
@@ -222,7 +222,7 @@ public:
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
-    IsoGenerator(Iso&& iso, bool alloc_partials = true);
+    IsoGenerator(Iso&& iso, bool alloc_partials = true); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
     virtual ~IsoGenerator();
@@ -239,20 +239,19 @@ public:
 class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
 {
 private:
-    MarginalTrek**              marginalResults;            /*!< Table of pointers to marginal distributions of subisotopologues. */
-    std::priority_queue<void*,std::vector<void*>,ConfOrder> pq; /*!< The priority queue used to generate isotopologues ordered by descending probability. */
-    void*                       topConf;                    /*!< Most probable configuration. */
-    DirtyAllocator              allocator;                  /*!< Structure used for alocating memory for isotopologues. */
-    const std::vector<double>** logProbs;                   /*!< Obtained log-probabilities. */
-    const std::vector<double>** masses;                     /*!< Obtained masses. */
-    const std::vector<int*>**   marginalConfs;              /*!< Obtained counts of isotopes. */
-    double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
-    double                      currentMass;                /*!< The mass of the current isotopologue. */
-    double                      currentProb;                /*!< The probability of the current isotopologue. */
+    MarginalTrek**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
+    std::priority_queue<void*, std::vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
+    void*                       topConf;                            /*!< Most probable configuration. */
+    DirtyAllocator              allocator;                          /*!< Structure used for alocating memory for isotopologues. */
+    const std::vector<double>** logProbs;                           /*!< Obtained log-probabilities. */
+    const std::vector<double>** masses;                             /*!< Obtained masses. */
+    const std::vector<int*>**   marginalConfs;                      /*!< Obtained counts of isotopes. */
+    double                      currentLProb;                       /*!< The log-probability of the current isotopologue. */
+    double                      currentMass;                        /*!< The mass of the current isotopologue. */
+    double                      currentProb;                        /*!< The probability of the current isotopologue. */
     int                         ccount;
 
 public:
-
     IsoOrderedGenerator(const IsoOrderedGenerator& other) = delete;
     IsoOrderedGenerator& operator=(IsoOrderedGenerator& other) = delete;
 
@@ -281,7 +280,7 @@ public:
     };
 
     //! The move-contstructor.
-    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);
+    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
     virtual ~IsoOrderedGenerator();
@@ -299,7 +298,6 @@ public:
 class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 {
 private:
-
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
     double*                 maxConfsLPSum;
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
@@ -333,7 +331,6 @@ public:
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
-
     };
 
     //! The move-constructor.
@@ -432,7 +429,6 @@ private:
 class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 {
 private:
-
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
     double*                 maxConfsLPSum;
     double currentLThreshold, lastLThreshold;
@@ -445,6 +441,7 @@ private:
     const double** resetPositions;
     double* partialLProbs_second;
     double partialLProbs_second_val, lcfmsv, last_lcfmsv;
+
 
 public:
     IsoLayeredGenerator(const IsoLayeredGenerator& other) = delete;
@@ -466,12 +463,11 @@ public:
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
-
     };
 
     inline double get_currentLThreshold() const { return currentLThreshold; };
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99);
+    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     ~IsoLayeredGenerator();
 
@@ -493,7 +489,7 @@ public:
             if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
                 return true;
         }
-        while(carry());
+        while(carry()); // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
         return false;
     }
 
@@ -621,7 +617,6 @@ public:
                     return true;
             }
         };
-
     }
 };
 
