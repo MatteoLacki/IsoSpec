@@ -119,7 +119,7 @@ public:
     Iso(Iso&& other);
 
     /* We're not exactly following standard copy and assign semantics with Iso objects, so delete the default assign constructor just in case, so noone tries to use it. Copy ctor declared below. */
-    Iso operator=(const Iso& other) = delete;
+    Iso& operator=(const Iso& other) = delete;
 
     //! The copy constructor.
     /*!
@@ -252,6 +252,10 @@ private:
     int                         ccount;
 
 public:
+
+    IsoOrderedGenerator(const IsoOrderedGenerator& other) = delete;
+    IsoOrderedGenerator& operator=(IsoOrderedGenerator& other) = delete;
+
     bool advanceToNextConfiguration() override final;
 
     //! Save the counts of isotopes in the space.
@@ -310,6 +314,9 @@ private:
     bool empty;
 
 public:
+    IsoThresholdGenerator(const IsoThresholdGenerator& other) = delete;
+    IsoThresholdGenerator& operator=(const IsoThresholdGenerator& other) = delete;
+
     inline void get_conf_signature(int* space) const override final
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
@@ -440,6 +447,9 @@ private:
     double partialLProbs_second_val, lcfmsv, last_lcfmsv;
 
 public:
+    IsoLayeredGenerator(const IsoLayeredGenerator& other) = delete;
+    IsoLayeredGenerator& operator=(const IsoLayeredGenerator& other) = delete;
+
     inline void get_conf_signature(int* space) const override final
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;

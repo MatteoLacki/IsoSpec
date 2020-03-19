@@ -41,7 +41,7 @@ public:
     ~Allocator();
 
     Allocator(const Allocator& other) = delete;
-    Allocator operator=(const Allocator& other) = delete;
+    Allocator& operator=(const Allocator& other) = delete;
 
     void shiftTables();
 
