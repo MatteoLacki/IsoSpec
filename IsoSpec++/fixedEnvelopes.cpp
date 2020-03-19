@@ -80,8 +80,8 @@ FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 
     size_t tgt_idx = 0;
 
-    for(size_t ii=0; ii<_confs_no; ii++)
-        for(size_t jj=0; jj<other._confs_no; jj++)
+    for(size_t ii = 0; ii < _confs_no; ii++)
+        for(size_t jj = 0; jj < other._confs_no; jj++)
         {
             nprobs[tgt_idx]  = _probs[ii]  * other._probs[jj];
             nmasses[tgt_idx] = _masses[ii] + other._masses[jj];
@@ -123,7 +123,7 @@ template<typename T> void reorder_array(T* arr, size_t* order, size_t size, bool
         order = order_c;
     }
 
-    for(size_t ii=0; ii<size; ii++)
+    for(size_t ii = 0; ii < size; ii++)
         while(order[ii] != ii)
         {
             std::swap(arr[ii], arr[order[ii]]);
@@ -138,21 +138,21 @@ void FixedEnvelope::sort_by(double* order)
 {
     size_t* indices = new size_t[_confs_no];
 
-    for(size_t ii=0; ii<_confs_no; ii++)
+    for(size_t ii = 0; ii < _confs_no; ii++)
         indices[ii] = ii;
 
     std::sort<size_t*>(indices, indices + _confs_no, TableOrder<double>(order));
 
     size_t* inverse = new size_t[_confs_no];
 
-    for(size_t ii=0; ii<_confs_no; ii++)
+    for(size_t ii = 0; ii < _confs_no; ii++)
         inverse[indices[ii]] = ii;
 
     delete[] indices;
 
     reorder_array(_masses, inverse, _confs_no);
     reorder_array(_probs,  inverse, _confs_no);
-    if(_confs  != nullptr)
+    if(_confs != nullptr)
     {
         int* swapspace = new int[allDim];
         for(size_t ii = 0; ii < _confs_no; ii++)
@@ -173,7 +173,7 @@ double FixedEnvelope::get_total_prob()
     if(std::isnan(total_prob))
     {
         total_prob = 0.0;
-        for(size_t ii=0; ii<_confs_no; ii++)
+        for(size_t ii = 0; ii < _confs_no; ii++)
             total_prob += _probs[ii];
     }
     return total_prob;
@@ -181,7 +181,7 @@ double FixedEnvelope::get_total_prob()
 
 void FixedEnvelope::scale(double factor)
 {
-    for(size_t ii = 0; ii<_confs_no; ii++)
+    for(size_t ii = 0; ii < _confs_no; ii++)
         _probs[ii] *= factor;
     total_prob *= factor;
 }
@@ -225,7 +225,7 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
 double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
 {
     double ret = 0.0;
-    if((get_total_prob()*0.999>other.get_total_prob()) || (other.get_total_prob()>get_total_prob()*1.001))
+    if((get_total_prob()*0.999 > other.get_total_prob()) || (other.get_total_prob() > get_total_prob()*1.001))
         throw std::logic_error("Spectra must be normalized before computing Wasserstein Distance");
 
     if(_confs_no == 0 || other._confs_no == 0)
@@ -284,7 +284,7 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
 double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
 {
     double ret = 0.0;
-    if((get_total_prob()*0.999>other.get_total_prob()) || (other.get_total_prob()>get_total_prob()*1.001))
+    if((get_total_prob()*0.999 > other.get_total_prob()) || (other.get_total_prob() > get_total_prob()*1.001))
         throw std::logic_error("Spectra must be normalized before computing Wasserstein Distance");
 
     if(_confs_no == 0 || other._confs_no == 0)
@@ -504,7 +504,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         double new_csum = sum_to_start;
 
         size_t loweridx = start;
-        for(size_t ii=start; ii<end-1; ii++)
+        for(size_t ii = start; ii < end-1; ii++)
             if(this->_probs[ii] > pprob)
             {
                 swap<tgetConfs>(ii, loweridx, conf_swapspace);
