@@ -264,7 +264,7 @@ public:
         if (ccount >= 0)
             c[ccount]--;
 
-        for(int ii=0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
         {
             memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
             space += isotopeNumbers[ii];
@@ -314,14 +314,14 @@ public:
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
-            for(int ii=0; ii<dimNumber; ii++)
+            for(int ii = 0; ii < dimNumber; ii++)
             {
                 int jj = marginalOrder[ii];
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
         else
-            for(int ii=0; ii<dimNumber; ii++)
+            for(int ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
@@ -337,7 +337,7 @@ public:
         \param tabSize The size of the extension of the table with configurations.
         \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
     */
-    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute=true, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true);
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute = true, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true);
 
     ~IsoThresholdGenerator();
 
@@ -359,7 +359,7 @@ public:
 
         int * cntr_ptr = counter;
 
-        while(idx<dimNumber-1)
+        while(idx < dimNumber-1)
         {
             // counter[idx] = 0;
             *cntr_ptr = 0;
@@ -446,14 +446,14 @@ public:
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
-            for(int ii=0; ii<dimNumber; ii++)
+            for(int ii = 0; ii < dimNumber; ii++)
             {
                 int jj = marginalOrder[ii];
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
         else
-            for(int ii=0; ii<dimNumber; ii++)
+            for(int ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
@@ -462,7 +462,7 @@ public:
 
     inline double get_currentLThreshold() const { return currentLThreshold; };
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize=1000, int _hashSize=1000, bool reorder_marginals = true, double t_prob_hint = 0.99); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoLayeredGenerator(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     ~IsoLayeredGenerator();
 
