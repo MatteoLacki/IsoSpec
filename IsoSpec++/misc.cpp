@@ -17,7 +17,7 @@
 
 #include "misc.h"
 #include "platform.h"
-#include <stdlib.h>
+#include <cstdlib>
 
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
