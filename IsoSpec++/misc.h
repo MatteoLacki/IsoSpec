@@ -29,7 +29,7 @@ inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
 ){
     double res = 0.0;
-    for(int i=0; i<dimNumber; i++)
+    for(int i = 0; i < dimNumber; i++)
         res += (*(valuesContainer[i]))[conf[i]];
     return res;
 }
@@ -56,12 +56,12 @@ inline double unnormalized_logProb(const int* conf, const double* logProbs, int 
 
     fesetround(FE_TOWARDZERO);
 
-    for(int i=0; i < dim; i++)
+    for(int i = 0; i < dim; i++)
         res += minuslogFactorial(conf[i]);
 
     fesetround(FE_UPWARD);
 
-    for(int i=0; i < dim; i++)
+    for(int i = 0; i < dim; i++)
         res += conf[i] * logProbs[i];
 
     fesetround(curr_method);
@@ -73,7 +73,7 @@ inline double calc_mass(const int* conf, const double* masses, int dim)
 {
     double res = 0.0;
 
-    for(int i=0; i < dim; i++)
+    for(int i = 0; i < dim; i++)
     {
         res += conf[i] * masses[i];
     }
@@ -87,7 +87,7 @@ template<typename T> void printArray(const T* array, int size, const char* prefi
 {
     if (strlen(prefix) > 0)
         std::cout << prefix << " ";
-    for (int i=0; i<size; i++)
+    for (int i = 0; i < size; i++)
         std::cout << array[i] << " ";
     std::cout << std::endl;
 }
@@ -101,14 +101,14 @@ template<typename T> void printOffsets(const T** array, int size, const T* offse
 {
     if (strlen(prefix) > 0)
         std::cout << prefix << " ";
-    for (int i=0; i<size; i++)
+    for (int i = 0; i < size; i++)
         std::cout << array[i] - offset << " ";
     std::cout << std::endl;
 }
 
 template<typename T> void printNestedArray(const T** array, const int* shape, int size)
 {
-    for (int i=0; i<size; i++)
+    for (int i = 0; i < size; i++)
         printArray(array[i], shape[i]);
     std::cout << std::endl;
 }
@@ -133,7 +133,7 @@ template <typename T> static T* array_copy_nptr(const T* A, int size)
 
 template<typename T> void dealloc_table(T* tbl, int dim)
 {
-    for(int i=0; i<dim; i++)
+    for(int i = 0; i < dim; i++)
     {
         delete tbl[i];
     }
