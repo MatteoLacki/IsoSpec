@@ -13,9 +13,12 @@
  *
  */
 
+#pragma once
+
 #include "isoMath.h"
 #include <cstdlib>
 #include <cmath>
+#include <limits>
 
 
 namespace IsoSpec {
