@@ -38,8 +38,8 @@ public:
 
     inline void add(double x)
     {
-        unsigned int i=0;
-        for(int pidx=0; pidx<maxpart; pidx++)
+        unsigned int i = 0;
+        for(int pidx = 0; pidx < maxpart; pidx++)
         {
             double y = partials[pidx];
             if(std::abs(x) < std::abs(y))
@@ -61,7 +61,7 @@ public:
     inline double get()
     {
         double ret = 0.0;
-        for(int i=0; i<maxpart; i++)
+        for(int i = 0; i < maxpart; i++)
             ret += partials[i];
         return ret;
     }
