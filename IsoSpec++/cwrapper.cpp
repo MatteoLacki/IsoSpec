@@ -15,8 +15,9 @@
  */
 
 
-#include <string.h>
+#include <cstring>
 #include <algorithm>
+#include <utility>
 #include <stdexcept>
 #include "cwrapper.h"
 #include "misc.h"
@@ -24,7 +25,7 @@
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
 
-using namespace IsoSpec;
+using namespace IsoSpec; // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
 
 
 extern "C"
