@@ -104,11 +104,10 @@ public:
     FixedEnvelope bin(double bin_width = 1.0, double middle = 0.0);
 
 private:
-
     void sort_by(double* order);
 
-protected:
 
+protected:
     template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
         *tmasses = generator.mass();  tmasses++;
@@ -125,11 +124,11 @@ protected:
         }
 
         *tprobs = prob;
-	*tmasses = mass;
-	tprobs++;
-	tmasses++;
+        *tmasses = mass;
+        tprobs++;
+        tmasses++;
 
-	_confs_no++;
+        _confs_no++;
     }
 
     template<bool tgetConfs> ISOSPEC_FORCE_INLINE void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
