@@ -99,14 +99,14 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     while(modified)
     {
         modified = false;
-        for(int ii = 0; ii<isotopeNo; ii++)
-            for(int jj = 0; jj<isotopeNo; jj++)
+        for(int ii = 0; ii < isotopeNo; ii++)
+            for(int jj = 0; jj < isotopeNo; jj++)
                 if(ii != jj && res[ii] > 0)
                 {
                     res[ii]--;
                     res[jj]++;
                     NLP = unnormalized_logProb(res, lprobs, isotopeNo);
-                    if(NLP>LP || (NLP==LP && ii>jj))
+                    if(NLP > LP || (NLP == LP && ii > jj))
                     {
                         modified = true;
                         LP = NLP;
@@ -140,7 +140,7 @@ double* getMLogProbs(const double* probs, int isoNo)
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
-        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j = 0; j < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
             if(elem_table_probability[j] == probs[i])
             {
                 ret[i] = elem_table_log_probability[j];
@@ -256,7 +256,7 @@ void Marginal::setupMode()
 double Marginal::getLightestConfMass() const
 {
     double ret_mass = std::numeric_limits<double>::infinity();
-    for(unsigned int ii=0; ii < isotopeNo; ii++)
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
         if( ret_mass > atom_masses[ii] )
             ret_mass = atom_masses[ii];
     return ret_mass*atomCnt;
@@ -265,7 +265,7 @@ double Marginal::getLightestConfMass() const
 double Marginal::getHeaviestConfMass() const
 {
     double ret_mass = 0.0;
-    for(unsigned int ii=0; ii < isotopeNo; ii++)
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
         if( ret_mass < atom_masses[ii] )
             ret_mass = atom_masses[ii];
     return ret_mass*atomCnt;
@@ -275,7 +275,7 @@ double Marginal::getMonoisotopicConfMass() const
 {
     double found_prob = -std::numeric_limits<double>::infinity();
     double found_mass = 0.0; // to avoid uninitialized var warning
-    for(unsigned int ii=0; ii < isotopeNo; ii++)
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
         if( found_prob < atom_lProbs[ii] )
         {
             found_prob = atom_lProbs[ii];
@@ -407,7 +407,7 @@ int MarginalTrek::processUntilCutoff(double cutoff)
 {
     Summator s;
     int last_idx = -1;
-    for(unsigned int i=0; i<_conf_lprobs.size(); i++)
+    for(unsigned int i = 0; i < _conf_lprobs.size(); i++)
     {
         s.add(_conf_lprobs[i]);
         if(s.get() >= cutoff)
@@ -497,7 +497,7 @@ allocator(isotopeNo, tabSize)
     masses = new double[no_confs];
 
 
-    for(unsigned int ii=0; ii < no_confs; ii++)
+    for(unsigned int ii = 0; ii < no_confs; ii++)
     {
         lProbs[ii] = logProb(confs[ii]);
         probs[ii] = exp(lProbs[ii]);
@@ -542,7 +542,7 @@ bool LayeredMarginal::extend(double new_threshold)
     std::vector<Conf> new_fringe;
     std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 
-    for(unsigned int ii = 0; ii<fringe.size(); ii++)
+    for(unsigned int ii = 0; ii < fringe.size(); ii++)
         visited.insert(fringe[ii]);
 
     Conf currentConf;
@@ -605,7 +605,7 @@ bool LayeredMarginal::extend(double new_threshold)
 
     lProbs.pop_back(); // The guardian...
 
-    for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
+    for(unsigned int ii = sorted_up_to_idx; ii < configurations.size(); ii++)
     {
         lProbs.push_back(logProb(configurations[ii]));
         probs.push_back(exp(lProbs.back()));
