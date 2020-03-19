@@ -6,6 +6,10 @@
  *   This file is part of IsoSpec.
  */
 
+
+// NOLINT(legal/copyright)
+
+
 #include <cmath>
 #include <cstdlib>
 #include "isoMath.h"
@@ -52,7 +56,6 @@ double RationalApproximation(double t)
 
 double NormalCDFInverse(double p)
 {
-
     if (p < 0.5)
         return -RationalApproximation( sqrt(-2.0*log(p)) );
     else
