@@ -18,7 +18,7 @@
 
 #include <cmath>
 #include <random>
-#include <fenv.h>
+#include <cfenv>
 
 #if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
 // 10M should be enough for anyone, right?
