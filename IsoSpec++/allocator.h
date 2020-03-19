@@ -36,6 +36,7 @@ private:
     int currentId;
     const int       dim, tabSize;
     std::vector<T*>  prevTabs;
+
 public:
     explicit Allocator(const int dim, const int tabSize = 10000);
     ~Allocator();
@@ -72,5 +73,5 @@ public:
     }
 };
 
-}
+} // namespace IsoSpec
 
