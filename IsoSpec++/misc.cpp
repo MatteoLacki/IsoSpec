@@ -25,7 +25,7 @@
 namespace IsoSpec
 {
 
-const void* quickselect(void const** array, int n, int start, int end)
+void* quickselect(void ** array, int n, int start, int end)
 {
     if(start == end)
         return array[start];
