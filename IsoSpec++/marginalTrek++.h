@@ -39,9 +39,9 @@ namespace IsoSpec
 */
 class Marginal
 {
-private:
+ private:
     bool disowned;
-protected:
+ protected:
     const unsigned int isotopeNo;       /*!< The number of isotopes of the given element. */
     const unsigned int atomCnt;         /*!< The number of atoms of the given element. */
     const double* const atom_lProbs;    /*!< Table of log-probabilities of all the isotopeNo isotopes. */
@@ -51,7 +51,7 @@ protected:
     double mode_lprob;            /*!< The log-probability of the mode subisotopologue.*/
 
 
-public:
+ public:
     //! Class constructor.
     /*!
         \param _masses A table of masses of the stable isotopes of the investigated element, e.g. for C10 it is 2: C12 and C13.
@@ -153,9 +153,9 @@ public:
         \param conf A subisotopologue (a table of integers describing subsequent isotope-counts).
         \return The log-probability of the input subisotopologue.
     */
-protected:
+ protected:
     inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
-public:
+ public:
     //! Calculate the variance of the theoretical distribution describing the subisotopologue
     double variance() const;
 
@@ -163,7 +163,7 @@ public:
     double getLogSizeEstimate(double logEllipsoidRadius) const;
 
     inline void ensureModeConf() { if (mode_conf != nullptr) return; setupMode(); };
-private:
+ private:
     void setupMode();
 };
 
@@ -171,7 +171,7 @@ private:
 //! The marginal distribution class (a subisotopologue).
 class MarginalTrek : public Marginal
 {
-private:
+ private:
     int current_count;
     const KeyHasher keyHasher;
     const ConfEqual equalizer;
@@ -188,7 +188,7 @@ private:
     //! Proceed to the next configuration and memoize it (as it will be surely needed).
     bool add_next_conf();
 
-public:
+ public:
     //! Move constructor: specializes the Marginal class.
     /*!
         \param tabSize The size of the table used to store configurations in the allocator.
@@ -252,7 +252,7 @@ public:
 */
 class PrecalculatedMarginal : public Marginal
 {
-protected:
+ protected:
     std::vector<Conf> configurations;
     Conf* confs;
     unsigned int no_confs;
@@ -260,7 +260,7 @@ protected:
     double* lProbs;
     double* probs;
     Allocator<int> allocator;
-public:
+ public:
     //! The move constructor (disowns the Marginal).
     /*!
         This constructor memoizes all subisotopologues with log-probability above the provided threshold lCutOff
@@ -351,7 +351,7 @@ public:
 */
 class LayeredMarginal : public Marginal
 {
-private:
+ private:
     double current_threshold;
     std::vector<Conf> configurations;
     std::vector<Conf> fringe;
@@ -366,7 +366,7 @@ private:
     double* guarded_lProbs;
     const int hashSize;
 
-public:
+ public:
     //! Move constructor: specializes the Marginal class.
     /*!
         \param tabSize The size of the table used to store configurations in the allocator.

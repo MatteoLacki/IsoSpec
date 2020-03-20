@@ -30,14 +30,15 @@ template <typename T> inline void copyConf(
     memcpy(destination, source, dim*sizeof(T));
 }
 
-template <typename T> class Allocator{
-private:
+template <typename T> class Allocator
+{
+ private:
     T*      currentTab;
     int currentId;
     const int       dim, tabSize;
     std::vector<T*>  prevTabs;
 
-public:
+ public:
     explicit Allocator(const int dim, const int tabSize = 10000);
     ~Allocator();
 

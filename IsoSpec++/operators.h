@@ -26,9 +26,10 @@ namespace IsoSpec
 
 class KeyHasher
 {
-private:
+ private:
     int dim;
-public:
+
+ public:
     explicit KeyHasher(int dim);
 
     inline std::size_t operator()(const int* conf) const noexcept
@@ -44,9 +45,10 @@ public:
 
 class ConfEqual
 {
-private:
+ private:
     int size;
-public:
+
+ public:
     explicit ConfEqual(int dim);
 
     inline bool operator()(const int* conf1, const int* conf2) const
@@ -66,7 +68,7 @@ public:
 class ConfOrder
 {
 //configurations comparator
-public:
+ public:
     inline bool operator()(void* conf1, void* conf2) const
     {
         return *reinterpret_cast<double*>(conf1) < *reinterpret_cast<double*>(conf2);
@@ -80,7 +82,7 @@ class ConfOrderMarginal
 //configurations comparator
     const double*  logProbs;
     int dim;
-public:
+ public:
     ConfOrderMarginal(const double* logProbs, int dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
@@ -94,7 +96,7 @@ class ConfOrderMarginalDescending
 //configurations comparator
     const double*  logProbs;
     int dim;
-public:
+ public:
     ConfOrderMarginalDescending(const double* logProbs, int dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
@@ -105,7 +107,7 @@ public:
 
 template<typename T> class ReverseOrder
 {
-public:
+ public:
     inline ReverseOrder() {};
     inline bool operator()(const T a, const T b) const { return a > b; };
 };
@@ -113,7 +115,7 @@ public:
 template<typename T> class TableOrder
 {
         const T* tbl;
-public:
+ public:
         inline explicit TableOrder(const T* _tbl) : tbl(_tbl) {};
         inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
@@ -130,7 +132,7 @@ namespace IsoSpec
 template<typename T> class OrderMarginalsBySizeDecresing
 {
     T const* const* const MT;
-public:
+ public:
     explicit OrderMarginalsBySizeDecresing(T const* const * const _MT) : MT(_MT) {};
     inline bool operator()(int m1, int m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); };
 };

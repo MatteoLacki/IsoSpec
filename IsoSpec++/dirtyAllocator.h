@@ -22,8 +22,9 @@
 namespace IsoSpec
 {
 
-class DirtyAllocator{
-private:
+class DirtyAllocator
+{
+ private:
     void*   currentTab;
     void*   currentConf;
     void*   endOfTablePtr;
@@ -31,7 +32,7 @@ private:
     int     cellSize;
     std::vector<void*>  prevTabs;
 
-public:
+ public:
     explicit DirtyAllocator(const int dim, const int tabSize = 10000);
     ~DirtyAllocator();
 

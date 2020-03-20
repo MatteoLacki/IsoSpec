@@ -29,7 +29,7 @@ namespace IsoSpec
 {
 
 class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
-protected:
+ protected:
     double* _masses;
     double* _probs;
     int*    _confs;
@@ -44,7 +44,7 @@ protected:
     int*    tconfs;
     int allDimSizeofInt;
 
-public:
+ public:
     ISOSPEC_FORCE_INLINE FixedEnvelope() : _masses(nullptr),
         _probs(nullptr),
         _confs(nullptr),
@@ -105,11 +105,11 @@ public:
 
     FixedEnvelope bin(double bin_width = 1.0, double middle = 0.0);
 
-private:
+ private:
     void sort_by(double* order);
 
 
-protected:
+ protected:
     template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
         *tmasses = generator.mass();  tmasses++;
@@ -150,7 +150,7 @@ protected:
     template<bool tgetConfs> void reallocate_memory(size_t new_size);
     void slow_reallocate_memory(size_t new_size);
 
-public:
+ public:
     template<bool tgetConfs> void threshold_init(Iso&& iso, double threshold, bool absolute);
 
     template<bool tgetConfs> void addConfILG(IsoLayeredGenerator& generator)

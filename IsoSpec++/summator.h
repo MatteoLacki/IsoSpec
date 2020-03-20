@@ -28,7 +28,7 @@ class SSummator
     // Shewchuk algorithm
     std::vector<double> partials;
     int maxpart;
-public:
+ public:
     inline SSummator()
     { maxpart = 0; }
 
@@ -75,10 +75,10 @@ public:
 
 class Summator{
     // Kahan algorithm
-   double sum;
-   double c;
+    double sum;
+    double c;
 
-public:
+ public:
     inline Summator()
     { sum = 0.0; c = 0.0;}
 
@@ -100,7 +100,7 @@ class TSummator
 {
     // Trivial algorithm, for testing only
     double sum;
-public:
+ public:
     inline TSummator()
     { sum = 0.0; }
 
