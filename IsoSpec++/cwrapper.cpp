@@ -338,12 +338,8 @@ void sortEnvelopeByProb(void* envelope)
     reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_prob();
 }
 
-
-
-
 void freeReleasedArray(void* array)
 {
     free(array);
 }
-
 }  //extern "C" ends here

@@ -83,9 +83,9 @@ class Marginal
     /*!
         \return The integer number of isotopes of the investigated element.
     */
-    inline int get_isotopeNo() const { return isotopeNo; };
+    inline int get_isotopeNo() const { return isotopeNo; }
 
-    inline const double* get_lProbs() const { return atom_lProbs; };
+    inline const double* get_lProbs() const { return atom_lProbs; }
 
     //! Get the mass of the lightest subisotopologue.
     /*! This is trivially obtained by considering all atomNo atoms to be the lightest isotope possible.
@@ -110,22 +110,22 @@ class Marginal
     /*!
         \return The mass of one of the most probable subisotopologues.
     */
-    inline double getModeMass() { ensureModeConf(); return calc_mass(mode_conf, atom_masses, isotopeNo); };
+    inline double getModeMass() { ensureModeConf(); return calc_mass(mode_conf, atom_masses, isotopeNo); }
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double getModeLProb() { ensureModeConf(); return mode_lprob; };
+    inline double getModeLProb() { ensureModeConf(); return mode_lprob; }
 
     //! Get the log-probability of the mode subisotopologue. Results undefined if ensureModeConf() wasn't called before.
-    inline double fastGetModeLProb() { return mode_lprob; };
+    inline double fastGetModeLProb() { return mode_lprob; }
 
     //! The the probability of the mode subisotopologue.
     /*!
         \return The probability of a/the most probable subisotopologue.
     */
-//    inline double getModeProb() const { return exp(getModeLProb()); };
+//    inline double getModeProb() const { return exp(getModeLProb()); }
 
     //! Computes and returns the mode configuration, a isotopeNo-large array that the caller is responsible for delete[]-ing.
     Conf computeModeConf() const;
@@ -134,7 +134,7 @@ class Marginal
     /*!
         \return The logarithm of the  smallest non-zero probability of a subisotopologue.
     */
-    inline double getSmallestLProb() const { return atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo); };
+    inline double getSmallestLProb() const { return atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo); }
 
     //! The average mass of a single atom.
     /*!
@@ -146,7 +146,7 @@ class Marginal
     /*!
         \return The theoretical average mass of the molecule.
      */
-    inline double getTheoreticalAverageMass() const { return getAtomAverageMass() * atomCnt; };
+    inline double getTheoreticalAverageMass() const { return getAtomAverageMass() * atomCnt; }
 
     //! Calculate the log-probability of a given subisotopologue.
     /*!
@@ -154,7 +154,7 @@ class Marginal
         \return The log-probability of the input subisotopologue.
     */
  protected:
-    inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); };
+    inline double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf, atom_lProbs, isotopeNo); }
  public:
     //! Calculate the variance of the theoretical distribution describing the subisotopologue
     double variance() const;
@@ -162,7 +162,7 @@ class Marginal
     //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
     double getLogSizeEstimate(double logEllipsoidRadius) const;
 
-    inline void ensureModeConf() { if (mode_conf != nullptr) return; setupMode(); };
+    inline void ensureModeConf() { if (mode_conf != nullptr) return; setupMode(); }
  private:
     void setupMode();
 };
@@ -222,7 +222,7 @@ class MarginalTrek : public Marginal
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double getModeLProb() const { return mode_lprob; };
+    inline double getModeLProb() const { return mode_lprob; }
 
 
     //! Calculate subisotopologues with probability above or equal to the cut-off.
@@ -232,9 +232,9 @@ class MarginalTrek : public Marginal
     */
     int processUntilCutoff(double cutoff);
 
-    inline const std::vector<double>& conf_lprobs() const { return _conf_lprobs; };
-    inline const std::vector<double>& conf_masses() const { return _conf_masses; };
-    inline const std::vector<int*>& confs() const { return _confs; };
+    inline const std::vector<double>& conf_lprobs() const { return _conf_lprobs; }
+    inline const std::vector<double>& conf_masses() const { return _conf_masses; }
+    inline const std::vector<int*>& confs() const { return _confs; }
 
 
     virtual ~MarginalTrek();
@@ -287,40 +287,40 @@ class PrecalculatedMarginal : public Marginal
     /*!
         \return Returns true if idx does not exceed the number of pre-computed configurations.
     */
-    inline bool inRange(unsigned int idx) const { return idx < no_confs; };
+    inline bool inRange(unsigned int idx) const { return idx < no_confs; }
 
     //! Get the log-probability of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The log-probability of the idx-th subisotopologue.
     */
-    inline const double& get_lProb(int idx) const { return lProbs[idx]; };
+    inline const double& get_lProb(int idx) const { return lProbs[idx]; }
 
     //! Get the probability of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The probability of the idx-th subisotopologue.
     */
-    inline const double& get_prob(int idx) const { return probs[idx]; };
+    inline const double& get_prob(int idx) const { return probs[idx]; }
 
     //! Get the mass of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The mass of the idx-th subisotopologue.
     */
-    inline const double& get_mass(int idx) const { return masses[idx]; };
+    inline const double& get_mass(int idx) const { return masses[idx]; }
 
     //! Get the table of the log-probabilities of subisotopologues.
     /*!
         \return Pointer to the first element in the table storing log-probabilities of subisotopologues.
     */
-    inline const double* get_lProbs_ptr() const { return lProbs; };
+    inline const double* get_lProbs_ptr() const { return lProbs; }
 
     //! Get the table of the masses of subisotopologues.
     /*!
         \return Pointer to the first element in the table storing masses of subisotopologues.
     */
-    inline const double* get_masses_ptr() const { return masses; };
+    inline const double* get_masses_ptr() const { return masses; }
 
 
     //! Get the counts of isotopes that define the subisotopologue.
@@ -328,19 +328,19 @@ class PrecalculatedMarginal : public Marginal
         \param idx The number of the considered subisotopologue.
         \return The counts of isotopes that define the subisotopologue.
     */
-    inline const Conf& get_conf(int idx) const { return confs[idx]; };
+    inline const Conf& get_conf(int idx) const { return confs[idx]; }
 
     //! Get the number of precomputed subisotopologues.
     /*!
         \return The number of precomputed subisotopologues.
     */
-    inline unsigned int get_no_confs() const { return no_confs; };
+    inline unsigned int get_no_confs() const { return no_confs; }
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double getModeLProb() const { return mode_lprob; };
+    inline double getModeLProb() const { return mode_lprob; }
 };
 
 
@@ -385,22 +385,22 @@ class LayeredMarginal : public Marginal
     bool extend(double new_threshold);
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
-    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }; // access to idx == -1 is valid and gives a guardian of +inf
+    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; } // access to idx == -1 is valid and gives a guardian of +inf
 
     //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
-    inline double get_prob(int idx) const { return probs[idx]; };
+    inline double get_prob(int idx) const { return probs[idx]; }
 
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
-    inline double get_mass(int idx) const { return masses[idx]; };
+    inline double get_mass(int idx) const { return masses[idx]; }
 
     //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
-    inline const double* get_lProbs_ptr() const { return lProbs.data()+1; };
+    inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
-    inline const Conf& get_conf(int idx) const { return configurations[idx]; };
+    inline const Conf& get_conf(int idx) const { return configurations[idx]; }
 
     //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
-    inline unsigned int get_no_confs() const { return configurations.size(); };
+    inline unsigned int get_no_confs() const { return configurations.size(); }
 
     //! Get the minimal mass in current layer
     double get_min_mass() const;
@@ -412,7 +412,7 @@ class LayeredMarginal : public Marginal
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double getModeLProb() const { return mode_lprob; };
+    inline double getModeLProb() const { return mode_lprob; }
 };
 
 

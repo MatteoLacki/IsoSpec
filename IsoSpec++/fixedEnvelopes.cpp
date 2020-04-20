@@ -411,7 +411,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
     {
         *ttmasses = generator.mass(); ttmasses++;
         *ttprobs = generator.prob(); ttprobs++;
-        constexpr_if(tgetConfs)  { generator.get_conf_signature(ttconfs); ttconfs += allDim; };
+        constexpr_if(tgetConfs)  { generator.get_conf_signature(ttconfs); ttconfs += allDim; }
     }
 
     this->_confs_no = tab_size;

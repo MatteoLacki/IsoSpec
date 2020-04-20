@@ -63,8 +63,9 @@ static const RealType btrd_binomial_table[10] = {
 // for log(k!)
 static RealType fc(IntType k)
 {
-    if(k < 10) return btrd_binomial_table[k];
-    else {
+    if(k < 10) { return btrd_binomial_table[k]; }
+    else
+    {
         RealType ikp1 = RealType(1) / (k + 1);
         return (RealType(1)/12
              - (RealType(1)/360

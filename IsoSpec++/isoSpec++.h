@@ -97,7 +97,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     Iso(const char* formula, bool use_nominal_masses = false); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor from C++ std::string chemical formula.
-    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {}; // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {} // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor (named) from aminoacid FASTA sequence as C string.
     /*!
@@ -108,7 +108,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     static Iso FromFASTA(const char* fasta, bool use_nominal_masses = false, bool add_water = true);
 
     //! Constructor (named) from aminoacid FASTA sequence as C++ std::string. See above for details.
-    static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); };
+    static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); }
 
     //! The move constructor.
     Iso(Iso&& other);
@@ -155,13 +155,13 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     double variance() const;
 
     //! Get the standard deviation of the theoretical distribution.
-    double stddev() const { return sqrt(variance()); };
+    double stddev() const { return sqrt(variance()); }
 
     //! Get the number of elements in the chemical formula of the molecule.
-    inline int getDimNumber() const { return dimNumber; };
+    inline int getDimNumber() const { return dimNumber; }
 
     //! Get the total number of isotopes of elements present in a chemical formula.
-    inline int getAllDim() const { return allDim; };
+    inline int getAllDim() const { return allDim; }
 
     //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
     void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
@@ -192,26 +192,26 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
     */
     virtual bool advanceToNextConfiguration() = 0;
 
-    ISOSPEC_FORCE_INLINE virtual bool advanceToNextConfigurationWithinLayer() { return advanceToNextConfiguration(); };
-    ISOSPEC_FORCE_INLINE virtual bool nextLayer(double) { return false; };
+    ISOSPEC_FORCE_INLINE virtual bool advanceToNextConfigurationWithinLayer() { return advanceToNextConfiguration(); }
+    ISOSPEC_FORCE_INLINE virtual bool nextLayer(double) { return false; }
 
     //! Get the log-probability of the current isotopologue.
     /*!
         \return The log-probability of the current isotopologue.
     */
-    virtual double lprob() const { return partialLProbs[0]; };
+    virtual double lprob() const { return partialLProbs[0]; }
 
     //! Get the mass of the current isotopologue.
     /*!
         \return The mass of the current isotopologue.
     */
-    virtual double mass()  const { return partialMasses[0]; };
+    virtual double mass()  const { return partialMasses[0]; }
 
     //! Get the probability of the current isotopologue.
     /*!
         \return The probability of the current isotopologue.
     */
-    virtual double prob() const { return partialProbs[0]; };
+    virtual double prob() const { return partialProbs[0]; }
 
     //! Write the signature of configuration into target memory location. It must be large enough to accomodate it.
     virtual void get_conf_signature(int* space) const = 0;
@@ -382,9 +382,9 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     }
 
 
-    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
-    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
-    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); }
+    ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); }
+    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); }
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
@@ -460,7 +460,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
             }
     };
 
-    inline double get_currentLThreshold() const { return currentLThreshold; };
+    inline double get_currentLThreshold() const { return currentLThreshold; }
 
     IsoLayeredGenerator(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
@@ -532,15 +532,15 @@ class IsoStochasticGenerator : IsoGenerator
  public:
     IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
 
-    ISOSPEC_FORCE_INLINE size_t count() const { return current_count; };
+    ISOSPEC_FORCE_INLINE size_t count() const { return current_count; }
 
-    ISOSPEC_FORCE_INLINE double mass() const override final { return ILG.mass(); };
+    ISOSPEC_FORCE_INLINE double mass() const override final { return ILG.mass(); }
 
-    ISOSPEC_FORCE_INLINE double prob() const override final { return static_cast<double>(count()); };
+    ISOSPEC_FORCE_INLINE double prob() const override final { return static_cast<double>(count()); }
 
-    ISOSPEC_FORCE_INLINE double lprob() const override final { return log(prob()); };
+    ISOSPEC_FORCE_INLINE double lprob() const override final { return log(prob()); }
 
-    ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const override final { ILG.get_conf_signature(space); };
+    ISOSPEC_FORCE_INLINE void get_conf_signature(int* space) const override final { ILG.get_conf_signature(space); }
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {

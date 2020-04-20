@@ -34,7 +34,7 @@ class SSummator
 
     inline SSummator(const SSummator& other) :
         partials(other.partials),
-        maxpart(other.maxpart) {};
+        maxpart(other.maxpart) {}
 
     inline void add(double x)
     {

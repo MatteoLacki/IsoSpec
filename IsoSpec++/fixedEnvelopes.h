@@ -73,21 +73,21 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     FixedEnvelope operator+(const FixedEnvelope& other) const;
     FixedEnvelope operator*(const FixedEnvelope& other) const;
 
-    inline size_t    confs_no()  const { return _confs_no; };
-    inline int       getAllDim() const { return allDim; };
+    inline size_t    confs_no()  const { return _confs_no; }
+    inline int       getAllDim() const { return allDim; }
 
-    inline const double*   masses() const { return _masses; };
-    inline const double*   probs()  const { return _probs; };
-    inline const int*      confs()  const { return _confs; };
+    inline const double*   masses() const { return _masses; }
+    inline const double*   probs()  const { return _probs; }
+    inline const int*      confs()  const { return _confs; }
 
-    inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; };
-    inline double*   release_probs()    { double* ret = _probs;  _probs  = nullptr; return ret; };
-    inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; };
+    inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; }
+    inline double*   release_probs()    { double* ret = _probs;  _probs  = nullptr; return ret; }
+    inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; }
 
 
-    inline double     mass(size_t i)  const { return _masses[i]; };
-    inline double     prob(size_t i)  const { return _probs[i];  };
-    inline const int* conf(size_t i)  const { return _confs + i*allDim; };
+    inline double     mass(size_t i)  const { return _masses[i]; }
+    inline double     prob(size_t i)  const { return _probs[i];  }
+    inline const int* conf(size_t i)  const { return _confs + i*allDim; }
 
     void sort_by_mass();
     void sort_by_prob();
@@ -112,9 +112,9 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
  protected:
     template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
     {
-        *tmasses = generator.mass();  tmasses++;
-        *tprobs  = generator.prob();  tprobs++;
-        constexpr_if(tgetConfs)  { generator.get_conf_signature(tconfs); tconfs += allDim; };
+        *tmasses = generator.mass(); tmasses++;
+        *tprobs  = generator.prob(); tprobs++;
+        constexpr_if(tgetConfs) { generator.get_conf_signature(tconfs); tconfs += allDim; }
     }
 
     ISOSPEC_FORCE_INLINE void store_conf(double mass, double prob)

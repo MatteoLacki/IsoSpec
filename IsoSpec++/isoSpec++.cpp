@@ -150,8 +150,10 @@ allDim(other.allDim),
 marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 {
     if(fullcopy)
+    {
         for(ssize_t ii = 0; ii < dimNumber; ii++)
             marginals[ii] = new Marginal(*other.marginals[ii]);
+    }
 }
 
 Iso Iso::FromFASTA(const char* fasta, bool use_nominal_masses, bool add_water)
