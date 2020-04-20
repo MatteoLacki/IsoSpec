@@ -16,9 +16,9 @@
 
 
 #include "misc.h"
-#include <cstdlib>
 #include <utility>
 #include "platform.h"
+#include "isoMath.h"
 
 
 
@@ -37,7 +37,9 @@ void* quickselect(void ** array, int n, int start, int end)
 #if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
-        int pivot = rand() % len + start;
+        size_t pivot = random_gen() % len + start; // Using Mersenne twister directly - we don't
+                                                   // need a very uniform distribution just for pivot
+                                                   // selection
 #endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);

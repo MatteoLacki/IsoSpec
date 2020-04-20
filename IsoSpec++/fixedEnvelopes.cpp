@@ -16,6 +16,7 @@
 
 #include "fixedEnvelopes.h"
 #include <limits>
+#include "isoMath.h"
 
 namespace IsoSpec
 {
@@ -496,7 +497,9 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 #if ISOSPEC_BUILDING_R
         size_t pivot = len/2 + start;
 #else
-        size_t pivot = rand() % len + start;
+        size_t pivot = random_gen() % len + start; // Using Mersenne twister directly - we don't
+                                                   // need a very uniform distribution just for pivot
+                                                   // selection
 #endif
         double pprob = this->_probs[pivot];
         swap<tgetConfs>(pivot, end-1, conf_swapspace);
