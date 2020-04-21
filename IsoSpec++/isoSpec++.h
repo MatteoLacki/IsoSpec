@@ -314,18 +314,22 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
+        {
             for(int ii = 0; ii < dimNumber; ii++)
             {
                 int jj = marginalOrder[ii];
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
+        }
         else
+        {
             for(int ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
+        }
     };
 
     //! The move-constructor.
@@ -446,18 +450,22 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
     {
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
+        {
             for(int ii = 0; ii < dimNumber; ii++)
             {
                 int jj = marginalOrder[ii];
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
+        }
         else
+        {
             for(int ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
+        }
     };
 
     inline double get_currentLThreshold() const { return currentLThreshold; }

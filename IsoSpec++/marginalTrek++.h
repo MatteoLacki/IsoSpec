@@ -162,7 +162,7 @@ class Marginal
     //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
     double getLogSizeEstimate(double logEllipsoidRadius) const;
 
-    inline void ensureModeConf() { if (mode_conf != nullptr) return; setupMode(); }
+    inline void ensureModeConf() { if (mode_conf == nullptr) setupMode(); }
  private:
     void setupMode();
 };
