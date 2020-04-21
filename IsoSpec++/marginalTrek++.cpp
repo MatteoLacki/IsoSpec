@@ -222,7 +222,7 @@ loggamma_nominator(other.loggamma_nominator)
     }
     else
     {
-        mode_conf = array_copy<int>(other.mode_conf, isotopeNo);
+        mode_conf = other.mode_conf;
         mode_lprob = other.mode_lprob;
     }
 }
