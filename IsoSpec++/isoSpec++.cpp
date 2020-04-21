@@ -76,8 +76,8 @@ marginals(nullptr)
     for(int ii = 0; ii < dimNumber; ++ii)
         allDim += isotopeNumbers[ii];
 
-    std::unique_ptr<double[]> masses = std::make_unique<double[]>(allDim);
-    std::unique_ptr<double[]> probs  = std::make_unique<double[]>(allDim);
+    std::unique_ptr<double[]> masses(new double[allDim]);
+    std::unique_ptr<double[]> probs(new double[allDim]);
     size_t idx = 0;
 
     for(int ii = 0; ii < dimNumber; ++ii)

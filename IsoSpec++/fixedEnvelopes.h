@@ -133,7 +133,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
         _confs_no++;
     }
 
-    template<bool tgetConfs> ISOSPEC_FORCE_INLINE void swap([[maybe_unused]] size_t idx1, [[maybe_unused]] size_t idx2, [[maybe_unused]] int* conf_swapspace)
+    template<bool tgetConfs> ISOSPEC_FORCE_INLINE void swap(size_t idx1, size_t idx2, [[maybe_unused]] int* conf_swapspace)
     {
         std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
         std::swap<double>(this->_masses[idx1], this->_masses[idx2]);

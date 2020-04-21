@@ -27,3 +27,6 @@ windows:
 check:
 	cpplint *.cpp *.h
 	#cppcheck --std=c++17 --language=c++ --enable=style,portability,missingInclude,performance -q --force *.cpp *.h --suppress=memleakOnRealloc:*:* --inline-suppr --template={file}:{line}\ \({severity}\)\ \<{id}\>:\ {message}
+
+check11:
+	$(CXX) -std=c++11 -Wall -pedantic -Wextra -Wshadow -fsyntax-only unity-build.cpp
