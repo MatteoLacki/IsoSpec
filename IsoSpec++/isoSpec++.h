@@ -245,7 +245,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
 
  public:
     IsoOrderedGenerator(const IsoOrderedGenerator& other) = delete;
-    IsoOrderedGenerator& operator=(IsoOrderedGenerator& other) = delete;
+    IsoOrderedGenerator& operator=(const IsoOrderedGenerator& other) = delete;
 
     bool advanceToNextConfiguration() override final;
 

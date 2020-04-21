@@ -110,7 +110,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
 
  protected:
-    template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(T& generator)
+    template<typename T, bool tgetConfs> ISOSPEC_FORCE_INLINE void store_conf(const T& generator)
     {
         *tmasses = generator.mass(); tmasses++;
         *tprobs  = generator.prob(); tprobs++;
@@ -153,7 +153,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
  public:
     template<bool tgetConfs> void threshold_init(Iso&& iso, double threshold, bool absolute);
 
-    template<bool tgetConfs> void addConfILG(IsoLayeredGenerator& generator)
+    template<bool tgetConfs> void addConfILG(const IsoLayeredGenerator& generator)
     {
         if(this->_confs_no == this->current_size)
         {
