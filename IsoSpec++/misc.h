@@ -149,5 +149,4 @@ template<typename T> void realloc_append(T** array, T what, size_t old_array_siz
     *array = newT;
 }
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

@@ -88,7 +88,7 @@ marginals(nullptr)
             ++idx;
         }
 
-    allDim = 0; // setupMarginals will recalculate it, assuming it's set to 0
+    allDim = 0;  // setupMarginals will recalculate it, assuming it's set to 0
 
     try{
         setupMarginals(masses.get(), probs.get());
@@ -456,7 +456,7 @@ IsoGenerator::~IsoGenerator()
  * ----------------------------------------------------------------------------------------------------------
  */
 
-static const double minsqrt = -1.3407796239501852e+154; // == constexpr(-sqrt(std::numeric_limits<double>::max()));
+static const double minsqrt = -1.3407796239501852e+154;  // == constexpr(-sqrt(std::numeric_limits<double>::max()));
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize, bool reorder_marginals)
 : IsoGenerator(std::move(iso)),
@@ -671,7 +671,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
         counter[ii] = 0;
     }
 
-    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr(); // vector relocation might have happened
+    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();  // vector relocation might have happened
 
     lProbs_ptr = lProbs_ptr_start + first_mrg_size - 1;
 
@@ -875,5 +875,5 @@ chasing_prob(0.0)
 
 
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 

@@ -50,5 +50,5 @@ void DirtyAllocator::shiftTables()
     endOfTablePtr   = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 

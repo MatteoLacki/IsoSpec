@@ -94,10 +94,10 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     );
 
     //! Constructor from the formula object.
-    Iso(const char* formula, bool use_nominal_masses = false); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    Iso(const char* formula, bool use_nominal_masses = false);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor from C++ std::string chemical formula.
-    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {} // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {}  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor (named) from aminoacid FASTA sequence as C string.
     /*!
@@ -183,7 +183,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
  protected:
     double* partialLProbs;  /*!< The prefix sum of the log-probabilities of the current isotopologue. */
     double* partialMasses;  /*!< The prefix sum of the masses of the current isotopologue. */
-    double* partialProbs;/*!< The prefix product of the probabilities of the current isotopologue. */
+    double* partialProbs;   /*!< The prefix product of the probabilities of the current isotopologue. */
 
  public:
     //! Advance to the next, not yet visited, most probable isotopologue.
@@ -214,7 +214,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
     virtual void get_conf_signature(int* space) const = 0;
 
     //! Move constructor.
-    IsoGenerator(Iso&& iso, bool alloc_partials = true); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoGenerator(Iso&& iso, bool alloc_partials = true);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
     virtual ~IsoGenerator();
@@ -272,7 +272,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
     };
 
     //! The move-contstructor.
-    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
     virtual ~IsoOrderedGenerator();
@@ -467,7 +467,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 
     inline double get_currentLThreshold() const { return currentLThreshold; }
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99); // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoLayeredGenerator(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     ~IsoLayeredGenerator();
 
@@ -489,7 +489,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
             if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
                 return true;
         }
-        while(carry()); // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
+        while(carry());  // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
         return false;
     }
 
@@ -621,5 +621,4 @@ class IsoStochasticGenerator : IsoGenerator
 };
 
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

@@ -442,11 +442,11 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
     double prob_so_far = 0.0;
     double layer_delta;
 
-    const double sum_above = log1p(-target_total_prob) - 2.3025850929940455; // log(0.1);
+    const double sum_above = log1p(-target_total_prob) - 2.3025850929940455;  // log(0.1);
 
     do
-    { // Store confs until we accumulate more prob than needed - and, if optimizing,
-      // store also the rest of the last layer
+    {  // Store confs until we accumulate more prob than needed - and, if optimizing,
+       // store also the rest of the last layer
         while(generator.advanceToNextConfigurationWithinLayer())
         {
             this->template addConfILG<tgetConfs>(generator);
@@ -497,9 +497,9 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 #if ISOSPEC_BUILDING_R
         size_t pivot = len/2 + start;
 #else
-        size_t pivot = random_gen() % len + start; // Using Mersenne twister directly - we don't
-                                                   // need a very uniform distribution just for pivot
-                                                   // selection
+        size_t pivot = random_gen() % len + start;  // Using Mersenne twister directly - we don't
+                                                    // need a very uniform distribution just for pivot
+                                                    // selection
 #endif
         double pprob = this->_probs[pivot];
         swap<tgetConfs>(pivot, end-1, conf_swapspace);
@@ -537,4 +537,4 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
     this->_confs_no = end;
 }
 
-} // namespace IsoSpec
+}  // namespace IsoSpec

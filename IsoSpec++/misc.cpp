@@ -37,9 +37,9 @@ void* quickselect(void ** array, int n, int start, int end)
 #if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
-        size_t pivot = random_gen() % len + start; // Using Mersenne twister directly - we don't
-                                                   // need a very uniform distribution just for pivot
-                                                   // selection
+        size_t pivot = random_gen() % len + start;  // Using Mersenne twister directly - we don't
+                                                    // need a very uniform distribution just for pivot
+                                                    // selection
 #endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);
@@ -65,5 +65,4 @@ void* quickselect(void ** array, int n, int start, int end)
     };
 }
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

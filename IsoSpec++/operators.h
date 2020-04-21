@@ -67,7 +67,7 @@ class ConfEqual
 
 class ConfOrder
 {
-//configurations comparator
+// configurations comparator
  public:
     inline bool operator()(void* conf1, void* conf2) const
     {
@@ -79,28 +79,30 @@ class ConfOrder
 
 class ConfOrderMarginal
 {
-//configurations comparator
+// configurations comparator
     const double*  logProbs;
     int dim;
  public:
     ConfOrderMarginal(const double* logProbs, int dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
-    {// Return true if conf1 is less probable than conf2.
+    {
+        // Return true if conf1 is less probable than conf2.
         return unnormalized_logProb(conf1, logProbs, dim) < unnormalized_logProb(conf2, logProbs, dim);
     };
 };
 
 class ConfOrderMarginalDescending
 {
-//configurations comparator
+// configurations comparator
     const double*  logProbs;
     int dim;
  public:
     ConfOrderMarginalDescending(const double* logProbs, int dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
-    {// Return true if conf1 is less probable than conf2.
+    {
+        // Return true if conf1 is less probable than conf2.
         return unnormalized_logProb(conf1, logProbs, dim) > unnormalized_logProb(conf2, logProbs, dim);
     };
 };
@@ -120,11 +122,11 @@ template<typename T> class TableOrder
         inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; }
 };
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 
 #include "marginalTrek++.h"
 
-class PrecalculatedMarginal; // In case marginalTrek++.h us including us, and can't be included again...
+class PrecalculatedMarginal;  // In case marginalTrek++.h us including us, and can't be included again...
 
 namespace IsoSpec
 {
@@ -138,7 +140,4 @@ template<typename T> class OrderMarginalsBySizeDecresing
 };
 
 
-} // namespace IsoSpec
-
-
-
+}  // namespace IsoSpec

@@ -202,4 +202,4 @@ IntType boost_binomial_distribution_variate(IntType t_arg, RealType p_arg, std::
         return result;
 }
 
-} // namespace IsoSpec
+}  // namespace IsoSpec

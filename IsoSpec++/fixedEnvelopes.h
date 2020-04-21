@@ -201,5 +201,4 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     }
 };
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

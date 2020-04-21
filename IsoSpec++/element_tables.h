@@ -45,5 +45,4 @@ extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIE
 }
 #endif
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

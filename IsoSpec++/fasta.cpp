@@ -27,9 +27,9 @@ const double aa_elem_masses[19] = {
     elem_table_mass[9], elem_table_mass[10],   // Carbon
     elem_table_mass[0], elem_table_mass[1],    // Hydrogen
     elem_table_mass[11], elem_table_mass[12],  // Nitrogen
-    elem_table_mass[13], elem_table_mass[14], elem_table_mass[15], // Oxygen
-    elem_table_mass[29], elem_table_mass[30], elem_table_mass[31], elem_table_mass[32], // Sulfur
-    elem_table_mass[85], elem_table_mass[86], elem_table_mass[87], elem_table_mass[88], elem_table_mass[89], elem_table_mass[90] // Selenium
+    elem_table_mass[13], elem_table_mass[14], elem_table_mass[15],  // Oxygen
+    elem_table_mass[29], elem_table_mass[30], elem_table_mass[31], elem_table_mass[32],  // Sulfur
+    elem_table_mass[85], elem_table_mass[86], elem_table_mass[87], elem_table_mass[88], elem_table_mass[89], elem_table_mass[90]  // Selenium
 };
 
 
@@ -37,9 +37,9 @@ const double aa_elem_nominal_masses[19] = {
     elem_table_massNo[9], elem_table_massNo[10],   // Carbon
     elem_table_massNo[0], elem_table_massNo[1],    // Hydrogen
     elem_table_massNo[11], elem_table_massNo[12],  // Nitrogen
-    elem_table_massNo[13], elem_table_massNo[14], elem_table_massNo[15], // Oxygen
-    elem_table_massNo[29], elem_table_massNo[30], elem_table_massNo[31], elem_table_massNo[32], // Sulfur
-    elem_table_massNo[85], elem_table_massNo[86], elem_table_massNo[87], elem_table_massNo[88], elem_table_massNo[89], elem_table_massNo[90] // Selenium
+    elem_table_massNo[13], elem_table_massNo[14], elem_table_massNo[15],  // Oxygen
+    elem_table_massNo[29], elem_table_massNo[30], elem_table_massNo[31], elem_table_massNo[32],  // Sulfur
+    elem_table_massNo[85], elem_table_massNo[86], elem_table_massNo[87], elem_table_massNo[88], elem_table_massNo[89], elem_table_massNo[90]  // Selenium
 };
 
 
@@ -47,9 +47,9 @@ const double aa_elem_probabilities[19] = {
     elem_table_probability[9], elem_table_probability[10],   // Carbon
     elem_table_probability[0], elem_table_probability[1],    // Hydrogen
     elem_table_probability[11], elem_table_probability[12],  // Nitrogen
-    elem_table_probability[13], elem_table_probability[14], elem_table_probability[15], // Oxygen
-    elem_table_probability[29], elem_table_probability[30], elem_table_probability[31], elem_table_probability[32], // Sulfur
-    elem_table_probability[85], elem_table_probability[86], elem_table_probability[87], elem_table_probability[88], elem_table_probability[89], elem_table_probability[90] // Selenium
+    elem_table_probability[13], elem_table_probability[14], elem_table_probability[15],  // Oxygen
+    elem_table_probability[29], elem_table_probability[30], elem_table_probability[31], elem_table_probability[32],  // Sulfur
+    elem_table_probability[85], elem_table_probability[86], elem_table_probability[87], elem_table_probability[88], elem_table_probability[89], elem_table_probability[90]  // Selenium
 };
 
 
@@ -311,4 +311,4 @@ const int aa_symbol_to_elem_counts[256*6] = {
 /* Code: 254  unprintable   */       0, 0, 0, 0, 0, 0
 };
 
-} // namespace IsoSpec
+}  // namespace IsoSpec

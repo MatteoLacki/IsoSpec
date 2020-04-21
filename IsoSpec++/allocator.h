@@ -74,5 +74,4 @@ template <typename T> class Allocator
     }
 };
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

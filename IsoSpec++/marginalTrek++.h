@@ -198,7 +198,7 @@ class MarginalTrek : public Marginal
         Marginal&& m,
         int tabSize = 1000,
         int hashSize = 1000
-    ); // NOLINT(runtime/explicit) - Constructor deliberately left usable as a conversion.
+    );  // NOLINT(runtime/explicit) - Constructor deliberately left usable as a conversion.
 
     MarginalTrek(const MarginalTrek& other) = delete;
     MarginalTrek& operator=(const MarginalTrek& other) = delete;
@@ -372,7 +372,7 @@ class LayeredMarginal : public Marginal
         \param tabSize The size of the table used to store configurations in the allocator.
         \param hashSize The size of the hash table used to store visited subisotopologues.
     */
-    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000); // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
+    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
 
     LayeredMarginal(const LayeredMarginal& other) = delete;
     LayeredMarginal& operator=(const LayeredMarginal& other) = delete;
@@ -385,7 +385,7 @@ class LayeredMarginal : public Marginal
     bool extend(double new_threshold);
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
-    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; } // access to idx == -1 is valid and gives a guardian of +inf
+    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
 
     //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
     inline double get_prob(int idx) const { return probs[idx]; }
@@ -417,4 +417,4 @@ class LayeredMarginal : public Marginal
 
 
 
-} // namespace IsoSpec
+}  // namespace IsoSpec

@@ -274,7 +274,7 @@ double Marginal::getHeaviestConfMass() const
 double Marginal::getMonoisotopicConfMass() const
 {
     double found_prob = -std::numeric_limits<double>::infinity();
-    double found_mass = 0.0; // to avoid uninitialized var warning
+    double found_mass = 0.0;  // to avoid uninitialized var warning
     for(unsigned int ii = 0; ii < isotopeNo; ii++)
         if( found_prob < atom_lProbs[ii] )
         {
@@ -600,10 +600,10 @@ bool LayeredMarginal::extend(double new_threshold)
         lProbs.reserve(configurations.size()+2);
         probs.reserve(configurations.size());
         masses.reserve(configurations.size());
-    } // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
-      // but don't reallocate on every call
+    }  // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
+       // but don't reallocate on every call
 
-    lProbs.pop_back(); // The guardian...
+    lProbs.pop_back();  // The guardian...
 
     for(unsigned int ii = sorted_up_to_idx; ii < configurations.size(); ii++)
     {
@@ -612,10 +612,10 @@ bool LayeredMarginal::extend(double new_threshold)
         masses.push_back(calc_mass(configurations[ii], atom_masses, isotopeNo));
     }
 
-    lProbs.push_back(-std::numeric_limits<double>::infinity()); // Restore guardian
+    lProbs.push_back(-std::numeric_limits<double>::infinity());  // Restore guardian
 
     sorted_up_to_idx = configurations.size();
-    guarded_lProbs = lProbs.data()+1; // Vector might have reallocated its backing storage
+    guarded_lProbs = lProbs.data()+1;  // Vector might have reallocated its backing storage
 
     return true;
 }
@@ -640,5 +640,4 @@ double LayeredMarginal::get_max_mass() const
     return ret;
 }
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

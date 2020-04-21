@@ -19,7 +19,7 @@
 #if !ISOSPEC_BUILDING_R
 
 #if !ISOSPEC_GOT_SYSTEM_MMAN && ISOSPEC_GOT_MMAN
-    #include "mman.cpp" // NOLINT(build/include)
+    #include "mman.cpp"  // NOLINT(build/include)
 #endif
 
 // A poor-man's replacement for LTO. We're small enough that we can do that. And

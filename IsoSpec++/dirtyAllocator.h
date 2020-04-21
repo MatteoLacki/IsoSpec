@@ -73,5 +73,4 @@ class DirtyAllocator
     }
 };
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

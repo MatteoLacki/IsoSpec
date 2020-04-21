@@ -25,7 +25,7 @@
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
 
-using namespace IsoSpec; // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
+using namespace IsoSpec;  // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
 
 
 extern "C"
@@ -124,7 +124,7 @@ ISOSPEC_C_FN_DELETE(generatorType)
 
 
 
-//______________________________________________________THRESHOLD GENERATOR
+// ______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
@@ -145,7 +145,7 @@ void* setupIsoThresholdGenerator(void* iso,
 ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 
 
-//______________________________________________________LAYERED GENERATOR
+// ______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
                      int _tabSize,
                      int _hashSize,
@@ -166,7 +166,7 @@ void* setupIsoLayeredGenerator(void* iso,
 ISOSPEC_C_FN_CODES(IsoLayeredGenerator)
 
 
-//______________________________________________________ORDERED GENERATOR
+// ______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize)
@@ -180,7 +180,7 @@ void* setupIsoOrderedGenerator(void* iso,
 }
 ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
-//______________________________________________________STOCHASTIC GENERATOR
+// ______________________________________________________STOCHASTIC GENERATOR
 void* setupIsoStochasticGenerator(void* iso,
                                   size_t no_molecules,
                                   double precision,
@@ -196,14 +196,14 @@ void* setupIsoStochasticGenerator(void* iso,
 }
 ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
 
-//______________________________________________________ FixedEnvelopes
+// ______________________________________________________ FixedEnvelopes
 
 void* setupThresholdFixedEnvelope(void* iso,
                      double threshold,
                      bool absolute,
                      bool  get_confs)
 {
-    FixedEnvelope* ret = new FixedEnvelope( // Use copy elision to allocate on heap with named constructor
+    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
             FixedEnvelope::FromThreshold(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          threshold,
                                          absolute,
@@ -217,7 +217,7 @@ void* setupTotalProbFixedEnvelope(void* iso,
                      bool optimize,
                      bool get_confs)
 {
-    FixedEnvelope* ret = new FixedEnvelope( // Use copy elision to allocate on heap with named constructor
+    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
             FixedEnvelope::FromTotalProb(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
@@ -291,13 +291,13 @@ double orientedWassersteinDistance(void* tabulator1, void* tabulator2)
 
 void* addEnvelopes(void* tabulator1, void* tabulator2)
 {
-    // Hopefully the compiler will do the copy elision...
+    //  Hopefully the compiler will do the copy elision...
     return reinterpret_cast<void*>(new FixedEnvelope((*reinterpret_cast<FixedEnvelope*>(tabulator1))+(*reinterpret_cast<FixedEnvelope*>(tabulator2))));
 }
 
 void* convolveEnvelopes(void* tabulator1, void* tabulator2)
 {
-    // Hopefully the compiler will do the copy elision...
+    //  Hopefully the compiler will do the copy elision...
     return reinterpret_cast<void*>(new FixedEnvelope((*reinterpret_cast<FixedEnvelope*>(tabulator1))*(*reinterpret_cast<FixedEnvelope*>(tabulator2))));
 }
 
@@ -318,13 +318,13 @@ void normalizeEnvelope(void* envelope)
 
 void* binnedEnvelope(void* envelope, double width, double middle)
 {
-    // Again, counting on copy elision...
+    //  Again, counting on copy elision...
     return reinterpret_cast<void*>(new FixedEnvelope(reinterpret_cast<FixedEnvelope*>(envelope)->bin(width, middle)));
 }
 
 void* linearCombination(void* const * const envelopes, const double* intensities, size_t count)
 {
-    // Same...
+    //  Same...
     return reinterpret_cast<void*>(new FixedEnvelope(FixedEnvelope::LinearCombination(reinterpret_cast<const FixedEnvelope* const *>(envelopes), intensities, count)));
 }
 
@@ -342,4 +342,4 @@ void freeReleasedArray(void* array)
 {
     free(array);
 }
-}  //extern "C" ends here
+}  //  extern "C" ends here

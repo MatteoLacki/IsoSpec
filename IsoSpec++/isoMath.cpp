@@ -159,5 +159,5 @@ size_t rdvariate_binom(size_t tries, double succ_prob, std::mt19937& rgen)
 
 
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 

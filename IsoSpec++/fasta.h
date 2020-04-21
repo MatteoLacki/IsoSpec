@@ -30,4 +30,4 @@ extern const double aa_elem_probabilities[19];
 
 extern const int aa_symbol_to_elem_counts[256*6];
 
-} // namespace IsoSpec
+}  // namespace IsoSpec

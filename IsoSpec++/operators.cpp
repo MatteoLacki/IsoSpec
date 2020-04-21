@@ -36,5 +36,4 @@ ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs
 : logProbs(_logProbs), dim(_dim)
 {}
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

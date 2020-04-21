@@ -115,5 +115,4 @@ class TSummator
 };
 
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

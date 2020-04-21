@@ -67,7 +67,7 @@ ISOSPEC_C_FN_HEADER(generatorType, void, delete)
 
 
 
-//______________________________________________________THRESHOLD GENERATOR
+// ______________________________________________________THRESHOLD GENERATOR
 void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
@@ -77,7 +77,7 @@ void* setupIsoThresholdGenerator(void* iso,
 ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 
-//______________________________________________________LAYERED GENERATOR
+// ______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
                                int _tabSize,
                                int _hashSize,
@@ -85,7 +85,7 @@ void* setupIsoLayeredGenerator(void* iso,
                                double t_prob_hint);
 ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
-//______________________________________________________ORDERED GENERATOR
+// ______________________________________________________ORDERED GENERATOR
 void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize);
@@ -137,4 +137,3 @@ void sortEnvelopeByProb(void* envelope);
 #ifdef __cplusplus
 }
 #endif
-
