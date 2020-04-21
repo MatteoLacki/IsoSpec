@@ -538,7 +538,7 @@ bool LayeredMarginal::extend(double new_threshold)
     if(fringe.empty())
         return false;
 
-    // TODO: Make sorting optional (controlled by argument?)
+    // TODO(michalsta): Make sorting optional (controlled by argument?)
     std::vector<Conf> new_fringe;
     std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 

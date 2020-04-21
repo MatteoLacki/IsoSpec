@@ -1,4 +1,7 @@
 /*
+ * NOLINT(legal/copyright) - the original authors did not slap a (C) notice in here,
+ * for whatever reason, and I'm in no position to do that for them.
+ *
  * sys/mman.h
  * mman-win32
  *

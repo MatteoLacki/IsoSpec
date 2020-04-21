@@ -1,4 +1,7 @@
 /*
+ * NOLINT(legal/copyright) - the original authors did not slap a (C) notice in here,
+ * for whatever reason, and I'm in no position to do that for them.
+ *
  * This file has been included as a part of IsoSpec project, under a MIT licence. It
  * comes from the repository:
  *
@@ -27,7 +30,7 @@ static int __map_mman_error(const DWORD err, const int deferr)
 {
     if (err == 0)
         return 0;
-    //TODO: implement
+    // TODO: implement       NOLINT(readability/todo) - well, should be assigned to the original authors
     return err;
 }
 
