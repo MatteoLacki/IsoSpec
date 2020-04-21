@@ -192,9 +192,6 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
     */
     virtual bool advanceToNextConfiguration() = 0;
 
-    ISOSPEC_FORCE_INLINE virtual bool advanceToNextConfigurationWithinLayer() { return advanceToNextConfiguration(); }
-    ISOSPEC_FORCE_INLINE virtual bool nextLayer(double) { return false; }
-
     //! Get the log-probability of the current isotopologue.
     /*!
         \return The log-probability of the current isotopologue.
@@ -484,7 +481,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
         return false;
     }
 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer() override final
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer()
     {
         do{
             lProbs_ptr++;
@@ -519,7 +516,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
         last_lcfmsv = lastLThreshold - partialLProbs_second_val;
     }
 
-    virtual bool nextLayer(double offset) override final;
+    bool nextLayer(double offset);
 
  private:
     bool carry();
