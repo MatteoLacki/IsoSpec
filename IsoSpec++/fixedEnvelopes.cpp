@@ -425,7 +425,10 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         return;
 
     if(target_total_prob >= 1.0)
-        target_total_prob = std::numeric_limits<double>::infinity();
+    {
+        threshold_init<tgetConfs>(std::move(iso), 0.0, true);
+        return;
+    }
 
     current_size = ISOSPEC_INIT_TABLE_SIZE;
 
