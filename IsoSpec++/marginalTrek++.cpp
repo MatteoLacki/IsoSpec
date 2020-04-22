@@ -524,7 +524,7 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 
 LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
-: Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize), sorted_up_to_idx(0),
+: Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize),
 equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
 {
     fringe.push_back(mode_conf);
@@ -533,12 +533,11 @@ equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo
     guarded_lProbs = lProbs.data()+1;
 }
 
-bool LayeredMarginal::extend(double new_threshold)
+bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 {
     if(fringe.empty())
         return false;
 
-    // TODO(michalsta): Make sorting optional (controlled by argument?)
     std::vector<Conf> new_fringe;
     std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 
@@ -592,7 +591,8 @@ bool LayeredMarginal::extend(double new_threshold)
     current_threshold = new_threshold;
     fringe.swap(new_fringe);
 
-    std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
+    if(do_sort)
+        std::sort(configurations.begin()+probs.size(), configurations.end(), orderMarginal);
 
     if(lProbs.capacity() * 2 < configurations.size() + 2)
     {
@@ -605,7 +605,7 @@ bool LayeredMarginal::extend(double new_threshold)
 
     lProbs.pop_back();  // The guardian...
 
-    for(unsigned int ii = sorted_up_to_idx; ii < configurations.size(); ii++)
+    for(unsigned int ii = probs.size(); ii < configurations.size(); ii++)
     {
         lProbs.push_back(logProb(configurations[ii]));
         probs.push_back(exp(lProbs.back()));
@@ -614,7 +614,6 @@ bool LayeredMarginal::extend(double new_threshold)
 
     lProbs.push_back(-std::numeric_limits<double>::infinity());  // Restore guardian
 
-    sorted_up_to_idx = configurations.size();
     guarded_lProbs = lProbs.data()+1;  // Vector might have reallocated its backing storage
 
     return true;

@@ -356,7 +356,6 @@ class LayeredMarginal : public Marginal
     std::vector<Conf> configurations;
     std::vector<Conf> fringe;
     Allocator<int> allocator;
-    unsigned int sorted_up_to_idx;
     const ConfEqual equalizer;
     const KeyHasher keyHasher;
     const ConfOrderMarginalDescending orderMarginal;
@@ -382,7 +381,7 @@ class LayeredMarginal : public Marginal
         \param new_threshold The new log-probability limiting the subisotopologues from below.
         \return Returns false, if there are no fringe-subisotopologues (subisotopologues that were neighbours of the previously calculated subisotopologues, with log-probability below the previous threshold).
     */
-    bool extend(double new_threshold);
+    bool extend(double new_threshold, bool do_sort = true);
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
     inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf

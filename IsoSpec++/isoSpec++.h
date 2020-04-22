@@ -437,6 +437,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
     const double** resetPositions;
     double* partialLProbs_second;
     double partialLProbs_second_val, lcfmsv, last_lcfmsv;
+    bool marginalsNeedSorting;
 
 
  public:

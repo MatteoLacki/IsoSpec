@@ -598,11 +598,17 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
 
+    int nontrivial_marginals = 0;
+
     for(int ii = 0; ii < dimNumber; ii++)
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
+        if(marginalResultsUnsorted[ii]->get_isotopeNo() > 1)
+            nontrivial_marginals++;
     }
+
+    marginalsNeedSorting = nontrivial_marginals > 1;
 
     if(reorder_marginals && dimNumber > 1)
     {
@@ -667,7 +673,7 @@ bool IsoLayeredGenerator::nextLayer(double offset)
 
     for(int ii = 0; ii < dimNumber; ii++)
     {
-        marginalResults[ii]->extend(currentLThreshold - mode_lprob + marginalResults[ii]->fastGetModeLProb());
+        marginalResults[ii]->extend(currentLThreshold - mode_lprob + marginalResults[ii]->fastGetModeLProb(), marginalsNeedSorting);
         counter[ii] = 0;
     }
 
