@@ -565,9 +565,9 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
                         currentConf[ii]++;
                         currentConf[jj]--;
 
-                        double lpc = logProb(currentConf);
+                        double lpc;
 
-                        if (visited.count(currentConf) == 0 && lpc < current_threshold &&
+                        if (visited.count(currentConf) == 0 && (lpc = logProb(currentConf)) < current_threshold &&
                             (opc > lpc || (opc == lpc && ii > jj)))
                         {
                             Conf nc = allocator.makeCopy(currentConf);
