@@ -67,6 +67,8 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     int             allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H20 it is 2+3=5. */
     Marginal**      marginals;      /*!< The table of pointers to the distributions of individual subisotopologues. */
 
+    bool doMarginalsNeedSorting() const;
+
  public:
     Iso();
 

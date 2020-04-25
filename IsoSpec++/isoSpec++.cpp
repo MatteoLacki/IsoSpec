@@ -224,6 +224,18 @@ Iso::~Iso()
     }
 }
 
+bool Iso::doMarginalsNeedSorting() const
+{
+    int nontrivial_marginals = 0;
+    for(int ii=0; ii < dimNumber; ii++)
+    {
+        if(marginals[ii]->get_isotopeNo() > 1)
+            nontrivial_marginals++;
+        if(nontrivial_marginals > 1)
+            return true;
+    }
+    return false;
+}
 
 double Iso::getLightestPeakMass() const
 {
@@ -468,12 +480,14 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
 
     empty = false;
 
+    const bool marginalsNeedSorting = doMarginalsNeedSorting();
+
     for(int ii = 0; ii < dimNumber; ii++)
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
                                                         Lcutoff - mode_lprob + marginals[ii]->fastGetModeLProb(),
-                                                        true,
+                                                        marginalsNeedSorting,
                                                         tabSize,
                                                         hashSize);
 
@@ -597,18 +611,13 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     lastLThreshold = std::numeric_limits<double>::min();
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
-
-    int nontrivial_marginals = 0;
+    marginalsNeedSorting = doMarginalsNeedSorting();
 
     for(int ii = 0; ii < dimNumber; ii++)
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
-        if(marginalResultsUnsorted[ii]->get_isotopeNo() > 1)
-            nontrivial_marginals++;
     }
-
-    marginalsNeedSorting = nontrivial_marginals > 1;
 
     if(reorder_marginals && dimNumber > 1)
     {
