@@ -26,7 +26,6 @@
 #include <cstring>
 #include <string>
 #include <limits>
-#include <cfenv>
 #include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
@@ -132,8 +131,6 @@ double* getMLogProbs(const double* probs, int isoNo)
         if(probs[ii] <= 0.0 || probs[ii] > 1.0)
             throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
 
-    int curr_method = fegetround();
-    fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
 
     // here we change the table of probabilities and log it.
@@ -147,17 +144,13 @@ double* getMLogProbs(const double* probs, int isoNo)
                 break;
             }
     }
-    fesetround(curr_method);
     return ret;
 }
 
 double get_loggamma_nominator(int x)
 {
     // calculate log gamma of the nominator calculated in the binomial exression.
-    int curr_method = fegetround();
-    fesetround(FE_UPWARD);
     double ret = lgamma(x+1);
-    fesetround(curr_method);
     return ret;
 }
 

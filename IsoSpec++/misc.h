@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <vector>
-#include <cfenv>
 #include <cstring>
 #include "isoMath.h"
 
@@ -52,19 +51,11 @@ inline double unnormalized_logProb(const int* conf, const double* logProbs, int 
 {
     double  res = 0.0;
 
-    int curr_method = fegetround();
-
-    fesetround(FE_TOWARDZERO);
-
     for(int i = 0; i < dim; i++)
         res += minuslogFactorial(conf[i]);
 
-    fesetround(FE_UPWARD);
-
     for(int i = 0; i < dim; i++)
         res += conf[i] * logProbs[i];
-
-    fesetround(curr_method);
 
     return res;
 }
