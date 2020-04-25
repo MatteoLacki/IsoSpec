@@ -21,7 +21,7 @@ namespace IsoSpec
 {
 
 KeyHasher::KeyHasher(int _dim)
-: dim(_dim)
+: dim(_dim-1)
 {}
 
 ConfEqual::ConfEqual(int dim)
