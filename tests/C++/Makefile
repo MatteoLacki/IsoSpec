@@ -1,5 +1,5 @@
 CXX=clang++
-OPTFLAGS=-O3 -march=native -mtune=native
+OPTFLAGS=-O3 -march=native -mtune=native -g
 DEBUGFLAGS=-O0 -g
 TESTFLAGS=-fsanitize=leak,undefined
 TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
