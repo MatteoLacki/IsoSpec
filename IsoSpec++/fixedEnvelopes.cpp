@@ -453,7 +453,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         while(generator.advanceToNextConfigurationWithinLayer())
         {
             this->template addConfILG<tgetConfs>(generator);
-            prob_so_far += generator.prob();
+            prob_so_far += *(tprobs-1); // The just-stored probability
             if(prob_so_far >= target_total_prob)
             {
                 if (optimize)
