@@ -30,3 +30,6 @@ check:
 
 check11:
 	$(CXX) -std=c++11 -Wall -pedantic -Wextra -Wshadow -fsyntax-only unity-build.cpp
+
+asm:
+	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -S -o out.S
