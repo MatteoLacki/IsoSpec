@@ -42,7 +42,7 @@ class KeyHasher
             else  // Assuming 32 bit arch. If not, well, there will be
                   // more hash collisions but it still should run OK
                 seed = seed << 3;
-            seed += conf[i];
+            seed ^= conf[i];
         }
         return seed;
     };

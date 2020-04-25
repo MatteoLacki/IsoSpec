@@ -52,10 +52,7 @@ inline double unnormalized_logProb(const int* conf, const double* logProbs, int 
     double  res = 0.0;
 
     for(int i = 0; i < dim; i++)
-        res += minuslogFactorial(conf[i]);
-
-    for(int i = 0; i < dim; i++)
-        res += conf[i] * logProbs[i];
+        res += minuslogFactorial(conf[i]) + conf[i] * logProbs[i];
 
     return res;
 }
