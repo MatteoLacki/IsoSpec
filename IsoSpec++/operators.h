@@ -34,10 +34,16 @@ class KeyHasher
 
     inline std::size_t operator()(const int* conf) const noexcept
     {
-        // Following Boost...
-        std::size_t seed = 0;
-        for(int i = 0; i < dim; ++i )
-            seed ^= conf[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        std::size_t seed = conf[0];
+        for(int i = 1; i < dim; ++i )
+        {
+            constexpr_if(sizeof(std::size_t) == 8)
+                seed = seed << 6;
+            else  // Assuming 32 bit arch. If not, well, there will be
+                  // more hash collisions but it still should run OK
+                seed = seed << 3;
+            seed += conf[i];
+        }
         return seed;
     };
 };
