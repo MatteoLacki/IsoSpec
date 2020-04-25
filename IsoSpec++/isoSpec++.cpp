@@ -613,11 +613,10 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     resetPositions = new const double*[dimNumber];
     marginalsNeedSorting = doMarginalsNeedSorting();
 
+    memset(counter, 0, sizeof(int)*dimNumber);
+
     for(int ii = 0; ii < dimNumber; ii++)
-    {
-        counter[ii] = 0;
         marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
-    }
 
     if(reorder_marginals && dimNumber > 1)
     {
