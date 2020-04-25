@@ -62,5 +62,7 @@ int main()
 			TEST(*it_formula, *it_prob, test_ordered);
 		}
 
+        #if !defined(ISOSPEC_TESTS_MEMSAN)
 	std::cout << "Total confs considered: " << total << std::endl;
+        #endif
 }
