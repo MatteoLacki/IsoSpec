@@ -437,10 +437,12 @@ allocator(isotopeNo, tabSize)
     const KeyHasher keyHasher(isotopeNo);
     const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
 
+    lCutOff -= loggamma_nominator;
+
     std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 
     Conf currentConf = allocator.makeCopy(mode_conf);
-    if(logProb(currentConf) >= lCutOff)
+    if(unnormalized_logProb(currentConf) >= lCutOff)
     {
         // create a copy and store a ptr to the *same* copy in both structures
         // (save some space and time)
@@ -462,7 +464,7 @@ allocator(isotopeNo, tabSize)
                     currentConf[ii]++;
                     currentConf[jj]--;
 
-                    if (visited.count(currentConf) == 0 && logProb(currentConf) >= lCutOff)
+                    if (visited.count(currentConf) == 0 && unnormalized_logProb(currentConf) >= lCutOff)
                     {
                         // create a copy and store a ptr to the *same* copy in
                         // both structures (save some space and time)
