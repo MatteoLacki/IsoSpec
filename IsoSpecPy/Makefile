@@ -14,3 +14,6 @@ reinstall3: clean
 	python3 setup.py install --user
 clean:
 	rm -rf IsoSpecPy.egg-info build dist
+twine: clean
+	python setup.py sdist
+
