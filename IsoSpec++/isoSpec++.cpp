@@ -585,6 +585,9 @@ size_t IsoThresholdGenerator::count_confs()
         int idx = 0;
         int * cntr_ptr = counter;
 
+        std::cout << lProbs_ptr_l - lProbs_ptr_start + 1 << "   ";
+        printArray(counter, dimNumber);
+
         while(idx < dimNumber - 1)
         {
             *cntr_ptr = 0;
@@ -596,8 +599,9 @@ size_t IsoThresholdGenerator::count_confs()
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
             {
                 short_recalc(idx-1);
-                lProbs_restarts[idx]--;
                 lProbs_ptr_l = lProbs_restarts[idx];
+                while(*lProbs_ptr_l < lcfmsv)
+                    lProbs_ptr_l--;
                 for(idx--; idx > 0; idx--)
                     lProbs_restarts[idx] = lProbs_ptr_l;
                 break;
