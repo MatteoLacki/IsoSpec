@@ -560,12 +560,16 @@ void IsoThresholdGenerator::terminate_search()
 
 size_t IsoThresholdGenerator::count_confs()
 {
+    if(empty)
+        return 0;
+
     if(dimNumber == 1)
         return marginalResults[0]->get_no_confs();
 
     const double* lProbs_ptr_l = marginalResults[0]->get_lProbs_ptr() + marginalResults[0]->get_no_confs();
 
     std::unique_ptr<const double* []> lProbs_restarts(new const double*[dimNumber]);
+
     for(ssize_t ii = 0; ii < dimNumber; ii++)
         lProbs_restarts[ii] = lProbs_ptr_l;
 
