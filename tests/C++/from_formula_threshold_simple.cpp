@@ -41,7 +41,7 @@ size_t test_threshold_simple(const char* formula, double threshold, bool print_c
         i.reset();
 #endif
         int* confspace = new int[i.getAllDim()];
-        int no_visited = 0;
+        size_t no_visited = 0;
         double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
@@ -56,5 +56,4 @@ size_t test_threshold_simple(const char* formula, double threshold, bool print_c
 	}
 	delete[] confspace;
 	return no_visited;
-
 }
