@@ -45,7 +45,7 @@ size_t test_threshold(const char* formula, double threshold, bool print_confs)
         int* confspace = new int[i.getAllDim()];
         int* confspace2 = new int[i2.getAllDim()];
         //int* confspace3 = new int[i3.getAllDim()]; // these will be in different order...
-        int no_visited = 0;
+        size_t no_visited = 0;
         double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
@@ -71,6 +71,7 @@ size_t test_threshold(const char* formula, double threshold, bool print_confs)
 	assert(!i.advanceToNextConfiguration());
 	assert(!i2.advanceToNextConfiguration());
 	assert(!i3.advanceToNextConfiguration());
+        assert(confs_no == no_visited);
 	return no_visited;
 
 }
