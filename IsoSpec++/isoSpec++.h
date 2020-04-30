@@ -418,6 +418,15 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
         lcfmsv = Lcutoff - partialLProbs_second_val;
     }
+
+    ISOSPEC_FORCE_INLINE void short_recalc(int idx)
+    {
+        for(; idx > 0; idx--)
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+        partialLProbs_second_val = *partialLProbs_second;
+        partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = Lcutoff - partialLProbs_second_val;
+    }
 };
 
 

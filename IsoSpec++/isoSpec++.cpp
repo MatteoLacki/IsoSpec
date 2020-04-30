@@ -560,12 +560,52 @@ void IsoThresholdGenerator::terminate_search()
 
 size_t IsoThresholdGenerator::count_confs()
 {
-    // Smarter algorithm forthcoming in 2.0
-    size_t ret = 0;
-    while(advanceToNextConfiguration())
-        ret++;
-    reset();
-    return ret;
+    if(dimNumber == 1)
+        return marginalResults[0]->get_no_confs();
+
+    const double* lProbs_ptr_l = marginalResults[0]->get_lProbs_ptr() + marginalResults[0]->get_no_confs();
+
+    std::unique_ptr<const double* []> lProbs_restarts(new const double*[dimNumber]);
+    for(ssize_t ii = 0; ii < dimNumber; ii++)
+        lProbs_restarts[ii] = lProbs_ptr_l;
+
+    size_t count = 0;
+
+    while(true)
+    {
+        std::cout << "AAA" << std::endl;
+        while(*lProbs_ptr_l < lcfmsv)
+            lProbs_ptr_l--;
+
+        count += lProbs_ptr_l - lProbs_ptr_start + 1;
+
+        int idx = 0;
+        int * cntr_ptr = counter;
+
+        while(idx < dimNumber - 1)
+        {
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            (*cntr_ptr)++;
+
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                short_recalc(idx-1);
+                lProbs_restarts[idx]--;
+                lProbs_ptr_l = lProbs_restarts[idx];
+                for(idx--; idx > 0; idx--)
+                    lProbs_restarts[idx] = lProbs_ptr_l;
+                break;
+            }
+        }
+        if(idx == dimNumber - 1)
+        {
+            reset();
+            return count;
+        }
+    }
 }
 
 void IsoThresholdGenerator::reset()
