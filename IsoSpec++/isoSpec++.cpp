@@ -585,9 +585,6 @@ size_t IsoThresholdGenerator::count_confs()
         int idx = 0;
         int * cntr_ptr = counter;
 
-        std::cout << lProbs_ptr_l - lProbs_ptr_start + 1 << "   ";
-        printArray(counter, dimNumber);
-
         while(idx < dimNumber - 1)
         {
             *cntr_ptr = 0;
