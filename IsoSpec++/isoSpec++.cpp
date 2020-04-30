@@ -577,7 +577,6 @@ size_t IsoThresholdGenerator::count_confs()
 
     while(true)
     {
-        std::cout << "AAA" << std::endl;
         while(*lProbs_ptr_l < lcfmsv)
             lProbs_ptr_l--;
 
