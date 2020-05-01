@@ -575,11 +575,11 @@ size_t IsoThresholdGenerator::count_confs()
 
     size_t count = 0;
 
+    while(*lProbs_ptr_l < lcfmsv)
+        lProbs_ptr_l--;
+
     while(true)
     {
-        while(*lProbs_ptr_l < lcfmsv)
-            lProbs_ptr_l--;
-
         count += lProbs_ptr_l - lProbs_ptr_start + 1;
 
         int idx = 0;
