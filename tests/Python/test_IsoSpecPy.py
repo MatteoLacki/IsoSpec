@@ -42,6 +42,7 @@ def kinda_like(o1, o2):
 def sort_confs(confs):
     if len(confs[0]) == 0:
         return confs
+    assert len(set(tuple(x) for x in confs[2])) == len(confs[2])
     l = list(zip(*confs))
     l.sort(key = lambda x: -x[1])
 
