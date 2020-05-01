@@ -7,7 +7,7 @@ using namespace IsoSpec;
 int main()
 {
 
-    SSummator s;
+    Summator s;
 //    unsigned int cnt_tot = 0;
 //    int total_t = 10;
     double threshold = 0.01;
@@ -20,7 +20,8 @@ int main()
 //    const char formula[] = "C63H98N18O13S1"; // substance P
 //    const char formula[] = "C520H817N139O147S8"; // Human insulin
     IsoThresholdGenerator* iso = new IsoThresholdGenerator(formula, threshold, false);
-    unsigned int cnt = 0;
+    size_t cnt = 0;
+    std::cout << "Pre-calculation estimate of confs no:" << iso->count_confs() << std::endl;
     while(iso->advanceToNextConfiguration())
     {
         if(iso->mass() >= mmin and mmax >= iso->mass())
@@ -29,6 +30,6 @@ int main()
     }
     delete iso;
 
-    std::cout <<  "The isotopologue set containing at least 0.9 probability has " << cnt << " element(s)" << std::endl;
+    std::cout <<  "The isotopologue set above selected threshold has: " << cnt << " element(s)" << std::endl;
     std::cout << "prob: " << s.get() << std::endl;
 }
