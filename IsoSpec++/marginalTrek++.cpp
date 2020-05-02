@@ -458,10 +458,12 @@ allocator(isotopeNo, tabSize)
         memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
         idx++;
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+        {
+            currentConf[ii]++;
             for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+            {
                 if( ii != jj && currentConf[jj] > 0)
                 {
-                    currentConf[ii]++;
                     currentConf[jj]--;
 
                     if (visited.count(currentConf) == 0 && unnormalized_logProb(currentConf) >= lCutOff)
@@ -474,9 +476,11 @@ allocator(isotopeNo, tabSize)
                         // std::cout << " V: "; for (auto it : visited) std::cout << it << " "; std::cout << std::endl;
                     }
 
-                    currentConf[ii]--;
                     currentConf[jj]++;
                 }
+            }
+            currentConf[ii]--;
+        }
     }
 
     // orderMarginal defines the order of configurations (compares their logprobs)
@@ -554,10 +558,12 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
         {
             configurations.push_back(currentConf);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
+            {
+                currentConf[ii]++;
                 for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                {
                     if( ii != jj && currentConf[jj] > 0 )
                     {
-                        currentConf[ii]++;
                         currentConf[jj]--;
 
                         double lpc = logProb(currentConf);
@@ -569,6 +575,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
                             currentConf[ii]--;
                             currentConf[jj]++;
                             visited.insert(nc);
+                            currentConf[ii]++;
                             if(lpc >= new_threshold)
                                 fringe.push_back(nc);
                             else
@@ -576,10 +583,12 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
                         }
                         else
                         {
-                            currentConf[ii]--;
                             currentConf[jj]++;
                         }
                     }
+                }
+                currentConf[ii]--;
+            }
         }
     }
 
