@@ -16,4 +16,4 @@ clean:
 	rm -rf IsoSpecPy.egg-info build dist
 twine: clean
 	python setup.py sdist
-
+	twine upload dist/*
