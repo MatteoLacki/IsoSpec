@@ -17,7 +17,8 @@ int main()
         .001,
         true,
         1000,
-        1000);
+        1000,
+        true);
 
     while(advanceToNextConfigurationIsoThresholdGenerator(p))
     {
