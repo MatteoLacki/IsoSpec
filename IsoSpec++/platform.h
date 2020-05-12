@@ -82,7 +82,7 @@
 // For aggressive inlining
 #define ISOSPEC_FORCE_INLINE __attribute__ ((always_inline)) inline
 #elif defined _MSC_VER
-#define ISOSPEC_IMPOSSIBLE(condition) __assume(!condition);
+#define ISOSPEC_IMPOSSIBLE(condition) __assume(!(condition));
 #define ISOSPEC_LIKELY(condition) condition
 #define ISOSPEC_UNLIKELY(condition) condition
 #define ISOSPEC_FORCE_INLINE __forceinline inline
@@ -96,7 +96,7 @@
 #if ISOSPEC_DEBUG
 #undef ISOSPEC_IMPOSSIBLE
 #include <cassert>
-#define ISOSPEC_IMPOSSIBLE(condition) assert(!condition);
+#define ISOSPEC_IMPOSSIBLE(condition) assert(!(condition));
 #endif /* ISOSPEC_DEBUG */
 
 
