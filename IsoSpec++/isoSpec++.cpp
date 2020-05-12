@@ -227,7 +227,7 @@ Iso::~Iso()
 bool Iso::doMarginalsNeedSorting() const
 {
     int nontrivial_marginals = 0;
-    for(int ii=0; ii < dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
     {
         if(marginals[ii]->get_isotopeNo() > 1)
             nontrivial_marginals++;

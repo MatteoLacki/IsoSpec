@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 size_t test_threshold_simple(const char* formula, double threshold, bool print_confs)
 {
 
-	IsoThresholdGenerator i(formula, threshold, true, 100, 100, true);
+	IsoThresholdGenerator i(formula, threshold, true, 10, 10, true);
 #ifdef TEST_SIZE
         size_t confs_no = i.count_confs();
 	if(print_confs)

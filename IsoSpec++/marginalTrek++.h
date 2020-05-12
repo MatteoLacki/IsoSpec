@@ -154,7 +154,7 @@ class Marginal
         \return The log-probability of the input subisotopologue.
     */
  protected:
-    ISOSPEC_FORCE_INLINE double unnormalized_logProb(Conf conf) const { double ret = 0.0; for(size_t ii = 0; ii<isotopeNo; ii++) ret += minuslogFactorial(conf[ii]) + conf[ii] * atom_lProbs[ii]; return ret; }
+    ISOSPEC_FORCE_INLINE double unnormalized_logProb(Conf conf) const { double ret = 0.0; for(size_t ii = 0; ii < isotopeNo; ii++) ret += minuslogFactorial(conf[ii]) + conf[ii] * atom_lProbs[ii]; return ret; }
     ISOSPEC_FORCE_INLINE double logProb(Conf conf) const { return loggamma_nominator + unnormalized_logProb(conf); }
  public:
     //! Calculate the variance of the theoretical distribution describing the subisotopologue
