@@ -409,7 +409,7 @@ void FixedEnvelope::slow_reallocate_memory(size_t new_size)
         throw std::bad_alloc();
     tprobs  = _probs  + _confs_no;
 
-    if(tgetConfs)
+    if(_confs != nullptr)
     {
         _confs  = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
         if(_confs == nullptr)
