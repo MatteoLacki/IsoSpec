@@ -26,13 +26,13 @@
 using namespace Rcpp;
 using namespace IsoSpec;
 
-TotalProbFixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool trim, bool get_confs)
+FixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool trim, bool get_confs)
 {
     switch(algo)
     {
         case ISOSPEC_ALGO_LAYERED_ESTIMATE: // Not used anymore, just fall through to the next case
-        case ISOSPEC_ALGO_LAYERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, trim, get_confs, false, true, true);
-        case ISOSPEC_ALGO_ORDERED: return TotalProbFixedEnvelope(std::move(iso), stopCondition, true, get_confs, false, true, true); // Using the ordered algo in R is *completely* pointless today
+        case ISOSPEC_ALGO_LAYERED: return FixedEnvelope::FromTotalProb(std::move(iso), stopCondition, trim, get_confs);
+        case ISOSPEC_ALGO_ORDERED: return FixedEnvelope::FromTotalProb(std::move(iso), stopCondition, true, get_confs); // Using the ordered algo in R is *completely* pointless today
                                                                                                                   // The only point of ordered algo is when one is using the generator
                                                                                                                   // interface, which we are not exposing in R
                                                                                                                   // We'll just do layered, trim and sort it afterwards - it's equivalent
@@ -135,7 +135,7 @@ NumericMatrix Rinterface(
     }
 
     // The remaining (layered) algos
-    TotalProbFixedEnvelope TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
+    FixedEnvelope TAB = mkIsoG(iso, algo, stopCondition, trim, showCounts);
 
     const double* probs = TAB.probs();
     const double* masses = TAB.masses();
