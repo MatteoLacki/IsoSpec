@@ -442,6 +442,9 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
     this->_confs_no = tab_size;
 }
 
+template void FixedEnvelope::threshold_init<true>(Iso&& iso, double threshold, bool absolute);
+template void FixedEnvelope::threshold_init<false>(Iso&& iso, double threshold, bool absolute);
+
 
 template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double target_total_prob, bool optimize)
 {
@@ -563,5 +566,9 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 
     this->_confs_no = end;
 }
+
+template void FixedEnvelope::total_prob_init<true>(Iso&& iso, double target_total_prob, bool optimize);
+template void FixedEnvelope::total_prob_init<false>(Iso&& iso, double target_total_prob, bool optimize);
+
 
 }  // namespace IsoSpec
