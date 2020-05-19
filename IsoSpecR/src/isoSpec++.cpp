@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -15,35 +15,34 @@
  */
 
 
+#include "isoSpec++.h"
 #include <cmath>
 #include <algorithm>
 #include <vector>
-#include <stdlib.h>
-#include <string.h>
-#include <tuple>
+#include <cstdlib>
+#include <cstring>
 #include <unordered_map>
 #include <queue>
 #include <utility>
 #include <iostream>
 #include <iomanip>
-#include <cctype>
 #include <stdexcept>
 #include <string>
 #include <limits>
-#include <assert.h>
-#include <ctype.h>
+#include <memory>
+#include <cassert>
+#include <cctype>
 #include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
 #include "operators.h"
 #include "summator.h"
 #include "marginalTrek++.h"
-#include "isoSpec++.h"
 #include "misc.h"
 #include "element_tables.h"
+#include "fasta.h"
 
 
-using namespace std;
 
 namespace IsoSpec
 {
@@ -55,8 +54,7 @@ isotopeNumbers(new int[0]),
 atomCounts(new int[0]),
 confSize(0),
 allDim(0),
-marginals(new Marginal*[0]),
-modeLProb(0.0)
+marginals(new Marginal*[0])
 {}
 
 
@@ -73,8 +71,50 @@ isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
-marginals(nullptr),
-modeLProb(0.0)
+marginals(nullptr)
+{
+    for(int ii = 0; ii < dimNumber; ++ii)
+        allDim += isotopeNumbers[ii];
+
+    std::unique_ptr<double[]> masses(new double[allDim]);
+    std::unique_ptr<double[]> probs(new double[allDim]);
+    size_t idx = 0;
+
+    for(int ii = 0; ii < dimNumber; ++ii)
+        for(int jj = 0; jj < isotopeNumbers[ii]; ++jj)
+        {
+            masses[idx] = _isotopeMasses[ii][jj];
+            probs[idx]  = _isotopeProbabilities[ii][jj];
+            ++idx;
+        }
+
+    allDim = 0;  // setupMarginals will recalculate it, assuming it's set to 0
+
+    try{
+        setupMarginals(masses.get(), probs.get());
+    }
+    catch(...)
+    {
+        delete[] isotopeNumbers;
+        delete[] atomCounts;
+        throw;
+    }
+}
+
+Iso::Iso(
+    int             _dimNumber,
+    const int*      _isotopeNumbers,
+    const int*      _atomCounts,
+    const double*   _isotopeMasses,
+    const double*   _isotopeProbabilities
+) :
+disowned(false),
+dimNumber(_dimNumber),
+isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
+atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
+confSize(_dimNumber * sizeof(int)),
+allDim(0),
+marginals(nullptr)
 {
     try{
         setupMarginals(_isotopeMasses, _isotopeProbabilities);
@@ -94,8 +134,7 @@ isotopeNumbers(other.isotopeNumbers),
 atomCounts(other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(other.marginals),
-modeLProb(other.modeLProb)
+marginals(other.marginals)
 {
     other.disowned = true;
 }
@@ -108,33 +147,49 @@ isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : oth
 atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals),
-modeLProb(other.modeLProb)
+marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 {
     if(fullcopy)
-        for(ssize_t ii = 0; ii<dimNumber; ii++)
+    {
+        for(ssize_t ii = 0; ii < dimNumber; ii++)
             marginals[ii] = new Marginal(*other.marginals[ii]);
+    }
 }
 
+Iso Iso::FromFASTA(const char* fasta, bool use_nominal_masses, bool add_water)
+{
+    int atomCounts[6];
 
-inline void Iso::setupMarginals(const double* const * _isotopeMasses, const double* const * _isotopeProbabilities)
+    parse_fasta(fasta, atomCounts);
+
+    if(add_water)
+    {
+        atomCounts[1] += 2;
+        atomCounts[3] += 1;
+    }
+
+    const int dimNr = atomCounts[5] > 0 ? 6 : 5;
+
+    return Iso(dimNr, aa_isotope_numbers, atomCounts, use_nominal_masses ? aa_elem_nominal_masses : aa_elem_masses, aa_elem_probabilities);
+}
+
+inline void Iso::setupMarginals(const double* _isotopeMasses, const double* _isotopeProbabilities)
 {
     if (marginals == nullptr)
     {
         int ii = 0;
+        marginals = new Marginal*[dimNumber];
         try
         {
-            marginals = new Marginal*[dimNumber];
             while(ii < dimNumber)
             {
-                allDim += isotopeNumbers[ii];
                 marginals[ii] = new Marginal(
-                        _isotopeMasses[ii],
-                        _isotopeProbabilities[ii],
+                        &_isotopeMasses[allDim],
+                        &_isotopeProbabilities[allDim],
                         isotopeNumbers[ii],
                         atomCounts[ii]
                     );
-                modeLProb += marginals[ii]->getModeLProb();
+                allDim += isotopeNumbers[ii];
                 ii++;
             }
         }
@@ -151,7 +206,6 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
             throw;
         }
     }
-
 }
 
 Iso::~Iso()
@@ -165,11 +219,23 @@ Iso::~Iso()
     }
 }
 
+bool Iso::doMarginalsNeedSorting() const
+{
+    int nontrivial_marginals = 0;
+    for(int ii = 0; ii < dimNumber; ii++)
+    {
+        if(marginals[ii]->get_isotopeNo() > 1)
+            nontrivial_marginals++;
+        if(nontrivial_marginals > 1)
+            return true;
+    }
+    return false;
+}
 
 double Iso::getLightestPeakMass() const
 {
     double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
+    for (int ii = 0; ii < dimNumber; ii++)
         mass += marginals[ii]->getLightestConfMass();
     return mass;
 }
@@ -177,7 +243,7 @@ double Iso::getLightestPeakMass() const
 double Iso::getHeaviestPeakMass() const
 {
     double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
+    for (int ii = 0; ii < dimNumber; ii++)
         mass += marginals[ii]->getHeaviestConfMass();
     return mass;
 }
@@ -185,7 +251,7 @@ double Iso::getHeaviestPeakMass() const
 double Iso::getMonoisotopicPeakMass() const
 {
     double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
+    for (int ii = 0; ii < dimNumber; ii++)
         mass += marginals[ii]->getMonoisotopicConfMass();
     return mass;
 }
@@ -193,7 +259,7 @@ double Iso::getMonoisotopicPeakMass() const
 double Iso::getUnlikeliestPeakLProb() const
 {
     double lprob = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
+    for (int ii = 0; ii < dimNumber; ii++)
         lprob += marginals[ii]->getSmallestLProb();
     return lprob;
 }
@@ -201,15 +267,23 @@ double Iso::getUnlikeliestPeakLProb() const
 double Iso::getModeMass() const
 {
     double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
+    for (int ii = 0; ii < dimNumber; ii++)
         mass += marginals[ii]->getModeMass();
     return mass;
+}
+
+double Iso::getModeLProb() const
+{
+    double ret = 0.0;
+    for (int ii = 0; ii < dimNumber; ii++)
+        ret += marginals[ii]->getModeLProb();
+    return ret;
 }
 
 double Iso::getTheoreticalAverageMass() const
 {
     double mass = 0.0;
-    for (int ii=0; ii<dimNumber; ii++)
+    for (int ii = 0; ii < dimNumber; ii++)
         mass += marginals[ii]->getTheoreticalAverageMass();
     return mass;
 }
@@ -217,7 +291,7 @@ double Iso::getTheoreticalAverageMass() const
 double Iso::variance() const
 {
     double ret = 0.0;
-    for(int ii=0; ii<dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
         ret += marginals[ii]->variance();
     return ret;
 }
@@ -226,11 +300,10 @@ double Iso::variance() const
 Iso::Iso(const char* formula, bool use_nominal_masses) :
 disowned(false),
 allDim(0),
-marginals(nullptr),
-modeLProb(0.0)
+marginals(nullptr)
 {
-    std::vector<const double*> isotope_masses;
-    std::vector<const double*> isotope_probabilities;
+    std::vector<double> isotope_masses;
+    std::vector<double> isotope_probabilities;
 
     dimNumber = parse_formula(formula, isotope_masses, isotope_probabilities, &isotopeNumbers, &atomCounts, &confSize, use_nominal_masses);
 
@@ -241,14 +314,12 @@ modeLProb(0.0)
 void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities)
 {
     Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
-    modeLProb += m->getModeLProb();
     realloc_append<int>(&isotopeNumbers, noIsotopes, dimNumber);
     realloc_append<int>(&atomCounts, atomCount, dimNumber);
     realloc_append<Marginal*>(&marginals, m, dimNumber);
     dimNumber++;
     confSize += sizeof(int);
     allDim += noIsotopes;
-
 }
 
 void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_prob) const
@@ -271,7 +342,7 @@ void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_p
         priorities[ii] = marginals[ii]->getLogSizeEstimate(log_R2);
 }
 
-unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
+unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
@@ -282,25 +353,23 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
     std::vector<int> numbers;
 
     if(slen == 0)
-        throw invalid_argument("Invalid formula: can't be empty");
+        throw std::invalid_argument("Invalid formula: can't be empty");
 
     if(!isdigit(formula[slen-1]))
-        throw invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
+        throw std::invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
 
-    for(size_t ii=0; ii<slen; ii++)
+    for(size_t ii = 0; ii < slen; ii++)
         if(!isdigit(formula[ii]) && !isalpha(formula[ii]))
-            throw invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
+            throw std::invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
 
     size_t position = 0;
-    size_t elem_end = 0;
-    size_t digit_end = 0;
 
     while(position < slen)
     {
-        elem_end = position;
+        size_t elem_end = position;
         while(isalpha(formula[elem_end]))
             elem_end++;
-        digit_end = elem_end;
+        size_t digit_end = elem_end;
         while(isdigit(formula[digit_end]))
             digit_end++;
         elements.emplace_back(&formula[position], elem_end-position);
@@ -310,10 +379,10 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
     std::vector<int> element_indexes;
 
-    for (unsigned int i=0; i<elements.size(); i++)
+    for (unsigned int i = 0; i < elements.size(); i++)
     {
         int idx = -1;
-        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j = 0; j < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
         {
             if ((strlen(elem_table_symbol[j]) == elements[i].second) && (strncmp(elements[i].first, elem_table_symbol[j], elements[i].second) == 0))
             {
@@ -322,31 +391,27 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
             }
         }
         if(idx < 0)
-            throw invalid_argument("Invalid formula");
+            throw std::invalid_argument("Invalid formula");
         element_indexes.push_back(idx);
     }
 
-    vector<int> _isotope_numbers;
+    std::vector<int> _isotope_numbers;
+    const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
 
-    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
+    for(std::vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
         int num = 0;
         int at_idx = *it;
         int elem_ID = elem_table_ID[at_idx];
         while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_ID[at_idx] == elem_ID)
         {
+            isotope_masses.push_back(masses[at_idx]);
+            isotope_probabilities.push_back(elem_table_probability[at_idx]);
             at_idx++;
             num++;
         }
         _isotope_numbers.push_back(num);
     }
-
-    for(vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
-    {
-        const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
-        isotope_masses.push_back(&masses[*it]);
-        isotope_probabilities.push_back(&elem_table_probability[*it]);
-    };
 
     const unsigned int dimNumber = elements.size();
 
@@ -355,7 +420,6 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
     *confSize = dimNumber * sizeof(int);
 
     return dimNumber;
-
 }
 
 
@@ -367,10 +431,13 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 
 IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     Iso(std::move(iso)),
+    mode_lprob(getModeLProb()),
     partialLProbs(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialMasses(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
 {
+    for(int ii = 0; ii < dimNumber; ++ii)
+        marginals[ii]->ensureModeConf();
     if(alloc_partials)
     {
         partialLProbs[dimNumber] = 0.0;
@@ -396,11 +463,11 @@ IsoGenerator::~IsoGenerator()
  * ----------------------------------------------------------------------------------------------------------
  */
 
-
+static const double minsqrt = -1.3407796239501852e+154;  // == constexpr(-sqrt(std::numeric_limits<double>::max()));
 
 IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute, int tabSize, int hashSize, bool reorder_marginals)
 : IsoGenerator(std::move(iso)),
-Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ? log(_threshold) : log(_threshold) + modeLProb))
+Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_threshold) + mode_lprob))
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
@@ -408,12 +475,14 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     empty = false;
 
-    for(int ii=0; ii<dimNumber; ii++)
+    const bool marginalsNeedSorting = doMarginalsNeedSorting();
+
+    for(int ii = 0; ii < dimNumber; ii++)
     {
         counter[ii] = 0;
         marginalResultsUnsorted[ii] = new PrecalculatedMarginal(std::move(*(marginals[ii])),
-                                                        Lcutoff - modeLProb + marginals[ii]->getModeLProb(),
-                                                        true,
+                                                        Lcutoff - mode_lprob + marginals[ii]->fastGetModeLProb(),
+                                                        marginalsNeedSorting,
                                                         tabSize,
                                                         hashSize);
 
@@ -426,21 +495,20 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
         OrderMarginalsBySizeDecresing<PrecalculatedMarginal> comparator(marginalResultsUnsorted);
         int* tmpMarginalOrder = new int[dimNumber];
 
-        for(int ii=0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             tmpMarginalOrder[ii] = ii;
 
         std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
         marginalResults = new PrecalculatedMarginal*[dimNumber];
 
-        for(int ii=0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
 
         marginalOrder = new int[dimNumber];
-        for(int ii = 0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             marginalOrder[tmpMarginalOrder[ii]] = ii;
 
         delete[] tmpMarginalOrder;
-
     }
     else
     {
@@ -451,10 +519,10 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
 
     if(dimNumber > 1)
-        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+        maxConfsLPSum[0] = marginalResults[0]->fastGetModeLProb();
 
-    for(int ii=1; ii<dimNumber-1; ii++)
-        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+    for(int ii = 1; ii < dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->fastGetModeLProb();
 
     lProbs_ptr = lProbs_ptr_start;
 
@@ -472,14 +540,11 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
         terminate_search();
         lcfmsv = std::numeric_limits<double>::infinity();
     }
-
-
-
 }
 
 void IsoThresholdGenerator::terminate_search()
 {
-    for(int ii=0; ii<dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
     {
         counter[ii] = marginalResults[ii]->get_no_confs()-1;
         partialLProbs[ii] = -std::numeric_limits<double>::infinity();
@@ -490,12 +555,56 @@ void IsoThresholdGenerator::terminate_search()
 
 size_t IsoThresholdGenerator::count_confs()
 {
-    // Smarter algorithm forthcoming in 2.0
-    size_t ret = 0;
-    while(advanceToNextConfiguration())
-        ret++;
-    reset();
-    return ret;
+    if(empty)
+        return 0;
+
+    if(dimNumber == 1)
+        return marginalResults[0]->get_no_confs();
+
+    const double* lProbs_ptr_l = marginalResults[0]->get_lProbs_ptr() + marginalResults[0]->get_no_confs();
+
+    std::unique_ptr<const double* []> lProbs_restarts(new const double*[dimNumber]);
+
+    for(ssize_t ii = 0; ii < dimNumber; ii++)
+        lProbs_restarts[ii] = lProbs_ptr_l;
+
+    size_t count = 0;
+
+    while(*lProbs_ptr_l < lcfmsv)
+        lProbs_ptr_l--;
+
+    while(true)
+    {
+        count += lProbs_ptr_l - lProbs_ptr_start + 1;
+
+        int idx = 0;
+        int * cntr_ptr = counter;
+
+        while(idx < dimNumber - 1)
+        {
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            (*cntr_ptr)++;
+
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
+            {
+                short_recalc(idx-1);
+                lProbs_ptr_l = lProbs_restarts[idx];
+                while(*lProbs_ptr_l < lcfmsv)
+                    lProbs_ptr_l--;
+                for(idx--; idx > 0; idx--)
+                    lProbs_restarts[idx] = lProbs_ptr_l;
+                break;
+            }
+        }
+        if(idx == dimNumber - 1)
+        {
+            reset();
+            return count;
+        }
+    }
 }
 
 void IsoThresholdGenerator::reset()
@@ -537,16 +646,16 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
 {
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
-    currentLThreshold = nextafter(getModeLProb(), -std::numeric_limits<double>::infinity());
+    currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
     lastLThreshold = std::numeric_limits<double>::min();
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
+    marginalsNeedSorting = doMarginalsNeedSorting();
 
-    for(int ii=0; ii<dimNumber; ii++)
-    {
-        counter[ii] = 0;
+    memset(counter, 0, sizeof(int)*dimNumber);
+
+    for(int ii = 0; ii < dimNumber; ii++)
         marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
-    }
 
     if(reorder_marginals && dimNumber > 1)
     {
@@ -556,7 +665,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
 
         int* tmpMarginalOrder = new int[dimNumber];
 
-        for(int ii=0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             tmpMarginalOrder[ii] = ii;
 
         TableOrder<double> TO(marginal_priorities);
@@ -564,11 +673,11 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
         std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, TO);
         marginalResults = new LayeredMarginal*[dimNumber];
 
-        for(int ii=0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
 
         marginalOrder = new int[dimNumber];
-        for(int ii = 0; ii<dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             marginalOrder[tmpMarginalOrder[ii]] = ii;
 
         delete[] tmpMarginalOrder;
@@ -583,10 +692,10 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();
 
     if(dimNumber > 1)
-        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+        maxConfsLPSum[0] = marginalResults[0]->fastGetModeLProb();
 
-    for(int ii=1; ii<dimNumber-1; ii++)
-        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
+    for(int ii = 1; ii < dimNumber-1; ii++)
+        maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->fastGetModeLProb();
 
     lProbs_ptr = lProbs_ptr_start;
 
@@ -596,7 +705,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     counter[0]--;
     lProbs_ptr--;
     lastLThreshold = 10.0;
-    nextLayer(-0.00001);
+    IsoLayeredGenerator::nextLayer(-0.00001);
 }
 
 bool IsoLayeredGenerator::nextLayer(double offset)
@@ -609,17 +718,17 @@ bool IsoLayeredGenerator::nextLayer(double offset)
     lastLThreshold = currentLThreshold;
     currentLThreshold += offset;
 
-    for(int ii=0; ii<dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
     {
-        marginalResults[ii]->extend(currentLThreshold - modeLProb + marginalResults[ii]->getModeLProb());
+        marginalResults[ii]->extend(currentLThreshold - mode_lprob + marginalResults[ii]->fastGetModeLProb(), marginalsNeedSorting);
         counter[ii] = 0;
     }
 
-    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr(); // vector relocation might have happened
+    lProbs_ptr_start = marginalResults[0]->get_lProbs_ptr();  // vector relocation might have happened
 
     lProbs_ptr = lProbs_ptr_start + first_mrg_size - 1;
 
-    for(int ii=0; ii<dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
         resetPositions[ii] = lProbs_ptr;
 
     recalc(dimNumber-1);
@@ -635,7 +744,7 @@ bool IsoLayeredGenerator::carry()
 
     int * cntr_ptr = counter;
 
-    while(idx<dimNumber-1)
+    while(idx < dimNumber-1)
     {
         *cntr_ptr = 0;
         idx++;
@@ -652,7 +761,7 @@ bool IsoLayeredGenerator::carry()
             while(*lProbs_ptr <= last_lcfmsv)
                 lProbs_ptr--;
 
-            for(int ii=0; ii<idx; ii++)
+            for(int ii = 0; ii < idx; ii++)
                 resetPositions[ii] = lProbs_ptr;
 
             return true;
@@ -665,7 +774,7 @@ bool IsoLayeredGenerator::carry()
 
 void IsoLayeredGenerator::terminate_search()
 {
-    for(int ii=0; ii<dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
     {
         counter[ii] = marginalResults[ii]->get_no_confs()-1;
         partialLProbs[ii] = -std::numeric_limits<double>::infinity();
@@ -701,14 +810,14 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 
     marginalResults = new MarginalTrek*[dimNumber];
 
-    for(int i = 0; i<dimNumber; i++)
+    for(int i = 0; i < dimNumber; i++)
         marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
 
-    logProbs        = new const vector<double>*[dimNumber];
-    masses          = new const vector<double>*[dimNumber];
-    marginalConfs   = new const vector<int*>*[dimNumber];
+    logProbs        = new const std::vector<double>*[dimNumber];
+    masses          = new const std::vector<double>*[dimNumber];
+    marginalConfs   = new const std::vector<int*>*[dimNumber];
 
-    for(int i = 0; i<dimNumber; i++)
+    for(int i = 0; i < dimNumber; i++)
     {
         masses[i] = &marginalResults[i]->conf_masses();
         logProbs[i] = &marginalResults[i]->conf_lprobs();
@@ -730,7 +839,6 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     );
 
     pq.push(topConf);
-
 }
 
 
@@ -797,6 +905,20 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 }
 
 
+/*
+ * ---------------------------------------------------------------------------------------------------
+ */
+
+
+IsoStochasticGenerator::IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double _precision, double _beta_bias) :
+IsoGenerator(std::move(iso)),
+ILG(std::move(*this)),
+to_sample_left(no_molecules),
+precision(_precision),
+beta_bias(_beta_bias),
+confs_prob(0.0),
+chasing_prob(0.0)
+{}
 
 /*
  * ---------------------------------------------------------------------------------------------------
@@ -805,41 +927,6 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
 
 
-#if !ISOSPEC_BUILDING_R
 
-void printConfigurations(
-    const   std::tuple<double*,double*,int*,int>& results,
-    int     dimNumber,
-    int*    isotopeNumbers
-){
-    int m = 0;
-
-    for(int i=0; i<std::get<3>(results); i++){
-
-        std::cout << "Mass = "  << std::get<0>(results)[i] <<
-        "\tand log-prob = "     << std::get<1>(results)[i] <<
-        "\tand prob = "                 << exp(std::get<1>(results)[i]) <<
-        "\tand configuration =\t";
-
-
-        for(int j=0; j<dimNumber; j++){
-            for(int k=0; k<isotopeNumbers[j]; k++ )
-            {
-                std::cout << std::get<2>(results)[m] << " ";
-                m++;
-            }
-            std::cout << '\t';
-        }
-
-
-        std::cout << std::endl;
-    }
-}
-
-#endif /* !ISOSPEC_BUILDING_R */
-
-
-
-
-} // namespace IsoSpec
+}  // namespace IsoSpec
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -17,22 +17,27 @@
 #pragma once
 
 #include <vector>
-#include <string.h>
+#include <cstring>
 
 namespace IsoSpec
 {
 
-class DirtyAllocator{
-private:
+class DirtyAllocator
+{
+ private:
     void*   currentTab;
     void*   currentConf;
     void*   endOfTablePtr;
     const int       tabSize;
     int     cellSize;
     std::vector<void*>  prevTabs;
-public:
-    DirtyAllocator(const int dim, const int tabSize = 10000);
+
+ public:
+    explicit DirtyAllocator(const int dim, const int tabSize = 10000);
     ~DirtyAllocator();
+
+    DirtyAllocator(const DirtyAllocator& other) = delete;
+    DirtyAllocator& operator=(const DirtyAllocator& other) = delete;
 
     void shiftTables();
 
@@ -68,5 +73,4 @@ public:
     }
 };
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

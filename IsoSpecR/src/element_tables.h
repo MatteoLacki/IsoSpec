@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -45,5 +45,4 @@ extern const double elem_table_log_probability[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIE
 }
 #endif
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

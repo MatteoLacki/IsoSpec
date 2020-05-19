@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -26,17 +26,24 @@ namespace IsoSpec
 
 class KeyHasher
 {
-private:
+ private:
     int dim;
-public:
-    KeyHasher(int dim);
 
-    inline std::size_t operator()(const int* conf) const
+ public:
+    explicit KeyHasher(int dim);
+
+    inline std::size_t operator()(const int* conf) const noexcept
     {
-        // Following Boost...
-        std::size_t seed = 0;
-        for(int i = 0; i < dim; ++i )
-            seed ^= conf[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        std::size_t seed = conf[0];
+        for(int i = 1; i < dim; ++i )
+        {
+            constexpr_if(sizeof(std::size_t) == 8)
+                seed = seed << 6;
+            else  // Assuming 32 bit arch. If not, well, there will be
+                  // more hash collisions but it still should run OK
+                seed = seed << 3;
+            seed ^= conf[i];
+        }
         return seed;
     };
 };
@@ -44,10 +51,11 @@ public:
 
 class ConfEqual
 {
-private:
+ private:
     int size;
-public:
-    ConfEqual(int dim);
+
+ public:
+    explicit ConfEqual(int dim);
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
@@ -65,9 +73,9 @@ public:
 
 class ConfOrder
 {
-//configurations comparator
-public:
-    inline bool operator()(void* conf1,void* conf2) const
+// configurations comparator
+ public:
+    inline bool operator()(void* conf1, void* conf2) const
     {
         return *reinterpret_cast<double*>(conf1) < *reinterpret_cast<double*>(conf2);
     };
@@ -77,52 +85,54 @@ public:
 
 class ConfOrderMarginal
 {
-//configurations comparator
+// configurations comparator
     const double*  logProbs;
     int dim;
-public:
+ public:
     ConfOrderMarginal(const double* logProbs, int dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
-    {// Return true if conf1 is less probable than conf2.
-        return unnormalized_logProb(conf1,logProbs,dim) < unnormalized_logProb(conf2,logProbs,dim);
+    {
+        // Return true if conf1 is less probable than conf2.
+        return unnormalized_logProb(conf1, logProbs, dim) < unnormalized_logProb(conf2, logProbs, dim);
     };
 };
 
 class ConfOrderMarginalDescending
 {
-//configurations comparator
+// configurations comparator
     const double*  logProbs;
     int dim;
-public:
+ public:
     ConfOrderMarginalDescending(const double* logProbs, int dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
-    {// Return true if conf1 is less probable than conf2.
-        return unnormalized_logProb(conf1,logProbs,dim) > unnormalized_logProb(conf2,logProbs,dim);
+    {
+        // Return true if conf1 is less probable than conf2.
+        return unnormalized_logProb(conf1, logProbs, dim) > unnormalized_logProb(conf2, logProbs, dim);
     };
 };
 
 template<typename T> class ReverseOrder
 {
-public:
-    inline ReverseOrder() {};
-    inline bool operator()(const T a,const T b) const { return a > b; };
+ public:
+    inline ReverseOrder() {}
+    inline bool operator()(const T a, const T b) const { return a > b; }
 };
 
 template<typename T> class TableOrder
 {
         const T* tbl;
-public:
-        inline TableOrder(const T* _tbl) : tbl(_tbl) {};
-        inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
+ public:
+        inline explicit TableOrder(const T* _tbl) : tbl(_tbl) {}
+        inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; }
 };
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 
 #include "marginalTrek++.h"
 
-class PrecalculatedMarginal; // In case marginalTrek++.h us including us, and can't be included again...
+class PrecalculatedMarginal;  // In case marginalTrek++.h us including us, and can't be included again...
 
 namespace IsoSpec
 {
@@ -130,13 +140,10 @@ namespace IsoSpec
 template<typename T> class OrderMarginalsBySizeDecresing
 {
     T const* const* const MT;
-public:
-    OrderMarginalsBySizeDecresing(T const* const * const _MT) : MT(_MT) {};
-    inline bool operator()(int m1, int m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); };
+ public:
+    explicit OrderMarginalsBySizeDecresing(T const* const * const _MT) : MT(_MT) {};
+    inline bool operator()(int m1, int m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); }
 };
 
 
-} // namespace IsoSpec
-
-
-
+}  // namespace IsoSpec

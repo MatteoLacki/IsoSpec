@@ -6,10 +6,15 @@
  *   This file is part of IsoSpec.
  */
 
+
+// NOLINT(legal/copyright)
+
+
 #include <cmath>
 #include <cstdlib>
 #include "isoMath.h"
 #include "platform.h"
+#include "btrd.h"
 
 namespace IsoSpec
 {
@@ -51,7 +56,6 @@ double RationalApproximation(double t)
 
 double NormalCDFInverse(double p)
 {
-
     if (p < 0.5)
         return -RationalApproximation( sqrt(-2.0*log(p)) );
     else
@@ -128,16 +132,16 @@ double InverseLowerIncompleteGamma2(int a, double x)
 {
     double l = 0.0;
     double p = tgamma(a);
-    double s, v;
+    double s;
 
     do {
         s = (l+p) / 2.0;
-        v = LowerIncompleteGamma2(a, s);
+        double v = LowerIncompleteGamma2(a, s);
         if (x < v)
             p = s;
         else
             l = s;
-    } while((p-l)*1000.0>p);
+    } while((p-l)*1000.0 > p);
 
     return s;
 }
@@ -146,7 +150,14 @@ std::random_device random_dev;
 std::mt19937 random_gen(random_dev());
 std::uniform_real_distribution<double> stdunif(0.0, 1.0);
 
+size_t rdvariate_binom(size_t tries, double succ_prob, std::mt19937& rgen)
+{
+    if (succ_prob >= 1.0)
+        return tries;
+    return IsoSpec::boost_binomial_distribution_variate(tries, succ_prob, rgen);
+}
 
 
-} // namespace IsoSpec
+
+}  // namespace IsoSpec
 

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -314,10 +314,10 @@ const int elem_table_ID [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 92,
 90,
 91,
-1000, // Electron
-1001, // Missing electron
-1002, // Protonation
-1002, // Protonation (Deuterium)
+1000,  // Electron
+1001,  // Missing electron
+1002,  // Protonation
+1002,  // Protonation (Deuterium)
 };
 
 
@@ -907,8 +907,8 @@ const double elem_table_mass [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 238.050792,
 232.038062,
 231.035882,
-0.000548579909065,  // Electron
--0.000548579909065, // Missing electron
+0.000548579909065,   // Electron
+-0.000548579909065,  // Missing electron
 1.007276466879,      // Protonation
 2.013553212745,      // Protonation (deuterium)
 };
@@ -1798,7 +1798,7 @@ const char* elem_table_element [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 "electron",
 "missing electron",
 "protonation",
-"protonation", // with deuteron
+"protonation",  // with deuteron
 };
 
 
@@ -2989,5 +2989,4 @@ const double elem_table_log_probability [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 }
 #endif
 
-} // namespace IsoSpec
-
+}  // namespace IsoSpec

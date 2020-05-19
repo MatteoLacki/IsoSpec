@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2019 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -22,8 +22,8 @@ namespace IsoSpec
 {
 
 DirtyAllocator::DirtyAllocator(
-    const int dim, const int tabSize
-): tabSize(tabSize)
+    const int dim, const int tabSize_
+): tabSize(tabSize_)
 {
     cellSize        = sizeof(double) + sizeof(int) * dim;
     // Fix memory alignment problems for SPARC
@@ -50,5 +50,5 @@ void DirtyAllocator::shiftTables()
     endOfTablePtr   = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
 
-} // namespace IsoSpec
+}  // namespace IsoSpec
 
