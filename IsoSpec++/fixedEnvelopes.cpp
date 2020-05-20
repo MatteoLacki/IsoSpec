@@ -49,11 +49,11 @@ other._confs_no = 0;
 other.total_prob = 0.0;
 }
 
-FixedEnvelope::FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
-_masses(masses),
-_probs(probs),
+FixedEnvelope::FixedEnvelope(double* in_masses, double* in_probs, size_t in_confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
+_masses(in_masses),
+_probs(in_probs),
 _confs(nullptr),
-_confs_no(confs_no),
+_confs_no(in_confs_no),
 allDim(0),
 sorted_by_mass(masses_sorted),
 sorted_by_prob(probs_sorted),
