@@ -67,6 +67,20 @@ def ParseFormula(formula):
 
     return ret
 
+fasta_parsing_space = isoFFI.ffi.new("int[6]")
+
+def ParseFASTA(fasta):
+    if isinstance(fasta, str):
+        fasta = fasta.encode("ascii")
+    isoFFI.clib.parse_fasta_c(fasta, fasta_parsing_space)
+    elements = list("CHNOS")
+    if fasta_parsing_space[5] > 0:
+        elements.append("Se")
+    od = OrderedDict()
+    for i in range(len(elements)):
+        od[elements[i]] = fasta_parsing_space[i]
+    return od
+
 
 def IsoParamsFromDict(formula, use_nominal_masses = False):
     """Produces a set of IsoSpec parameters from a chemical formula.
@@ -116,7 +130,7 @@ class Iso(object):
         self.iso = None
 
         if len(fasta) > 0:
-            molecule = parseFASTA(fasta)
+            molecule = ParseFASTA(fasta)
         else:
             molecule = OrderedDict()
 

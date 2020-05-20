@@ -91,6 +91,7 @@ class IsoFFI:
         void sortEnvelopeByProb(void* envelope);
 
         void freeReleasedArray(void* array);
+        void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
         #define NUMBER_OF_ISOTOPIC_ENTRIES 292
         extern const size_t isospec_number_of_isotopic_entries;
