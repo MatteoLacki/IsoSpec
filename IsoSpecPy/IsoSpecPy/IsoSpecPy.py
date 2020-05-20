@@ -20,7 +20,7 @@ import re
 import types
 from . import PeriodicTbl
 from .confs_passthrough import ConfsPassthrough
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import math
 
 try:
@@ -45,13 +45,14 @@ def ParseFormula(formula):
     """
     global regex_pattern
 
-    symbols = []
-    atomCounts = []
+    ret = OrderedDict()
+
     last = 0
     for match in re.finditer(regex_pattern, formula):
         elem, cnt = match.groups()
-        symbols.append(elem)
-        atomCounts.append(int(cnt) if cnt is not '' else 1)
+        if elem in ret:
+            raise ValueError("""Invalid formula: {} (repeating element: "{}")""".format(formula, elem))
+        ret[elem] = int(cnt) if cnt is not '' else 1
         if last!=match.start():
             raise ValueError("""Invalid formula: {}  (garbage inside: "{}")""".format(formula, formula[last:match.start()]))
         if elem not in PeriodicTbl.symbol_to_masses:
@@ -61,13 +62,10 @@ def ParseFormula(formula):
     if len(formula) != last:
         raise ValueError('''Invalid formula: {}  (trailing garbage: "{}")'''.format(formula, formula[last:]))
 
-    if len(atomCounts) == 0:
+    if len(ret) == 0:
         raise ValueError("Invalid formula (empty)")
 
-    if len(symbols) != len(set(symbols)):
-        raise ValueError("""Invalid formula: {} (repeating element: "{}")""".format(formula, [x for x in symbols if symbols.count(x) > 1][0]))
-
-    return symbols, atomCounts
+    return ret
 
 
 def IsoParamsFromFormula(formula, use_nominal_masses = False):
@@ -80,7 +78,8 @@ def IsoParamsFromFormula(formula, use_nominal_masses = False):
     Returns:
         ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
     """
-    symbols, atomCounts = ParseFormula(formula)
+
+    symbols, atomCounts = zip(*ParseFormula(formula).items())
     try:
         if use_nominal_masses:
             masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
