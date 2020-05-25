@@ -172,9 +172,9 @@ elif 'cygwin' in platform.system().lower():
     class build_ext_subclass(build_ext):
         def get_libraries(self, ext):
             return ext.libraries # Override default function which wants to link in libpython on Windows. We're using CFFI and don't need that.
-    setup_args['cmdclass'] = {'build_ext' : bes}
-
+    setup_args['cmdclass'] = {'build_ext' : build_ext_subclass}
     setup(**setup_args)
+
 elif 'darwin' in platform.system().lower():
     # Okay, so OSX is apparently horribly broken. On OSX the "g++" command can be nonexistent and stuff will be compiled with clang++,
     # or g++ can be present and behave sanely, or it can be clang pretending to be g++ and behaving somewhat sanely, or it can be broken
