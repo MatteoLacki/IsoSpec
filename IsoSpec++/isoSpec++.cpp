@@ -373,7 +373,7 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
         while(isdigit(formula[digit_end]))
             digit_end++;
         elements.emplace_back(&formula[position], elem_end-position);
-        numbers.push_back(atoi(&formula[elem_end]));
+        numbers.push_back(std::stoi(&formula[elem_end]));
         position = digit_end;
     }
 
