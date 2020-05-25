@@ -345,7 +345,7 @@ void freeReleasedArray(void* array)
 
 void parse_fasta_c(const char* fasta, int atomCounts[6])
 {
-    // Smae thing, only this time with C linkage
+    // Same thing, only this time with C linkage
     parse_fasta(fasta, atomCounts);
 }
 
