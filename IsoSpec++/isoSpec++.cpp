@@ -657,7 +657,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
     currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
-    lastLThreshold = std::numeric_limits<double>::min();
+    lastLThreshold = (std::numeric_limits<double>::min)();
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
     marginalsNeedSorting = doMarginalsNeedSorting();
