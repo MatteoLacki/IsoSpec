@@ -12,7 +12,7 @@ def binom(n, k):
 
 def max_confs_cnt(formula=""):
     """Get the maximal number of configurations for a given chemical formula."""
-    from . import IsoParamsFromFormula
+    from IsoSpecPy import IsoParamsFromFormula
     f = IsoParamsFromFormula(formula)
     if f.atomCount:
         N = 1
@@ -35,8 +35,12 @@ test_formulas = [   'O100',
 
 def test_all_configs_output_cnt():
     """Test if IsoSpecPy output correctly all configurations."""
-    from . import IsoThreshold
+    from IsoSpecPy import IsoThreshold
     global test_formulas
     for f in test_formulas:
         I = IsoThreshold(formula=f, threshold=0.0, absolute=True)
         assert len(I) == max_confs_cnt(f)
+    print("Seems OK!")
+
+if __name__ == "__main__":
+    test_all_configs_output_cnt()
