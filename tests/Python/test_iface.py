@@ -68,14 +68,11 @@ print("OK!")
 
 print("Checking convolution...", end=' ')
 o = IsoSpecPy.IsoThreshold(0.0, formula="H1")
-print(list(o*o))
-print(list(IsoSpecPy.IsoThreshold(0.0, formula="H2")))
-
-
 sur = IsoSpecPy.IsoThreshold(0.0, formula=surcose)
-
 #(glu*glu).plot()
 #(sur*wa).plot()
-print((sur*wa).wassersteinDistance(glu*glu))
-
+WSD = (sur*wa).wassersteinDistance(glu*glu)
+print(WSD, end=' ')
+assert math.isclose(WSD, 0.0, abs_tol=1e-7)
+print("OK!")
 
