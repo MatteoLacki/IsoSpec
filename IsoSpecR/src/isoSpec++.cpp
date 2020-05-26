@@ -97,6 +97,11 @@ marginals(nullptr)
     {
         delete[] isotopeNumbers;
         delete[] atomCounts;
+	// Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
+	// However, this is not the fast code path and we can afford two unneeded instructions to keep
+	// some static analysis tools happy.
+	isotopeNumbers = nullptr;
+	atomCounts = nullptr;
         throw;
     }
 }
@@ -123,6 +128,11 @@ marginals(nullptr)
     {
         delete[] isotopeNumbers;
         delete[] atomCounts;
+	// Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
+	// However, this is not the fast code path and we can afford two unneeded instructions to keep
+	// some static analysis tools happy.
+	isotopeNumbers = nullptr;
+	atomCounts = nullptr;
         throw;
     }
 }
@@ -151,7 +161,7 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 {
     if(fullcopy)
     {
-        for(ssize_t ii = 0; ii < dimNumber; ii++)
+        for(int ii = 0; ii < dimNumber; ii++)
             marginals[ii] = new Marginal(*other.marginals[ii]);
     }
 }
@@ -373,7 +383,7 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
         while(isdigit(formula[digit_end]))
             digit_end++;
         elements.emplace_back(&formula[position], elem_end-position);
-        numbers.push_back(atoi(&formula[elem_end]));
+        numbers.push_back(std::stoi(&formula[elem_end]));
         position = digit_end;
     }
 
@@ -565,7 +575,7 @@ size_t IsoThresholdGenerator::count_confs()
 
     std::unique_ptr<const double* []> lProbs_restarts(new const double*[dimNumber]);
 
-    for(ssize_t ii = 0; ii < dimNumber; ii++)
+    for(int ii = 0; ii < dimNumber; ii++)
         lProbs_restarts[ii] = lProbs_ptr_l;
 
     size_t count = 0;
@@ -647,7 +657,7 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
     currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
-    lastLThreshold = std::numeric_limits<double>::min();
+    lastLThreshold = (std::numeric_limits<double>::min)();
     marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
     resetPositions = new const double*[dimNumber];
     marginalsNeedSorting = doMarginalsNeedSorting();

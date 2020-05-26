@@ -117,7 +117,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
         constexpr_if(tgetConfs) { generator.get_conf_signature(tconfs); tconfs += allDim; }
     }
 
-    ISOSPEC_FORCE_INLINE void store_conf(double mass, double prob)
+    ISOSPEC_FORCE_INLINE void store_conf(double _mass, double _prob)
     {
         if(_confs_no == current_size)
         {
@@ -125,15 +125,15 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
             reallocate_memory<false>(current_size);
         }
 
-        *tprobs = prob;
-        *tmasses = mass;
+        *tprobs = _prob;
+        *tmasses = _mass;
         tprobs++;
         tmasses++;
 
         _confs_no++;
     }
 
-    template<bool tgetConfs> ISOSPEC_FORCE_INLINE void swap(size_t idx1, size_t idx2, [[maybe_unused]] int* conf_swapspace)
+    template<bool tgetConfs> ISOSPEC_FORCE_INLINE void swap(size_t idx1, size_t idx2, ISOSPEC_MAYBE_UNUSED int* conf_swapspace)
     {
         std::swap<double>(this->_probs[idx1],  this->_probs[idx2]);
         std::swap<double>(this->_masses[idx1], this->_masses[idx2]);

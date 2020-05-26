@@ -49,11 +49,11 @@ other._confs_no = 0;
 other.total_prob = 0.0;
 }
 
-FixedEnvelope::FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
-_masses(masses),
-_probs(probs),
+FixedEnvelope::FixedEnvelope(double* in_masses, double* in_probs, size_t in_confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
+_masses(in_masses),
+_probs(in_probs),
 _confs(nullptr),
-_confs_no(confs_no),
+_confs_no(in_confs_no),
 allDim(0),
 sorted_by_mass(masses_sorted),
 sorted_by_prob(probs_sorted),
@@ -63,7 +63,14 @@ total_prob(_total_prob)
 FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 {
     double* nprobs  = reinterpret_cast<double*>(malloc(sizeof(double) * (_confs_no+other._confs_no)));
+    if(nprobs == nullptr)
+        throw std::bad_alloc();
     double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * (_confs_no+other._confs_no)));
+    if(nmasses == nullptr)
+    {
+        free(nprobs);
+        throw std::bad_alloc();
+    }
 
     memcpy(nprobs,  _probs,  sizeof(double) * _confs_no);
     memcpy(nmasses, _masses, sizeof(double) * _confs_no);
@@ -77,7 +84,16 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 {
     double* nprobs =  reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
+    if(nprobs == nullptr)
+        throw std::bad_alloc();
+    //  deepcode ignore CMemoryLeak: It's not a memleak: the memory is passed to FixedEnvelope which
+    //  deepcode ignore CMemoryLeak: takes ownership of it, and will properly free() it in destructor.
     double* nmasses = reinterpret_cast<double*>(malloc(sizeof(double) * _confs_no * other._confs_no));
+    if(nmasses == nullptr)
+    {
+        free(nprobs);
+        throw std::bad_alloc();
+    }
 
     size_t tgt_idx = 0;
 
@@ -209,7 +225,14 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
         ret_size += spectra[ii]->_confs_no;
 
     double* newprobs  = reinterpret_cast<double*>(malloc(sizeof(double)*ret_size));
+    if(newprobs == nullptr)
+        throw std::bad_alloc();
     double* newmasses = reinterpret_cast<double*>(malloc(sizeof(double)*ret_size));
+    if(newmasses == nullptr)
+    {
+        free(newprobs);
+        throw std::bad_alloc();
+    }
 
     size_t cntr = 0;
     for(size_t ii = 0; ii < size; ii++)
@@ -428,7 +451,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
 
     double* ttmasses = this->_masses;
     double* ttprobs = this->_probs;
-    [[maybe_unused]] int* ttconfs;
+    ISOSPEC_MAYBE_UNUSED int* ttconfs;
     constexpr_if(tgetConfs)
         ttconfs = _confs;
 
@@ -500,7 +523,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         prob_at_last_switch = prob_so_far;
 
         layer_delta = sum_above - log1p(-prob_so_far);
-        layer_delta = std::max(std::min(layer_delta, -0.1), -5.0);
+        layer_delta = (std::max)((std::min)(layer_delta, -0.1), -5.0);
     } while(generator.nextLayer(layer_delta));
 
     if(!optimize || prob_so_far <= target_total_prob)
