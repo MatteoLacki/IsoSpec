@@ -93,7 +93,11 @@ def IsoParamsFromDict(formula, use_nominal_masses = False):
         ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
     """
 
-    symbols, atomCounts = zip(*formula.items())
+    symbols, atomCounts = [], []
+    for symbol, atomCount in formula.items():
+        symbols.append(symbol)
+        atomCounts.append(atomCount)
+
     try:
         if use_nominal_masses:
             masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
