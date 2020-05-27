@@ -5,3 +5,5 @@ test_IsoThresholdGenerator:
 
 test_IsoOrderedGenerator:
 	clang++ -std=c++17 -x c++ test_IsoOrderedGenerator.c -o isoOrdered -lpthread
+clean:
+	rm -f isoOrdered isoThreshold

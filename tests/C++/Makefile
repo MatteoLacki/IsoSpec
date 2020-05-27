@@ -91,4 +91,4 @@ nr_conf:
 	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread
 
 clean:
-	rm -rf *_gcc *_clang *_dbg *_memsan *_asan IsoThresholdGenerator layered main_test_cfi main_test_ss marginal nr_conf tabulator titin *.dSYM
+	rm -rf *_gcc *_clang *_dbg *_memsan *_asan IsoThresholdGenerator layered main_test_cfi main_test_ss marginal nr_conf tabulator titin *.dSYM a.out from_formula_layered_clang_more main_test_dbg_fast
