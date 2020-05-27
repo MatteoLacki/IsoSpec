@@ -4,6 +4,10 @@ This file lists *major* changes between releases, for a full list see git log.
 2.1.0
 ----------------------------------
 - Support for using nominal mass in calculations
+- FASTA file parsing
+- More speed improvements
+- Support for Wasserstein distance
+- Basic operations on fixed envelopes (addition, normalization, convolution...)
 
 2.0.1 (R-only release)
 ----------------------------------
