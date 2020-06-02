@@ -6,3 +6,5 @@ theme: jekyll-theme-minimal
 
 gems:
   - jekyll-mentions
+
+width: large
