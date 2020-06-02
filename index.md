@@ -22,15 +22,14 @@ In that case, IsoSpec would provide you with:
 
 Before getting into details, a small break for a commercial!
 
-### Using IsoSpec? Cite us! 
+### Using IsoSpec? Cite us! Citations are almost like money. Or are they? Well, if you do want to pay us, we will not be angry, no, we will gracefully accept every donation too.
 
+<a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">
 IsoSpec: Hyperfast Fine Structure Calculator
 Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, and Anna Gambin
 Analytical Chemistry 2017 89 (6), 3272-3277
 DOI: 10.1021/acs.analchem.6b01459
-
-More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
-
+</a>
 
 ## How to install IsoSpec?
 
@@ -146,6 +145,11 @@ print(sp.masses[0])
 print(sp.probs[0])
 ```
 The first 0-th isotopologue is always one of the mode(s) of the isotopic distribution.
+If you have installed *matplotlib* (separately), you can also easily visualize the outcome
+```{python}
+sp.plot()
+```
+
 
 Also, if you want to obtain only peaks above a certain heigh, simply run
 ```{python}
@@ -160,46 +164,39 @@ for m, p in iso.IsoThresholdGenerator(formula="C254H377N65O75S6", threshold=.000
     print(m, p)
 ```
 
-
 ### R
 
+We do not like **R**. But you might. We accept that, as much as we tolerate vegetarians.
+**R** does not let us do as much as Python does.
+
+To get here *99.99%* of the isotopic distribution, simply run
 ```R
 library(IsoSpecR)
 
-# A water molecule:
-water <- c(H=2,O=1)
-
-# Desired joint probability p of the p-optimal set of isotopologues (90%): 
-p <- .9
-
-# The fancy representation of the results is on.
-# ATTENTION: while turned on, the algorithm's time complexity is nlog(n) instead of linear.
-res <- IsoSpecify( molecule=water, stopCondition=.99, fancy=TRUE )
-
-print('The first configuration has the following parameters:')
-print('Mass:');res$mass
-print('log(probability):');res$logProb
-print('probability:');res$prob
-print('Number of Protium atoms:');res$H1
-print('Number of Deuterium atoms:');res$H2
-print('Number of O16 atoms:');res$O16
-print('Number of O17 atoms:');res$O17
-print('Number of O18 atoms:');res$O18
-
-print("Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?")
-print('In R, we have to preper additional parameter for the algorithm: a data.frame containing the new isotopic ratios.')
-modifiedIsotopes <- data.frame(
-	element = c('H', 'H', 'O', 'O', 'O'),
-	isotope = c('H1', 'H2', 'O16', 'O17', 'O18'),
-	mass  	= c(1.00782503207, 2.0141017778,15.99491461956, 16.99913170, 17.9991610),
-	abundance = c(0.5, 0.5,0.5, 0.3, 0.2)
-)
-
-modRes <- IsoSpecify( molecule=water, stopCondition=.99, fancy=TRUE, isotopes=modifiedIsotopes )
-
-print('The number of configuration must be bigger, the probability being less concentrated on any isotope.')
-modRes
+X = IsoSpecify(molecule=c(C=254,H=377,N=65,O=75,S=6), 
+	       stopCondition=.9999, 
+               showCounts=True)
+print(X)
 ```
+The above result contains the isotopic counts.
+If you don't need them, simply run
+```{R}
+X = IsoSpecify(molecule=c(C=254,H=377,N=65,O=75,S=6), 
+	       stopCondition=.9999)
+print(X)
+```
+
+And to get all isotopologues with probabilities higher than *0.01%*, use:
+
+```{R}
+X = IsoSpecify(molecule=c(C=254,H=377,N=65,O=75,S=6),
+	       stopCondition=.0001,
+	       algo=2)
+print(X)
+```
+You can also pass in custom isotopic frequencies.
+Simply, pass in a data-frame as the `isotopes` parameter.
+Have a look at `data(isotopicData)`, which is a list of examples of a proper input.
 
 ### C++
 
@@ -297,9 +294,6 @@ int main()
 Contact us! Mail to:
 
 * matteo.lacki@gmail.com 
-
-or 
-
 * mist@mimuw.edu.pl
 
 and we will help you in intergrate our software in your project!
