@@ -1,26 +1,10 @@
 ## What is IsoSpec? 
 
 IsoSpec is a **fine structure isotopic calculator**.
-
-It has been presented in a paper in Analytical Chemistry in 2017.
-
-Given a molecular formula and some probability threshold *0 < P < 1*, it will provide you with the smallest possible set of <a href="http://goldbook.iupac.org/I03351.html" target="_self">isotopologues</a> that are jointly *P* probable. 
-
-### Using IsoSpec? Cite us! 
-
-If you have used IsoSpec in your research, please cite it in your publications.
-
-IsoSpec: Hyperfast Fine Structure Calculator
-Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, and Anna Gambin
-Analytical Chemistry 2017 89 (6), 3272-3277
-DOI: 10.1021/acs.analchem.6b01459
-
-
-More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
-
-
-### *Example*
-Say, that you happen to be interested in the top 50% probable isotopologues of <a href="http://www.rcsb.org/pdb/explore.do?structureId=2zp6" target="_self">*Bovine Insulin*</a>. We happen to know, that its molecular formula is C<sub>254</sub>H<sub>377</sub>N<sub>65</sub>O<sub>75</sub>S<sub>6</sub>. 
+It can reveal for you a given fraction of the isotopic distribution of mass for a given molecule based only on its molecular composition.
+Mass is not unique due to the presence of isotopes that occur randomly in Nature, albeit with well studied frequencies.
+Say you want to reveal *P = 50 %* of the masses of <a href="http://www.rcsb.org/pdb/explore.do?structureId=2zp6" target="_self">*Bovine Insulin*</a>.
+We happen to know, that its molecular formula is C<sub>254</sub>H<sub>377</sub>N<sub>65</sub>O<sub>75</sub>S<sub>6</sub>. 
 
 In that case, IsoSpec would provide you with:
 
@@ -36,37 +20,32 @@ In that case, IsoSpec would provide you with:
 |8  | 5734.6067313599| 0.0276323390|           377|             0|            251|              3|             65|              0|             75|              0|              0|              5|              0|              1|              0|
 |9  | 5732.6046155640| 0.0266824062|           377|             0|            252|              2|             64|              1|             75|              0|              0|              6|              0|              0|              0|
 
+Before getting into details, a small break for a commercial!
 
-Now, how this could be of any use to **you**? Well, we did suppose you are rather into ...
+### Using IsoSpec? Cite us! 
 
-### Mass Spectrometry
+IsoSpec: Hyperfast Fine Structure Calculator
+Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, and Anna Gambin
+Analytical Chemistry 2017 89 (6), 3272-3277
+DOI: 10.1021/acs.analchem.6b01459
 
-
-Say **you** hoped to know, if *Bovine Insulin* is present in the sample you analyzed with your <a href="https://en.wikipedia.org/wiki/Mass_spectrometry" target="_self">**mass spectrometer**</a>.
-How would you do that? 
-
-You would use our software to generate the isotopologues and then try to find them in the experimental spectrum.
-
-
-
+More information on the paper is <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">**HERE**</a>
 
 
 ## How to install IsoSpec?
 
-IsoSpec is written in **C++** has bindings to **Python** (IsoSpecPy), **R** (IsoSpecR), and **C**. 
+IsoSpec is written in **C++** and has bindings to **Python** (IsoSpecPy), **R** (IsoSpecR), and **C**. 
 
 ### Python
-**IMPORTANT**: please note that the Python package is standalone, in the
-sense that it does not need the C/C++ library to be installed separately.
+
+IsoSpecPy package is standalone and does not need the C/C++ library to be installed separately.
 
 Requirements:
 * Python (v2 and v3 are 
 * C++11 compiler: clang++ (v3.3 or later) or g++ (v4.7 or later)
 * setuptools
-* cffi (this, if not present, will be automatically downloaded and
-          installed by the setup script, however you may prefer to use 
-          your distribution's package manager to install that)
 
+Follow <a href="https://wiki.python.org/moin/WindowsCompilers">these instructions</a> to install a C++ compiler on Windows.
 
 ```
 pip install IsoSpecPy
@@ -102,9 +81,9 @@ This means that it can be automatically downloaded. Just start an R console (or 
 
 Then, follow the instructions. For Windows users, this will result in downloading a precompiled version of the package.
 
-The package can be also directly downloaded from this page. If you use either Linux of Mac OSX, then simply:
+If you use either Linux of Mac OSX, then simply:
 
-1. Download the package.
+1. Download the package <a href="https://github.com/MatteoLacki/IsoSpec">from github</a>.
 2. Move to the folder containing the IsoSpecR folder. 
 3. Run in terminal
 
@@ -141,57 +120,46 @@ If you wish to develop software using this library, you will also
 have to place the header files (*.hpp/*.h) somewhere your C/C++
 compiler can find them.
 
-## Here are some example sessions:
+# How to run IsoSpec?
+
+## Getting a coverage of the isotopic distribution
+
+To obtain a given coverage, say *P = 99.99%*, of the isotopic distribution, follow these steps.
 
 ### Python
 
-```python
-# Calculates the isotopic distribution of water in several ways
+```{python}
+import IsoSpecPy as iso
 
-from IsoSpecPy import IsoSpecPy
-from math import exp
-
-i = IsoSpecPy.IsoSpec.IsoFromFormula("H2O1", 0.9)
-
-print "The isotopologue set containing at least 0.9 probability has", len(i), "element(s)"
-
-confs = i.getConfs()
-
-print "The first configuration has the following parameters:"
-print "Mass:", confs[0][0]
-print "log(probability):", confs[0][1] 
-print "probability:", exp(confs[0][1])
-print "Number of Protium atoms:", confs[0][2][0][0]
-print "Number of Deuterium atoms", confs[0][2][0][1]
-print "Number of O16 atoms:", confs[0][2][1][0]
-print "Number of O17 atoms:", confs[0][2][1][1]
-print "Number of O18 atoms:", confs[0][2][1][2]
-
-print
-print "Now what if both isotopes of hydrogen were equally probable, while prob. of O16 was 50%, O17 at 30% and O18 at 20%?"
-
-hydrogen_probs = (0.5, 0.5)
-oxygen_probs = (0.5, 0.3, 0.2)
-hydrogen_masses = (1.00782503207, 2.0141017778)
-oxygen_masses = (15.99491461956, 16.99913170, 17.9991610)
-atom_counts = (2, 1)
-
-i = IsoSpecPy.IsoSpec(atom_counts, (hydrogen_masses, oxygen_masses), (hydrogen_probs, oxygen_probs), 0.9)
-
-print "The isotopologue set containing at least 0.9 probability has", len(i), "element(s)"
-
-confs = i.getConfs()
-
-print "The first configuration has the following parameters:"
-print "Mass:", confs[0][0]
-print "log-prob:", confs[0][1]
-print "probability:", exp(confs[0][1])
-print "Number of Protium atoms:", confs[0][2][0][0]
-print "Number of Deuterium atoms", confs[0][2][0][1]
-print "Number of O16 atoms:", confs[0][2][1][0]
-print "Number of O17 atoms:", confs[0][2][1][1]
-print "Number of O18 atoms:", confs[0][2][1][2]
+# P = 99.99% = 0.9999 = .9999
+sp = iso.IsoTotalProb(formula="C254H377N65O75S6", prob_to_cover=.9999)
 ```
+This performs the calculations and dumps the results to RAM.
+You can easily access the masses and probabilities by simple iteration:
+```{python}
+for mass, prob in sp:
+    print(mass, prob)
+```
+or access the cffi arrays directly:
+```{python}
+print(sp.masses[0])
+print(sp.probs[0])
+```
+The first 0-th isotopologue is always one of the mode(s) of the isotopic distribution.
+
+Also, if you want to obtain only peaks above a certain heigh, simply run
+```{python}
+sp = iso.IsoThreshold(formula="C254H377N65O75S6", threshold=.0001)
+```
+This way, *sp* contains only peaks with individual probabilities heigher than *0.01%*.
+
+The newly added nice feature of IsoSpec2.1 is that you don't need to store these isotopologues in RAM.
+You can also iterate over them using the *generator mode*:
+```{python}
+for m, p in iso.IsoThresholdGenerator(formula="C254H377N65O75S6", threshold=.0001):
+    print(m, p)
+```
+
 
 ### R
 
