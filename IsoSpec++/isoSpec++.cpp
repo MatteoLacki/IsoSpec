@@ -97,11 +97,11 @@ marginals(nullptr)
     {
         delete[] isotopeNumbers;
         delete[] atomCounts;
-	// Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
-	// However, this is not the fast code path and we can afford two unneeded instructions to keep
-	// some static analysis tools happy.
-	isotopeNumbers = nullptr;
-	atomCounts = nullptr;
+        // Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
+        // However, this is not the fast code path and we can afford two unneeded instructions to keep
+        // some static analysis tools happy.
+        isotopeNumbers = nullptr;
+        atomCounts = nullptr;
         throw;
     }
 }
@@ -128,11 +128,11 @@ marginals(nullptr)
     {
         delete[] isotopeNumbers;
         delete[] atomCounts;
-	// Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
-	// However, this is not the fast code path and we can afford two unneeded instructions to keep
-	// some static analysis tools happy.
-	isotopeNumbers = nullptr;
-	atomCounts = nullptr;
+        // Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
+        // However, this is not the fast code path and we can afford two unneeded instructions to keep
+        // some static analysis tools happy.
+        isotopeNumbers = nullptr;
+        atomCounts = nullptr;
         throw;
     }
 }
