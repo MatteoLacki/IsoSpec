@@ -23,6 +23,13 @@ In that case, IsoSpec would provide you with:
 Before getting into details, a small break for a commercial!
 
 ### Using IsoSpec? Cite us!
+<a href="https://pubs.acs.org/doi/10.1021/acs.analchem.0c00959" target="_self">
+IsoSpec2: Ultrafast Fine Structure Calculator
+Mateusz K. Łącki, Dirk Valkenborg, and Michał Startek,
+Analytical Chemistry 2020, Just Accepted
+DOI: https://doi.org/10.1021/acs.analchem.0c00959
+</a>
+
 
 <a href="http://pubs.acs.org/doi/abs/10.1021/acs.analchem.6b01459" target="_self">
 IsoSpec: Hyperfast Fine Structure Calculator
