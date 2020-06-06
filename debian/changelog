@@ -1,0 +1,73 @@
+isospec (2.0.2+dfsg1-4) unrelease /*attention check source-only-upload */; urgency=low
+
+  * Multi-arch installment.
+
+ -- Your Name <your@email.address>  Sat, 06 Jun 2020 11:47:54 +0200
+
+isospec (2.0.2+dfsg1-3) unstable; urgency=low
+
+  *  Since July 2019, binaries uploaded by maintainers are not allowed to
+     migrate to testing. In other words, packages must have source-only uploads
+     before they can reach the next release 
+     (Thanks to Boyuan Yang <byang@debian.org> ; Closes: #961023).
+
+ -- Filippo Rusconi <lopippo@debian.org>  Tue, 19 May 2020 16:10:00 +0200
+
+isospec (2.0.2+dfsg1-2) unstable; urgency=low
+
+  * Reinstate the -mtune -march build flags path for the
+    build  of the C++ extension of the Python module. (Closes: #960340).
+    Thanks to Sebastian Ramacher <sramacher@debian.org> for the bug report.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 13 May 2020 14:40:03 +0200
+
+isospec (2.0.2+dfsg1-1) unstable; urgency=low
+
+  * New upstream version including the CMakeLists.txt file that 
+    upstream accecpted from me (and also modified later).
+
+  * Standards-Version: 4.5.0 (no changes needed).
+
+  * Add d/watch.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Thu, 07 May 2020 11:07:23 +0200
+
+isospec (1.9.1-5) unstable; urgency=low
+
+  * patch: Fix the IsoSpec++ build command line flags for riscv64 as it did not
+    recognize the -march flag. I removed it, like I did before for m68k, for
+    example.
+
+  * patch: Remove the -march=native compile flag for IsoSpec++ as it is
+    considered erroneous to use if cross-builds are performed (Debian QA
+    error: E march-native).
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 06 Mar 2019 17:23:44 +0100
+
+isospec (1.9.1-4) unstable; urgency=low
+
+  * Remove -mtune -march build flags for the build of the C++ extension of the
+    Python module.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 06 Mar 2019 14:56:10 +0100
+
+isospec (1.9.1-3) unstable; urgency=low
+
+  * Add ifeq statements in IsoSpec++/Makefile's patch to fix many 
+    arch-specific problems with -march -mtune flags to the compiler 
+    command line.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 06 Mar 2019 11:41:44 +0100
+
+isospec (1.9.1-2) unstable; urgency=low
+
+  * Fix Vcs URLs.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 06 Feb 2019 10:07:16 +0100
+
+
+isospec (1.9.1-1) unstable; urgency=medium
+
+  * Initial release (Closes: #916218).
+
+ -- Filippo Rusconi <lopippo@debian.org>  Sat, 19 Jan 2019 13:56:13 +0100

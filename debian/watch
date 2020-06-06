@@ -1,0 +1,19 @@
+version=3
+
+opts="repack, \
+			repacksuffix=+dfsg, \
+			compression=gzip, \
+			dversionmangle=s/\+dfsg\d*$//, \
+			filenamemangle=s/\S+\/v([\d\.]*)\.tar\.gz/isospec-$1\.tar\.gz/" \
+			https://github.com/MatteoLacki/IsoSpec/releases/ \
+			/MatteoLacki/IsoSpec/archive/v([\d\.]*)\.tar\.gz \
+			debian debian/repack.sh
+
+# Web page
+#https://github.com/MatteoLacki/IsoSpec/releases
+
+# The link to the source tarball as when clicking (see below)
+#https://github.com/MatteoLacki/IsoSpec/archive/v2.0.2.tar.gz
+
+# The http href code that links to the source tarball in the Web page above
+# <a class="muted-link" href="/MatteoLacki/IsoSpec/archive/v2.0.2.tar.gz" rel="nofollow">
