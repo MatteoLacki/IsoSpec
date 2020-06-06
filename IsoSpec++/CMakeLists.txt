@@ -1,38 +1,58 @@
-project("IsoSpec")
-cmake_minimum_required(VERSION 2.6)
+# CMake script for IsoSpec++ library
+# Author: Filippo Rusconi
+# Created: June 2020
 
-set(my_sources
-cwrapper.cpp
-allocator.cpp
-dirtyAllocator.cpp
-isoSpec++.cpp
-isoMath.cpp
-marginalTrek++.cpp
-operators.cpp
-element_tables.cpp
-misc.cpp
-fixedEnvelopes.cpp
-)
+message(\n${BoldRed}"Now configuring IsoSpec++/ for ${PROJECT}"${ColourReset}\n)
 
-## platform dependent compiler flags:
-include(CheckCXXCompilerFlag)
-if (NOT WIN32) # we only want fPIC on non-windows systems (fPIC is implicitly true there)
-  CHECK_CXX_COMPILER_FLAG("-fPIC" WITH_FPIC)
-  if (WITH_FPIC)
-    add_definitions(-fPIC)
-  endif()
 
-  # Only add those definitions on non-windows systems
-  add_definitions(-std=c++17 -Wall -pedantic -Wextra)
-else()
-  ## On MSVS we need this for mmap
-  set(my_sources ${my_sources} mman.cpp)
-  add_definitions(-DMMAN_LIBRARY)
+set(isospec_SRCS
+	unity-build.cpp
+	)
+
+
+# Not sure I understand this. Is this the way to test for MSVS in CMake land ?
+if(WIN32 OR _WIN32)
+
+	if(MSVC)
+		set(my_sources ${my_sources})
+		add_definitions(-DMMAN_LIBRARY)
+	endif()
+
 endif()
 
-add_library(IsoSpec SHARED ${my_sources})
 
-configure_file(IsoSpecConfig.cmake.in "${PROJECT_BINARY_DIR}/IsoSpecConfig.cmake" @ONLY)
+######### The shared library #########
 
-export(TARGETS IsoSpec FILE IsoSpecLibrary.cmake)
+add_library(IsoSpec++-shared SHARED ${isospec_SRCS})
+
+set_target_properties(IsoSpec++-shared
+	PROPERTIES OUTPUT_NAME IsoSpec++
+	CLEAN_DIRECT_OUTPUT 1
+	VERSION ${ISOSPEC_LIB_VERSION}
+	SOVERSION ${ISOSPEC_LIB_SOVERSION}
+	)
+
+
+######### The static library #########
+
+add_library(IsoSpec++-static STATIC ${isospec_SRCS})
+
+set_target_properties(IsoSpec++-static
+	PROPERTIES OUTPUT_NAME IsoSpec++
+	CLEAN_DIRECT_OUTPUT 1
+	)
+
+
+# Install both shared and static libs
+
+install(TARGETS IsoSpec++-shared IsoSpec++-static
+	LIBRARY NAMELINK_SKIP 
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	# This one is for WIN32
+	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+	)
+
+
+# Do not know how this would still be useful.
+# export(TARGETS IsoSpec++ FILE IsoSpecLibrary.cmake)
 
