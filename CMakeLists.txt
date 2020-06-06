@@ -31,7 +31,10 @@ cmake_minimum_required(VERSION 3.12)
 # cmake -DCMAKE_INSTALL_PREFIX=/usr
 # It needs to be set before include(GNUInstallDirs)
 # below, because it roots all the other dirs' configs.
-set(CMAKE_INSTALL_PREFIX /usr)
+
+if(NOT CMAKE_INSTALL_PREFIX)
+	set(CMAKE_INSTALL_PREFIX /usr)
+endif()
 
 # This module sets a number of installation directories 
 # according to the GNU coding standards. It takes the
@@ -175,6 +178,7 @@ if(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
 endif(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
 
 message(STATUS "${BoldYellow}CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}.${ColourReset}")
+message(STATUS "${BoldYellow}CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}.${ColourReset}")
 
 
 # message(STATUS CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH})
