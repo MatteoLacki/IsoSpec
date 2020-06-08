@@ -1,0 +1,3 @@
+cmake-soname-and-libname.patch
+examples.patch
+patch-mtune-march-flags-removal.patch
