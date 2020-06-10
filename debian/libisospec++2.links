@@ -1,0 +1,9 @@
+#! /usr/bin/dh-exec
+
+# Filippo Rusconi 20200605 - This is the cleanest solution:
+# https://wiki.debian.org/Multiarch/Implementation#Dynamic_debian.2F.2A_files
+
+# Make sure this file is executable !!!
+
+usr/lib/${DEB_HOST_MULTIARCH}/libIsoSpec++.so.${ISOSPEC_LIB_VERSION} usr/lib/${DEB_HOST_MULTIARCH}/libIsoSpec++.so.${ISOSPEC_LIB_SOVERSION}
+
