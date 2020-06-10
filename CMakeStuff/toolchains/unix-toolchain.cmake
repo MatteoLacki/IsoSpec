@@ -62,4 +62,11 @@ endif()
 configure_file(${CMAKE_SOURCE_DIR}/CMakeStuff/doxyfile.in
 	${CMAKE_SOURCE_DIR}/man/doxyfile @ONLY)
 
+# Command:
+# make doc
+add_custom_target(doc
+	COMMAND doxygen man/doxyfile 
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	COMMENT "Doxygen-based developer documentation generation")
+
 
