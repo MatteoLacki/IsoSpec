@@ -1,0 +1,22 @@
+# Copyright : Filippo Rusconi
+# License : GPL-3.0+
+# Authors : Filippo Rusconi
+
+
+set(IsoSpec++_INCLUDE_DIRS ${CMAKE_INSTALL_FULL_INCLUDEDIR}/IsoSpec++)
+
+set(IsoSpec++_LIBRARIES ${CMAKE_INSTALL_FULL_LIBDIR}/libIsoSpec++.so.${ISOSPEC_VERSION})
+
+if(NOT TARGET IsoSpec++::IsoSpec++)
+
+	add_library(IsoSpec++::IsoSpec++ UNKNOWN IMPORTED)
+
+	set_target_properties(IsoSpec++::IsoSpec++ PROPERTIES
+		IMPORTED_LOCATION "${CMAKE_INSTALL_FULL_LIBDIR}/libIsoSpec++.so.${ISOSPEC_VERSION}"
+		INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_INSTALL_FULL_INCLUDEDIR}/IsoSpec++"
+		)
+
+endif()
+
+set(IsoSpec++_FOUND 1)
+
