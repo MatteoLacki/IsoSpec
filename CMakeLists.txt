@@ -68,7 +68,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 message("")
-message("\n${BoldRed}Configuring build for project ${PROJECT}${ColourReset}\n")
+message("\n${BoldRed}Configuring build for project ${PROJECT_NAME}${ColourReset}\n")
 message("")
 
 # This export will allow using the flags to be used by
