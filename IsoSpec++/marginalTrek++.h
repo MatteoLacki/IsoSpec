@@ -177,7 +177,6 @@ class MarginalTrek : public Marginal
     const KeyHasher keyHasher;
     const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
-    std::unordered_map<Conf, int, KeyHasher, ConfEqual> visited;
     std::priority_queue<Conf, std::vector<Conf>, ConfOrderMarginal> pq;
     Summator totalProb;
     Conf candidate;

@@ -324,14 +324,13 @@ double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
 MarginalTrek::MarginalTrek(
     Marginal&& m,
     int tabSize,
-    int hashSize
+    int
 ) :
 Marginal(std::move(m)),
 current_count(0),
 keyHasher(isotopeNo),
 equalizer(isotopeNo),
 orderMarginal(atom_lProbs, isotopeNo),
-visited(hashSize, keyHasher, equalizer),
 pq(orderMarginal),
 totalProb(),
 candidate(new int[isotopeNo]),
@@ -340,7 +339,6 @@ allocator(isotopeNo, tabSize)
     int* initialConf = allocator.makeCopy(mode_conf);
 
     pq.push(initialConf);
-    visited[initialConf] = 0;
 
     totalProb = Summator();
 
@@ -361,7 +359,6 @@ bool MarginalTrek::add_next_conf()
     Conf topConf = pq.top();
     pq.pop();
     ++current_count;
-    visited[topConf] = current_count;
 
     _confs.push_back(topConf);
     _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
@@ -371,28 +368,33 @@ bool MarginalTrek::add_next_conf()
 
     totalProb.add( exp( logprob ) );
 
-    for( unsigned int i = 0; i < isotopeNo; ++i )
+    for( unsigned int j = 0; j < isotopeNo; ++j )
     {
-        for( unsigned int j = 0; j < isotopeNo; ++j )
-        {
-            // Growing index different than decreasing one AND
-            // Remain on simplex condition.
-            if( i != j && topConf[j] > 0 ){
-                copyConf(topConf, candidate, isotopeNo);
+        if( topConf[j] > mode_conf[j])
+            continue;
 
-                ++candidate[i];
-                --candidate[j];
+        if( topConf[j] > 0 )
+            for( unsigned int i = 0; i < isotopeNo; ++i )
+            {
+                if( topConf[i] < mode_conf[i] )
+                    continue;
+                // Growing index different than decreasing one AND
+                // Remain on simplex condition.
+                if( i != j ){
+                    copyConf(topConf, candidate, isotopeNo);
 
-                // candidate should not have been already visited.
-                if( visited.count( candidate ) == 0 )
-                {
+                    ++candidate[i];
+                    --candidate[j];
+
                     Conf acceptedCandidate = allocator.makeCopy(candidate);
                     pq.push(acceptedCandidate);
-
-                    visited[acceptedCandidate] = 0;
                 }
+
+                if( topConf[i] > mode_conf[i] )
+                    break;
             }
-        }
+        if( topConf[j] < mode_conf[j] )
+            break;
     }
 
     return true;
