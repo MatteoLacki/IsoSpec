@@ -174,8 +174,6 @@ class MarginalTrek : public Marginal
 {
  private:
     int current_count;
-    const KeyHasher keyHasher;
-    const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
     std::priority_queue<Conf, std::vector<Conf>, ConfOrderMarginal> pq;
     Summator totalProb;

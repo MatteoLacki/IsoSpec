@@ -328,8 +328,6 @@ MarginalTrek::MarginalTrek(
 ) :
 Marginal(std::move(m)),
 current_count(0),
-keyHasher(isotopeNo),
-equalizer(isotopeNo),
 orderMarginal(atom_lProbs, isotopeNo),
 pq(orderMarginal),
 totalProb(),
@@ -374,6 +372,7 @@ bool MarginalTrek::add_next_conf()
             continue;
 
         if( topConf[j] > 0 )
+        {
             for( unsigned int i = 0; i < isotopeNo; ++i )
             {
                 if( topConf[i] < mode_conf[i] )
@@ -393,6 +392,7 @@ bool MarginalTrek::add_next_conf()
                 if( topConf[i] > mode_conf[i] )
                     break;
             }
+        }
         if( topConf[j] < mode_conf[j] )
             break;
     }
@@ -433,57 +433,58 @@ PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
     double lCutOff,
     bool sort,
     int tabSize,
-    int hashSize
+    int
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
-    const ConfEqual equalizer(isotopeNo);
-    const KeyHasher keyHasher(isotopeNo);
     const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
 
     lCutOff -= loggamma_nominator;
 
-    std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
-
     Conf currentConf = allocator.makeCopy(mode_conf);
     if(unnormalized_logProb(currentConf) >= lCutOff)
-    {
-        // create a copy and store a ptr to the *same* copy in both structures
-        // (save some space and time)
-        auto tmp = allocator.makeCopy(currentConf);
-        configurations.push_back(tmp);
-        visited.insert(tmp);
-    }
+        configurations.push_back(currentConf);
 
     unsigned int idx = 0;
 
     while(idx < configurations.size())
     {
-        memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
+        currentConf = configurations[idx];
         idx++;
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
         {
-            currentConf[ii]++;
-            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-            {
-                if( ii != jj && currentConf[jj] > 0)
-                {
-                    currentConf[jj]--;
+            if(currentConf[ii] > mode_conf[ii])
+                continue;
 
-                    if (visited.count(currentConf) == 0 && unnormalized_logProb(currentConf) >= lCutOff)
+            if(currentConf[ii] != 0)
+            {
+                currentConf[ii]--;
+                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                {
+                    if(currentConf[jj] < mode_conf[jj])
+                        continue;
+
+                    if( ii != jj )
                     {
-                        // create a copy and store a ptr to the *same* copy in
-                        // both structures (save some space and time)
-                        auto tmp = allocator.makeCopy(currentConf);
-                        visited.insert(tmp);
-                        configurations.push_back(tmp);
-                        // std::cout << " V: "; for (auto it : visited) std::cout << it << " "; std::cout << std::endl;
+                        currentConf[jj]++;
+
+                        if (unnormalized_logProb(currentConf) >= lCutOff)
+                        {
+                            auto tmp = allocator.makeCopy(currentConf);
+                            configurations.push_back(tmp);
+                        }
+
+                        currentConf[jj]--;
                     }
 
-                    currentConf[jj]++;
+                    if (currentConf[jj] > mode_conf[jj])
+                        break;
                 }
+                currentConf[ii]++;
             }
-            currentConf[ii]--;
+
+            if(currentConf[ii] < mode_conf[ii])
+                break;
         }
     }
 
