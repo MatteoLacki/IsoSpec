@@ -55,3 +55,11 @@ if(UNIX AND NOT APPLE)
 		${CMAKE_SOURCE_DIR}/man/images/isospec_logo2_long_versioned.svg
 		${CMAKE_SOURCE_DIR}/man/images/isospec_logo2_long_versioned.png)
 endif()
+
+# Ensure that the doxyfile configuration file for Doxygen has always
+# the proper version number!
+
+configure_file(${CMAKE_SOURCE_DIR}/CMakeStuff/doxyfile.in
+	${CMAKE_SOURCE_DIR}/man/doxyfile @ONLY)
+
+
