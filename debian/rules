@@ -4,7 +4,7 @@
 include /usr/share/dpkg/pkg-info.mk
 
 # Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+export DH_VERBOSE=1
 export DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
@@ -14,8 +14,8 @@ include /usr/share/dpkg/buildflags.mk
 export LC_ALL=C.UTF-8
 
 # For automating the d/*.links stuff.
-export ISOSPEC_VERSION=2.0.2
-export ISOSPEC_SOVERSION=2
+export ISOSPEC_LIB_VERSION=2.1.0
+export ISOSPEC_LIB_SOVERSION=2
 
 export PYBUILD_NAME=isospec
 
@@ -24,49 +24,67 @@ rversion	:= $(shell dpkg-query -W -f='$${Version}' r-base-dev)
 rapiversion	:= $(shell dpkg-query -W -f='$${Provides}' r-base-core | grep -o 'r-api[^, ]*')
 
 %:
-	dh $@ --with python3 --buildsystem=pybuild --sourcedirectory=IsoSpecPy
+	dh $@ --with python3
 
 override_dh_clean:
-	rm -rf IsoSpec++/build
+	rm -rf obj-x86_64-linux-gnu
 	# The setup.py script immediately creates that link which
 	# makes the package building to stop because it finds that 
 	# the source tree has changed. So, first remove that link,
 	# that we'll recreate when we need it later, in the
 	# override_dh_auto_build target.
 	rm -rf IsoSpecPy/IsoSpec++
-	rm -f debian/IsoSpec++Config.cmake
+	rm -rf .pybuild/
+	rm -rf tmp-install/
+	rm -rf IsoSpec++/IsoSpec++
+	rm -rf IsoSpecPy/build/
+	rm -rf man/html/
+	rm -rf man/latex/
+	rm -rf man/man/
+	# Now the default target
 	dh_clean
 
-override_dh_auto_configure:
-	# Generate the debian/IsoSpec++Config.cmake from 
-	# debian/IsoSpec++Config.cmake.in
-	
-	sed -e "s/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g" \ 		-e "s/@LIBPAPPSOMSPP_VERSION@/$(DEB_VERSION_UPSTREAM)/g" \ 		< debian/libpappsomspp0.links.in \ 		> debian/libpappsomspp0.links 		sed -e "s/@DEB_HOST_MULTIARCH@/$(DEB_HOST_MULTIARCH)/g" \ 		-e "s/@LIBPAPPSOMSPP_VERSION@/$(DEB_VERSION_UPSTREAM)/g" \ 		< debian/libpappsomspp-dev.links.in \ 		> debian/libpappsomspp-dev.links	
+configure_python_module:
+	dh_auto_configure -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
 
+configure_cpp_library:
+	dh_auto_configure -O--buildsystem=cmake -- \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DISOSPEC_LIB_VERSION=2.1.0 -DISOSPEC_LIB_SOVERSION=2
 
-# Handle the C++ library apart
-override_dh_auto_build:
+override_dh_auto_configure: configure_python_module configure_cpp_library
+
+build_python_module: configure_python_module
+	dh_auto_build -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
+
+build_cpp_library: configure_cpp_library
+	dh_auto_build -O--buildsystem=cmake
+
+build_cpp_library_doc:
+	# Generate the dev-doc in the man/hml and man/latex directories
+	doxygen man/doxyfile
+	# sed-based replacement of the cloudflare URL with the MathJax.js file from the
+	# libjs-mathjax package
+	sh debian/replace-mathjax-cloudflare-url-local-file.sh
+	# Actually craft the refman.pdf file.
+	cd man/latex && make
+
+override_dh_auto_build: build_python_module build_cpp_library build_cpp_library_doc
 	# Recreate the symlink that was created by setup.py 
 	# and that we had to remove at the override_dh_clean target.
 	ln -sf IsoSpec++ IsoSpecPy/IsoSpec++
-	cd IsoSpec++ && mkdir -p build && cd build && cmake ../ && make
 
-# Generate the dev-doc in the man/hml and man/latex directories
-	doxygen man/doxyfile
-# Remove Doxygen-generated file that has no use.
-	#rm man/man/man3/_home_rusconi_*
-
-# sed-based replacement of the cloudflare URL with the MathJax.js file from the
-# libjs-mathjax package
-	sh debian/replace-mathjax-cloudflare-url-local-file.sh
-
-# Actually craft the refman.pdf file.
-	cd man/latex && make
-
-override_dh_auto_install:
+override_dh_auto_install: override_dh_auto_build
 	dh_auto_install -O--buildsystem=R --sourcedirectory=IsoSpecR
 # Remove the license file.
 	rm debian/tmp/usr/lib/R/site-library/IsoSpecR/LICENCE
 	mv debian/tmp tmp-install
-	dh_auto_install
+	# Install the Python module
+	dh_auto_install -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
+	# Install the C++ library
+	dh_auto_install -O--buildsystem=cmake
+	# Now remove the links, that we'll provide using d/*.links
+	# So that we can use libIsoSpec++.so.* in d/*.install
+	rm -f debian/tmp/usr/lib/*/libIsoSpec++.so 
+	rm -f debian/tmp/usr/lib/*/libIsoSpec++.so.$(ISOSPEC_LIB_SOVERSION)
 

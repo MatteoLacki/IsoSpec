@@ -37,6 +37,7 @@ Architecture: any
 Multi-Arch: same
 Depends: libisospec++2 (= ${binary:Version}),
          ${misc:Depends}
+Recommends: libisospec++-doc
 Description: Isotopic fine structure calculator (C++ development files)
  IsoSpec implements an algorithm for fast computation of isotopologues of
  chemical substances that can alternate between joint probability and peak
@@ -51,6 +52,9 @@ Architecture: any
 Multi-Arch: same
 Depends: ${shlibs:Depends},
          ${misc:Depends}
+Replaces: libisospec++1
+Breaks: libisospec++1
+Suggests: libisospec++-doc
 Description: Isotopic fine structure calculator (C++ runtime)
  IsoSpec implements an algorithm for fast computation of isotopologues of
  chemical substances that can alternate between joint probability and peak
@@ -59,26 +63,14 @@ Description: Isotopic fine structure calculator (C++ runtime)
  This package ships the runtime shared library.
 
 
-Package: libisospec++-doc
-Section: doc
-Architecture: all
-Depends: ${misc:Depends}
-Description: Isotopic fine structure calculator (C++ API documentation)
- IsoSpec implements an algorithm for fast computation of isotopologues of
- chemical substances that can alternate between joint probability and peak
- height threshold.
- .
- This package ships the developer documentation files.
-
-
 Package: r-cran-isospec
 Section: gnu-r
 Architecture: any
-Multi-Arch: same
+Multi-Arch: foreign
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          ${R:Depends} 
-Recommends: ${R:Recommends} 
+Recommends: ${R:Recommends}, libisospec++-doc
 Suggests: ${R:Suggests}
 Description: Isotopic fine structure calculator for GNU R
  IsoSpec implements an algorithm for fast computation of isotopologues of
@@ -90,15 +82,25 @@ Description: Isotopic fine structure calculator for GNU R
 
 Package: python3-isospec
 Architecture: any
-Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python3:Depends}
-Recommends: python3-scipy
+Recommends: python3-scipy, libisospec++-doc
 Description: Isotopic fine structure calculator for Python 3
  IsoSpec implements an algorithm for fast computation of isotopologues of
  chemical substances that can alternate between joint probability and peak
  height threshold.
  .
  This package provides the package's Python 3 interface.
+
+
+Package: libisospec++-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: Isotopic fine structure calculator (C++ API documentation)
+ IsoSpec implements an algorithm for fast computation of isotopologues of
+ chemical substances that can alternate between joint probability and peak
+ height threshold.
+ .
 

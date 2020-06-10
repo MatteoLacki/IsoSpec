@@ -1,15 +1,15 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: libisospec
 Source: https://github.com/MatteoLacki/IsoSpec
-Comment:
-    The pristine upstream source contains Windows dll files and 
+Files-Excluded: IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++-2.1.0-x32.dll
+ IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++-2.1.0-x64.dll
+ man/html
+ man/man
+ man/latex
+Comment: The upstream source tarball contains Windows dll files and 
     other documentation files that are regenerated using doxygen.
     All these files are thereby not useful or appropriate for use as 
     source files. This violates DFSG §2.
-    .
-    The ‘debian/repack.sh’ program removes those files to create the Debian
-    upstream source tarball.
-
 
 Files: *
 Copyright: 2015-2018 Micha Startek
@@ -56,29 +56,4 @@ License: GPL-3+
  On Debian systems, the complete text of the GNU General
  Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
 
-Files: debian/repack.sh 
-       debian/source_package_build.bash 
-Copyright: 2020 Filippo Rusconi <lopippo@debian.org>
-				   2013–2014 Ben Finney <ben+debian@benfinney.id.au> 
-License: Custom
-
-License: Custom
- Permission is hereby granted, free of charge, to any person obtaining
- a copy of this software and associated documentation files (the
- “Software”), to deal in the Software without restriction, including
- without limitation the rights to use, copy, modify, merge, publish,
- distribute, sublicense, and/or sell copies of the Software, and to
- permit persons to whom the Software is furnished to do so, subject to
- the following conditions:
- .
- The above copyright notice and this permission notice shall be included
- in all copies or substantial portions of the Software.
- .
- The Software is provided “as is”, without warranty of any kind,
- express or implied, including but not limited to the warranties of
- merchantability, fitness for a particular purpose and noninfringement.
- In no event shall the authors or copyright holders be liable for any
- claim, damages or other liability, whether in an action of contract,
- tort or otherwise, arising from, out of or in connection with the
- Software or the use or other dealings in the Software.
 

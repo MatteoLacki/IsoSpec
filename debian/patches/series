@@ -1,3 +1,4 @@
-cmake-soname-and-libname.patch
-examples.patch
-patch-mtune-march-flags-removal.patch
+0001-Modify-the-CMake-based-build-system.patch
+0002-Ensure-the-header-files-are-found-in-the-system.patch
+0003-Remove-the-mtune-native-march-native.patch
+0004-Better-use-the-project-command-and-put-the-cmake_min.patch

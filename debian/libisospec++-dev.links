@@ -5,4 +5,4 @@
 
 # Make sure this file is executable !!!
 
-usr/lib/${DEB_HOST_MULTIARCH}/libIsoSpec++.so.${ISOSPEC_VERSION} usr/lib/${DEB_HOST_MULTIARCH}/libIsoSpec++.so
+usr/lib/${DEB_HOST_MULTIARCH}/libIsoSpec++.so.${ISOSPEC_LIB_VERSION} usr/lib/${DEB_HOST_MULTIARCH}/libIsoSpec++.so

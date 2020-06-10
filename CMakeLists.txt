@@ -1,3 +1,9 @@
+cmake_minimum_required(VERSION 3.12)
+
+#############################################################
+#############################################################
+# CMake configuration
+
 # CMake script for the IsoSpec library
 # Author: Filippo Rusconi
 # Created: June 2020
@@ -6,8 +12,9 @@
 ############################################################
 # Basic information about project
 
-set(PROJECT IsoSpec)
-project(${PROJECT} CXX C)
+project(IsoSpec
+ DESCRIPTION "A program to calculate isotopic clusters"
+ HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
 
 set(ISOSPEC_VERSION_MAJOR "2")
 set(ISOSPEC_VERSION_MINOR "1")
@@ -18,13 +25,9 @@ set(VERSION 2.1.0)
 set(ISOSPEC_LIB_VERSION ${ISOSPEC_VERSION})
 set(ISOSPEC_LIB_SOVERSION ${ISOSPEC_VERSION_MAJOR})
 
-# Command to enable debug and tests
+# Command to enable debug mode
 # cmake -DCMAKE_BUILD_TYPE=Debug 
 
-#############################################################
-#############################################################
-# CMake configuration
-cmake_minimum_required(VERSION 3.12)
 
 # This setting is also typically overridden by 
 # configuring the build system like this:

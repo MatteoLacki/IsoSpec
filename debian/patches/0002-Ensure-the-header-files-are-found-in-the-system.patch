@@ -1,0 +1,35 @@
+From: Filippo Rusconi <lopippo@debian.org>
+Date: Tue, 9 Jun 2020 15:31:53 +0200
+Subject: Ensure the header files are found in the system.
+
+---
+ Examples/C++/radiolabelling.cpp | 2 +-
+ Examples/C++/water.cpp          | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Examples/C++/radiolabelling.cpp b/Examples/C++/radiolabelling.cpp
+index 76e984b..838541f 100644
+--- a/Examples/C++/radiolabelling.cpp
++++ b/Examples/C++/radiolabelling.cpp
+@@ -1,6 +1,6 @@
+ #include <iostream>
+ #include <cassert>
+-#include "../../IsoSpec++/fixedEnvelopes.h"
++#include <IsoSpec++/fixedEnvelopes.h>
+ 
+ using namespace IsoSpec;
+ 
+diff --git a/Examples/C++/water.cpp b/Examples/C++/water.cpp
+index 91bb35e..9ba8ce2 100644
+--- a/Examples/C++/water.cpp
++++ b/Examples/C++/water.cpp
+@@ -1,7 +1,7 @@
+ #include <iostream>
+ #include <cassert>
+-#include "../../IsoSpec++/isoSpec++.h"
+-#include "../../IsoSpec++/fixedEnvelopes.h"
++#include <IsoSpec++/isoSpec++.h>
++#include <IsoSpec++/fixedEnvelopes.h>
+ 
+ using namespace IsoSpec;
+ 

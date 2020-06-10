@@ -2,7 +2,7 @@
 # Author: Filippo Rusconi
 # Created: June 2020
 
-message(\n${BoldRed}"Now configuring IsoSpec++/ for ${PROJECT}"${ColourReset}\n)
+message(\n${BoldRed}"Now configuring IsoSpec++/ for ${CMAKE_PROJECT_NAME}"${ColourReset}\n)
 
 
 set(isospec_SRCS
@@ -19,6 +19,10 @@ if(WIN32 OR _WIN32)
 	endif()
 
 endif()
+
+
+#message(STATUS "ISOSPEC_LIB_VERSION: ${ISOSPEC_LIB_VERSION}")
+#message(STATUS "ISOSPEC_LIB_SOVERSION: ${ISOSPEC_LIB_SOVERSION}")
 
 
 ######### The shared library #########
