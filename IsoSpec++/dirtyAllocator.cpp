@@ -30,6 +30,8 @@ DirtyAllocator::DirtyAllocator(
     if(cellSize % sizeof(double) != 0)
         cellSize += sizeof(double) - cellSize % sizeof(double);
     currentTab      = malloc( cellSize * tabSize );
+    if(currentTab == NULL)
+        throw std::bad_alloc();
     currentConf     = currentTab;
     endOfTablePtr = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
