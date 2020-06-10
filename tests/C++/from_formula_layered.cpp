@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 size_t test_layered_tabulator(const char* formula, double total_prob, bool print_confs)
 {
 //	IsoLayeredGenerator i(formula, 1000, 1000);
-        FixedEnvelope t = FixedEnvelope::FromTotalProb(formula, total_prob, false, true);
+        FixedEnvelope t = FixedEnvelope::FromTotalProb(formula, total_prob, true, true);
         const double* probs = t.probs();
         double* masses = t.release_masses();
         const int* confs = t.confs();
