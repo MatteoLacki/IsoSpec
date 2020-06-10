@@ -21,15 +21,13 @@ namespace IsoSpec
 {
 
 template <typename T>
-Allocator<T>::Allocator(const int dim_, const int tabSize_): currentId(-1), dim(dim_), tabSize(tabSize_)
-{
-    currentTab = new T[dim * tabSize];
-}
+Allocator<T>::Allocator(const int dim_, const int tabSize_): currentId(-1), dim(dim_), tabSize(tabSize_), currentTab(new T[dim_ * tabSize_]) {};
+
 
 template <typename T>
 Allocator<T>::~Allocator()
 {
-    if(currentTab != prevTabs.back())
+    if(prevTabs.size() == 0 || currentTab != prevTabs.back())
     {
         // It will be equal only if shiftTables throws during new[]
         // Make sure we don't del currentTab twice in that case
