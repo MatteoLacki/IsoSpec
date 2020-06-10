@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
-#include <unordered_map>
-#include <unordered_set>
 #include <queue>
 #include <utility>
 #include <cstring>
@@ -527,9 +525,9 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 
 
-LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
+LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int)
 : Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize),
-equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
+equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo)
 {
     fringe.push_back(mode_conf);
     lProbs.push_back(std::numeric_limits<double>::infinity());
@@ -543,15 +541,10 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
         return false;
 
     std::vector<Conf> new_fringe;
-    std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
 
-    for(unsigned int ii = 0; ii < fringe.size(); ii++)
-        visited.insert(fringe[ii]);
-
-    Conf currentConf;
     while(!fringe.empty())
     {
-        currentConf = fringe.back();
+        Conf currentConf = fringe.back();
         fringe.pop_back();
 
         double opc = logProb(currentConf);
@@ -564,35 +557,37 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
             configurations.push_back(currentConf);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             {
-                currentConf[ii]++;
-                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                if(currentConf[ii] > mode_conf[ii])
+                    continue;
+
+                if(currentConf[ii] > 0)
                 {
-                    if( ii != jj && currentConf[jj] > 0 )
+                    currentConf[ii]--;
+                    for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                     {
-                        currentConf[jj]--;
+                        if(currentConf[jj] < mode_conf[jj])
+                            continue;
 
-                        double lpc = logProb(currentConf);
-
-                        if (lpc < current_threshold &&
-                            (opc > lpc || (opc == lpc && ii > jj)) && visited.count(currentConf) == 0)
+                        if( ii != jj )
                         {
                             Conf nc = allocator.makeCopy(currentConf);
-                            currentConf[ii]--;
-                            currentConf[jj]++;
-                            visited.insert(nc);
-                            currentConf[ii]++;
+                            nc[jj]++;
+
+                            double lpc = logProb(nc);
                             if(lpc >= new_threshold)
                                 fringe.push_back(nc);
                             else
                                 new_fringe.push_back(nc);
                         }
-                        else
-                        {
-                            currentConf[jj]++;
-                        }
+
+                        if(currentConf[jj] > mode_conf[jj])
+                            break;
                     }
+                    currentConf[ii]++;
                 }
-                currentConf[ii]--;
+
+                if(currentConf[ii] < mode_conf[ii])
+                    break;
             }
         }
     }

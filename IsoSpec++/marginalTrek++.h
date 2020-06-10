@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <queue>
 #include <algorithm>
 #include <vector>
@@ -361,7 +360,6 @@ class LayeredMarginal : public Marginal
     std::vector<double> probs;
     std::vector<double> masses;
     double* guarded_lProbs;
-    const int hashSize;
 
  public:
     //! Move constructor: specializes the Marginal class.
