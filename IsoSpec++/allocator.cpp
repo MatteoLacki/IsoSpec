@@ -29,12 +29,15 @@ Allocator<T>::Allocator(const int dim_, const int tabSize_): currentId(-1), dim(
 template <typename T>
 Allocator<T>::~Allocator()
 {
-    for(unsigned int i = 0; i < prevTabs.size(); ++i)
+    if(currentTab != prevTabs.back())
     {
-        delete [] prevTabs[i];
+        // It will be equal only if shiftTables throws during new[]
+        // Make sure we don't del currentTab twice in that case
+        delete [] currentTab;
     }
 
-    delete [] currentTab;
+    for(unsigned int i = 0; i < prevTabs.size(); ++i)
+        delete [] prevTabs[i];
 }
 
 template <typename T>
