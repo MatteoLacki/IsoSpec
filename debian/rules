@@ -62,7 +62,8 @@ build_cpp_library: configure_cpp_library
 
 build_cpp_library_doc:
 	# Generate the dev-doc in the man/hml and man/latex directories
-	doxygen man/doxyfile
+	#doxygen man/doxyfile
+	make doc
 	# sed-based replacement of the cloudflare URL with the MathJax.js file from the
 	# libjs-mathjax package
 	sh debian/replace-mathjax-cloudflare-url-local-file.sh
