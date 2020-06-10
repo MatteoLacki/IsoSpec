@@ -32,4 +32,11 @@ configure_file (${CMAKE_MODULE_PATH}/pkgconfig/libisospec++.pc.in
 install(FILES ${CMAKE_BINARY_DIR}/libisospec++.pc 
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
+# Prepare the logo picture files with the right version.
+
+configure_file(${CMAKE_SOURCE_DIR}/CMakeStuff/isospec_logo2_high.svg.in
+	${CMAKE_SOURCE_DIR}/man/isospec_logo2_high_versioned.svg @ONLY)
+
+configure_file(${CMAKE_SOURCE_DIR}/CMakeStuff/isospec_logo2_long.svg.in
+	${CMAKE_SOURCE_DIR}/man/isospec_logo2_long_versioned.svg @ONLY)
 
