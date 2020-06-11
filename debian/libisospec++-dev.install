@@ -2,7 +2,7 @@ IsoSpec++/*.h usr/include/IsoSpec++
 
 usr/lib/*/libIsoSpec++.a
 
-usr/lib/*/cmake/isospec
+usr/lib/*/cmake/isospec++
 
 usr/lib/*/pkgconfig/libisospec++.pc
 

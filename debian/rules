@@ -52,7 +52,13 @@ configure_cpp_library:
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DISOSPEC_LIB_VERSION=2.1.0 -DISOSPEC_LIB_SOVERSION=2
 
-override_dh_auto_configure: configure_python_module configure_cpp_library
+
+configure_cpp_library_doc:
+	dh_auto_configure -O--buildsystem=cmake -- \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DISOSPEC_LIB_VERSION=2.1.0 -DISOSPEC_LIB_SOVERSION=2
+
+override_dh_auto_configure: configure_python_module configure_cpp_library configure_cpp_library_doc
 
 build_python_module: configure_python_module
 	dh_auto_build -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
@@ -60,15 +66,14 @@ build_python_module: configure_python_module
 build_cpp_library: configure_cpp_library
 	dh_auto_build -O--buildsystem=cmake
 
-build_cpp_library_doc:
+build_cpp_library_doc: configure_cpp_library_doc
 	# Generate the dev-doc in the man/hml and man/latex directories
 	#doxygen man/doxyfile
-	make doc
+	dh_auto_build -O--buildsyste=cmake -- html_doc
+	dh_auto_build -O--buildsyste=cmake -- pdf_doc
 	# sed-based replacement of the cloudflare URL with the MathJax.js file from the
 	# libjs-mathjax package
 	sh debian/replace-mathjax-cloudflare-url-local-file.sh
-	# Actually craft the refman.pdf file.
-	cd man/latex && make
 
 override_dh_auto_build: build_python_module build_cpp_library build_cpp_library_doc
 	# Recreate the symlink that was created by setup.py 
