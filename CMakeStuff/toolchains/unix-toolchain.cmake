@@ -18,13 +18,13 @@ endif()
 
 # Install cmake module
 install(FILES ${CMAKE_MODULE_PATH}/FindIsoSpec++.cmake 
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec)
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec++)
 
 # Install cmake config
 configure_file (${CMAKE_MODULE_PATH}/IsoSpec++Config.cmake.in
 	${CMAKE_BINARY_DIR}/IsoSpec++Config.cmake)
 install(FILES ${CMAKE_BINARY_DIR}/IsoSpec++Config.cmake 
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec)
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec++)
 
 # Install the PkgConfig config file
 configure_file (${CMAKE_MODULE_PATH}/pkgconfig/libisospec++.pc.in
