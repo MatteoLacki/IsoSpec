@@ -144,24 +144,21 @@ template<typename T> size_t* get_order(T* order_array, size_t N)
     for(size_t ii=0; ii<N; ii++)
         arr[ii] = ii;
 
-    std::sort(arr, arr + N-1, [&](int i, int j) { return order_array[i] < order_array[j]; });
+    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] < order_array[j]; });
 
     return arr;
 }
 
-inline void swap_for_reorder(int, int) {}
-template<typename T, typename... Ts> void swap_for_reorder(int i, int j, T A, Ts... As)
+template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
 {
-    std::swap(A[i], A[j]);
-    swap_for_reorder(i, j, As...);
+    size_t* arr = new size_t[N];
+    for(size_t ii=0; ii<N; ii++)
+        arr[ii] = ii;
+
+    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] > order_array[j]; });
+
+    return arr;
 }
 
-template<typename... Ts> void reorder(size_t* proper_places, size_t N, Ts... As)
-{
-    for(size_t ii = 0; ii<N; ii++)
-    {
-        swap_for_reorder(proper_places[ii], ii, As...);
-        proper_places[proper_places[ii]] = proper_places[ii];
-    }
-}
+
 }  // namespace IsoSpec
