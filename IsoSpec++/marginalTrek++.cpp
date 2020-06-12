@@ -531,6 +531,7 @@ equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo
 {
     fringe.push_back(mode_conf);
     lProbs.push_back(std::numeric_limits<double>::infinity());
+    fringe_lprobs.push_back(mode_lprob);
     lProbs.push_back(-std::numeric_limits<double>::infinity());
     guarded_lProbs = lProbs.data()+1;
 }
@@ -540,21 +541,29 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
     if(fringe.empty())
         return false;
 
+    lProbs.pop_back(); // Remove the +inf guardian
+
     std::vector<Conf> new_fringe;
+    std::vector<double> new_fringe_lprobs;
 
     while(!fringe.empty())
     {
         Conf currentConf = fringe.back();
         fringe.pop_back();
 
-        double opc = logProb(currentConf);
+        double opc = fringe_lprobs.back();
 
+        fringe_lprobs.pop_back();
         if(opc < new_threshold)
+        {
             new_fringe.push_back(currentConf);
+            new_fringe_lprobs.push_back(opc);
+        }
 
         else
         {
             configurations.push_back(currentConf);
+            lProbs.push_back(opc);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             {
                 if(currentConf[ii] > mode_conf[ii])
@@ -575,9 +584,15 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 
                             double lpc = logProb(nc);
                             if(lpc >= new_threshold)
+                            {
                                 fringe.push_back(nc);
+                                fringe_lprobs.push_back(lpc);
+                            }
                             else
+                            {
                                 new_fringe.push_back(nc);
+                                new_fringe_lprobs.push_back(lpc);
+                            }
                         }
 
                         if(currentConf[jj] > mode_conf[jj])
@@ -594,25 +609,53 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 
     current_threshold = new_threshold;
     fringe.swap(new_fringe);
+    fringe_lprobs.swap(new_fringe_lprobs);
 
     if(do_sort)
-        std::sort(configurations.begin()+probs.size(), configurations.end(), orderMarginal);
+    {
+        size_t to_sort_size = configurations.size() - probs.size();
+        if(to_sort_size > 0)
+        {
+            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs.data()+1+probs.size(), to_sort_size));
+            double* P = lProbs.data()+1+probs.size();
+            Conf* C = configurations.data()+probs.size();
+            size_t* O = order_arr.get();
+            for(size_t ii=0; ii<to_sort_size; ii++)
+            {
+                if(ii != O[ii])
+                {
+                    size_t curr_ii = ii;
+                    double tp = P[ii];
+                    Conf tc = C[ii];
+                    size_t next_ii = O[ii];
+                    while(next_ii != ii)
+                    {
+                        P[curr_ii] = P[next_ii];
+                        C[curr_ii] = C[next_ii];
+                        O[curr_ii] = curr_ii;
+                        curr_ii = next_ii;
+                        next_ii = O[next_ii];
+                    }
+                    P[curr_ii] = tp;
+                    C[curr_ii] = tc;
+                    O[curr_ii] = curr_ii;
+                }
+            }
+        }
+    }
 
-    if(lProbs.capacity() * 2 < configurations.size() + 2)
+    if(probs.capacity() * 2 < configurations.size() + 2)
     {
         // Reserve space for new values
-        lProbs.reserve(configurations.size()+2);
         probs.reserve(configurations.size());
         masses.reserve(configurations.size());
     }  // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
        // but don't reallocate on every call
 
-    lProbs.pop_back();  // The guardian...
-
+//    printVector(lProbs);
     for(unsigned int ii = probs.size(); ii < configurations.size(); ii++)
     {
-        lProbs.push_back(logProb(configurations[ii]));
-        probs.push_back(exp(lProbs.back()));
+        probs.push_back(exp(lProbs[ii+1]));
         masses.push_back(calc_mass(configurations[ii], atom_masses, isotopeNo));
     }
 
