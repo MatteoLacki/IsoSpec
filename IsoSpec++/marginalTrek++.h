@@ -356,7 +356,6 @@ class LayeredMarginal : public Marginal
     Allocator<int> allocator;
     const ConfEqual equalizer;
     const KeyHasher keyHasher;
-    const ConfOrderMarginalDescending orderMarginal;
     std::vector<double> lProbs;
     std::vector<double> probs;
     std::vector<double> masses;

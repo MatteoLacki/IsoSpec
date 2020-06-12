@@ -527,7 +527,7 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int)
 : Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize),
-equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo)
+equalizer(isotopeNo), keyHasher(isotopeNo)
 {
     fringe.push_back(mode_conf);
     lProbs.push_back(std::numeric_limits<double>::infinity());
