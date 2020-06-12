@@ -435,8 +435,6 @@ PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
-    const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
-
     lCutOff -= loggamma_nominator;
 
     Conf currentConf = allocator.makeCopy(mode_conf);
@@ -486,22 +484,25 @@ allocator(isotopeNo, tabSize)
         }
     }
 
-    // orderMarginal defines the order of configurations (compares their logprobs)
-    // akin to key in Python sort.
-    if(sort)
-        std::sort(configurations.begin(), configurations.end(), orderMarginal);
-
-
-    confs  = &configurations[0];
     no_confs = configurations.size();
     lProbs = new double[no_confs+1];
+    confs  = &configurations[0];
+
+    for(unsigned int ii = 0; ii < no_confs; ii++)
+        lProbs[ii] = logProb(configurations[ii]);
+
+    if(sort && no_confs > 0)
+    {
+            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs, no_confs));
+            impose_order(order_arr.get(), no_confs, lProbs, confs);
+    }
+
     probs = new double[no_confs];
     masses = new double[no_confs];
 
 
     for(unsigned int ii = 0; ii < no_confs; ii++)
     {
-        lProbs[ii] = logProb(confs[ii]);
         probs[ii] = exp(lProbs[ii]);
         masses[ii] = calc_mass(confs[ii], atom_masses, isotopeNo);
     }
