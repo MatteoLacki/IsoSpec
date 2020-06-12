@@ -160,5 +160,31 @@ template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
     return arr;
 }
 
+template<typename TA, typename TB> void impose_order(size_t* O, size_t N, TA* A, TB* B)
+{
+    for(size_t ii=0; ii<N; ii++)
+    {
+        if(ii != O[ii])
+        {
+            size_t curr_ii = ii;
+            TA ta = A[ii];
+            TB tb = B[ii];
+            size_t next_ii = O[ii];
+            while(next_ii != ii)
+            {
+                A[curr_ii] = A[next_ii];
+                B[curr_ii] = B[next_ii];
+                O[curr_ii] = curr_ii;
+                curr_ii = next_ii;
+                next_ii = O[next_ii];
+            }
+            A[curr_ii] = ta;
+            B[curr_ii] = tb;
+            O[curr_ii] = curr_ii;
+        }
+    }
+
+}
+
 
 }  // namespace IsoSpec

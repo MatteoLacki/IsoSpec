@@ -620,27 +620,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
             double* P = lProbs.data()+1+probs.size();
             Conf* C = configurations.data()+probs.size();
             size_t* O = order_arr.get();
-            for(size_t ii=0; ii<to_sort_size; ii++)
-            {
-                if(ii != O[ii])
-                {
-                    size_t curr_ii = ii;
-                    double tp = P[ii];
-                    Conf tc = C[ii];
-                    size_t next_ii = O[ii];
-                    while(next_ii != ii)
-                    {
-                        P[curr_ii] = P[next_ii];
-                        C[curr_ii] = C[next_ii];
-                        O[curr_ii] = curr_ii;
-                        curr_ii = next_ii;
-                        next_ii = O[next_ii];
-                    }
-                    P[curr_ii] = tp;
-                    C[curr_ii] = tc;
-                    O[curr_ii] = curr_ii;
-                }
-            }
+            impose_order(O, to_sort_size, P, C);
         }
     }
 
