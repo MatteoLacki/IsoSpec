@@ -24,6 +24,7 @@
 #include <cstring>
 #include <string>
 #include <limits>
+#include <memory>
 #include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
@@ -542,7 +543,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
     if(fringe.empty())
         return false;
 
-    lProbs.pop_back(); // Remove the +inf guardian
+    lProbs.pop_back();  // Remove the +inf guardian
 
     std::vector<Conf> new_fringe;
     std::vector<double> new_fringe_lprobs;

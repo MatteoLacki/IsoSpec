@@ -141,7 +141,7 @@ template<typename T> void realloc_append(T** array, T what, size_t old_array_siz
 template<typename T> size_t* get_order(T* order_array, size_t N)
 {
     size_t* arr = new size_t[N];
-    for(size_t ii=0; ii<N; ii++)
+    for(size_t ii = 0; ii < N; ii++)
         arr[ii] = ii;
 
     std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] < order_array[j]; });
@@ -152,7 +152,7 @@ template<typename T> size_t* get_order(T* order_array, size_t N)
 template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
 {
     size_t* arr = new size_t[N];
-    for(size_t ii=0; ii<N; ii++)
+    for(size_t ii = 0; ii < N; ii++)
         arr[ii] = ii;
 
     std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] > order_array[j]; });
@@ -162,7 +162,7 @@ template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
 
 template<typename TA, typename TB> void impose_order(size_t* O, size_t N, TA* A, TB* B)
 {
-    for(size_t ii=0; ii<N; ii++)
+    for(size_t ii = 0; ii < N; ii++)
     {
         if(ii != O[ii])
         {
@@ -183,7 +183,6 @@ template<typename TA, typename TB> void impose_order(size_t* O, size_t N, TA* A,
             O[curr_ii] = curr_ii;
         }
     }
-
 }
 
 
