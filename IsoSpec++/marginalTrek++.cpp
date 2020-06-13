@@ -327,14 +327,15 @@ MarginalTrek::MarginalTrek(
 Marginal(std::move(m)),
 current_count(0),
 orderMarginal(atom_lProbs, isotopeNo),
-pq(orderMarginal),
+pq([&](size_t i, size_t j){ return _all_lprobs[i] < _all_lprobs[j]; }),
 totalProb(),
-candidate(new int[isotopeNo]),
 allocator(isotopeNo, tabSize)
 {
     int* initialConf = allocator.makeCopy(mode_conf);
 
-    pq.push(initialConf);
+    _all_confs.push_back(initialConf);
+    _all_lprobs.push_back(mode_lprob);
+    pq.push(0);
 
     totalProb = Summator();
 
@@ -352,13 +353,14 @@ bool MarginalTrek::add_next_conf()
     */
     if(pq.size() < 1) return false;
 
-    Conf topConf = pq.top();
+    size_t conf_idx = pq.top();
+    Conf topConf = _all_confs[conf_idx];
     pq.pop();
     ++current_count;
 
     _confs.push_back(topConf);
     _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
-    double logprob = logProb(topConf);
+    double logprob = _all_lprobs[conf_idx];
     _conf_lprobs.push_back(logprob);
 
 
@@ -378,13 +380,15 @@ bool MarginalTrek::add_next_conf()
                 // Growing index different than decreasing one AND
                 // Remain on simplex condition.
                 if( i != j ){
-                    copyConf(topConf, candidate, isotopeNo);
+                    Conf acceptedCandidate = allocator.makeCopy(topConf);
 
-                    ++candidate[i];
-                    --candidate[j];
+                    ++acceptedCandidate[i];
+                    --acceptedCandidate[j];
 
-                    Conf acceptedCandidate = allocator.makeCopy(candidate);
-                    pq.push(acceptedCandidate);
+                    _all_confs.push_back(acceptedCandidate);
+                    _all_lprobs.push_back(logProb(acceptedCandidate));
+
+                    pq.push(_all_confs.size()-1);
                 }
 
                 if( topConf[i] > mode_conf[i] )
@@ -421,7 +425,6 @@ int MarginalTrek::processUntilCutoff(double cutoff)
 
 MarginalTrek::~MarginalTrek()
 {
-    delete[] candidate;
 }
 
 

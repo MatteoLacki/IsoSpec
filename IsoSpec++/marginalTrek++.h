@@ -19,6 +19,7 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
+#include <functional>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
@@ -174,10 +175,11 @@ class MarginalTrek : public Marginal
  private:
     int current_count;
     const ConfOrderMarginal orderMarginal;
-    std::priority_queue<Conf, std::vector<Conf>, ConfOrderMarginal> pq;
+    std::priority_queue<size_t, std::vector<size_t>, std::function<bool(size_t, size_t)> > pq;
     Summator totalProb;
-    Conf candidate;
     Allocator<int> allocator;
+    std::vector<int*> _all_confs;
+    std::vector<double> _all_lprobs;
     std::vector<double> _conf_lprobs;
     std::vector<double> _conf_masses;
     std::vector<int*> _confs;
