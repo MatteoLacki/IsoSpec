@@ -533,39 +533,40 @@ equalizer(isotopeNo), keyHasher(isotopeNo)
 {
     fringe.push_back(mode_conf);
     lProbs.push_back(std::numeric_limits<double>::infinity());
-    fringe_lprobs.push_back(mode_lprob);
+    fringe_unn_lprobs.push_back(unnormalized_logProb(mode_conf));
     lProbs.push_back(-std::numeric_limits<double>::infinity());
     guarded_lProbs = lProbs.data()+1;
 }
 
 bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 {
+    new_threshold -= loggamma_nominator;
     if(fringe.empty())
         return false;
 
     lProbs.pop_back();  // Remove the +inf guardian
 
     std::vector<Conf> new_fringe;
-    std::vector<double> new_fringe_lprobs;
+    std::vector<double> new_fringe_unn_lprobs;
 
     while(!fringe.empty())
     {
         Conf currentConf = fringe.back();
         fringe.pop_back();
 
-        double opc = fringe_lprobs.back();
+        double opc = fringe_unn_lprobs.back();
 
-        fringe_lprobs.pop_back();
+        fringe_unn_lprobs.pop_back();
         if(opc < new_threshold)
         {
             new_fringe.push_back(currentConf);
-            new_fringe_lprobs.push_back(opc);
+            new_fringe_unn_lprobs.push_back(opc);
         }
 
         else
         {
             configurations.push_back(currentConf);
-            lProbs.push_back(opc);
+            lProbs.push_back(opc+loggamma_nominator);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             {
                 if(currentConf[ii] > mode_conf[ii])
@@ -584,16 +585,16 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
                             Conf nc = allocator.makeCopy(currentConf);
                             nc[jj]++;
 
-                            double lpc = logProb(nc);
+                            double lpc = unnormalized_logProb(nc);
                             if(lpc >= new_threshold)
                             {
                                 fringe.push_back(nc);
-                                fringe_lprobs.push_back(lpc);
+                                fringe_unn_lprobs.push_back(lpc);
                             }
                             else
                             {
                                 new_fringe.push_back(nc);
-                                new_fringe_lprobs.push_back(lpc);
+                                new_fringe_unn_lprobs.push_back(lpc);
                             }
                         }
 
@@ -611,7 +612,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 
     current_threshold = new_threshold;
     fringe.swap(new_fringe);
-    fringe_lprobs.swap(new_fringe_lprobs);
+    fringe_unn_lprobs.swap(new_fringe_unn_lprobs);
 
     if(do_sort)
     {

@@ -353,7 +353,7 @@ class LayeredMarginal : public Marginal
     double current_threshold;
     std::vector<Conf> configurations;
     std::vector<Conf> fringe;
-    std::vector<double> fringe_lprobs;
+    std::vector<double> fringe_unn_lprobs;
     Allocator<int> allocator;
     const ConfEqual equalizer;
     const KeyHasher keyHasher;
