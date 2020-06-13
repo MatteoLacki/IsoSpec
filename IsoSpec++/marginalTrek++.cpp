@@ -327,15 +327,13 @@ MarginalTrek::MarginalTrek(
 Marginal(std::move(m)),
 current_count(0),
 orderMarginal(atom_lProbs, isotopeNo),
-pq([&](size_t i, size_t j){ return _all_lprobs[i] < _all_lprobs[j]; }),
+pq([](std::pair<double, Conf> c1, std::pair<double, Conf> c2){ return c1.first < c2.first; }),
 totalProb(),
 allocator(isotopeNo, tabSize)
 {
     int* initialConf = allocator.makeCopy(mode_conf);
 
-    _all_confs.push_back(initialConf);
-    _all_lprobs.push_back(mode_lprob);
-    pq.push(0);
+    pq.push({mode_lprob, initialConf});
 
     totalProb = Summator();
 
@@ -353,16 +351,16 @@ bool MarginalTrek::add_next_conf()
     */
     if(pq.size() < 1) return false;
 
-    size_t conf_idx = pq.top();
-    Conf topConf = _all_confs[conf_idx];
+    double logprob = pq.top().first;
+    Conf topConf = pq.top().second;
+
     pq.pop();
     ++current_count;
 
     _confs.push_back(topConf);
-    _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
-    double logprob = _all_lprobs[conf_idx];
-    _conf_lprobs.push_back(logprob);
 
+    _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
+    _conf_lprobs.push_back(logprob);
 
     totalProb.add( exp( logprob ) );
 
@@ -385,10 +383,9 @@ bool MarginalTrek::add_next_conf()
                     ++acceptedCandidate[i];
                     --acceptedCandidate[j];
 
-                    _all_confs.push_back(acceptedCandidate);
-                    _all_lprobs.push_back(logProb(acceptedCandidate));
+                    double new_prob = logProb(acceptedCandidate);
 
-                    pq.push(_all_confs.size()-1);
+                    pq.push({new_prob, acceptedCandidate});
                 }
 
                 if( topConf[i] > mode_conf[i] )
