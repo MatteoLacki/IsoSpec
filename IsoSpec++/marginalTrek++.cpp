@@ -334,7 +334,7 @@ allocator(isotopeNo, tabSize)
 {
     int* initialConf = allocator.makeCopy(mode_conf);
 
-    pq.push({mode_lprob, initialConf});
+    pq.push({unnormalized_logProb(mode_conf), initialConf});
 
     totalProb = Summator();
 
@@ -352,7 +352,7 @@ bool MarginalTrek::add_next_conf()
     */
     if(pq.size() < 1) return false;
 
-    double logprob = pq.top().first;
+    double logprob = pq.top().first + loggamma_nominator;
     Conf topConf = pq.top().second;
 
     pq.pop();
@@ -384,7 +384,7 @@ bool MarginalTrek::add_next_conf()
                     ++acceptedCandidate[i];
                     --acceptedCandidate[j];
 
-                    double new_prob = logProb(acceptedCandidate);
+                    double new_prob = unnormalized_logProb(acceptedCandidate);
 
                     pq.push({new_prob, acceptedCandidate});
                 }
