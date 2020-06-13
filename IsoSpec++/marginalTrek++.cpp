@@ -440,7 +440,10 @@ allocator(isotopeNo, tabSize)
 
     Conf currentConf = allocator.makeCopy(mode_conf);
     if(unnormalized_logProb(currentConf) >= lCutOff)
+    {
         configurations.push_back(currentConf);
+        lProbs.push_back(mode_lprob);
+    }
 
     unsigned int idx = 0;
 
@@ -465,10 +468,12 @@ allocator(isotopeNo, tabSize)
                     {
                         currentConf[jj]++;
 
-                        if (unnormalized_logProb(currentConf) >= lCutOff)
+                        double unn_lp = unnormalized_logProb(currentConf);
+                        if (unn_lp >= lCutOff)
                         {
                             auto tmp = allocator.makeCopy(currentConf);
                             configurations.push_back(tmp);
+                            lProbs.push_back(unn_lp + loggamma_nominator);
                         }
 
                         currentConf[jj]--;
@@ -486,16 +491,12 @@ allocator(isotopeNo, tabSize)
     }
 
     no_confs = configurations.size();
-    lProbs = new double[no_confs+1];
     confs  = &configurations[0];
-
-    for(unsigned int ii = 0; ii < no_confs; ii++)
-        lProbs[ii] = logProb(configurations[ii]);
 
     if(sort && no_confs > 0)
     {
-            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs, no_confs));
-            impose_order(order_arr.get(), no_confs, lProbs, confs);
+            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs.data(), no_confs));
+            impose_order(order_arr.get(), no_confs, lProbs.data(), confs);
     }
 
     probs = new double[no_confs];
@@ -507,14 +508,13 @@ allocator(isotopeNo, tabSize)
         probs[ii] = exp(lProbs[ii]);
         masses[ii] = calc_mass(confs[ii], atom_masses, isotopeNo);
     }
-    lProbs[no_confs] = -std::numeric_limits<double>::infinity();
+
+    lProbs.push_back(-std::numeric_limits<double>::infinity());
 }
 
 
 PrecalculatedMarginal::~PrecalculatedMarginal()
 {
-    if(lProbs != nullptr)
-        delete[] lProbs;
     if(masses != nullptr)
         delete[] masses;
     if(probs != nullptr)

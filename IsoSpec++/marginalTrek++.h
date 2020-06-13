@@ -255,7 +255,7 @@ class PrecalculatedMarginal : public Marginal
     Conf* confs;
     unsigned int no_confs;
     double* masses;
-    double* lProbs;
+    std::vector<double> lProbs;
     double* probs;
     Allocator<int> allocator;
  public:
@@ -312,7 +312,7 @@ class PrecalculatedMarginal : public Marginal
     /*!
         \return Pointer to the first element in the table storing log-probabilities of subisotopologues.
     */
-    inline const double* get_lProbs_ptr() const { return lProbs; }
+    inline const double* get_lProbs_ptr() const { return lProbs.data(); }
 
     //! Get the table of the masses of subisotopologues.
     /*!
