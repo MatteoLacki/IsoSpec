@@ -25,6 +25,7 @@
 #include "allocator.h"
 #include "operators.h"
 #include "summator.h"
+#include "pod_vector.h"
 
 
 namespace IsoSpec
@@ -251,11 +252,11 @@ class MarginalTrek : public Marginal
 class PrecalculatedMarginal : public Marginal
 {
  protected:
-    std::vector<Conf> configurations;
+    pod_vector<Conf> configurations;
     Conf* confs;
     unsigned int no_confs;
     double* masses;
-    std::vector<double> lProbs;
+    pod_vector<double> lProbs;
     double* probs;
     Allocator<int> allocator;
  public:
@@ -352,8 +353,8 @@ class LayeredMarginal : public Marginal
  private:
     double current_threshold;
     std::vector<Conf> configurations;
-    std::vector<Conf> fringe;
-    std::vector<double> fringe_unn_lprobs;
+    pod_vector<Conf> fringe;
+    pod_vector<double> fringe_unn_lprobs;
     Allocator<int> allocator;
     const ConfEqual equalizer;
     const KeyHasher keyHasher;

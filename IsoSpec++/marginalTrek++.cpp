@@ -546,8 +546,8 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 
     lProbs.pop_back();  // Remove the +inf guardian
 
-    std::vector<Conf> new_fringe;
-    std::vector<double> new_fringe_unn_lprobs;
+    pod_vector<Conf> new_fringe;
+    pod_vector<double> new_fringe_unn_lprobs;
 
     while(!fringe.empty())
     {
