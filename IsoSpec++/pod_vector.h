@@ -19,6 +19,8 @@
 #include <type_traits>
 #include <cstdlib>
 #include <utility>
+#include <new>
+#include "platform.h"
 
 template<typename T> class pod_vector
 {
