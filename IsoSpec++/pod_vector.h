@@ -128,4 +128,26 @@ template<typename T> class pod_vector
         std::swap(first_free, other.first_free);
         std::swap(store, other.store);
     }
+
+    typedef T* iterator;
+    typedef T value_type;
+    typedef size_t size_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+
+    iterator begin()
+    {
+        return store;
+    }
+
+    iterator end()
+    {
+        return first_free;
+    }
+
+    ISOSPEC_FORCE_INLINE const T& front() const noexcept
+    {
+        ISOSPEC_IMPOSSIBLE(store == first_free);
+        return *store;
+    }
 };
