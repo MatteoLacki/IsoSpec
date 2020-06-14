@@ -491,7 +491,7 @@ allocator(isotopeNo, tabSize)
     }
 
     no_confs = configurations.size();
-    confs  = &configurations[0];
+    confs  = configurations.data();
 
     if(sort && no_confs > 0)
     {
