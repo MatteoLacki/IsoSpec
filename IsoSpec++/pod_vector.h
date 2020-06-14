@@ -1,7 +1,24 @@
+/*!
+    Copyright (C) 2015-2020 Mateusz Łącki and Michał Startek.
+
+    This file is part of IsoSpec.
+
+    IsoSpec is free software: you can redistribute it and/or modify
+    it under the terms of the Simplified ("2-clause") BSD licence.
+
+    IsoSpec is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+    You should have received a copy of the Simplified BSD Licence
+    along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
+*/
+
 #pragma once
 
 #include <type_traits>
 #include <cstdlib>
+#include <utility>
 
 template<typename T> class pod_vector
 {
@@ -12,15 +29,14 @@ template<typename T> class pod_vector
     T* store;
 
  public:
-
-    pod_vector(size_t initial_size = 16) : backend_size(initial_size), first_free(0)
+    explicit pod_vector(size_t initial_size = 16) : backend_size(initial_size), first_free(0)
     {
         store = reinterpret_cast<T*>(malloc(sizeof(T) * initial_size));
         if(store == NULL)
             throw std::bad_alloc();
     }
 
-    ~pod_vector() { free(store); };
+    ~pod_vector() { free(store); }
 
     void fast_reserve(size_t n)
     {
