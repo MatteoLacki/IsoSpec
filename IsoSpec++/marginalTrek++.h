@@ -177,7 +177,7 @@ class MarginalTrek : public Marginal
  private:
     int current_count;
     const ConfOrderMarginal orderMarginal;
-    std::priority_queue<std::pair<double, Conf>, std::vector<std::pair<double, Conf> >, std::function<bool(std::pair<double, Conf>, std::pair<double, Conf>)> > pq;
+    std::priority_queue<ProbAndConfPtr, std::vector<ProbAndConfPtr> > pq;
     Summator totalProb;
     Allocator<int> allocator;
     std::vector<double> _conf_lprobs;
