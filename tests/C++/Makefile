@@ -1,6 +1,6 @@
 CXX=clang++
 OPTFLAGS=-O3 -march=native -mtune=native -g
-DEBUGFLAGS=-O0 -g -DISOSPEC_DEBUG -DDEBUG
+DEBUGFLAGS=-O0 -g -DISOSPEC_DEBUG -DDEBUG -D_GLIBCXX_DEBUG
 TESTFLAGS=-fsanitize=leak,undefined
 TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
