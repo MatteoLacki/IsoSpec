@@ -328,7 +328,7 @@ MarginalTrek::MarginalTrek(
 Marginal(std::move(m)),
 current_count(0),
 orderMarginal(atom_lProbs, isotopeNo),
-pq([](std::pair<double, Conf> c1, std::pair<double, Conf> c2){ return c1.first < c2.first; }),
+pq(),
 totalProb(),
 allocator(isotopeNo, tabSize)
 {
