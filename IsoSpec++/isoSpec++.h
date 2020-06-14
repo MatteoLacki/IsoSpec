@@ -234,7 +234,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
 {
  private:
     MarginalTrek**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
-    std::priority_queue<void*, std::vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
+    std::priority_queue<void*, pod_vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
     void*                       topConf;                            /*!< Most probable configuration. */
     DirtyAllocator              allocator;                          /*!< Structure used for alocating memory for isotopologues. */
     const std::vector<double>** logProbs;                           /*!< Obtained log-probabilities. */
