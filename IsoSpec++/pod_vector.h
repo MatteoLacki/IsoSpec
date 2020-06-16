@@ -40,6 +40,14 @@ template<typename T> class pod_vector
         backend_past_end = store + initial_size;
     }
 
+    pod_vector(pod_vector&& other)
+    {
+        backend_past_end = other.backend_past_end;
+        first_free = other.first_free;
+        store = other.store;
+        other.backend_past_end = other.first_free = other.store = NULL;
+    }
+
     ~pod_vector() { free(store); }
 
     void fast_reserve(size_t n)
@@ -151,5 +159,11 @@ template<typename T> class pod_vector
     {
         ISOSPEC_IMPOSSIBLE(store == first_free);
         return *store;
+    }
+
+    void clear()
+    {
+        free(store);
+        first_free = store = backend_past_end = NULL;
     }
 };
