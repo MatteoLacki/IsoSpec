@@ -53,7 +53,7 @@ template<typename T> class pod_vector
     void fast_reserve(size_t n)
     {
         ISOSPEC_IMPOSSIBLE(n < static_cast<size_t>(backend_past_end - store));
-        T* new_store = reinterpret_cast<T*>(reallocarray(store, n, sizeof(T)));
+        T* new_store = reinterpret_cast<T*>(realloc(store, n * sizeof(T)));
         if(new_store == NULL)
             throw std::bad_alloc();
         first_free = new_store + (first_free - store);
