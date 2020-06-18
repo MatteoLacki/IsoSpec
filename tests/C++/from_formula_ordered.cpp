@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cassert>
 #include "isoSpec++.h"
 
 using namespace IsoSpec;
@@ -41,9 +42,13 @@ size_t test_ordered(const char* formula, double total_prob, bool print_confs)
 
 	size_t no_visited = 0;
         int* space = new int[i.getAllDim()];
+        double last_p = 1.0;
 	while(target_prob > 0.0 && i.advanceToNextConfiguration())
 	{
-		target_prob -= i.prob();
+                double curr_p = i.prob();
+                assert(last_p >= curr_p);
+                last_p = curr_p;
+		target_prob -= curr_p;
 		no_visited += 1;
 		if(print_confs)
 		{
