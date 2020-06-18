@@ -22,6 +22,10 @@
 #include <new>
 #include "platform.h"
 
+
+
+template<typename T> class unsafe_pod_vector;
+
 template<typename T> class pod_vector
 {
     static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
@@ -52,6 +56,13 @@ template<typename T> class pod_vector
     }
 
     ~pod_vector() { free(store); }
+
+    pod_vector(unsafe_pod_vector<T>&& other)
+    {
+        backend_past_end = other.backend_past_end;
+        first_free = other.first_free;
+        store = other.store;
+    }
 
     void fast_reserve(size_t n)
     {
@@ -169,6 +180,8 @@ template<typename T> class pod_vector
         free(store);
         first_free = store = backend_past_end = NULL;
     }
+
+    friend class unsafe_pod_vector<T>;
 };
 
 
@@ -323,5 +336,7 @@ template<typename T> class unsafe_pod_vector
         free(store);
         first_free = store = backend_past_end = NULL;
     }
+
+    friend class pod_vector<T>;
 };
 
