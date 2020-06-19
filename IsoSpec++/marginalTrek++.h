@@ -179,9 +179,9 @@ class MarginalTrek : public Marginal
     const ConfOrderMarginal orderMarginal;
     std::priority_queue<ProbAndConfPtr, pod_vector<ProbAndConfPtr> > pq;
     Allocator<int> allocator;
-    std::vector<double> _conf_lprobs;
-    std::vector<double> _conf_masses;
-    std::vector<int*> _confs;
+    pod_vector<double> _conf_lprobs;
+    pod_vector<double> _conf_masses;
+    pod_vector<int*> _confs;
 
     //! Proceed to the next configuration and memoize it (as it will be surely needed).
     bool add_next_conf();
@@ -223,9 +223,9 @@ class MarginalTrek : public Marginal
     inline double getModeLProb() const { return mode_lprob; }
 
 
-    inline const std::vector<double>& conf_lprobs() const { return _conf_lprobs; }
-    inline const std::vector<double>& conf_masses() const { return _conf_masses; }
-    inline const std::vector<int*>& confs() const { return _confs; }
+    inline const pod_vector<double>& conf_lprobs() const { return _conf_lprobs; }
+    inline const pod_vector<double>& conf_masses() const { return _conf_masses; }
+    inline const pod_vector<Conf>& confs() const { return _confs; }
 
 
     virtual ~MarginalTrek();

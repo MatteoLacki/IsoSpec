@@ -823,9 +823,9 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     for(int i = 0; i < dimNumber; i++)
         marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
 
-    logProbs        = new const std::vector<double>*[dimNumber];
-    masses          = new const std::vector<double>*[dimNumber];
-    marginalConfs   = new const std::vector<int*>*[dimNumber];
+    logProbs        = new const pod_vector<double>*[dimNumber];
+    masses          = new const pod_vector<double>*[dimNumber];
+    marginalConfs   = new const pod_vector<int*>*[dimNumber];
 
     for(int i = 0; i < dimNumber; i++)
     {

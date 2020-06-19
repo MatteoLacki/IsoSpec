@@ -21,12 +21,22 @@
 #include <cstring>
 #include <algorithm>
 #include "isoMath.h"
+#include "pod_vector.h"
 
 namespace IsoSpec
 {
 
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
+){
+    double res = 0.0;
+    for(int i = 0; i < dimNumber; i++)
+        res += (*(valuesContainer[i]))[conf[i]];
+    return res;
+}
+
+inline double combinedSum(
+    const int* conf, const pod_vector<double>** valuesContainer, int dimNumber
 ){
     double res = 0.0;
     for(int i = 0; i < dimNumber; i++)
