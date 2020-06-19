@@ -628,7 +628,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 double LayeredMarginal::get_min_mass() const
 {
     double ret = std::numeric_limits<double>::infinity();
-    for(std::vector<double>::const_iterator it = masses.begin(); it != masses.end(); ++it)
+    for(pod_vector<double>::const_iterator it = masses.cbegin(); it != masses.cend(); ++it)
         if(*it < ret)
             ret = *it;
     return ret;
@@ -638,7 +638,7 @@ double LayeredMarginal::get_min_mass() const
 double LayeredMarginal::get_max_mass() const
 {
     double ret = -std::numeric_limits<double>::infinity();
-    for(std::vector<double>::const_iterator it = masses.begin(); it != masses.end(); ++it)
+    for(pod_vector<double>::const_iterator it = masses.cbegin(); it != masses.cend(); ++it)
         if(*it > ret)
             ret = *it;
     return ret;

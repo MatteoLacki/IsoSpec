@@ -344,15 +344,15 @@ class LayeredMarginal : public Marginal
 {
  private:
     double current_threshold;
-    std::vector<Conf> configurations;
+    pod_vector<Conf> configurations;
     pod_vector<Conf> fringe;
     pod_vector<double> fringe_unn_lprobs;
     Allocator<int> allocator;
     const ConfEqual equalizer;
     const KeyHasher keyHasher;
-    std::vector<double> lProbs;
-    std::vector<double> probs;
-    std::vector<double> masses;
+    pod_vector<double> lProbs;
+    pod_vector<double> probs;
+    pod_vector<double> masses;
     double* guarded_lProbs;
 
  public:
