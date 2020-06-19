@@ -236,6 +236,28 @@ template<typename T> class unsafe_pod_vector
             fast_reserve(n);
     }
 
+    void resize(size_t new_size)
+    {
+        ISOSPEC_IMPOSSIBLE(new_size < first_free - store);
+        size_t cap = capacity();
+        if(cap < new_size)
+        {
+            do {
+            cap = cap * 2;
+            } while(cap < new_size);
+            fast_reserve(cap);
+        }
+        first_free = store + new_size;
+    }
+
+    void resize_and_wipe(size_t new_size)
+    {
+        size_t old_size = size();
+        ISOSPEC_IMPOSSIBLE(new_size < old_size);
+        resize(new_size);
+        memset(store+old_size, 0, (new_size-old_size) * sizeof(T));
+    }
+
     ISOSPEC_FORCE_INLINE void nocheck_push_back(const T& val) noexcept
     {
         ISOSPEC_IMPOSSIBLE(first_free >= backend_past_end);
