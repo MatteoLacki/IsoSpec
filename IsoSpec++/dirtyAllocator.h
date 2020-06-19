@@ -16,8 +16,8 @@
 
 #pragma once
 
-#include <vector>
 #include <cstring>
+#include "pod_vector.h"
 
 namespace IsoSpec
 {

@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <utility>
 #include <new>
+#include <algorithm>
 #include "platform.h"
 
 
