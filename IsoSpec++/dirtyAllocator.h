@@ -30,7 +30,7 @@ class DirtyAllocator
     void*   endOfTablePtr;
     const int       tabSize;
     int     cellSize;
-    std::vector<void*>  prevTabs;
+    pod_vector<void*>  prevTabs;
 
  public:
     explicit DirtyAllocator(const int dim, const int tabSize = 10000);

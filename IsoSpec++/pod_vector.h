@@ -196,7 +196,7 @@ template<typename T> class unsafe_pod_vector
  public:
     unsafe_pod_vector() = default;
     
-    void init() { memset(this, 0, sizeof(this)); }
+    void init() { memset(this, 0, sizeof(*this)); }
 
     void init(size_t initial_size)
     {
@@ -212,7 +212,7 @@ template<typename T> class unsafe_pod_vector
 
     unsafe_pod_vector(unsafe_pod_vector<T>&& other)
     {
-        memcpy(this, *other, sizeof(this));
+        memcpy(this, *other, sizeof(*this));
     }
 
     ~unsafe_pod_vector() = default;
