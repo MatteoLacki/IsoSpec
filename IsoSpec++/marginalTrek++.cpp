@@ -329,13 +329,19 @@ Marginal(std::move(m)),
 current_count(0),
 orderMarginal(atom_lProbs, isotopeNo),
 pq(),
-allocator(isotopeNo, tabSize)
+allocator(isotopeNo, tabSize),
+min_lprob(*std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
     int* initialConf = allocator.makeCopy(mode_conf);
 
     pq.push({unnormalized_logProb(mode_conf), initialConf});
 
     current_count = 0;
+
+    fringe.resize_and_wipe(1);
+
+    current_bucket = 0;
+    initialized_until = 1;
 
     add_next_conf();
 }
@@ -347,7 +353,18 @@ bool MarginalTrek::add_next_conf()
     Add next configuration.
     If visited all, return false.
     */
-    if(pq.size() < 1) return false;
+    if(pq.empty())
+    {
+        current_bucket++;
+        while(current_bucket < initialized_until && fringe[current_bucket].empty())
+            current_bucket++;
+
+        if(current_bucket == initialized_until)
+            return false;
+
+    //    std::cout << "Fringe size at pop: " << fringe[current_bucket].size() << std::endl;
+        pq = std::priority_queue<ProbAndConfPtr, pod_vector<ProbAndConfPtr> >(std::less<ProbAndConfPtr>(), pod_vector<ProbAndConfPtr>(std::move(fringe[current_bucket])));
+    };
 
     double logprob = pq.top().first + loggamma_nominator;
     Conf topConf = pq.top().second;
@@ -380,8 +397,21 @@ bool MarginalTrek::add_next_conf()
                     --acceptedCandidate[j];
 
                     double new_prob = unnormalized_logProb(acceptedCandidate);
+                    size_t bucket_nr = bucket_no(new_prob);
 
-                    pq.push({new_prob, acceptedCandidate});
+                    if(bucket_nr >= initialized_until)
+                    {
+                    //    std::cout << "Extending to: " << bucket_nr << std::endl;
+                        initialized_until = bucket_nr+1;
+                        fringe.resize_and_wipe(initialized_until);
+                    }
+
+                    ISOSPEC_IMPOSSIBLE(bucket_nr < current_bucket);
+                    if(bucket_nr == current_bucket)
+                        pq.push({new_prob, acceptedCandidate});
+                    else
+                        fringe[bucket_nr].push_back({new_prob, acceptedCandidate});
+
                 }
 
                 if( topConf[i] > mode_conf[i] )

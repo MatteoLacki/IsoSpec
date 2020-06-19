@@ -178,13 +178,20 @@ class MarginalTrek : public Marginal
     int current_count;
     const ConfOrderMarginal orderMarginal;
     std::priority_queue<ProbAndConfPtr, pod_vector<ProbAndConfPtr> > pq;
+    pod_vector<unsafe_pod_vector<ProbAndConfPtr> > fringe;
     Allocator<int> allocator;
     pod_vector<double> _conf_lprobs;
     pod_vector<double> _conf_masses;
     pod_vector<int*> _confs;
 
+    const double min_lprob;
+    size_t current_bucket;
+    size_t initialized_until;
+
     //! Proceed to the next configuration and memoize it (as it will be surely needed).
     bool add_next_conf();
+
+    size_t bucket_no(double lprob) { return static_cast<size_t>( (mode_lprob - lprob) * 100.0 ); }
 
  public:
     //! Move constructor: specializes the Marginal class.

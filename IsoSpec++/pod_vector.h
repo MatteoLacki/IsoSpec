@@ -22,6 +22,7 @@
 #include <new>
 #include <algorithm>
 #include "platform.h"
+#include "conf.h"
 
 
 
@@ -47,6 +48,15 @@ template<typename T> class pod_vector
 
     pod_vector(const pod_vector<T>& other) = delete;
     pod_vector& operator=(const pod_vector<T>& other) = delete;
+    pod_vector& operator=(pod_vector<T>&& other)
+    {
+        free(store);
+        backend_past_end = other.backend_past_end;
+        first_free = other.first_free;
+        store = other.store;
+        other.backend_past_end = other.first_free = other.store = NULL;
+        return *this;
+    }
 
     pod_vector(pod_vector<T>&& other)
     {
@@ -80,6 +90,28 @@ template<typename T> class pod_vector
     {
         if (n > static_cast<size_t>(backend_past_end - store))
             fast_reserve(n);
+    }
+
+    void resize(size_t new_size)
+    {
+        ISOSPEC_IMPOSSIBLE(static_cast<std::ptrdiff_t>(new_size) < first_free - store);
+        size_t cap = capacity();
+        if(cap < new_size)
+        {
+            do {
+            cap = cap * 2;
+            } while(cap < new_size);
+            fast_reserve(cap);
+        }
+        first_free = store + new_size;
+    }
+
+    void resize_and_wipe(size_t new_size)
+    {
+        size_t old_size = size();
+        ISOSPEC_IMPOSSIBLE(new_size <= old_size);
+        resize(new_size);
+        memset(store+old_size, 0, (new_size-old_size) * sizeof(T));
     }
 
     ISOSPEC_FORCE_INLINE void nocheck_push_back(const T& val) noexcept
@@ -187,7 +219,7 @@ template<typename T> class pod_vector
 template<typename T> class unsafe_pod_vector
 {
     static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
-    static_assert(std::is_trivially_copyable<unsafe_pod_vector<T> >::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+    //static_assert(std::is_trivially_copyable<unsafe_pod_vector<T> >::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
 
     T* backend_past_end;
     T* first_free;
@@ -208,13 +240,6 @@ template<typename T> class unsafe_pod_vector
     }
 
     unsafe_pod_vector(const pod_vector<T>& other) = delete;
-    unsafe_pod_vector& operator=(const pod_vector<T>& other) = delete;
-
-    unsafe_pod_vector(unsafe_pod_vector<T>&& other)
-    {
-        memcpy(this, *other, sizeof(*this));
-    }
-
     ~unsafe_pod_vector() = default;
 
     void free() { free(store); };
@@ -253,7 +278,7 @@ template<typename T> class unsafe_pod_vector
     void resize_and_wipe(size_t new_size)
     {
         size_t old_size = size();
-        ISOSPEC_IMPOSSIBLE(new_size < old_size);
+        ISOSPEC_IMPOSSIBLE(new_size <= old_size);
         resize(new_size);
         memset(store+old_size, 0, (new_size-old_size) * sizeof(T));
     }
@@ -358,4 +383,3 @@ template<typename T> class unsafe_pod_vector
 
     friend class pod_vector<T>;
 };
-
