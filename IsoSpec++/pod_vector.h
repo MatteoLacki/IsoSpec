@@ -77,7 +77,7 @@ template<typename T> class pod_vector
 
     void reserve(size_t n)
     {
-        if (n > backend_past_end - store)
+        if (n > static_cast<size_t>(backend_past_end - store))
             fast_reserve(n);
     }
 
@@ -154,20 +154,18 @@ template<typename T> class pod_vector
     }
 
     typedef T* iterator;
+    typedef const T* const_iterator;
     typedef T value_type;
     typedef size_t size_type;
     typedef T& reference;
     typedef const T& const_reference;
 
-    iterator begin()
-    {
-        return store;
-    }
-
-    iterator end()
-    {
-        return first_free;
-    }
+    iterator begin() noexcept { return store; };
+    const_iterator begin() const noexcept { return store; }
+    const_iterator cbegin() const noexcept { return store; }
+    iterator end() noexcept { return first_free; }
+    const_iterator end() const noexcept { return first_free; }
+    const_iterator cend() const noexcept { return first_free; }
 
     ISOSPEC_FORCE_INLINE const T& front() const noexcept
     {
@@ -310,20 +308,18 @@ template<typename T> class unsafe_pod_vector
     }
 
     typedef T* iterator;
+    typedef const T* const_iterator;
     typedef T value_type;
     typedef size_t size_type;
     typedef T& reference;
     typedef const T& const_reference;
 
-    iterator begin()
-    {
-        return store;
-    }
-
-    iterator end()
-    {
-        return first_free;
-    }
+    iterator begin() noexcept { return store; };
+    const_iterator begin() const noexcept { return store; }
+    const_iterator cbegin() const noexcept { return store; }
+    iterator end() noexcept { return first_free; }
+    const_iterator end() const noexcept { return first_free; }
+    const_iterator cend() const noexcept { return first_free; }
 
     ISOSPEC_FORCE_INLINE const T& front() const noexcept
     {
