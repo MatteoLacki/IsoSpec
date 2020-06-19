@@ -178,7 +178,6 @@ class MarginalTrek : public Marginal
     int current_count;
     const ConfOrderMarginal orderMarginal;
     std::priority_queue<ProbAndConfPtr, pod_vector<ProbAndConfPtr> > pq;
-    Summator totalProb;
     Allocator<int> allocator;
     std::vector<double> _conf_lprobs;
     std::vector<double> _conf_masses;
@@ -223,13 +222,6 @@ class MarginalTrek : public Marginal
     */
     inline double getModeLProb() const { return mode_lprob; }
 
-
-    //! Calculate subisotopologues with probability above or equal to the cut-off.
-    /*!
-        \param cutoff The probability cut-off
-        \return The number of the last subisotopologue above the cut-off.
-    */
-    int processUntilCutoff(double cutoff);
 
     inline const std::vector<double>& conf_lprobs() const { return _conf_lprobs; }
     inline const std::vector<double>& conf_masses() const { return _conf_masses; }

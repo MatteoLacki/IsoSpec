@@ -329,14 +329,11 @@ Marginal(std::move(m)),
 current_count(0),
 orderMarginal(atom_lProbs, isotopeNo),
 pq(),
-totalProb(),
 allocator(isotopeNo, tabSize)
 {
     int* initialConf = allocator.makeCopy(mode_conf);
 
     pq.push({unnormalized_logProb(mode_conf), initialConf});
-
-    totalProb = Summator();
 
     current_count = 0;
 
@@ -362,8 +359,6 @@ bool MarginalTrek::add_next_conf()
 
     _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
     _conf_lprobs.push_back(logprob);
-
-    totalProb.add( exp( logprob ) );
 
     for( unsigned int j = 0; j < isotopeNo; ++j )
     {
@@ -398,26 +393,6 @@ bool MarginalTrek::add_next_conf()
     }
 
     return true;
-}
-
-int MarginalTrek::processUntilCutoff(double cutoff)
-{
-    Summator s;
-    int last_idx = -1;
-    for(unsigned int i = 0; i < _conf_lprobs.size(); i++)
-    {
-        s.add(_conf_lprobs[i]);
-        if(s.get() >= cutoff)
-        {
-            last_idx = i;
-            break;
-        }
-    }
-    if(last_idx > -1)
-        return last_idx;
-
-    while(totalProb.get() < cutoff && add_next_conf()) {}
-    return _conf_lprobs.size();
 }
 
 
