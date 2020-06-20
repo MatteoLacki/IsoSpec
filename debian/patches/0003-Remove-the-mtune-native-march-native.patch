@@ -1,0 +1,22 @@
+From: Filippo Rusconi <lopippo@debian.org>
+Date: Tue, 9 Jun 2020 15:32:57 +0200
+Subject: Remove the -mtune=native -march=native.
+
+The flags make the build crash on some archs.
+---
+ IsoSpecPy/setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/IsoSpecPy/setup.py b/IsoSpecPy/setup.py
+index f160f65..5e951a1 100644
+--- a/IsoSpecPy/setup.py
++++ b/IsoSpecPy/setup.py
+@@ -42,7 +42,7 @@ if use_asan:
+ else:
+     cmodule = Extension('IsoSpecCppPy',
+                     sources = ['IsoSpec++/unity-build.cpp'],
+-                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++17'.split(),
++                    extra_compile_args = '-O3 -std=c++17'.split(),
+                     )
+ 
+ 
