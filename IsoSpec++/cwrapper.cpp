@@ -99,7 +99,8 @@ double* getMarginalLogSizeEstimates(void* iso, double target_total_prob)
 {
     Iso* i = reinterpret_cast<Iso*>(iso);
     double* ret = reinterpret_cast<double*>(malloc(sizeof(double)*i->getDimNumber()));
-    i->saveMarginalLogSizeEstimates(ret, target_total_prob);
+    if(ret != nullptr)
+        i->saveMarginalLogSizeEstimates(ret, target_total_prob);
     return ret;
 }
 
@@ -349,5 +350,4 @@ void parse_fasta_c(const char* fasta, int atomCounts[6])
     // Same thing, only this time with C linkage
     parse_fasta(fasta, atomCounts);
 }
-
 }  //  extern "C" ends here

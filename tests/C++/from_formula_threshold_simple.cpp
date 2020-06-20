@@ -40,19 +40,19 @@ size_t test_threshold_simple(const char* formula, double threshold, bool print_c
         	std::cout << "No. confs is: " << confs_no << std::endl;
         i.reset();
 #endif
-        int* confspace = new int[i.getAllDim()];
+        int* confspace = print_confs ? new int[i.getAllDim()] : nullptr;
         size_t no_visited = 0;
         double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
-		i.get_conf_signature(confspace);
-		if(print_confs)
-		{
-                	std::cout << "lprob: " << i.lprob() << " prob: " << i.prob() << " log(prob): " << log(i.prob()) << " mass: " << i.mass() << " conf: ";
-                	printArray<int>(confspace, i.getAllDim());
-		}
-		no_visited += 1;
-                total_prob += i.prob();
+            if(print_confs)
+            {
+                i.get_conf_signature(confspace);
+                std::cout << "lprob: " << i.lprob() << " prob: " << i.prob() << " log(prob): " << log(i.prob()) << " mass: " << i.mass() << " conf: ";
+                printArray<int>(confspace, i.getAllDim());
+            }
+            no_visited += 1;
+            total_prob += i.prob();
 	}
 	delete[] confspace;
 	return no_visited;
