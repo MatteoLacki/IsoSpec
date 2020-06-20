@@ -451,23 +451,17 @@ allocator(isotopeNo, tabSize)
 
                     if( ii != jj )
                     {
-                        double prev_partial_jj = prob_partials[jj];
-                        currentConf[jj]++;
-                        prob_partials[jj] = minuslogFactorial(currentConf[jj]) + currentConf[jj] * atom_lProbs[jj];
-
-                        double logp = prob_part_acc[jj] + minuslogFactorial(currentConf[jj]) + currentConf[jj] * atom_lProbs[jj];
+                        double logp = prob_part_acc[jj] + minuslogFactorial(1+currentConf[jj]) + (1+currentConf[jj]) * atom_lProbs[jj];
                         for(size_t kk = jj+1; kk < isotopeNo; kk++)
                             logp += prob_partials[kk];
 
                         if (logp >= lCutOff)
                         {
                             auto tmp = allocator.makeCopy(currentConf);
+                            tmp[jj]++;
                             configurations.push_back(tmp);
                             lProbs.push_back(logp);
                         }
-
-                        currentConf[jj]--;
-                        prob_partials[jj] = prev_partial_jj;
                     }
                     else
                         prob_part_acc[jj+1] = prob_part_acc[jj] + prob_partials[jj];
