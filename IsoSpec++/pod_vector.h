@@ -58,7 +58,7 @@ template<typename T> class pod_vector
 
     ~pod_vector() { free(store); }
 
-    pod_vector(unsafe_pod_vector<T>&& other)
+    explicit pod_vector(unsafe_pod_vector<T>&& other)
     {
         backend_past_end = other.backend_past_end;
         first_free = other.first_free;
@@ -195,7 +195,7 @@ template<typename T> class unsafe_pod_vector
 
  public:
     unsafe_pod_vector() = default;
-    
+
     void init() { memset(this, 0, sizeof(*this)); }
 
     void init(size_t initial_size)
@@ -207,7 +207,7 @@ template<typename T> class unsafe_pod_vector
         backend_past_end = store + initial_size;
     }
 
-    unsafe_pod_vector(const pod_vector<T>& other) = delete;
+    unsafe_pod_vector(const pod_vector<T>& other) = delete;  // NOLINT(runtime/explicit) - seriously? Deleted constructors have to be marked explicit?
     unsafe_pod_vector& operator=(const pod_vector<T>& other) = delete;
 
     unsafe_pod_vector(unsafe_pod_vector<T>&& other)
@@ -217,7 +217,7 @@ template<typename T> class unsafe_pod_vector
 
     ~unsafe_pod_vector() = default;
 
-    void free() { free(store); };
+    void free() { free(store); }
 
     void fast_reserve(size_t n)
     {
