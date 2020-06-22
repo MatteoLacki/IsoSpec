@@ -8,7 +8,7 @@ if(WIN32 OR _WIN32)
 endif()
 
 
-message(STATUS "${BoldGreen}Setting definition -DISOSPEC_MAKE_DLL for symbol DLL export.${ColourReset}")
+message(STATUS "${BoldGreen}Setting definition -DISOSPEC_MAKE_DLL for DLL symbol export.${ColourReset}")
 add_definitions(-DISOSPEC_MAKE_DLL)
 
 
