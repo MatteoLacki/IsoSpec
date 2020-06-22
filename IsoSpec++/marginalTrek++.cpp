@@ -432,7 +432,6 @@ MarginalTrek::~MarginalTrek()
 
 
 
-
 PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
     double lCutOff,
     bool sort,
@@ -441,10 +440,8 @@ PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
-    lCutOff -= loggamma_nominator;
-
     Conf currentConf = allocator.makeCopy(mode_conf);
-    if(unnormalized_logProb(currentConf) >= lCutOff)
+    if(logProb(currentConf) >= lCutOff)
     {
         configurations.push_back(currentConf);
         lProbs.push_back(mode_lprob);
@@ -452,10 +449,18 @@ allocator(isotopeNo, tabSize)
 
     unsigned int idx = 0;
 
+    std::unique_ptr<double[]> prob_partials(new double[isotopeNo]);
+    std::unique_ptr<double[]> prob_part_acc(new double[isotopeNo+1]);
+    prob_part_acc[0] = loggamma_nominator;
+
     while(idx < configurations.size())
     {
         currentConf = configurations[idx];
         idx++;
+
+        for(size_t ii = 0; ii < isotopeNo; ii++)
+            prob_partials[ii] = minuslogFactorial(currentConf[ii]) + currentConf[ii] * atom_lProbs[ii];
+
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
         {
             if(currentConf[ii] > mode_conf[ii])
@@ -463,31 +468,39 @@ allocator(isotopeNo, tabSize)
 
             if(currentConf[ii] != 0)
             {
+                double prev_partial_ii = prob_partials[ii];
                 currentConf[ii]--;
+                prob_partials[ii] = minuslogFactorial(currentConf[ii]) + currentConf[ii] * atom_lProbs[ii];
+
                 for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                 {
+                    prob_part_acc[jj+1] = prob_part_acc[jj] + prob_partials[jj];
+
                     if(currentConf[jj] < mode_conf[jj])
                         continue;
 
                     if( ii != jj )
                     {
-                        currentConf[jj]++;
+                        double logp = prob_part_acc[jj] + minuslogFactorial(1+currentConf[jj]) + (1+currentConf[jj]) * atom_lProbs[jj];
+                        for(size_t kk = jj+1; kk < isotopeNo; kk++)
+                            logp += prob_partials[kk];
 
-                        double unn_lp = unnormalized_logProb(currentConf);
-                        if (unn_lp >= lCutOff)
+                        if (logp >= lCutOff)
                         {
                             auto tmp = allocator.makeCopy(currentConf);
+                            tmp[jj]++;
                             configurations.push_back(tmp);
-                            lProbs.push_back(unn_lp + loggamma_nominator);
+                            lProbs.push_back(logp);
                         }
-
-                        currentConf[jj]--;
                     }
+                    else
+                        prob_part_acc[jj+1] = prob_part_acc[jj] + prob_partials[jj];
 
                     if (currentConf[jj] > mode_conf[jj])
                         break;
                 }
                 currentConf[ii]++;
+                prob_partials[ii] = prev_partial_ii;
             }
 
             if(currentConf[ii] < mode_conf[ii])

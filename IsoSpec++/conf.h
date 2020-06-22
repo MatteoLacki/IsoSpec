@@ -27,12 +27,12 @@ struct ProbAndConfPtr
     double first;
     Conf second;
 
-    ProbAndConfPtr(double p, Conf c) : first(p), second(c) {};
+    ProbAndConfPtr(double p, Conf c) : first(p), second(c) {}
 
     bool operator<(const ProbAndConfPtr& other) const
     {
         return first < other.first;
     }
 };
-}
 
+}  // namespace IsoSpec
