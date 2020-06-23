@@ -111,38 +111,11 @@
 #endif
 
 
-#if defined(OPENMS_DLLAPI) // IsoSpec is being built as a part of OpenMS: use their visibility macros
+#if defined(OPENMS_DLLAPI) /* IsoSpec is being built as a part of OpenMS: use their visibility macros */
 #define ISOSPEC_EXPORT_SYMBOL OPENMS_DLLAPI
-#else // it's a can of worms we don't yet want to open ourselves though...
+#else /* it's a can of worms we don't yet want to open ourselves though... */
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
-
-// Filippo Rusconi: provide definitions for WIN builds
-// so that symbols are exported properly.
-// Generic helper definitions for shared library support
-#if defined _WIN32 || defined __CYGWIN__
-  #define ISOSPEC_HELPER_DLL_IMPORT __declspec(dllimport)
-  #define ISOSPEC_HELPER_DLL_EXPORT __declspec(dllexport)
-#else
-  #if __GNUC__ >= 4
-    #define ISOSPEC_HELPER_DLL_IMPORT __attribute__ ((visibility ("default")))
-    #define ISOSPEC_HELPER_DLL_EXPORT __attribute__ ((visibility ("default")))
-  #else
-    #define ISOSPEC_HELPER_DLL_IMPORT
-    #define ISOSPEC_HELPER_DLL_EXPORT
-  #endif
-#endif
-
-// Now we use the generic helper definitions above to (re)define ISOSPEC_EXPORT_SYMBOL.
-// ISOSPEC_EXPORT_SYMBOL is used for the public API symbols. It either DLL imports or DLL exports (or does nothing for static build)
-
-#ifdef ISOSPEC_MAKE_DLL // defined if ISOSPEC is compiled as a DLL
-    #undef ISOSPEC_EXPORT_SYMBOL
-    #define ISOSPEC_EXPORT_SYMBOL ISOSPEC_HELPER_DLL_EXPORT
-#else // ISOSPEC_MAKE_DLL is not defined: this means ISOSPEC is a static lib.
-    #define ISOSPEC_EXPORT_SYMBOL ISOSPEC_HELPER_DLL_IMPORT
-#endif // ISOSPEC_MAKE_DLL
-
 
 #if !defined(__cpp_if_constexpr)
 #define constexpr_if if
