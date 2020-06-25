@@ -359,7 +359,7 @@ bool MarginalTrek::add_next_conf()
         while(current_bucket < initialized_until && fringe[current_bucket].empty())
             current_bucket++;
 
-        if(current_bucket == initialized_until)
+        if(current_bucket >= initialized_until)
             return false;
 
     //    std::cout << "Fringe size at pop: " << fringe[current_bucket].size() << std::endl;
