@@ -132,6 +132,7 @@ class Iso(object):
         """
 
         self.iso = None
+        self.formula = formula
 
         if len(fasta) > 0:
             molecule = ParseFASTA(fasta)
