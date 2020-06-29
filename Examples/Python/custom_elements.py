@@ -24,7 +24,6 @@ MZI_thr = IsoThreshold(.001,
                        atomCounts=atomCounts,
                        isotopeMasses=isotopeMasses,
                        isotopeProbabilities=isotopeProbabilities)
-
 list(MZI_thr.masses)
 list(MZI_thr.probs)
 list(MZI_thr.confs)
@@ -40,13 +39,3 @@ MZI_opt = IsoTotalProb(.999,
 list(MZI_opt.masses)
 list(MZI_opt.probs)
 list(MZI_opt.confs)
-
-
-
-
-# Fasta with diffs.
-MZI_thr = IsoThreshold(.001, 'C100H200', 
-                       get_confs=True,
-                       atomCounts=[10],
-                       isotopeMasses=[[10,12]],
-                       isotopeProbabilities=[[.8,.2]])
