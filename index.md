@@ -301,6 +301,83 @@ int main()
 }
 ```
 
+## Fixing some atoms to a given isotope
+
+IsoSpec in principle is used to model mass indeterminacy.
+However, sometimes you know which isotope will occur in a particular place in a molecule, or at least you know how many such atoms there are.
+We have you covered in that case too.
+To model these cases, one has to treat these isotopes as elements with only one isotope with probability equal to one.
+For instance, let us say you want to fix the number of silver 107Ag to 44 atoms and 109Ag to 2 atoms.
+Also, assume that these silver atoms form a molecule together with 100 carbon atoms and 200 hydrogen atoms.
+Also, say that we want to use the IUPAC masses of these two isotopes.
+The way out of it in Python is to use the following snippet:
+```{python}
+from IsoSpecPy.IsoSpecPy import IsoParamsFromDict, IsoThreshold, IsoTotalProb, Iso
+from IsoSpecPy.PeriodicTbl import symbol_to_masses
+
+# defining extra elements
+# 44 107Ag atoms and 2 109Ag
+atomCounts = [44, 2]
+
+# exact IUPAC masses of 107Ag and 109Ag
+M107Ag, M109Ag = symbol_to_masses['Ag']
+
+# isotope masses must be passed in as lists of lists of masses
+# here each new element has only one isotope, so each inner list
+# has only one element
+isotopeMasses = [[M107Ag] , [M109Ag]]
+
+# each new element has no mass indeterminacy
+isotopeProbabilities = [[1], [1]]
+
+
+# peaks above .001 threshold
+MZI_thr = IsoThreshold(.001, 
+                       'C100H200', # the remaining part of the formula
+                       get_confs=True,
+                       atomCounts=atomCounts,
+                       isotopeMasses=isotopeMasses,
+                       isotopeProbabilities=isotopeProbabilities)
+
+list(MZI_thr.masses)
+list(MZI_thr.probs)
+list(MZI_thr.confs)
+
+# peaks that make 99.9% of the isotopic distribution
+MZI_opt = IsoTotalProb(.999,
+                       'C100H200', # the remaining part of the formula
+                       get_confs=True,
+                       atomCounts=atomCounts,
+                       isotopeMasses=isotopeMasses,
+                       isotopeProbabilities=isotopeProbabilities)
+
+list(MZI_opt.masses)
+list(MZI_opt.probs)
+list(MZI_opt.confs)
+```
+
+## Isotopic distribution of a given fasta.
+
+IsoSpec lets you pass in a fasta protein sequence directly.
+Also, use the formula parameter to pass in some PTM.
+```{python}
+from IsoSpecPy.IsoSpecPy import IsoTotalProb
+
+# isotopic distribution of protein with fasta sequence AAAPPQAAC
+MZI_opt = IsoTotalProb(.999,
+                       get_confs=True,
+                       fasta='AAAPPQAAC')
+
+# isotopic distribution of protein with fasta sequence AAAPPQAAC,
+# with carbamidomethylation of cystein
+carbamidomethylation = 'C2H3N1O1'
+MZI_opt2 = IsoTotalProb(.999,
+                        formula=carbamidomethylation,
+                        get_confs=True,
+                        fasta='AAAPPQAAC')
+list(MZI_opt2.masses)
+```
+
 ## Interested in IsoSpec?
 
 Contact us! Mail to:
