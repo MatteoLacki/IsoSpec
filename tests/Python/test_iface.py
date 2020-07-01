@@ -101,3 +101,26 @@ WSD = I.wassersteinDistance(I2)
 print(f"{WSD} ", end="")
 assert(math.isclose(I.wassersteinDistance(I2), 0.0))
 print(" -> OK!")
+
+
+print("Checking empiric avg mass... ", end="")
+formulas = "C1 P1 H1 H100 P100 N100 O100 C100H100N100 C100O100".split()
+isos = [IsoSpecPy.Iso(formula) for formula in formulas]
+dists = [IsoSpecPy.IsoThreshold(0.0, formula) for formula in formulas]
+diffs = [abs(i.getTheoreticalAverageMass() - d.empiric_average_mass()) for i, d in zip(isos, dists)]
+print(max(diffs), end="")
+assert max(diffs) < 1e-6
+print(" -> OK!")
+
+
+print("Checking empiric variance... ", end="")
+diffs = [abs(i.variance() - d.empiric_variance()) for i, d in zip(isos, dists)]
+print(max(diffs), end="")
+assert max(diffs) < 1e-6
+print(" -> OK!")
+
+print("Checking empiric stddev... ", end="")
+diffs = [abs(i.stddev() - d.empiric_stddev()) for i, d in zip(isos, dists)]
+print(max(diffs), end="")
+assert max(diffs) < 1e-6
+print(" -> OK!")
