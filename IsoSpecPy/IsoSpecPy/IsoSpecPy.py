@@ -28,7 +28,7 @@ try:
 except NameError:
     xrange = range
 
-regex_pattern = re.compile('([A-Z][a-z]?)([0-9]*)')
+regex_pattern = re.compile('([A-Z][a-z]?)(-?[0-9]*)')
 ParsedFormula = namedtuple('ParsedFormula', 'atomCounts masses probs elems')
 
 
@@ -146,6 +146,9 @@ class Iso(object):
             for symbol, count in df.items():
                 molecule[symbol] = molecule.get(symbol, 0) + count
 
+        for sym, cnt in molecule.items():
+            if cnt < 0:
+                raise Exception("Negative count of element " + sym + ": " + str(cnt))
 
         if len(molecule) == 0 and not all([atomCounts, isotopeMasses, isotopeProbabilities]):
             raise Exception("Either formula, fasta or ALL of: atomCounts, isotopeMasses, isotopeProbabilities must not be None")
