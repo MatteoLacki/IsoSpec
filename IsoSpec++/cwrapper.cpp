@@ -266,6 +266,21 @@ int confs_noFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }
 
+double empiricAverageMass(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_average_mass();
+}
+
+double empiricVariance(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_variance();
+}
+
+double empiricStddev(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_stddev();
+}
+
 double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
     try

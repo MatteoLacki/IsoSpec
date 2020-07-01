@@ -388,6 +388,24 @@ class IsoDistribution(object):
         self.mass_sorted = False
         self.prob_sorted = False
 
+    def empiric_average_mass(self):
+        co = self._get_cobject()
+        ret = isoFFI.clib.empiricAverageMass(co)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
+        return ret
+
+    def empiric_variance(self):
+        co = self._get_cobject()
+        ret = isoFFI.clib.empiricVariance(co)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
+        return ret
+
+    def empiric_stddev(self):
+        co = self._get_cobject()
+        ret = isoFFI.clib.empiricStddev(co)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
+        return ret
+
     def wassersteinDistance(self, other):
         x = self._get_cobject()
         y = other._get_cobject()
