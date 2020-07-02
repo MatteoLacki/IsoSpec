@@ -75,6 +75,10 @@ class IsoFFI:
         const int*    confsFixedEnvelope(void* tabulator);
         int confs_noFixedEnvelope(void* tabulator);
 
+        double empiricAverageMass(void* tabulator);
+        double empiricVariance(void* tabulator);
+        double empiricStddev(void* tabulator);
+
         double wassersteinDistance(void* tabulator1, void* tabulator2);
         double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
 

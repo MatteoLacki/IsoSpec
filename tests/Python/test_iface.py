@@ -76,3 +76,51 @@ print(WSD, end=' ')
 assert math.isclose(WSD, 0.0, abs_tol=1e-7)
 print("OK!")
 
+
+print("Checking negative formulas... ", end="")
+try:
+    I = Iso(formula="C-10")
+    print("FAIL: exception not thrown")
+except Exception as e:
+    print(f"""exception successfully obtained, message: "{str(e)}" -> OK!""")
+
+
+print("Checking FASTA + negative formulas... ", end="")
+try:
+    I = Iso(fasta = "C", formula="C-5")
+    print("FAIL: exception not thrown")
+except Exception as e:
+    print(f"""exception successfully obtained, message: "{str(e)}" -> OK!""")
+
+
+print("Checking FASTA + modification... ", end="")
+# Selenation of methionine
+I = IsoSpecPy.IsoTotalProb(0.999, formula = "C5H9N1O1Se1")
+I2 = IsoSpecPy.IsoTotalProb(0.999, fasta = "M", formula = "S-1Se1")
+WSD = I.wassersteinDistance(I2)
+print(f"{WSD} ", end="")
+assert(math.isclose(I.wassersteinDistance(I2), 0.0))
+print(" -> OK!")
+
+
+print("Checking empiric avg mass... ", end="")
+formulas = "C1 P1 H1 H100 P100 N100 O100 C100H100N100 C100O100".split()
+isos = [IsoSpecPy.Iso(formula) for formula in formulas]
+dists = [IsoSpecPy.IsoThreshold(0.0, formula) for formula in formulas]
+diffs = [abs(i.getTheoreticalAverageMass() - d.empiric_average_mass()) for i, d in zip(isos, dists)]
+print(max(diffs), end="")
+assert max(diffs) < 1e-6
+print(" -> OK!")
+
+
+print("Checking empiric variance... ", end="")
+diffs = [abs(i.variance() - d.empiric_variance()) for i, d in zip(isos, dists)]
+print(max(diffs), end="")
+assert max(diffs) < 1e-6
+print(" -> OK!")
+
+print("Checking empiric stddev... ", end="")
+diffs = [abs(i.stddev() - d.empiric_stddev()) for i, d in zip(isos, dists)]
+print(max(diffs), end="")
+assert max(diffs) < 1e-6
+print(" -> OK!")
