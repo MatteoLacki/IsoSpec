@@ -82,7 +82,7 @@ try:
     I = Iso(formula="C-10")
     print("FAIL: exception not thrown")
 except Exception as e:
-    print(f"""exception successfully obtained, message: "{str(e)}" -> OK!""")
+    print("""exception successfully obtained, message: "{}" -> OK!""".format((str(e))))
 
 
 print("Checking FASTA + negative formulas... ", end="")
@@ -90,7 +90,7 @@ try:
     I = Iso(fasta = "C", formula="C-5")
     print("FAIL: exception not thrown")
 except Exception as e:
-    print(f"""exception successfully obtained, message: "{str(e)}" -> OK!""")
+    print("""exception successfully obtained, message: "{}" -> OK!""".format((str(e))))
 
 
 print("Checking FASTA + modification... ", end="")
@@ -98,7 +98,7 @@ print("Checking FASTA + modification... ", end="")
 I = IsoSpecPy.IsoTotalProb(0.999, formula = "C5H9N1O1Se1")
 I2 = IsoSpecPy.IsoTotalProb(0.999, fasta = "M", formula = "S-1Se1")
 WSD = I.wassersteinDistance(I2)
-print(f"{WSD} ", end="")
+print(WSD, end="")
 assert(math.isclose(I.wassersteinDistance(I2), 0.0))
 print(" -> OK!")
 
