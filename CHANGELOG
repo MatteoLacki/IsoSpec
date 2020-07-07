@@ -1,6 +1,13 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 
+2.1.1
+----------------------------------
+- Speed improvements
+- Bugfixes
+- Support for calculating basic statistics of FixedEnvelopes
+- Support for negative atom counts in formulas in Python. This is useful in conjunction with FASTA argument, to represent protein modification
+
 2.1.0
 ----------------------------------
 - Support for using nominal mass in calculations
