@@ -32,7 +32,7 @@ i = IsoSpecPy.IsoTotalProb(formula = "C4H12O6", # The formula for glucose, sans 
                                   isotopeMasses = (radiolabelled_carbon_masses,), 
                                   isotopeProbabilities = (radiolabelled_carbon_probs,), 
                                   # And the rest of parameters for configuration
-                                  prob_to_cover = 0.99, 
+                                  prob_to_cover = 0.99,
                                   get_confs=True)
 
 # Radiolabelling (or isotopic labelling) with more than one element looks like this: 
