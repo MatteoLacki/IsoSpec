@@ -12,24 +12,31 @@ set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES /usr/include)
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
 
-if (WITH_FPIC)
+if(WITH_FPIC)
 	add_definitions(-fPIC)
 endif()
 
 # Install cmake module
 install(FILES ${CMAKE_MODULE_PATH}/FindIsoSpec++.cmake 
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec)
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec++)
 
 # Install cmake config
-configure_file (${CMAKE_MODULE_PATH}/IsoSpec++Config.cmake.in
+configure_file(${CMAKE_MODULE_PATH}/IsoSpec++Config.cmake.in
 	${CMAKE_BINARY_DIR}/IsoSpec++Config.cmake)
 install(FILES ${CMAKE_BINARY_DIR}/IsoSpec++Config.cmake 
-	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec)
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/isospec++)
 
-# Install the PkgConfig config file
-configure_file (${CMAKE_MODULE_PATH}/pkgconfig/libisospec++.pc.in
-	${CMAKE_BINARY_DIR}/libisospec++.pc)
+# Install the PkgConfig config file (only substitute the @VAR@
+# because we need to preserve all the ${prefix} strings like
+# they are.
+configure_file(${CMAKE_MODULE_PATH}/pkgconfig/libisospec++.pc.in
+	${CMAKE_BINARY_DIR}/libisospec++.pc @ONLY)
 install(FILES ${CMAKE_BINARY_DIR}/libisospec++.pc 
 	DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
+# Now deal with the manual doc stuff
+add_subdirectory(man)
+
+# Now deal with the example  stuff
+add_subdirectory(Examples)
 

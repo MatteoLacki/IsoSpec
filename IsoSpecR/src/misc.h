@@ -19,13 +19,24 @@
 #include <iostream>
 #include <vector>
 #include <cstring>
+#include <algorithm>
 #include "isoMath.h"
+#include "pod_vector.h"
 
 namespace IsoSpec
 {
 
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
+){
+    double res = 0.0;
+    for(int i = 0; i < dimNumber; i++)
+        res += (*(valuesContainer[i]))[conf[i]];
+    return res;
+}
+
+inline double combinedSum(
+    const int* conf, const pod_vector<double>** valuesContainer, int dimNumber
 ){
     double res = 0.0;
     for(int i = 0; i < dimNumber; i++)
@@ -136,5 +147,53 @@ template<typename T> void realloc_append(T** array, T what, size_t old_array_siz
     delete[] *array;
     *array = newT;
 }
+
+template<typename T> size_t* get_order(T* order_array, size_t N)
+{
+    size_t* arr = new size_t[N];
+    for(size_t ii = 0; ii < N; ii++)
+        arr[ii] = ii;
+
+    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] < order_array[j]; });
+
+    return arr;
+}
+
+template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
+{
+    size_t* arr = new size_t[N];
+    for(size_t ii = 0; ii < N; ii++)
+        arr[ii] = ii;
+
+    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] > order_array[j]; });
+
+    return arr;
+}
+
+template<typename TA, typename TB> void impose_order(size_t* O, size_t N, TA* A, TB* B)
+{
+    for(size_t ii = 0; ii < N; ii++)
+    {
+        if(ii != O[ii])
+        {
+            size_t curr_ii = ii;
+            TA ta = A[ii];
+            TB tb = B[ii];
+            size_t next_ii = O[ii];
+            while(next_ii != ii)
+            {
+                A[curr_ii] = A[next_ii];
+                B[curr_ii] = B[next_ii];
+                O[curr_ii] = curr_ii;
+                curr_ii = next_ii;
+                next_ii = O[next_ii];
+            }
+            A[curr_ii] = ta;
+            B[curr_ii] = tb;
+            O[curr_ii] = curr_ii;
+        }
+    }
+}
+
 
 }  // namespace IsoSpec

@@ -13,8 +13,8 @@ cmake_minimum_required(VERSION 3.12)
 # Basic information about project
 
 project(IsoSpec
- DESCRIPTION "A program to calculate isotopic clusters"
- HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
+    DESCRIPTION "A program to calculate isotopic clusters"
+    HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
 
 set(ISOSPEC_VERSION_MAJOR "2")
 set(ISOSPEC_VERSION_MINOR "1")
@@ -36,7 +36,7 @@ set(ISOSPEC_LIB_SOVERSION ${ISOSPEC_VERSION_MAJOR})
 # below, because it roots all the other dirs' configs.
 
 if(NOT CMAKE_INSTALL_PREFIX)
-	set(CMAKE_INSTALL_PREFIX /usr)
+    set(CMAKE_INSTALL_PREFIX /usr)
 endif()
 
 # This module sets a number of installation directories 
@@ -68,7 +68,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 message("")
-message("\n${BoldRed}Configuring build for project ${PROJECT}${ColourReset}\n")
+message("\n${BoldRed}Configuring build for project ${PROJECT_NAME}${ColourReset}\n")
 message("")
 
 # This export will allow using the flags to be used by
@@ -76,10 +76,10 @@ message("")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" )
-	execute_process( COMMAND cmake -E copy_if_different
-		${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
-		${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
-		)
+    execute_process( COMMAND cmake -E copy_if_different
+        ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+        ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
+        )
 endif()
 
 
@@ -102,8 +102,8 @@ message(STATUS "${BoldGreen}Setting definition -pedantic.${ColourReset}")
 add_definitions(-pedantic)
 
 if(WARN_AS_ERROR)
-	message(STATUS "${BoldYellow}Setting definition -Werror.${ColourReset}")
-	add_definitions(-Werror)
+    message(STATUS "${BoldYellow}Setting definition -Werror.${ColourReset}")
+    add_definitions(-Werror)
 endif()
 
 message(STATUS "${BoldGreen}CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}${ColourReset}")
@@ -118,35 +118,26 @@ message(STATUS "${BoldGreen}CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}${ColourReset}"
 # to build Win software right into GNU/Linux.
 if(MXE)
 
-	# Run the following cmake command line:
-	# x86_64-w64-mingw32.shared-cmake -DCMAKE_BUILD_TYPE=Release -DMXE=1 ../development
-	include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain.cmake)
-	#include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain-olivier.cmake)
+    include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain.cmake)
+    #include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain-olivier.cmake)
 
-	# Set the name to the systemUname variable because in this situation that name
-	# is not found, it it passed as a flag in the command line.
-	set(SYSTEM_UNAME_S "mxe")
+    # Set the name to the systemUname variable because in this situation that name
+    # is not found, it it passed as a flag in the command line.
+    set(SYSTEM_UNAME_S "mxe")
 
 elseif(UNIX AND NOT APPLE)
 
-	# Run the following cmake command line:
-	# cmake -DCMAKE_BUILD_TYPE=Debug ../development
-
-	include(${CMAKE_TOOLCHAINS_PATH}/unix-toolchain.cmake)
+    include(${CMAKE_TOOLCHAINS_PATH}/unix-toolchain.cmake)
 
 elseif(WIN32 OR _WIN32)
 
-	# Run the following cmake command line:
-	# cmake -DCMAKE_BUILD_TYPE=Release ../development
-
-	include(${CMAKE_TOOLCHAINS_PATH}/win10-mingw64-toolchain.cmake)
+    if(WIN10MINGW64)
+        include(${CMAKE_TOOLCHAINS_PATH}/win10-mingw64-toolchain.cmake)
+    endif()
 
 elseif(APPLE)
 
-	# Run the following cmake command line:
-	# cmake -DCMAKE_BUILD_TYPE=Release ../development
-
-	include(${CMAKE_TOOLCHAINS_PATH}/apple-macport-toolchain.cmake)
+    include(${CMAKE_TOOLCHAINS_PATH}/apple-macport-toolchain.cmake)
 
 endif()
 
@@ -160,24 +151,24 @@ message("")
 # Essential software configuration
 
 if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release CACHE STRING
-		"Type of build, options are: None, Debug, Release, RelWithDebInfo, MinSizeRel."
-		FORCE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING
+        "Type of build, options are: None, Debug, Release, RelWithDebInfo, MinSizeRel."
+        FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-	#message(STATUS "Compiling in release mode.")
-	add_definitions("-DQT_NO_DEBUG_OUTPUT")
+    #message(STATUS "Compiling in release mode.")
+    add_definitions("-DQT_NO_DEBUG_OUTPUT")
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
-	#message(STATUS "Compiling in debug mode.")
-	message(STATUS "Add definition -ggdb3 to format debug output for GDB.")
-	add_definitions(-ggdb3)
+    #message(STATUS "Compiling in debug mode.")
+    message(STATUS "Add definition -ggdb3 to format debug output for GDB.")
+    add_definitions(-ggdb3)
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
-	#message(STATUS "Compiling in release with debug info mode.")
+    #message(STATUS "Compiling in release with debug info mode.")
 endif(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
 
 message(STATUS "${BoldYellow}CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}.${ColourReset}")

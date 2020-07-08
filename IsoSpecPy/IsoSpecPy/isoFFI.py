@@ -147,6 +147,12 @@ sure you want to do that, edit the source and disable this check.''')
 
         paths_to_check = sum(map(glob.glob, paths_to_check), [])
 
+        try:
+            import importlib
+            paths_to_check.insert(0, importlib.util.find_spec("IsoSpecCppPy").origin)
+        except (ImportError, AttributeError):
+            pass
+
         errors = []
 
         self.clib = None
