@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <vector>
 #include <cstring>
 #include "conf.h"
+#include "pod_vector.h"
 
 namespace IsoSpec
 {
@@ -36,7 +36,7 @@ template <typename T> class Allocator
     T*      currentTab;
     int currentId;
     const int       dim, tabSize;
-    std::vector<T*>  prevTabs;
+    pod_vector<T*>  prevTabs;
 
  public:
     explicit Allocator(const int dim, const int tabSize = 10000);

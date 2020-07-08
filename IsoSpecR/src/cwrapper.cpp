@@ -99,7 +99,8 @@ double* getMarginalLogSizeEstimates(void* iso, double target_total_prob)
 {
     Iso* i = reinterpret_cast<Iso*>(iso);
     double* ret = reinterpret_cast<double*>(malloc(sizeof(double)*i->getDimNumber()));
-    i->saveMarginalLogSizeEstimates(ret, target_total_prob);
+    if(ret != nullptr)
+        i->saveMarginalLogSizeEstimates(ret, target_total_prob);
     return ret;
 }
 
@@ -265,6 +266,21 @@ int confs_noFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }
 
+double empiricAverageMass(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_average_mass();
+}
+
+double empiricVariance(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_variance();
+}
+
+double empiricStddev(void* tabulator)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_stddev();
+}
+
 double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
     try
@@ -349,5 +365,4 @@ void parse_fasta_c(const char* fasta, int atomCounts[6])
     // Same thing, only this time with C linkage
     parse_fasta(fasta, atomCounts);
 }
-
 }  //  extern "C" ends here
