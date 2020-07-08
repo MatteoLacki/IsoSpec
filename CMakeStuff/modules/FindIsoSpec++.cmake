@@ -10,6 +10,8 @@ find_library(IsoSpec++_LIBRARY NAMES isospec libisospec isospec++ libisospec++)
 
 if(IsoSpec++_INCLUDE_DIRS AND IsoSpec++_LIBRARY)
 
+	message(STATUS "Found Found IsoSpec++_LIBRARY: ${IsoSpec++_LIBRARY}")
+
 	set(IsoSpec++_FOUND TRUE)
 
 endif()
@@ -17,7 +19,9 @@ endif()
 if(IsoSpec++_FOUND)
 
 	if (NOT IsoSpec++_FIND_QUIETLY)
+
 		message(STATUS "Found IsoSpec++_LIBRARY: ${IsoSpec++_LIBRARY}")
+
 	endif()
 
 	if(NOT TARGET IsoSpec++::IsoSpec++)

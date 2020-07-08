@@ -6,6 +6,7 @@ Uploaders: Filippo Rusconi <lopippo@debian.org>
 Build-Depends: debhelper-compat (= 12),
  dh-exec (>= 0.3),
  dpkg-dev (>= 1.18.25),
+ graphicsmagick-imagemagick-compat, 
  cmake (>=3.12),
  d-shlibs (>= 0.48~),
  dh-python,

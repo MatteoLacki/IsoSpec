@@ -6,6 +6,9 @@ Abstract: This documentation describes the uses and features
 Section: Science/Chemistry
 
 Format: HTML
-Index: /usr/share/doc/libisospec++-doc/html/index.html
-Files: /usr/share/doc/libisospec++-doc/html/*.html
+Index: /usr/share/doc/isospec/html/index.html
+Files: /usr/share/doc/isospec/html/*.html
+
+Format: PDF
+Files: /usr/share/doc/isospec/pdf/refman.pdf.gz
 

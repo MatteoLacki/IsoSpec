@@ -1,3 +1,1 @@
-man/html/* usr/share/doc/libisospec++-doc/html
-man/latex/refman.pdf usr/share/doc/libisospec++-doc/pdf
-Examples/* usr/share/doc/libisospec++-doc/examples
+usr/share/doc/isospec

@@ -9,5 +9,6 @@ endif()
 
 
 # On Win10 all the code is relocatable.
-remove_definitions(-fPIC -Wall -pedantic -Wextra)
+message(STATUS "Removing definitions -fPic.")
+remove_definitions(-fPIC)
 
