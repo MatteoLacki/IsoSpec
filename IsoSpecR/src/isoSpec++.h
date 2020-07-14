@@ -103,7 +103,10 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
 
     //! Constructor (named) from aminoacid FASTA sequence as C string.
     /*!
-        \param fasta An aminoacid FASTA sequence. May be upper/lower/mixed case, may contain selenocystein (U). Subisotopologues will be in order: CHNOS, possibly with Se added at an end if present.
+        \param fasta An aminoacid FASTA sequence. May be upper/lower/mixed case, may contain selenocystein (U) or xleucine (J).
+                     Other characters, including FASTA codes of indeterminate chemical formula (X, *, -, B, ...) are silently ignored.
+                     That means "AEDA", "AE-DA", "EAXXDA", "AE DA" will all result in the same chemical formula.
+                     Subisotopologues will be in order: CHNOS, possibly with Se added at an end if present.
         \use_nominal_masses Whether to use nucleon number instead of the real mass of each isotope during calculations.
         \add_water Whether the chain should have the terminating -H and -OH groups at the N and C terminus, respectively.
     */
