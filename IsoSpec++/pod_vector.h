@@ -29,7 +29,9 @@ template<typename T> class unsafe_pod_vector;
 
 template<typename T> class pod_vector
 {
+#if !ISOSPEC_BUILDING_R
     static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+#endif
 
     T* backend_past_end;
     T* first_free;
@@ -186,8 +188,10 @@ template<typename T> class pod_vector
 
 template<typename T> class unsafe_pod_vector
 {
+#if !ISOSPEC_BUILDING_R
     static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
     static_assert(std::is_trivially_copyable<unsafe_pod_vector<T> >::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+#endif
 
     T* backend_past_end;
     T* first_free;
