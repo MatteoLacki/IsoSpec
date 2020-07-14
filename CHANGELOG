@@ -1,6 +1,10 @@
 This file lists *major* changes between releases, for a full list see git log.
 
 
+2.1.2 (R-only release)
+----------------------------------
+- Workaround for CRAN threatening to remove package because of C++11 function usage, in spite of C++14 being clearly listed in SystemDependencies
+
 2.1.1
 ----------------------------------
 - Speed improvements
