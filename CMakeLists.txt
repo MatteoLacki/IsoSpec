@@ -1,12 +1,15 @@
-cmake_minimum_required(VERSION 3.12)
-
 #############################################################
 #############################################################
 # CMake configuration
 
+cmake_minimum_required(VERSION 3.12)
+
 # CMake script for the IsoSpec library
-# Author: Filippo Rusconi
-# Created: June 2020
+# Author: Anonymous and Filippo Rusconi
+# This script was present in the source tree but was
+# highly rudimentary. I have implemented most of what is
+# here (Filippo Rusconi).
+# Last Modifs: July 2020
 
 ############################################################
 ############################################################
