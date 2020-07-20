@@ -594,4 +594,27 @@ template void FixedEnvelope::total_prob_init<true>(Iso&& iso, double target_tota
 template void FixedEnvelope::total_prob_init<false>(Iso&& iso, double target_total_prob, bool optimize);
 
 
+double FixedEnvelope::empiric_average_mass()
+{
+    double ret = 0.0;
+    for(size_t ii = 0; ii < _confs_no; ii++)
+    {
+        ret += _masses[ii] * _probs[ii];
+    }
+    return ret / get_total_prob();
+}
+
+double FixedEnvelope::empiric_variance()
+{
+    double ret = 0.0;
+    double avg = empiric_average_mass();
+    for(size_t ii = 0; ii < _confs_no; ii++)
+    {
+        double msq = _masses[ii] - avg;
+        ret += msq * msq * _probs[ii];
+    }
+
+    return ret / get_total_prob();
+}
+
 }  // namespace IsoSpec

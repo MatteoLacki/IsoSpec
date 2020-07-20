@@ -16,14 +16,16 @@
 
 #pragma once
 
-#include <unordered_map>
 #include <queue>
 #include <algorithm>
 #include <vector>
+#include <functional>
+#include <utility>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
 #include "summator.h"
+#include "pod_vector.h"
 
 
 namespace IsoSpec
@@ -174,17 +176,12 @@ class MarginalTrek : public Marginal
 {
  private:
     int current_count;
-    const KeyHasher keyHasher;
-    const ConfEqual equalizer;
     const ConfOrderMarginal orderMarginal;
-    std::unordered_map<Conf, int, KeyHasher, ConfEqual> visited;
-    std::priority_queue<Conf, std::vector<Conf>, ConfOrderMarginal> pq;
-    Summator totalProb;
-    Conf candidate;
+    std::priority_queue<ProbAndConfPtr, pod_vector<ProbAndConfPtr> > pq;
     Allocator<int> allocator;
-    std::vector<double> _conf_lprobs;
-    std::vector<double> _conf_masses;
-    std::vector<int*> _confs;
+    pod_vector<double> _conf_lprobs;
+    pod_vector<double> _conf_masses;
+    pod_vector<int*> _confs;
 
     //! Proceed to the next configuration and memoize it (as it will be surely needed).
     bool add_next_conf();
@@ -226,16 +223,9 @@ class MarginalTrek : public Marginal
     inline double getModeLProb() const { return mode_lprob; }
 
 
-    //! Calculate subisotopologues with probability above or equal to the cut-off.
-    /*!
-        \param cutoff The probability cut-off
-        \return The number of the last subisotopologue above the cut-off.
-    */
-    int processUntilCutoff(double cutoff);
-
-    inline const std::vector<double>& conf_lprobs() const { return _conf_lprobs; }
-    inline const std::vector<double>& conf_masses() const { return _conf_masses; }
-    inline const std::vector<int*>& confs() const { return _confs; }
+    inline const pod_vector<double>& conf_lprobs() const { return _conf_lprobs; }
+    inline const pod_vector<double>& conf_masses() const { return _conf_masses; }
+    inline const pod_vector<Conf>& confs() const { return _confs; }
 
 
     virtual ~MarginalTrek();
@@ -254,11 +244,11 @@ class MarginalTrek : public Marginal
 class PrecalculatedMarginal : public Marginal
 {
  protected:
-    std::vector<Conf> configurations;
+    pod_vector<Conf> configurations;
     Conf* confs;
     unsigned int no_confs;
     double* masses;
-    double* lProbs;
+    pod_vector<double> lProbs;
     double* probs;
     Allocator<int> allocator;
  public:
@@ -315,7 +305,7 @@ class PrecalculatedMarginal : public Marginal
     /*!
         \return Pointer to the first element in the table storing log-probabilities of subisotopologues.
     */
-    inline const double* get_lProbs_ptr() const { return lProbs; }
+    inline const double* get_lProbs_ptr() const { return lProbs.data(); }
 
     //! Get the table of the masses of subisotopologues.
     /*!
@@ -354,17 +344,16 @@ class LayeredMarginal : public Marginal
 {
  private:
     double current_threshold;
-    std::vector<Conf> configurations;
-    std::vector<Conf> fringe;
+    pod_vector<Conf> configurations;
+    pod_vector<Conf> fringe;
+    pod_vector<double> fringe_unn_lprobs;
     Allocator<int> allocator;
     const ConfEqual equalizer;
     const KeyHasher keyHasher;
-    const ConfOrderMarginalDescending orderMarginal;
-    std::vector<double> lProbs;
-    std::vector<double> probs;
-    std::vector<double> masses;
+    pod_vector<double> lProbs;
+    pod_vector<double> probs;
+    pod_vector<double> masses;
     double* guarded_lProbs;
-    const int hashSize;
 
  public:
     //! Move constructor: specializes the Marginal class.

@@ -75,6 +75,10 @@ class IsoFFI:
         const int*    confsFixedEnvelope(void* tabulator);
         int confs_noFixedEnvelope(void* tabulator);
 
+        double empiricAverageMass(void* tabulator);
+        double empiricVariance(void* tabulator);
+        double empiricStddev(void* tabulator);
+
         double wassersteinDistance(void* tabulator1, void* tabulator2);
         double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
 
@@ -142,6 +146,12 @@ sure you want to do that, edit the source and disable this check.''')
         paths_to_check = dpc
 
         paths_to_check = sum(map(glob.glob, paths_to_check), [])
+
+        try:
+            import importlib
+            paths_to_check.insert(0, importlib.util.find_spec("IsoSpecCppPy").origin)
+        except (ImportError, AttributeError):
+            pass
 
         errors = []
 

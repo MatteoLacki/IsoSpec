@@ -103,7 +103,10 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
 
     //! Constructor (named) from aminoacid FASTA sequence as C string.
     /*!
-        \param fasta An aminoacid FASTA sequence. May be upper/lower/mixed case, may contain selenocystein (U). Subisotopologues will be in order: CHNOS, possibly with Se added at an end if present.
+        \param fasta An aminoacid FASTA sequence. May be upper/lower/mixed case, may contain selenocystein (U) or xleucine (J).
+                     Other characters, including FASTA codes of indeterminate chemical formula (X, *, -, B, ...) are silently ignored.
+                     That means "AEDA", "AE-DA", "EAXXDA", "AE DA" will all result in the same chemical formula.
+                     Subisotopologues will be in order: CHNOS, possibly with Se added at an end if present.
         \use_nominal_masses Whether to use nucleon number instead of the real mass of each isotope during calculations.
         \add_water Whether the chain should have the terminating -H and -OH groups at the N and C terminus, respectively.
     */
@@ -234,12 +237,12 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
 {
  private:
     MarginalTrek**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
-    std::priority_queue<void*, std::vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
+    std::priority_queue<void*, pod_vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
     void*                       topConf;                            /*!< Most probable configuration. */
     DirtyAllocator              allocator;                          /*!< Structure used for alocating memory for isotopologues. */
-    const std::vector<double>** logProbs;                           /*!< Obtained log-probabilities. */
-    const std::vector<double>** masses;                             /*!< Obtained masses. */
-    const std::vector<int*>**   marginalConfs;                      /*!< Obtained counts of isotopes. */
+    const pod_vector<double>**  logProbs;                           /*!< Obtained log-probabilities. */
+    const pod_vector<double>**  masses;                             /*!< Obtained masses. */
+    const pod_vector<Conf>**    marginalConfs;                      /*!< Obtained counts of isotopes. */
     double                      currentLProb;                       /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                        /*!< The mass of the current isotopologue. */
     double                      currentProb;                        /*!< The probability of the current isotopologue. */

@@ -93,7 +93,7 @@
 #define ISOSPEC_FORCE_INLINE inline
 #endif
 
-#if ISOSPEC_DEBUG
+#ifdef ISOSPEC_DEBUG
 #undef ISOSPEC_IMPOSSIBLE
 #include <cassert>
 #define ISOSPEC_IMPOSSIBLE(condition) assert(!(condition));

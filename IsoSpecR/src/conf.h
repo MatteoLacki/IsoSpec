@@ -21,5 +21,18 @@ namespace IsoSpec
 
 typedef int* Conf;
 
-}
+struct ProbAndConfPtr
+{
+    // For some reason std::pair isn't trivially copyable...
+    double first;
+    Conf second;
 
+    ProbAndConfPtr(double p, Conf c) : first(p), second(c) {}
+
+    bool operator<(const ProbAndConfPtr& other) const
+    {
+        return first < other.first;
+    }
+};
+
+}  // namespace IsoSpec

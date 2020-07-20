@@ -97,11 +97,11 @@ marginals(nullptr)
     {
         delete[] isotopeNumbers;
         delete[] atomCounts;
-	// Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
-	// However, this is not the fast code path and we can afford two unneeded instructions to keep
-	// some static analysis tools happy.
-	isotopeNumbers = nullptr;
-	atomCounts = nullptr;
+        // Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
+        // However, this is not the fast code path and we can afford two unneeded instructions to keep
+        // some static analysis tools happy.
+        isotopeNumbers = nullptr;
+        atomCounts = nullptr;
         throw;
     }
 }
@@ -128,11 +128,11 @@ marginals(nullptr)
     {
         delete[] isotopeNumbers;
         delete[] atomCounts;
-	// Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
-	// However, this is not the fast code path and we can afford two unneeded instructions to keep
-	// some static analysis tools happy.
-	isotopeNumbers = nullptr;
-	atomCounts = nullptr;
+        // Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
+        // However, this is not the fast code path and we can afford two unneeded instructions to keep
+        // some static analysis tools happy.
+        isotopeNumbers = nullptr;
+        atomCounts = nullptr;
         throw;
     }
 }
@@ -823,9 +823,9 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     for(int i = 0; i < dimNumber; i++)
         marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
 
-    logProbs        = new const std::vector<double>*[dimNumber];
-    masses          = new const std::vector<double>*[dimNumber];
-    marginalConfs   = new const std::vector<int*>*[dimNumber];
+    logProbs        = new const pod_vector<double>*[dimNumber];
+    masses          = new const pod_vector<double>*[dimNumber];
+    marginalConfs   = new const pod_vector<int*>*[dimNumber];
 
     for(int i = 0; i < dimNumber; i++)
     {
