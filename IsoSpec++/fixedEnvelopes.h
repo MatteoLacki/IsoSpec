@@ -96,6 +96,10 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     void scale(double factor);
     void normalize();
 
+    double empiric_average_mass();
+    double empiric_variance();
+    double empiric_stddev() { return sqrt(empiric_variance()); }
+
     double WassersteinDistance(FixedEnvelope& other);
     double OrientedWassersteinDistance(FixedEnvelope& other);
 

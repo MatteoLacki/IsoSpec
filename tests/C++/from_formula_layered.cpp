@@ -33,23 +33,21 @@ int main(int argc, char** argv)
 size_t test_layered_tabulator(const char* formula, double total_prob, bool print_confs)
 {
 //	IsoLayeredGenerator i(formula, 1000, 1000);
-        FixedEnvelope t = FixedEnvelope::FromTotalProb(formula, total_prob, false, true);
+        FixedEnvelope t = FixedEnvelope::FromTotalProb(formula, total_prob, true, print_confs);
         const double* probs = t.probs();
         double* masses = t.release_masses();
         const int* confs = t.confs();
 
-        for(size_t ii = 0; ii<t.confs_no(); ii++)
-	{
-		if(print_confs)
-		{
-			std::cout << "PROB: " << probs[ii] << "  \tMASS: " << masses[ii] << "\tCONF: ";
-                        const int* space = confs + ii*t.getAllDim();
-			for(int ii=0; ii<t.getAllDim(); ii++)
-			    std::cout << space[ii] << " ";
-			std::cout << std::endl;
-		}
+        if(print_confs)
+            for(size_t ii = 0; ii<t.confs_no(); ii++)
+            {
+                std::cout << "PROB: " << probs[ii] << "  \tMASS: " << masses[ii] << "\tCONF: ";
+                const int* space = confs + ii*t.getAllDim();
+                for(int ii=0; ii<t.getAllDim(); ii++)
+                    std::cout << space[ii] << " ";
+                std::cout << std::endl;
 
-	}
+	    }
 
         free(masses);
 

@@ -15,7 +15,7 @@
  */
 
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "dirtyAllocator.h"
 
 namespace IsoSpec
@@ -30,6 +30,8 @@ DirtyAllocator::DirtyAllocator(
     if(cellSize % sizeof(double) != 0)
         cellSize += sizeof(double) - cellSize % sizeof(double);
     currentTab      = malloc( cellSize * tabSize );
+    if(currentTab == NULL)
+        throw std::bad_alloc();
     currentConf     = currentTab;
     endOfTablePtr = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
@@ -47,6 +49,8 @@ void DirtyAllocator::shiftTables()
 
     currentTab              = malloc( cellSize * tabSize );
     currentConf             = currentTab;
+    if(currentTab == NULL)
+        throw std::bad_alloc();
     endOfTablePtr   = reinterpret_cast<char*>(currentTab) + cellSize*tabSize;
 }
 

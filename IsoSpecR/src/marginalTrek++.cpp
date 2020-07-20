@@ -19,13 +19,12 @@
 #include <algorithm>
 #include <vector>
 #include <cstdlib>
-#include <unordered_map>
-#include <unordered_set>
 #include <queue>
 #include <utility>
 #include <cstring>
 #include <string>
 #include <limits>
+#include <memory>
 #include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
@@ -324,25 +323,17 @@ double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
 MarginalTrek::MarginalTrek(
     Marginal&& m,
     int tabSize,
-    int hashSize
+    int
 ) :
 Marginal(std::move(m)),
 current_count(0),
-keyHasher(isotopeNo),
-equalizer(isotopeNo),
 orderMarginal(atom_lProbs, isotopeNo),
-visited(hashSize, keyHasher, equalizer),
-pq(orderMarginal),
-totalProb(),
-candidate(new int[isotopeNo]),
+pq(),
 allocator(isotopeNo, tabSize)
 {
     int* initialConf = allocator.makeCopy(mode_conf);
 
-    pq.push(initialConf);
-    visited[initialConf] = 0;
-
-    totalProb = Summator();
+    pq.push({unnormalized_logProb(mode_conf), initialConf});
 
     current_count = 0;
 
@@ -358,72 +349,56 @@ bool MarginalTrek::add_next_conf()
     */
     if(pq.size() < 1) return false;
 
-    Conf topConf = pq.top();
+    double logprob = pq.top().first + loggamma_nominator;
+    Conf topConf = pq.top().second;
+
     pq.pop();
     ++current_count;
-    visited[topConf] = current_count;
 
     _confs.push_back(topConf);
+
     _conf_masses.push_back(calc_mass(topConf, atom_masses, isotopeNo));
-    double logprob = logProb(topConf);
     _conf_lprobs.push_back(logprob);
 
-
-    totalProb.add( exp( logprob ) );
-
-    for( unsigned int i = 0; i < isotopeNo; ++i )
+    for( unsigned int j = 0; j < isotopeNo; ++j )
     {
-        for( unsigned int j = 0; j < isotopeNo; ++j )
+        if( topConf[j] > mode_conf[j])
+            continue;
+
+        if( topConf[j] > 0 )
         {
-            // Growing index different than decreasing one AND
-            // Remain on simplex condition.
-            if( i != j && topConf[j] > 0 ){
-                copyConf(topConf, candidate, isotopeNo);
+            for( unsigned int i = 0; i < isotopeNo; ++i )
+            {
+                if( topConf[i] < mode_conf[i] )
+                    continue;
+                // Growing index different than decreasing one AND
+                // Remain on simplex condition.
+                if( i != j ){
+                    Conf acceptedCandidate = allocator.makeCopy(topConf);
 
-                ++candidate[i];
-                --candidate[j];
+                    ++acceptedCandidate[i];
+                    --acceptedCandidate[j];
 
-                // candidate should not have been already visited.
-                if( visited.count( candidate ) == 0 )
-                {
-                    Conf acceptedCandidate = allocator.makeCopy(candidate);
-                    pq.push(acceptedCandidate);
+                    double new_prob = unnormalized_logProb(acceptedCandidate);
 
-                    visited[acceptedCandidate] = 0;
+                    pq.push({new_prob, acceptedCandidate});
                 }
+
+                if( topConf[i] > mode_conf[i] )
+                    break;
             }
         }
+        if( topConf[j] < mode_conf[j] )
+            break;
     }
 
     return true;
 }
 
-int MarginalTrek::processUntilCutoff(double cutoff)
-{
-    Summator s;
-    int last_idx = -1;
-    for(unsigned int i = 0; i < _conf_lprobs.size(); i++)
-    {
-        s.add(_conf_lprobs[i]);
-        if(s.get() >= cutoff)
-        {
-            last_idx = i;
-            break;
-        }
-    }
-    if(last_idx > -1)
-        return last_idx;
-
-    while(totalProb.get() < cutoff && add_next_conf()) {}
-    return _conf_lprobs.size();
-}
-
 
 MarginalTrek::~MarginalTrek()
 {
-    delete[] candidate;
 }
-
 
 
 
@@ -431,87 +406,103 @@ PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
     double lCutOff,
     bool sort,
     int tabSize,
-    int hashSize
+    int
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
-    const ConfEqual equalizer(isotopeNo);
-    const KeyHasher keyHasher(isotopeNo);
-    const ConfOrderMarginalDescending orderMarginal(atom_lProbs, isotopeNo);
-
-    lCutOff -= loggamma_nominator;
-
-    std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
-
     Conf currentConf = allocator.makeCopy(mode_conf);
-    if(unnormalized_logProb(currentConf) >= lCutOff)
+    if(logProb(currentConf) >= lCutOff)
     {
-        // create a copy and store a ptr to the *same* copy in both structures
-        // (save some space and time)
-        auto tmp = allocator.makeCopy(currentConf);
-        configurations.push_back(tmp);
-        visited.insert(tmp);
+        configurations.push_back(currentConf);
+        lProbs.push_back(mode_lprob);
     }
 
     unsigned int idx = 0;
 
+    std::unique_ptr<double[]> prob_partials(new double[isotopeNo]);
+    std::unique_ptr<double[]> prob_part_acc(new double[isotopeNo+1]);
+    prob_part_acc[0] = loggamma_nominator;
+
     while(idx < configurations.size())
     {
-        memcpy(currentConf, configurations[idx], sizeof(int)*isotopeNo);
+        currentConf = configurations[idx];
         idx++;
+
+        for(size_t ii = 0; ii < isotopeNo; ii++)
+            prob_partials[ii] = minuslogFactorial(currentConf[ii]) + currentConf[ii] * atom_lProbs[ii];
+
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
         {
-            currentConf[ii]++;
-            for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+            if(currentConf[ii] > mode_conf[ii])
+                continue;
+
+            if(currentConf[ii] != 0)
             {
-                if( ii != jj && currentConf[jj] > 0)
+                double prev_partial_ii = prob_partials[ii];
+                currentConf[ii]--;
+                prob_partials[ii] = minuslogFactorial(currentConf[ii]) + currentConf[ii] * atom_lProbs[ii];
+
+                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                 {
-                    currentConf[jj]--;
+                    prob_part_acc[jj+1] = prob_part_acc[jj] + prob_partials[jj];
 
-                    if (visited.count(currentConf) == 0 && unnormalized_logProb(currentConf) >= lCutOff)
+                    if(currentConf[jj] < mode_conf[jj])
+                        continue;
+
+                    if( ii != jj )
                     {
-                        // create a copy and store a ptr to the *same* copy in
-                        // both structures (save some space and time)
-                        auto tmp = allocator.makeCopy(currentConf);
-                        visited.insert(tmp);
-                        configurations.push_back(tmp);
-                        // std::cout << " V: "; for (auto it : visited) std::cout << it << " "; std::cout << std::endl;
-                    }
+                        double logp = prob_part_acc[jj] + minuslogFactorial(1+currentConf[jj]) + (1+currentConf[jj]) * atom_lProbs[jj];
+                        for(size_t kk = jj+1; kk < isotopeNo; kk++)
+                            logp += prob_partials[kk];
 
-                    currentConf[jj]++;
+                        if (logp >= lCutOff)
+                        {
+                            auto tmp = allocator.makeCopy(currentConf);
+                            tmp[jj]++;
+                            configurations.push_back(tmp);
+                            lProbs.push_back(logp);
+                        }
+                    }
+                    else
+                        prob_part_acc[jj+1] = prob_part_acc[jj] + prob_partials[jj];
+
+                    if (currentConf[jj] > mode_conf[jj])
+                        break;
                 }
+                currentConf[ii]++;
+                prob_partials[ii] = prev_partial_ii;
             }
-            currentConf[ii]--;
+
+            if(currentConf[ii] < mode_conf[ii])
+                break;
         }
     }
 
-    // orderMarginal defines the order of configurations (compares their logprobs)
-    // akin to key in Python sort.
-    if(sort)
-        std::sort(configurations.begin(), configurations.end(), orderMarginal);
-
-
-    confs  = &configurations[0];
     no_confs = configurations.size();
-    lProbs = new double[no_confs+1];
+    confs  = configurations.data();
+
+    if(sort && no_confs > 0)
+    {
+            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs.data(), no_confs));
+            impose_order(order_arr.get(), no_confs, lProbs.data(), confs);
+    }
+
     probs = new double[no_confs];
     masses = new double[no_confs];
 
 
     for(unsigned int ii = 0; ii < no_confs; ii++)
     {
-        lProbs[ii] = logProb(confs[ii]);
         probs[ii] = exp(lProbs[ii]);
         masses[ii] = calc_mass(confs[ii], atom_masses, isotopeNo);
     }
-    lProbs[no_confs] = -std::numeric_limits<double>::infinity();
+
+    lProbs.push_back(-std::numeric_limits<double>::infinity());
 }
 
 
 PrecalculatedMarginal::~PrecalculatedMarginal()
 {
-    if(lProbs != nullptr)
-        delete[] lProbs;
     if(masses != nullptr)
         delete[] masses;
     if(probs != nullptr)
@@ -524,97 +515,118 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 
 
-LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
+LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int)
 : Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize),
-equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
+equalizer(isotopeNo), keyHasher(isotopeNo)
 {
     fringe.push_back(mode_conf);
     lProbs.push_back(std::numeric_limits<double>::infinity());
+    fringe_unn_lprobs.push_back(unnormalized_logProb(mode_conf));
     lProbs.push_back(-std::numeric_limits<double>::infinity());
     guarded_lProbs = lProbs.data()+1;
 }
 
 bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 {
+    new_threshold -= loggamma_nominator;
     if(fringe.empty())
         return false;
 
-    std::vector<Conf> new_fringe;
-    std::unordered_set<Conf, KeyHasher, ConfEqual> visited(hashSize, keyHasher, equalizer);
+    lProbs.pop_back();  // Remove the +inf guardian
 
-    for(unsigned int ii = 0; ii < fringe.size(); ii++)
-        visited.insert(fringe[ii]);
+    pod_vector<Conf> new_fringe;
+    pod_vector<double> new_fringe_unn_lprobs;
 
-    Conf currentConf;
     while(!fringe.empty())
     {
-        currentConf = fringe.back();
+        Conf currentConf = fringe.back();
         fringe.pop_back();
 
-        double opc = logProb(currentConf);
+        double opc = fringe_unn_lprobs.back();
 
+        fringe_unn_lprobs.pop_back();
         if(opc < new_threshold)
+        {
             new_fringe.push_back(currentConf);
+            new_fringe_unn_lprobs.push_back(opc);
+        }
 
         else
         {
             configurations.push_back(currentConf);
+            lProbs.push_back(opc+loggamma_nominator);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             {
-                currentConf[ii]++;
-                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
+                if(currentConf[ii] > mode_conf[ii])
+                    continue;
+
+                if(currentConf[ii] > 0)
                 {
-                    if( ii != jj && currentConf[jj] > 0 )
+                    currentConf[ii]--;
+                    for(unsigned int jj = 0; jj < isotopeNo; jj++ )
                     {
-                        currentConf[jj]--;
+                        if(currentConf[jj] < mode_conf[jj])
+                            continue;
 
-                        double lpc = logProb(currentConf);
-
-                        if (lpc < current_threshold &&
-                            (opc > lpc || (opc == lpc && ii > jj)) && visited.count(currentConf) == 0)
+                        if( ii != jj )
                         {
                             Conf nc = allocator.makeCopy(currentConf);
-                            currentConf[ii]--;
-                            currentConf[jj]++;
-                            visited.insert(nc);
-                            currentConf[ii]++;
+                            nc[jj]++;
+
+                            double lpc = unnormalized_logProb(nc);
                             if(lpc >= new_threshold)
+                            {
                                 fringe.push_back(nc);
+                                fringe_unn_lprobs.push_back(lpc);
+                            }
                             else
+                            {
                                 new_fringe.push_back(nc);
+                                new_fringe_unn_lprobs.push_back(lpc);
+                            }
                         }
-                        else
-                        {
-                            currentConf[jj]++;
-                        }
+
+                        if(currentConf[jj] > mode_conf[jj])
+                            break;
                     }
+                    currentConf[ii]++;
                 }
-                currentConf[ii]--;
+
+                if(currentConf[ii] < mode_conf[ii])
+                    break;
             }
         }
     }
 
     current_threshold = new_threshold;
     fringe.swap(new_fringe);
+    fringe_unn_lprobs.swap(new_fringe_unn_lprobs);
 
     if(do_sort)
-        std::sort(configurations.begin()+probs.size(), configurations.end(), orderMarginal);
+    {
+        size_t to_sort_size = configurations.size() - probs.size();
+        if(to_sort_size > 0)
+        {
+            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs.data()+1+probs.size(), to_sort_size));
+            double* P = lProbs.data()+1+probs.size();
+            Conf* C = configurations.data()+probs.size();
+            size_t* O = order_arr.get();
+            impose_order(O, to_sort_size, P, C);
+        }
+    }
 
-    if(lProbs.capacity() * 2 < configurations.size() + 2)
+    if(probs.capacity() * 2 < configurations.size() + 2)
     {
         // Reserve space for new values
-        lProbs.reserve(configurations.size()+2);
         probs.reserve(configurations.size());
         masses.reserve(configurations.size());
     }  // Otherwise we're growing slowly enough that standard reallocations on push_back work better - we waste some extra memory
        // but don't reallocate on every call
 
-    lProbs.pop_back();  // The guardian...
-
+//    printVector(lProbs);
     for(unsigned int ii = probs.size(); ii < configurations.size(); ii++)
     {
-        lProbs.push_back(logProb(configurations[ii]));
-        probs.push_back(exp(lProbs.back()));
+        probs.push_back(exp(lProbs[ii+1]));
         masses.push_back(calc_mass(configurations[ii], atom_masses, isotopeNo));
     }
 
@@ -629,7 +641,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
 double LayeredMarginal::get_min_mass() const
 {
     double ret = std::numeric_limits<double>::infinity();
-    for(std::vector<double>::const_iterator it = masses.begin(); it != masses.end(); ++it)
+    for(pod_vector<double>::const_iterator it = masses.cbegin(); it != masses.cend(); ++it)
         if(*it < ret)
             ret = *it;
     return ret;
@@ -639,7 +651,7 @@ double LayeredMarginal::get_min_mass() const
 double LayeredMarginal::get_max_mass() const
 {
     double ret = -std::numeric_limits<double>::infinity();
-    for(std::vector<double>::const_iterator it = masses.begin(); it != masses.end(); ++it)
+    for(pod_vector<double>::const_iterator it = masses.cbegin(); it != masses.cend(); ++it)
         if(*it > ret)
             ret = *it;
     return ret;

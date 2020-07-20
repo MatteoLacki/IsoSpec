@@ -37,8 +37,8 @@ size_t test_threshold(const char* formula, double threshold, bool print_confs)
 
 	IsoThresholdGenerator i(formula, threshold, true, 100, 100, true);
         size_t confs_no = i.count_confs();
-	if(print_confs)
-        	std::cout << "No. confs is: " << confs_no << std::endl;
+	//if(print_confs)
+        //	std::cout << "No. confs is: " << confs_no << std::endl;
         i.reset();
         IsoThresholdGenerator i2(formula, threshold, true, 100, 100, true);
         IsoThresholdGenerator i3(formula, threshold, true, 100, 100, false);
