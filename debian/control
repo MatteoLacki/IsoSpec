@@ -82,6 +82,7 @@ Description: Isotopic fine structure calculator for GNU R
 
 
 Package: python3-isospec
+Section: python
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
