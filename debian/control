@@ -3,7 +3,7 @@ Section: science
 Priority: optional
 Maintainer: The Debichem Group <debichem-devel@lists.alioth.debian.org>
 Uploaders: Filippo Rusconi <lopippo@debian.org>
-Build-Depends: debhelper-compat (= 12),
+Build-Depends: debhelper-compat (= 13),
  dh-exec (>= 0.3),
  dpkg-dev (>= 1.18.25),
  graphicsmagick-imagemagick-compat, 
@@ -82,6 +82,7 @@ Description: Isotopic fine structure calculator for GNU R
 
 
 Package: python3-isospec
+Section: python
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
