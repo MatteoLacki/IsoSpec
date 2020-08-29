@@ -52,6 +52,12 @@ class IsoFFI:
                                        int _hashSize);
         double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
+        void* setupIsoStochasticGenerator(void* iso,
+                                   size_t no_molecules,
+                                   double precision,
+                                   double beta_bias);
+        double massIsoStochasticGenerator(void* generator); double lprobIsoStochasticGenerator(void* generator); double probIsoStochasticGenerator(void* generator); void methodIsoStochasticGenerator(void* generator); bool advanceToNextConfigurationIsoStochasticGenerator(void* generator); void deleteIsoStochasticGenerator(void* generator); void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
+
         void* setupThresholdFixedEnvelope(void* iso,
                                     double threshold,
                                     bool absolute,

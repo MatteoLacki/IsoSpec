@@ -660,3 +660,27 @@ class IsoOrderedGenerator(IsoGenerator):
         super(IsoOrderedGenerator, self).__del__()
 
 
+class IsoStochasticGenerator(IsoGenerator):
+    def __init__(self, no_molecules, formula="", precision=0.9999, beta_bias = 1.0, get_confs=False, **kwargs):
+        super(IsoStochasticGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
+        self.threshold = precision
+        self.no_molecules = no_molecules
+        self.cgen = self.ffi.setupIsoStochasticGenerator(self.iso,
+                                                        no_molecules,
+                                                        precision,
+                                                        beta_bias)
+        self.advancer = self.ffi.advanceToNextConfigurationIsoStochasticGenerator
+        self.xprob_getter = self.ffi.probIsoStochasticGenerator
+        self.mass_getter = self.ffi.massIsoStochasticGenerator
+        self.conf_getter = self.ffi.get_conf_signatureIsoStochasticGenerator
+
+    def __del__(self):
+        """Destructor."""
+        try:
+            if self.cgen is not None:
+                self.ffi.deleteIsoStochasticGenerator(self.cgen)
+                self.cgen = None
+        except AttributeError:
+            pass
+        super(IsoStochasticGenerator, self).__del__()
+

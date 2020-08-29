@@ -91,7 +91,7 @@ void* setupIsoOrderedGenerator(void* iso,
                                int _hashSize);
 ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
-void* setupIsoStrochasticGenerator(void* iso,
+void* setupIsoStochasticGenerator(void* iso,
                                    size_t no_molecules,
                                    double precision,
                                    double beta_bias);
