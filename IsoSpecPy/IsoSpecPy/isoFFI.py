@@ -79,7 +79,7 @@ class IsoFFI:
         const double* massesFixedEnvelope(void* tabulator);
         const double* probsFixedEnvelope(void* tabulator);
         const int*    confsFixedEnvelope(void* tabulator);
-        int confs_noFixedEnvelope(void* tabulator);
+        size_t confs_noFixedEnvelope(void* tabulator);
 
         double empiricAverageMass(void* tabulator);
         double empiricVariance(void* tabulator);

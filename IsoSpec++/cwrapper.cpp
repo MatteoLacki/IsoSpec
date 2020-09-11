@@ -261,7 +261,7 @@ const int* confsFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->release_confs();
 }
 
-int confs_noFixedEnvelope(void* tabulator)
+size_t confs_noFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }
