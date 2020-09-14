@@ -596,10 +596,10 @@ template<bool tgetConfs> void FixedEnvelope::stochastic_init(Iso&& iso, size_t _
 {
     IsoStochasticGenerator generator(std::move(iso), _no_molecules, _precision, _beta_bias);
 
-    this->reallocate_memory<tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
-
     this->allDim = generator.getAllDim();
     this->allDimSizeofInt = this->allDim * sizeof(int);
+
+    this->reallocate_memory<tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
 
     while(generator.advanceToNextConfiguration())
         addConfILG<tgetConfs, IsoStochasticGenerator>(generator);
