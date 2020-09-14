@@ -539,7 +539,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 
 
 
-class IsoStochasticGenerator : IsoGenerator
+class IsoStochasticGenerator : public IsoGenerator
 {
     IsoLayeredGenerator ILG;
     size_t to_sample_left;

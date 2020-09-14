@@ -593,6 +593,19 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 template void FixedEnvelope::total_prob_init<true>(Iso&& iso, double target_total_prob, bool optimize);
 template void FixedEnvelope::total_prob_init<false>(Iso&& iso, double target_total_prob, bool optimize);
 
+template<bool tgetConfs> void FixedEnvelope::stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias)
+{
+    IsoStochasticGenerator generator(std::move(iso), _no_molecules, _precision, _beta_bias);
+
+    this->allDim = generator.getAllDim();
+    this->allDimSizeofInt = this->allDim * sizeof(int);
+
+    while(generator.advanceToNextConfiguration())
+        addConfILG<tgetConfs, IsoStochasticGenerator>(generator);
+}
+
+template void FixedEnvelope::stochastic_init<true>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
+template void FixedEnvelope::stochastic_init<false>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
 
 double FixedEnvelope::empiric_average_mass()
 {
