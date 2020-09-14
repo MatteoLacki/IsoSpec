@@ -1,5 +1,9 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+2.1.3
+----------------------------------
+- Bugfix for large envelopes crashing under Python in specific circumstances
+- Implement stochastic envelopes in C++ and Python
 
 2.1.2 (R-only release)
 ----------------------------------
