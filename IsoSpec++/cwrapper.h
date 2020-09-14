@@ -108,6 +108,12 @@ void* setupTotalProbFixedEnvelope(void* iso,
                               bool optimize,
                               bool get_confs);
 
+void* setupStochasticFixedEnvelope(void* iso,
+                              size_t no_molecules,
+                              double precision,
+                              double beta_bias,
+                              bool get_confs);
+
 void freeReleasedArray(void* array);
 
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);

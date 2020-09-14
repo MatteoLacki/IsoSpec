@@ -498,7 +498,7 @@ def IsoThreshold(threshold,
         **kwds: named arguments to IsoSpectrum.
     """
     iso = Iso(formula = formula, get_confs = get_confs, **kwargs)
-    tabulator = isoFFI.clib.setupThresholdFixedEnvelope(iso.iso, threshold, absolute, get_confs, True, True)
+    tabulator = isoFFI.clib.setupThresholdFixedEnvelope(iso.iso, threshold, absolute, get_confs)
     ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
     isoFFI.clib.deleteFixedEnvelope(tabulator, False)
     return ido
@@ -519,7 +519,30 @@ def IsoTotalProb(prob_to_cover,
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
-        tabulator = isoFFI.clib.setupTotalProbFixedEnvelope(iso.iso, prob_to_cover, get_minimal_pset, get_confs, True, True)
+        tabulator = isoFFI.clib.setupTotalProbFixedEnvelope(iso.iso, prob_to_cover, get_minimal_pset, get_confs)
+        ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
+        isoFFI.clib.deleteFixedEnvelope(tabulator, False)
+        return ido
+
+
+def IsoStochastic(no_molecules,
+                 formula="",
+                 precision=0.9999,
+                 beta_bias=5.0,
+                 get_confs=False,
+                 **kwargs):
+        """Initialize the IsoDistribution isotopic distribution by total probability.
+
+        Args:
+            no_molecules (uint): ionic current in instrument
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            precision (float): passed to IsoTotalProbGenerator. Between 0.0 and 1.0.
+            beta_bias (float, nonnegative): fiddling with this parameter does not change the result, but might make computations slightly faster (or likely, much, much slower is you screw it up...)
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
+        iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
+        tabulator = isoFFI.clib.setupStochasticFixedEnvelope(iso.iso, no_molecules, precision, beta_bias, get_confs)
         ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)
         return ido

@@ -61,17 +61,18 @@ class IsoFFI:
         void* setupThresholdFixedEnvelope(void* iso,
                                     double threshold,
                                     bool absolute,
-                                    bool get_confs,
-                                    bool get_masses,
-                                    bool get_probs);
+                                    bool get_confs);
 
         void* setupTotalProbFixedEnvelope(void* iso,
                                       double taget_coverage,
                                       bool optimize,
-                                      bool get_confs,
-                                      bool get_masses,
-                                      bool get_probs);
+                                      bool get_confs);
 
+        void* setupStochasticFixedEnvelope(void* iso,
+                                     size_t no_molecules,
+                                     double precision,
+                                     double beta_bias,
+                                     bool get_confs);
 
         void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
         void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
