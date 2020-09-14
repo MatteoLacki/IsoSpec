@@ -23,7 +23,11 @@
 
 #include "isoSpec++.h"
 
+#ifdef DEBUG
+#define ISOSPEC_INIT_TABLE_SIZE 16
+#else
 #define ISOSPEC_INIT_TABLE_SIZE 1024
+#endif
 
 namespace IsoSpec
 {
@@ -124,10 +128,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     ISOSPEC_FORCE_INLINE void store_conf(double _mass, double _prob)
     {
         if(_confs_no == current_size)
-        {
-            current_size *= 2;
-            reallocate_memory<false>(current_size);
-        }
+            reallocate_memory<false>(current_size*2);
 
         *tprobs = _prob;
         *tmasses = _mass;
@@ -160,10 +161,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     template<bool tgetConfs, typename GenType = IsoLayeredGenerator> void addConfILG(const GenType& generator)
     {
         if(this->_confs_no == this->current_size)
-        {
-            this->current_size *= 2;
-            this->template reallocate_memory<tgetConfs>(this->current_size);
-        }
+            this->template reallocate_memory<tgetConfs>(this->current_size*2);
 
         this->template store_conf<GenType, tgetConfs>(generator);
         this->_confs_no++;
