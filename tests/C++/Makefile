@@ -20,7 +20,7 @@ main_test:
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=safe-stack -o main_test_ss
 	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o main_test_memsan
 
-cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple formula_threshold_profile mass_range
+cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple formula_threshold_profile mass_range formula_stochastic
 
 formula_ordered:
 	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_clang
@@ -49,6 +49,12 @@ formula_threshold_profile:
 	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -o ./from_formula_threshold_profile_clang
 	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -o ./from_formula_threshold_profile_gcc
 
+formula_stochastic:
+	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_stochastic.cpp -o ./from_formula_stochastic_clang
+	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_stochastic.cpp -o ./from_formula_stochastic_gcc
+	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_stochastic.cpp -o ./from_formula_stochastic_dbg
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_stochastic.cpp -fsanitize=address,undefined -o ./from_formula_stochastic_asan
+	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_stochastic.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_stochastic_memsan
 
 formula_layered:
 	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_clang
