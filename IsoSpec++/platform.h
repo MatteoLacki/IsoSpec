@@ -50,13 +50,6 @@
 #define ISOSPEC_TEST_GOT_MMAN false
 #endif
 
-#if !defined(ISOSPEC_USE_PTHREADS)
-#define ISOSPEC_USE_PTHREADS false  // TODO(who knows?): possibly put a macro here to detect whether we
-#endif                              // can/should use pthreads - or rip them out altogether.
-                                    // Investigate whether the performance advantage of pthreads on
-                                    // some platforms (*cough* CYGWIN *cough*) is still large
-                                    // enough to justify keeping both implementations around
-
 #if !defined(ISOSPEC_WE_ARE_ON_UNIX_YAY)
 #define ISOSPEC_WE_ARE_ON_UNIX_YAY ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY
 #endif
