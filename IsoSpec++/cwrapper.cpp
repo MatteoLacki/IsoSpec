@@ -228,6 +228,22 @@ void* setupTotalProbFixedEnvelope(void* iso,
     return reinterpret_cast<void*>(ret);
 }
 
+void* setupStochasticFixedEnvelope(void* iso,
+                    size_t no_molecules,
+                    double precision,
+                    double beta_bias,
+                    bool get_confs)
+{
+    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
+            FixedEnvelope::FromStochastic(Iso(*reinterpret_cast<const Iso*>(iso), true),
+                                          no_molecules,
+                                          precision,
+                                          beta_bias,
+                                          get_confs));
+
+    return reinterpret_cast<void*>(ret);
+}
+
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob)
 {
     FixedEnvelope* ret = new FixedEnvelope(masses, probs, size, mass_sorted, prob_sorted, total_prob);
@@ -261,7 +277,7 @@ const int* confsFixedEnvelope(void* tabulator)
     return reinterpret_cast<FixedEnvelope*>(tabulator)->release_confs();
 }
 
-int confs_noFixedEnvelope(void* tabulator)
+size_t confs_noFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
 }

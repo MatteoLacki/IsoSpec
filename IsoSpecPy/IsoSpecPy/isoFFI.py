@@ -52,20 +52,27 @@ class IsoFFI:
                                        int _hashSize);
         double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
+        void* setupIsoStochasticGenerator(void* iso,
+                                   size_t no_molecules,
+                                   double precision,
+                                   double beta_bias);
+        double massIsoStochasticGenerator(void* generator); double lprobIsoStochasticGenerator(void* generator); double probIsoStochasticGenerator(void* generator); void methodIsoStochasticGenerator(void* generator); bool advanceToNextConfigurationIsoStochasticGenerator(void* generator); void deleteIsoStochasticGenerator(void* generator); void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
+
         void* setupThresholdFixedEnvelope(void* iso,
                                     double threshold,
                                     bool absolute,
-                                    bool get_confs,
-                                    bool get_masses,
-                                    bool get_probs);
+                                    bool get_confs);
 
         void* setupTotalProbFixedEnvelope(void* iso,
                                       double taget_coverage,
                                       bool optimize,
-                                      bool get_confs,
-                                      bool get_masses,
-                                      bool get_probs);
+                                      bool get_confs);
 
+        void* setupStochasticFixedEnvelope(void* iso,
+                                     size_t no_molecules,
+                                     double precision,
+                                     double beta_bias,
+                                     bool get_confs);
 
         void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
         void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
@@ -73,7 +80,7 @@ class IsoFFI:
         const double* massesFixedEnvelope(void* tabulator);
         const double* probsFixedEnvelope(void* tabulator);
         const int*    confsFixedEnvelope(void* tabulator);
-        int confs_noFixedEnvelope(void* tabulator);
+        size_t confs_noFixedEnvelope(void* tabulator);
 
         double empiricAverageMass(void* tabulator);
         double empiricVariance(void* tabulator);

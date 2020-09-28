@@ -14,7 +14,7 @@ include /usr/share/dpkg/buildflags.mk
 export LC_ALL=C.UTF-8
 
 # For automating the d/*.links stuff.
-export ISOSPEC_LIB_VERSION=2.1.0
+export ISOSPEC_LIB_VERSION=2.1.2
 export ISOSPEC_LIB_SOVERSION=2
 
 export PYBUILD_NAME=isospec

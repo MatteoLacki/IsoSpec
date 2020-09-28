@@ -1,7 +1,7 @@
 version=4
 
 opts="repack, \
-			repacksuffix=+dfsg, \
+			repacksuffix=+dfsg1, \
 			compression=gzip, \
 			dversionmangle=s/\+dfsg\d*$//, \
 			filenamemangle=s/\S+\/v([\d\.]*)\.tar\.gz/isospec-$1\.tar\.gz/" \

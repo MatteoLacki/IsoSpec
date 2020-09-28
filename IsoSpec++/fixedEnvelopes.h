@@ -23,7 +23,11 @@
 
 #include "isoSpec++.h"
 
+#ifdef DEBUG
+#define ISOSPEC_INIT_TABLE_SIZE 16
+#else
 #define ISOSPEC_INIT_TABLE_SIZE 1024
+#endif
 
 namespace IsoSpec
 {
@@ -124,10 +128,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     ISOSPEC_FORCE_INLINE void store_conf(double _mass, double _prob)
     {
         if(_confs_no == current_size)
-        {
-            current_size *= 2;
-            reallocate_memory<false>(current_size);
-        }
+            reallocate_memory<false>(current_size*2);
 
         *tprobs = _prob;
         *tmasses = _mass;
@@ -157,15 +158,12 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
  public:
     template<bool tgetConfs> void threshold_init(Iso&& iso, double threshold, bool absolute);
 
-    template<bool tgetConfs> void addConfILG(const IsoLayeredGenerator& generator)
+    template<bool tgetConfs, typename GenType = IsoLayeredGenerator> void addConfILG(const GenType& generator)
     {
         if(this->_confs_no == this->current_size)
-        {
-            this->current_size *= 2;
-            this->template reallocate_memory<tgetConfs>(this->current_size);
-        }
+            this->template reallocate_memory<tgetConfs>(this->current_size*2);
 
-        this->template store_conf<IsoLayeredGenerator, tgetConfs>(generator);
+        this->template store_conf<GenType, tgetConfs>(generator);
         this->_confs_no++;
     }
 
@@ -202,6 +200,25 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     inline static FixedEnvelope FromTotalProb(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false)
     {
         return FromTotalProb(Iso(iso, false), _target_total_prob, _optimize, tgetConfs);
+    }
+
+    template<bool tgetConfs> void stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
+
+    inline static FixedEnvelope FromStochastic(Iso&& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false)
+    {
+        FixedEnvelope ret;
+
+        if(tgetConfs)
+            ret.stochastic_init<true>(std::move(iso), _no_molecules, _precision, _beta_bias);
+        else
+            ret.stochastic_init<false>(std::move(iso), _no_molecules, _precision, _beta_bias);
+
+        return ret;
+    }
+
+    static FixedEnvelope FromStochastic(const Iso& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false)
+    {
+        return FromStochastic(Iso(iso, false), _no_molecules, _precision, _beta_bias, tgetConfs);
     }
 };
 

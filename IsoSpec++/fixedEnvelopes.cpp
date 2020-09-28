@@ -371,7 +371,6 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
         return ret;
 
     ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
-    ret.current_size = ISOSPEC_INIT_TABLE_SIZE;
 
     size_t ii = 0;
 
@@ -397,6 +396,7 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 
 template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
+    current_size = new_size;
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
     _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
     if(_masses == nullptr)
@@ -419,6 +419,7 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
+    current_size = new_size;
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
     _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
     if(_masses == nullptr)
@@ -479,8 +480,6 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         threshold_init<tgetConfs>(std::move(iso), 0.0, true);
         return;
     }
-
-    current_size = ISOSPEC_INIT_TABLE_SIZE;
 
     IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::min<double>(target_total_prob, 0.9999));
 
@@ -593,6 +592,21 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 template void FixedEnvelope::total_prob_init<true>(Iso&& iso, double target_total_prob, bool optimize);
 template void FixedEnvelope::total_prob_init<false>(Iso&& iso, double target_total_prob, bool optimize);
 
+template<bool tgetConfs> void FixedEnvelope::stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias)
+{
+    IsoStochasticGenerator generator(std::move(iso), _no_molecules, _precision, _beta_bias);
+
+    this->allDim = generator.getAllDim();
+    this->allDimSizeofInt = this->allDim * sizeof(int);
+
+    this->reallocate_memory<tgetConfs>(ISOSPEC_INIT_TABLE_SIZE);
+
+    while(generator.advanceToNextConfiguration())
+        addConfILG<tgetConfs, IsoStochasticGenerator>(generator);
+}
+
+template void FixedEnvelope::stochastic_init<true>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
+template void FixedEnvelope::stochastic_init<false>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
 
 double FixedEnvelope::empiric_average_mass()
 {

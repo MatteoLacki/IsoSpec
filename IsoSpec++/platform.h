@@ -16,21 +16,7 @@
 
 #pragma once
 
-#if !defined(ISOSPEC_BUILDING_R)
-#define ISOSPEC_BUILDING_R false
-#endif
-
-#if !defined(ISOSPEC_BUILDING_CPP)
-#define ISOSPEC_BUILDING_CPP true
-#endif
-
-#if !defined(ISOSPEC_BUILDING_PYTHON)
-#define ISOSPEC_BUILDING_PYTHON false
-#endif
-
-#if !defined(ISOSPEC_BUILDING_OPENMS)
-#define ISOSPEC_BUILDING_OPENMS false
-#endif
+#include "platform_incl.h"
 
 #if defined(__unix__) || defined(__unix) || \
         (defined(__APPLE__) && defined(__MACH__))
@@ -49,13 +35,6 @@
 #define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
 #define ISOSPEC_TEST_GOT_MMAN false
 #endif
-
-#if !defined(ISOSPEC_USE_PTHREADS)
-#define ISOSPEC_USE_PTHREADS false  // TODO(who knows?): possibly put a macro here to detect whether we
-#endif                              // can/should use pthreads - or rip them out altogether.
-                                    // Investigate whether the performance advantage of pthreads on
-                                    // some platforms (*cough* CYGWIN *cough*) is still large
-                                    // enough to justify keeping both implementations around
 
 #if !defined(ISOSPEC_WE_ARE_ON_UNIX_YAY)
 #define ISOSPEC_WE_ARE_ON_UNIX_YAY ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY

@@ -9,6 +9,6 @@ endif()
 
 
 # On Win10 all the code is relocatable.
-message(STATUS "Removing definitions -fPic.")
+message(STATUS "Removing definitions -fPIC.")
 remove_definitions(-fPIC)
 

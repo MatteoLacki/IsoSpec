@@ -1,11 +1,14 @@
-isospec (2.1.0+dfsg1-2) UNRELEASED; urgency=low
+isospec (2.1.2+dfsg1-1) unstable; urgency=low
 
-  * New packaging with all the CMake-based build system
+  * Upstream 2.1.2 release (git commit :
+    622281caab9d78a75379f56295204bd40a77e6f0;
+
+  * New packaging with all the Filippo Rusconi's CMake-based build system
     integrated upstream.
 
   * Many other modifications to improve the quality of the package.
 
- -- Filippo Rusconi <lopippo@debian.org>  Thu, 11 Jun 2020 00:02:23 +0200
+ -- Filippo Rusconi <lopippo@debian.org>  Mon, 20 Jul 2020 18:23:29 +0200
 
 isospec (2.1.0+dfsg1-1) UNRELEASED; urgency=low
 
