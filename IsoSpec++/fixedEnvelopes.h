@@ -221,8 +221,8 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
         return FromStochastic(Iso(iso, false), _no_molecules, _precision, _beta_bias, tgetConfs);
     }
 
-    static FixedEnvelope Binned(Iso&& iso, size_t target_total_prob, double bin_width, double bin_middle = 0.0);
-    static FixedEnvelope Binned(const Iso& iso, size_t target_total_prob, double bin_width, double bin_middle = 0.0)
+    static FixedEnvelope Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle = 0.0);
+    static FixedEnvelope Binned(const Iso& iso, double target_total_prob, double bin_width, double bin_middle = 0.0)
     {
         return Binned(Iso(iso, false), target_total_prob, bin_width, bin_middle);
     }

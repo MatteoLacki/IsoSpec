@@ -114,6 +114,11 @@ void* setupStochasticFixedEnvelope(void* iso,
                               double beta_bias,
                               bool get_confs);
 
+void* setupBinnedFixedEnvelope(void* iso,
+                    double target_total_prob,
+                    double bin_width,
+                    double bin_middle);
+
 void freeReleasedArray(void* array);
 
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);

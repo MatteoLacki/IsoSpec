@@ -631,7 +631,7 @@ double FixedEnvelope::empiric_variance()
     return ret / get_total_prob();
 }
 
-FixedEnvelope FixedEnvelope::Binned(Iso&& iso, size_t target_total_prob, double bin_width, double bin_middle)
+FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle)
 {
     FixedEnvelope ret;
 
@@ -658,11 +658,11 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, size_t target_total_prob, double 
     IsoLayeredGenerator ITG(std::move(iso));
 
 
-    bool empty;
-    while((empty = ITG.advanceToNextConfiguration()) && ITG.prob() == 0.0)
+    bool non_empty;
+    while((non_empty = ITG.advanceToNextConfiguration()) && ITG.prob() == 0.0)
     {}
 
-    if(!empty)
+    if(non_empty)
     {
         double accum_prob = ITG.prob();
         size_t nonzero_idx = floor((ITG.mass() + hwmm)/bin_width);

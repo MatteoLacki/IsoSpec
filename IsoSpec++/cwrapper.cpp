@@ -244,6 +244,21 @@ void* setupStochasticFixedEnvelope(void* iso,
     return reinterpret_cast<void*>(ret);
 }
 
+
+void* setupBinnedFixedEnvelope(void* iso,
+                    double target_total_prob,
+                    double bin_width,
+                    double bin_middle)
+{
+    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
+            FixedEnvelope::Binned(Iso(*reinterpret_cast<const Iso*>(iso), true),
+                                  target_total_prob,
+                                  bin_width,
+                                  bin_middle));
+
+    return reinterpret_cast<void*>(ret);
+}
+
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob)
 {
     FixedEnvelope* ret = new FixedEnvelope(masses, probs, size, mass_sorted, prob_sorted, total_prob);

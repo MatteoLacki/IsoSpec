@@ -74,6 +74,11 @@ class IsoFFI:
                                      double beta_bias,
                                      bool get_confs);
 
+        void* setupBinnedFixedEnvelope(void* iso,
+                            double target_total_prob,
+                            double bin_width,
+                            double bin_middle);
+
         void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
         void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
 

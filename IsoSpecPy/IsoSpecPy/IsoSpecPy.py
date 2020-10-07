@@ -548,6 +548,28 @@ def IsoStochastic(no_molecules,
         return ido
 
 
+def IsoBinned(bin_width,
+                 formula="",
+                 target_total_prob=0.9999,
+                 bin_middle=0.0,
+                 **kwargs):
+        """Initialize the IsoDistribution isotopic distribution by total probability.
+
+        Args:
+            no_molecules (uint): ionic current in instrument
+            formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
+            precision (float): passed to IsoTotalProbGenerator. Between 0.0 and 1.0.
+            beta_bias (float, nonnegative): fiddling with this parameter does not change the result, but might make computations slightly faster (or likely, much, much slower is you screw it up...)
+            get_confs (boolean): should we report the counts of isotopologues?
+            **kwargs: named arguments to the superclass.
+        """
+        iso = Iso(formula=formula, get_confs=False, **kwargs)
+        tabulator = isoFFI.clib.setupBinnedFixedEnvelope(iso.iso, target_total_prob, bin_width, bin_middle)
+        ido = IsoDistribution(cobject = tabulator, get_confs = False, iso = iso)
+        isoFFI.clib.deleteFixedEnvelope(tabulator, False)
+        return ido
+
+
 class IsoGenerator(Iso):
     """Virtual class alowing memory-efficient iteration over the isotopic distribution.
 
