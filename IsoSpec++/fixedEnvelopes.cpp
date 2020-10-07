@@ -631,4 +631,92 @@ double FixedEnvelope::empiric_variance()
     return ret / get_total_prob();
 }
 
+FixedEnvelope FixedEnvelope::Binned(Iso&& iso, size_t target_total_prob, double bin_width, double bin_middle)
+{
+    FixedEnvelope ret;
+
+    double min_mass = iso.getLightestPeakMass();
+    double range_len = iso.getHeaviestPeakMass() - min_mass;
+    size_t no_bins = static_cast<size_t>(range_len / bin_width) + 2;
+    double half_width = 0.5*bin_width;
+    double hwmm = half_width-bin_middle;
+    size_t idx_min = floor((min_mass + hwmm) / bin_width);
+    size_t idx_max = idx_min + no_bins;
+
+    double* acc;
+# if ISOSPEC_GOT_MMAN
+    acc = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*no_bins, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+#else
+    // This will probably crash for large molecules and high resolutions...
+    acc = reinterpret_cast<double*>(calloc(no_bins, sizeof(double)));
+#endif
+    if(acc == NULL)
+        throw std::bad_alloc();
+
+    acc -= idx_min;
+
+    IsoLayeredGenerator ITG(std::move(iso));
+
+
+    bool empty;
+    while((empty = ITG.advanceToNextConfiguration()) && ITG.prob() == 0.0)
+    {}
+
+    if(!empty)
+    {
+        double accum_prob = ITG.prob();
+        size_t nonzero_idx = floor((ITG.mass() + hwmm)/bin_width);
+        acc[nonzero_idx] = accum_prob;
+
+        while(ITG.advanceToNextConfiguration() && accum_prob < target_total_prob)
+        {
+            double prob = ITG.prob();
+            accum_prob += prob;
+            size_t bin_idx = floor((ITG.mass() + hwmm)/bin_width);
+            acc[bin_idx] += prob;
+        }
+
+        // Making the assumption that there won't be gaps of more than 10 Da in the spectrum. This is true for all
+        // molecules made of natural elements.
+        size_t distance_10da = static_cast<size_t>(10.0/bin_width) + 1;
+
+        size_t empty_steps = 0;
+
+        ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
+
+        for(size_t ii = nonzero_idx; ii >= idx_min && empty_steps < distance_10da; ii--)
+        {
+            if(acc[ii] > 0.0)
+            {
+                empty_steps = 0;
+                ret.store_conf(static_cast<double>(ii)*bin_width + bin_middle, acc[ii]);
+            }
+            else
+                empty_steps++;
+        }
+
+        empty_steps = 0;
+        for(size_t ii = nonzero_idx+1; ii < idx_max && empty_steps < distance_10da; ii++)
+        {
+            if(acc[ii] > 0.0)
+            {
+                empty_steps = 0;
+                ret.store_conf(static_cast<double>(ii)*bin_width + bin_middle, acc[ii]);
+            }
+            else
+                empty_steps++;
+        }
+    }
+
+    acc += idx_min;
+
+# if ISOSPEC_GOT_MMAN
+    munmap(acc, sizeof(double)*no_bins);
+#else
+    free(acc);
+#endif
+
+    return ret;
+}
+
 }  // namespace IsoSpec
