@@ -1,8 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: libisospec
 Source: https://github.com/MatteoLacki/IsoSpec
-Files-Excluded: IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++-2.1.1-x32.dll
- IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++-2.1.1-x64.dll
+Files-Excluded: IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++-*.dll
  man/html
  man/man
  man/latex
