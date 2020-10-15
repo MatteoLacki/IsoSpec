@@ -52,7 +52,6 @@ configure_cpp_library:
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DISOSPEC_LIB_VERSION=2.1.0 -DISOSPEC_LIB_SOVERSION=2
 
-
 configure_cpp_library_doc:
 	dh_auto_configure -O--buildsystem=cmake -- \
 		-DCMAKE_INSTALL_PREFIX=/usr \
@@ -81,10 +80,6 @@ override_dh_auto_build: build_python_module build_cpp_library build_cpp_library_
 	ln -sf IsoSpec++ IsoSpecPy/IsoSpec++
 
 override_dh_auto_install: override_dh_auto_build
-	dh_auto_install -O--buildsystem=R --sourcedirectory=IsoSpecR
-# Remove the license file.
-	rm debian/tmp/usr/lib/R/site-library/IsoSpecR/LICENCE
-	mv debian/tmp tmp-install
 	# Install the Python module
 	dh_auto_install -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
 	# Install the C++ library

@@ -6,15 +6,10 @@ Uploaders: Filippo Rusconi <lopippo@debian.org>
 Build-Depends: debhelper-compat (= 13),
  dh-exec (>= 0.3),
  dpkg-dev (>= 1.18.25),
- graphicsmagick-imagemagick-compat, 
+ graphicsmagick-imagemagick-compat,
  cmake (>=3.12),
  d-shlibs (>= 0.48~),
  dh-python,
- dh-r,
- r-base-dev,
- r-cran-rcpp,
- python-dev,
- python-setuptools,
  python3-dev,
  python3-setuptools,
  python3-cffi,
@@ -64,26 +59,9 @@ Description: Isotopic fine structure calculator (C++ runtime)
  This package ships the runtime shared library.
 
 
-Package: r-cran-isospec
-Section: gnu-r
-Architecture: any
-Multi-Arch: foreign
-Depends: ${shlibs:Depends},
-         ${misc:Depends},
-         ${R:Depends} 
-Recommends: ${R:Recommends}, libisospec++-doc
-Suggests: ${R:Suggests}
-Description: Isotopic fine structure calculator for GNU R
- IsoSpec implements an algorithm for fast computation of isotopologues of
- chemical substances that can alternate between joint probability and peak
- height threshold.
- .
- This package ships the GNU R library.
-
-
 Package: python3-isospec
-Section: python
 Architecture: any
+Section: python
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          ${python3:Depends}
