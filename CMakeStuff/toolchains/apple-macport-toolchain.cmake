@@ -11,6 +11,7 @@ set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES "/opt/local/lib")
 
 set(HOME_DEVEL_DIR "/Users/rusconi/devel")
 
+set(CMAKE_MACOSX_RPATH 0)
 
 ## platform dependent compiler flags:
 include(CheckCXXCompilerFlag)
