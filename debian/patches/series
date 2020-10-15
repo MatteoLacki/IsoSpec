@@ -1,5 +1,3 @@
 0001-Ensure-the-header-files-are-found-in-the-system.patch
 0002-Remove-the-mtune-native-march-native.patch
-0003-Last-minute-debian-packaging-modifs.patch
-0004-cmake-directive-avoid-rpath.patch
 
