@@ -579,12 +579,14 @@ class IsoStochasticGenerator : public IsoGenerator
                 // Beta was last
                 current_count = 1;
                 to_sample_left--;
-                ILG.advanceToNextConfiguration();
+                if(!ILG.advanceToNextConfiguration())
+                    return false;
                 current_prob = ILG.prob();
                 confs_prob += current_prob;
                 while(confs_prob <= chasing_prob)
                 {
-                    ILG.advanceToNextConfiguration();
+                    if(!ILG.advanceToNextConfiguration())
+                        return false;
                     current_prob = ILG.prob();
                     confs_prob += current_prob;
                 }
@@ -596,7 +598,8 @@ class IsoStochasticGenerator : public IsoGenerator
             {
                 // Binomial was last
                 current_count = 0;
-                ILG.advanceToNextConfiguration();
+                if(!ILG.advanceToNextConfiguration())
+                    return false;
                 current_prob = ILG.prob();
                 confs_prob += current_prob;
                 curr_conf_prob_left = current_prob;
