@@ -5,7 +5,9 @@ title          = "{IsoSpec2}: Ultrafast Fine Structure Calculator",
 author         = personList(as.person("Mateusz K. Łącki"), as.person("Dirk Valkenborg"), as.person("Michał Startek")),
 year           = "2020",
 journal        = "Analytical Chemistry",
-volume         = "Published online ahead of print",
+volume         = "92",
+number         = "14",
+pages          = "9472-9475"
 doi            = "10.1021/acs.analchem.0c00959",
 url            = "https://doi.org/10.1021/acs.analchem.0c00959",
 
