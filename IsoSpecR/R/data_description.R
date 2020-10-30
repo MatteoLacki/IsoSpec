@@ -26,5 +26,5 @@
 #' 	\item{abundance}{The abundance of the isotopes. In case of enviPat data abundances do not sum to one. In case of all other, they do.}
 #' 	\item{ratioC}{As in enviPat reference manual: "Maximum number of atoms of an element for one C-atom in a molecule, based on 99.99 \% of case molecules".}
 #' }
-#' @source R Package enviPat and Commission on Isotopic Abundances and Atomic Weights, CIAAW, \url{http://www.ciaaw.org/index.htm}.
+#' @source R Package enviPat and Commission on Isotopic Abundances and Atomic Weights, CIAAW, \url{https://www.ciaaw.org/index.htm}.
 "isotopicData"
