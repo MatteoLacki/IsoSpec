@@ -13,10 +13,8 @@ Description: IsoSpec is a fine structure calculator used for obtaining the most
     multinomial distributions, each corresponding to one particular element and
     parametrized by the frequencies of finding these elements in nature. These
     numbers are supplied by IUPAC - the International Union of Pure and Applied
-    Chemistry. See: Lacki, Valkenborg, Startek (2020)
-    https://doi.org/10.1021/acs.analchem.0c00959 and
-    Lacki, Startek, Valkenborg, Gambin (2017)
-    https://doi.org/10.1021/acs.analchem.6b01459
+    Chemistry. See: Lacki, Valkenborg, Startek (2020) <DOI:10.1021/acs.analchem.0c00959>
+    and Lacki, Startek, Valkenborg, Gambin (2017) <DOI:10.1021/acs.analchem.6b01459>
     for the description of the algorithms used.
 License: BSD_2_clause + file LICENCE
 URL: http://matteolacki.github.io/IsoSpec/
