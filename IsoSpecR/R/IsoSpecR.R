@@ -70,6 +70,6 @@ IsoSpecify <- function(
         step            = step,
         showCounts      = showCounts,
         trim            = trim,
-        charge          = 1.0
+        charge          = charge
     )
 }
