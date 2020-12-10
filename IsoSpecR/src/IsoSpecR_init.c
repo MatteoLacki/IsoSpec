@@ -5,10 +5,10 @@
 
 
 /* .Call calls */
-extern SEXP _IsoSpecR_Rinterface(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _IsoSpecR_Rinterface(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_IsoSpecR_Rinterface", (DL_FUNC) &_IsoSpecR_Rinterface, 9},
+    {"_IsoSpecR_Rinterface", (DL_FUNC) &_IsoSpecR_Rinterface, 10},
     {NULL, NULL, 0}
 };
 

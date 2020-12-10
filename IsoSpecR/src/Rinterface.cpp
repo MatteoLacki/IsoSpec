@@ -53,7 +53,8 @@ NumericMatrix Rinterface(
     int                     hashSize = 1000,
     double                  step = .3,
     bool                    showCounts = false,
-    bool                    trim = true
+    bool                    trim = true,
+    double                  charge = 1.0
 ){
 
     unsigned int dimNumber = molecule.size();
@@ -76,7 +77,7 @@ NumericMatrix Rinterface(
             if( element[j] == molecule_names[i] )
             {
                 counter++;
-                stdIsotopeMasses.push_back( mass[j] );
+                stdIsotopeMasses.push_back( mass[j] / charge );
                 stdIsotopeProbabilities.push_back( abundance[j] );
                 if( showCounts )
                     stdIsotopeTags.push_back( isotope[j] );

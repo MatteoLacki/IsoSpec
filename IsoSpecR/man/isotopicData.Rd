@@ -4,14 +4,16 @@
 \name{isotopicData}
 \alias{isotopicData}
 \title{Data on isotope masses, abundances and other.}
-\format{A list of 6 tbl_df's or data frames, each constaining:
+\format{
+A list of 6 tbl_df's or data frames, each constaining:
 \describe{
 	\item{element}{The symbol of an element from Mendeleev's periodic table.}	
 	\item{isotope}{String composed of the nucleon number and the symbol of element.}
 	\item{mass}{Isotope's Mass in Daltons.}
 	\item{abundance}{The abundance of the isotopes. In case of enviPat data abundances do not sum to one. In case of all other, they do.}
 	\item{ratioC}{As in enviPat reference manual: "Maximum number of atoms of an element for one C-atom in a molecule, based on 99.99 \% of case molecules".}
-}}
+}
+}
 \source{
 R Package enviPat and Commission on Isotopic Abundances and Atomic Weights, CIAAW, \url{https://www.ciaaw.org/index.htm}.
 }

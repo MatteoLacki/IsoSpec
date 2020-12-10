@@ -4,8 +4,16 @@
 \alias{IsoSpecify}
 \title{Calculate the isotopic fine structure peaks.}
 \usage{
-IsoSpecify(molecule, stopCondition, isotopes = NULL,
-  showCounts = FALSE, trim = TRUE, algo = 0, step = 0.25)
+IsoSpecify(
+  molecule,
+  stopCondition,
+  isotopes = NULL,
+  showCounts = FALSE,
+  trim = TRUE,
+  algo = 0,
+  step = 0.25,
+  charge = 1
+)
 }
 \arguments{
 \item{molecule}{A named integer vector, e.g. \code{c(C=2,H=6,O=1)}, containing the chemical formula of the substance of interest.}
@@ -26,6 +34,8 @@ where \code{stopCondition} specifies the probability of the optimal p-set,
 the percentage of the highest peak below which isotopologues get pruned.}
 
 \item{step}{The percent of the the percentile of isotopologues in the current isolayer, specyfying the cutoff for the next isolayer. It has been optimised and better not change the default value.}
+
+\item{charge}{The charge state of the molecule. All masses will be divided by this to obtain m/z values.}
 }
 \value{
 A numeric matrix containing the masses, the logarithms of probability, and, optionally, counts of isotopologues. Attention: this matrix does not have to be sorted. Sorting it would also compromise the linear complexity of our algorithm.

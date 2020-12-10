@@ -119,7 +119,8 @@ class Iso(object):
                  isotopeMasses=None,
                  isotopeProbabilities=None,
                  use_nominal_masses = False,
-                 fasta = ""):
+                 fasta = "",
+                 charge = 1.0):
         """Initialize Iso.
 
         Args:
@@ -129,6 +130,7 @@ class Iso(object):
             isotopeMasses (list): a list of lists of masses of elements with counts in 'atomCounts'.
             isotopeProbabilities (list): a list of lists of probabilities of elements with counts in 'atomCounts'.
             use_nominal_masses (boolean): should the masses be rounded to the closest integer values.
+            charge (float): charge state of the molecule: all masses will be divided by this value to obtain the m/z values.
         """
 
         self.iso = None
@@ -195,7 +197,7 @@ class Iso(object):
 
         self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
                                      self.atomCounts,
-                                     [i for s in self.isotopeMasses for i in s],
+                                     [i/charge for s in self.isotopeMasses for i in s],
                                      [i for s in self.isotopeProbabilities for i in s])
 
     def __del__(self):

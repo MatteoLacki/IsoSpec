@@ -28,4 +28,4 @@ LazyData: no
 LinkingTo: Rcpp
 NeedsCompilation: yes
 SystemRequirements: C++14
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
