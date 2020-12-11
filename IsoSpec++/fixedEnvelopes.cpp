@@ -213,6 +213,12 @@ void FixedEnvelope::normalize()
     }
 }
 
+void FixedEnvelope::shift_mass(double value)
+{
+    for(size_t ii = 0; ii < _confs_no; ii++)
+        _masses[ii] += value;
+}
+
 FixedEnvelope FixedEnvelope::LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
 {
     return LinearCombination(spectra.data(), intensities.data(), spectra.size());

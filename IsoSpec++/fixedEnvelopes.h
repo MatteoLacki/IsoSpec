@@ -99,6 +99,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     double get_total_prob();
     void scale(double factor);
     void normalize();
+    void shift_mass(double shift);
 
     double empiric_average_mass();
     double empiric_variance();

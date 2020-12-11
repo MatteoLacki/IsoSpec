@@ -100,6 +100,7 @@ class IsoFFI:
         double getTotalProbOfEnvelope(void* envelope);
         void scaleEnvelope(void* envelope, double factor);
         void normalizeEnvelope(void* envelope);
+        void shiftMassEnvelope(void* envelope, double d_mass);
         void* binnedEnvelope(void* envelope, double width, double middle);
         void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
 

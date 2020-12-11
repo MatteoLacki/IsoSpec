@@ -364,6 +364,11 @@ void normalizeEnvelope(void* envelope)
     reinterpret_cast<FixedEnvelope*>(envelope)->normalize();
 }
 
+void shiftMassEnvelope(void* envelope, double d_mass)
+{
+    reinterpret_cast<FixedEnvelope*>(envelope)->shift_mass(d_mass);
+}
+
 void* binnedEnvelope(void* envelope, double width, double middle)
 {
     //  Again, counting on copy elision...
