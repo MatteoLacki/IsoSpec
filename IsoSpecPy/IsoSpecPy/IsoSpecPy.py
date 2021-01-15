@@ -52,7 +52,7 @@ def ParseFormula(formula):
         elem, cnt = match.groups()
         if elem in ret:
             raise ValueError("""Invalid formula: {} (repeating element: "{}")""".format(formula, elem))
-        ret[elem] = int(cnt) if cnt is not '' else 1
+        ret[elem] = int(cnt) if cnt != '' else 1
         if last!=match.start():
             raise ValueError("""Invalid formula: {}  (garbage inside: "{}")""".format(formula, formula[last:match.start()]))
         if elem not in PeriodicTbl.symbol_to_masses:
