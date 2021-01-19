@@ -326,6 +326,16 @@ class IsoDistribution(object):
             type_str = "double["+str(self.size)+"]"
             self.probs  = isoFFI.ffi.new(type_str, probs)
             self.masses = isoFFI.ffi.new(type_str, masses)
+        elif cobject == probs == masses == get_confs == iso == None:
+            self.size = 0
+            type_str = "double["+str(self.size)+"]"
+            self.probs  = isoFFI.ffi.new(type_str, [])
+            self.masses = isoFFI.ffi.new(type_str, [])
+            self._total_prob = 0.0
+            self.mass_sorted = True
+            self.prob_sorted = True
+        else:
+            raise RuntimeError("Invalid arguments for IsoDistribution constructor")
 
     def _get_cobject(self):
         return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
