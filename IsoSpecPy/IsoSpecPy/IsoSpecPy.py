@@ -321,7 +321,9 @@ class IsoDistribution(object):
                 self.confs = ConfsPassthrough(lambda idx: self._get_conf(idx), self.size)
                 self.parse_conf = iso._get_parse_conf_fun()
 
-        elif probs is not None and masses is not None:
+        elif probs is not None or masses is not None:
+            assert probs is not None and masses is not None
+            assert len(probs) == len(masses)
             self.size = len(probs)
             type_str = "double["+str(self.size)+"]"
             self.probs  = isoFFI.ffi.new(type_str, probs)
