@@ -378,6 +378,25 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 
     ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
 
+    if(bin_width == 0)
+    {
+        double curr_mass = _masses[0];
+        double accd_prob = _probs[0];
+        for(size_t ii = 1; ii<_confs_no; ii++)
+        {
+            if(curr_mass != _masses[ii])
+            {
+                ret.store_conf(curr_mass, accd_prob);
+                curr_mass = _masses[ii];
+                accd_prob = _probs[ii];
+            }
+            else
+                accd_prob += _probs[ii];
+        }
+        ret.store_conf(curr_mass, accd_prob);
+        return ret;
+    }
+
     size_t ii = 0;
 
     double half_width = 0.5*bin_width;
