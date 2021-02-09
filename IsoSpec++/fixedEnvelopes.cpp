@@ -155,6 +155,9 @@ void FixedEnvelope::sort_by(double* order)
 {
     size_t* indices = new size_t[_confs_no];
 
+    if(_confs_no <= 1)
+        return;
+
     for(size_t ii = 0; ii < _confs_no; ii++)
         indices[ii] = ii;
 
@@ -168,16 +171,17 @@ void FixedEnvelope::sort_by(double* order)
     delete[] indices;
 
     reorder_array(_masses, inverse, _confs_no);
-    reorder_array(_probs,  inverse, _confs_no);
+    reorder_array(_probs,  inverse, _confs_no, _confs == nullptr);
     if(_confs != nullptr)
     {
         int* swapspace = new int[allDim];
         for(size_t ii = 0; ii < _confs_no; ii++)
-            while(order[ii] != ii)
+            while(inverse[ii] != ii)
             {
                 memcpy(swapspace, &_confs[ii*allDim], allDimSizeofInt);
                 memcpy(&_confs[ii*allDim], &_confs[inverse[ii]*allDim], allDimSizeofInt);
                 memcpy(&_confs[inverse[ii]*allDim], swapspace, allDimSizeofInt);
+                std::swap(inverse[inverse[ii]], inverse[ii]);
             }
         delete[] swapspace;
     }
