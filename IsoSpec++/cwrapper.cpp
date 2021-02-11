@@ -336,6 +336,20 @@ double orientedWassersteinDistance(void* tabulator1, void* tabulator2)
     }
 }
 
+double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth)
+{
+    return reinterpret_cast<FixedEnvelope*>(tabulator1)->AbyssalWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2), abyss_depth);
+}
+
+struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist)
+{
+    struct ws_match_res res;
+    auto [t1, t2, t3] = reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinMatch(*reinterpret_cast<FixedEnvelope*>(tabulator2), flow_dist);
+    res.res1 = t1;
+    res.res2 = t2;
+    res.flow = t3;
+    return res;
+}
 
 void* addEnvelopes(void* tabulator1, void* tabulator2)
 {

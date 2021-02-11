@@ -135,6 +135,16 @@ double empiricStddev(void* tabulator);
 
 double wassersteinDistance(void* tabulator1, void* tabulator2);
 double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
+double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth);
+
+struct ws_match_res{
+double res1;
+double res2;
+double flow;
+};
+
+struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist);
+
 void* addEnvelopes(void* tabulator1, void* tabulator2);
 void* convolveEnvelopes(void* tabulator1, void* tabulator2);
 

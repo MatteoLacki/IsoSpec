@@ -84,9 +84,10 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     inline const double*   probs()  const { return _probs; }
     inline const int*      confs()  const { return _confs; }
 
-    inline double*   release_masses()   { double* ret = _masses; _masses = nullptr; return ret; }
-    inline double*   release_probs()    { double* ret = _probs;  _probs  = nullptr; return ret; }
-    inline int*      release_confs()    { int*    ret = _confs;  _confs  = nullptr; return ret; }
+    inline double*   release_masses()     { double* ret = _masses; _masses = nullptr; return ret; }
+    inline double*   release_probs()      { double* ret = _probs;  _probs  = nullptr; return ret; }
+    inline int*      release_confs()      { int*    ret = _confs;  _confs  = nullptr; return ret; }
+    inline void      release_everything() { _confs = nullptr; _probs = _masses = nullptr; }
 
 
     inline double     mass(size_t i)  const { return _masses[i]; }
@@ -107,6 +108,9 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
     double WassersteinDistance(FixedEnvelope& other);
     double OrientedWassersteinDistance(FixedEnvelope& other);
+    double AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth);
+    std::tuple<double, double, double> WassersteinMatch(FixedEnvelope& other, double flow_distance);
+
 
     static FixedEnvelope LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);
     static FixedEnvelope LinearCombination(const FixedEnvelope* const * spectra, const double* intensities, size_t size);
