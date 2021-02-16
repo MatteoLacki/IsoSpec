@@ -24,7 +24,7 @@ namespace IsoSpec
 FixedEnvelope::FixedEnvelope(const FixedEnvelope& other) :
 _masses(array_copy<double>(other._masses, other._confs_no)),
 _probs(array_copy<double>(other._probs, other._confs_no)),
-_confs(array_copy<int>(other._confs, other._confs_no*other.allDim)),
+_confs(array_copy_nptr<int>(other._confs, other._confs_no*other.allDim)),
 _confs_no(other._confs_no),
 allDim(other.allDim),
 sorted_by_mass(other.sorted_by_mass),
