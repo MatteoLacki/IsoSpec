@@ -465,10 +465,10 @@ class IsoDistribution(object):
         other.prob_sorted = False
         return ret
 
-    def wassersteinMatch(self, other, flow_dist):
+    def wassersteinMatch(self, other, flow_dist, other_scale = 1.0):
         x = self._get_cobject()
         y = other._get_cobject()
-        ret = isoFFI.clib.wassersteinMatch(x, y, flow_dist)
+        ret = isoFFI.clib.wassersteinMatch(x, y, flow_dist, other_scale)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
         self.mass_sorted = True

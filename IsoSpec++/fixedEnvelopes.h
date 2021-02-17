@@ -109,7 +109,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     double WassersteinDistance(FixedEnvelope& other);
     double OrientedWassersteinDistance(FixedEnvelope& other);
     double AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth);
-    std::tuple<double, double, double> WassersteinMatch(FixedEnvelope& other, double flow_distance);
+    std::tuple<double, double, double> WassersteinMatch(FixedEnvelope& other, double flow_distance, double other_scale = 1.0);
 
 
     static FixedEnvelope LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities);

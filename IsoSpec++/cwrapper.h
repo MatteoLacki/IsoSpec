@@ -143,7 +143,7 @@ double res2;
 double flow;
 };
 
-struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist);
+struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist, double other_scale);
 
 void* addEnvelopes(void* tabulator1, void* tabulator2);
 void* convolveEnvelopes(void* tabulator1, void* tabulator2);

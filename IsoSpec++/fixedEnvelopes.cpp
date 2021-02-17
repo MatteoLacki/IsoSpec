@@ -445,10 +445,10 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     return accd + condemned * abyss_depth * 2.0;
 }
 
-std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope& other, double flow_distance)
+std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope& other, double flow_distance, double other_scale)
 {
     if(_confs_no == 0)
-        return {0.0, other.get_total_prob(), 0.0};
+        return {0.0, other.get_total_prob() * other_scale, 0.0};
 
     double unmatched1 = 0.0;
     double unmatched2 = 0.0;
@@ -477,7 +477,7 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
             }
             if(other._masses[idx_other] < _masses[idx_this] - flow_distance)
             {
-                unmatched2 += other._probs[idx_other] - used_prob_other;
+                unmatched2 += other._probs[idx_other]*other_scale - used_prob_other;
                 used_prob_other = 0.0;
                 idx_other++;
                 moved = true;
@@ -486,9 +486,9 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
         if(idx_this < _confs_no && idx_other < other._confs_no)
         {
             assert(_probs[idx_this] - used_prob_this >= 0.0);
-            assert(other._probs[idx_other] - used_prob_other >= 0.0);
+            assert(other._probs[idx_other]*other_scale - used_prob_other >= 0.0);
 
-            if(_probs[idx_this] - used_prob_this < other._probs[idx_other] - used_prob_other)
+            if(_probs[idx_this] - used_prob_this < other._probs[idx_other]*other_scale - used_prob_other)
             {
                 massflow += _probs[idx_this] - used_prob_this;
                 used_prob_other += _probs[idx_this] - used_prob_this;
@@ -498,8 +498,8 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
             }
             else
             {
-                massflow += other._probs[idx_other] - used_prob_other;
-                used_prob_this += other._probs[idx_other] - used_prob_other;
+                massflow += other._probs[idx_other]*other_scale - used_prob_other;
+                used_prob_this += other._probs[idx_other]*other_scale - used_prob_other;
                 assert(used_prob_this >= 0.0);
                 used_prob_other = 0.0;
                 idx_other++;
@@ -513,7 +513,7 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
     for(; idx_this < _confs_no; idx_this++)
         unmatched1 += _probs[idx_this];
     for(; idx_other < other._confs_no; idx_other++)
-        unmatched2 += other._probs[idx_other];
+        unmatched2 += other._probs[idx_other]*other_scale;
 
     return {unmatched1, unmatched2, massflow};
 }
