@@ -135,7 +135,7 @@ double empiricStddev(void* tabulator);
 
 double wassersteinDistance(void* tabulator1, void* tabulator2);
 double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
-double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth);
+double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth, double other_scale);
 
 struct ws_match_res{
 double res1;

@@ -108,7 +108,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
     double WassersteinDistance(FixedEnvelope& other);
     double OrientedWassersteinDistance(FixedEnvelope& other);
-    double AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth);
+    double AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth, double other_scale = 1.0);
     std::tuple<double, double, double> WassersteinMatch(FixedEnvelope& other, double flow_distance, double other_scale = 1.0);
 
 

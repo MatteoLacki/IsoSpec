@@ -371,7 +371,7 @@ double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
     return ret;
 }
 
-double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth)
+double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth, double other_scale)
 {
     sort_by_mass();
     other.sort_by_mass();
@@ -387,7 +387,7 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     auto next = [&]() -> std::pair<double, double> {
                             if(idx_this >= _confs_no || (idx_other < other._confs_no && _masses[idx_this] > other._masses[idx_other]))
                             {
-                                auto res = std::pair(other._masses[idx_other], other._probs[idx_other]);
+                                auto res = std::pair(other._masses[idx_other], other._probs[idx_other]*other_scale);
                                 idx_other++;
                                 return res;
                             }

@@ -453,10 +453,10 @@ class IsoDistribution(object):
             raise ValueError("Both spectra must be normalized before Wasserstein distance can be computed.")
         return ret
 
-    def abyssalWassersteinDistance(self, other, abyss_depth):
+    def abyssalWassersteinDistance(self, other, abyss_depth, other_scale = 1.0):
         x = self._get_cobject()
         y = other._get_cobject()
-        ret = isoFFI.clib.abyssalWassersteinDistance(x, y, abyss_depth)
+        ret = isoFFI.clib.abyssalWassersteinDistance(x, y, abyss_depth, other_scale)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
         self.mass_sorted = True
