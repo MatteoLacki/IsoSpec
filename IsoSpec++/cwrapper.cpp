@@ -383,6 +383,12 @@ void shiftMassEnvelope(void* envelope, double d_mass)
     reinterpret_cast<FixedEnvelope*>(envelope)->shift_mass(d_mass);
 }
 
+void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias)
+{
+    reinterpret_cast<FixedEnvelope*>(envelope)->resample(ionic_current, beta_bias);
+}
+
+
 void* binnedEnvelope(void* envelope, double width, double middle)
 {
     //  Again, counting on copy elision...

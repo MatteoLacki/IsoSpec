@@ -101,6 +101,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     void scale(double factor);
     void normalize();
     void shift_mass(double shift);
+    void resample(size_t ionic_current, double beta_bias = 1.0);
 
     double empiric_average_mass();
     double empiric_variance();

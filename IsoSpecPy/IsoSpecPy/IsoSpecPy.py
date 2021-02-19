@@ -386,6 +386,13 @@ class IsoDistribution(object):
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob *= factor
 
+    def resample(self, ionic_current, beta_bias=1.0):
+        co = self._get_cobject()
+        isoFFI.clib.resampleEnvelope(co, ionic_current, beta_bias)
+        isoFFI.clib.deleteFixedEnvelope(co, True)
+        self._total_prob = float(ionic_current)
+        self.prob_sorted = False
+
     def sort_by_prob(self):
         if not self.prob_sorted:
             co = self._get_cobject()

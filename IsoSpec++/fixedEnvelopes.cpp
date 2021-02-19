@@ -223,6 +223,46 @@ void FixedEnvelope::shift_mass(double value)
         _masses[ii] += value;
 }
 
+void FixedEnvelope::resample(size_t samples, double beta_bias)
+{
+    if(_confs_no == 0)
+        throw std::logic_error("Resample called on an empty spectrum");
+
+    double pprob = 0.0;
+    double cprob = 0.0;
+    size_t pidx = -1; // Overflows - but it doesn't matter.
+
+    _probs[_confs_no-1] = std::numeric_limits<double>::max();
+
+    while(samples > 0)
+    {
+        pprob += _probs[++pidx];
+        _probs[pidx] = 0.0;
+        double covered_part = (pprob - cprob) / (1.0 - cprob);
+        while(samples * covered_part < beta_bias && samples > 0)
+        {
+            cprob += rdvariate_beta_1_b(samples) * (1.0 - cprob);
+            while(pprob < cprob)
+            {
+                pprob += _probs[++pidx];
+                _probs[pidx] = 0.0;
+            }
+            _probs[pidx] += 1.0;
+            samples--;
+            covered_part = (pprob - cprob) / (1.0 - cprob);
+        }
+        if(samples <= 0)
+                break;
+        size_t nrtaken = rdvariate_binom(samples, covered_part);
+        _probs[pidx] += static_cast<double>(nrtaken);
+        samples -= nrtaken;
+        cprob = pprob;
+    }
+
+    pidx++;
+    memset(_probs + pidx, 0, sizeof(double)*(_confs_no - pidx));
+}
+
 FixedEnvelope FixedEnvelope::LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
 {
     return LinearCombination(spectra.data(), intensities.data(), spectra.size());
