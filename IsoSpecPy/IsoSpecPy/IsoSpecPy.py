@@ -521,7 +521,9 @@ class IsoDistribution(object):
         except ImportError as e:
             raise ImportError(str(e) + "\nPlotting spectra requires matplotlib to be installed.")
         if plot_type == "bars":
-            plt.vlines(list(self.masses), [0], list(self.probs), linewidth=1, **matplotlib_args)
+            if "linewidth" not in matplotlib_args:
+                matplotlib_args['linewidth'] = 1.0
+            plt.vlines(list(self.masses), [0], list(self.probs), **matplotlib_args)
         elif plot_type == "profile":
             self.sort_by_mass()
             plt.plot(list(self.masses), list(self.probs), **matplotlib_args)
