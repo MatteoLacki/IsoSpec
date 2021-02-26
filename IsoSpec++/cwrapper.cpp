@@ -422,6 +422,28 @@ void freeReleasedArray(void* array)
     free(array);
 }
 
+void array_add(double* array, size_t N, double what)
+{
+    for(size_t ii = 0; ii < N; ii++)
+        array[ii] += what;
+}
+
+void array_mul(double* array, size_t N, double what)
+{
+    for(size_t ii = 0; ii < N; ii++)
+        array[ii] *= what;
+}
+
+void array_fma(double* array, size_t N, double mul, double add)
+{
+    for(size_t ii = 0; ii < N; ii++)
+#if defined(FP_FAST_FMA)
+        array[ii] = std::fma(array[ii], mul, add);
+#else
+        array[ii] += (array[ii] * mul) + add;
+#endif
+}
+
 void parse_fasta_c(const char* fasta, int atomCounts[6])
 {
     // Same thing, only this time with C linkage

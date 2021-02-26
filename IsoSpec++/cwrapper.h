@@ -121,6 +121,10 @@ void* setupBinnedFixedEnvelope(void* iso,
 
 void freeReleasedArray(void* array);
 
+void array_add(double* array, size_t N, double what);
+void array_mul(double* array, size_t N, double what);
+void array_fma(double* array, size_t N, double mul, double add);
+
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
 void* copyFixedEnvelope(void* other);
 void deleteFixedEnvelope(void* tabulator, bool releaseEverything);

@@ -119,6 +119,10 @@ class IsoFFI:
         void sortEnvelopeByProb(void* envelope);
 
         void freeReleasedArray(void* array);
+        void array_add(double* array, size_t N, double what);
+        void array_mul(double* array, size_t N, double what);
+        void array_fma(double* array, size_t N, double mul, double add);
+
         void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
         #define NUMBER_OF_ISOTOPIC_ENTRIES 292

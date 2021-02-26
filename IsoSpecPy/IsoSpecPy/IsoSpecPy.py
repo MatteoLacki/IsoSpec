@@ -386,10 +386,17 @@ class IsoDistribution(object):
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob = 1.0
 
-    def shift_mass(self, d_mass):
-        co = self._get_cobject()
-        isoFFI.clib.shiftMassEnvelope(co, d_mass)
-        isoFFI.clib.deleteFixedEnvelope(co, True)
+    def add_mass(self, d_mass):
+        isoFFI.clib.array_add(self.masses, self.size, d_mass)
+
+    def mul_mass(self, d_mass):
+        isoFFI.clib.array_mul(self.masses, self.size, d_mass)
+
+    def add_mul_mass(self, add, mul):
+        isoFFI.clib.array_fma(self.masses, self.size, mul, add*mul)
+
+    def mul_add_mass(self, mul, add):
+        isoFFI.clib.array_fma(self.masses, self.size, mul, add)
 
     def scale(self, factor):
         co = self._get_cobject()
