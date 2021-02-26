@@ -277,6 +277,12 @@ void deleteFixedEnvelope(void* t, bool release_everything)
     delete tt;
 }
 
+void* copyFixedEnvelope(void* other)
+{
+    FixedEnvelope* ret = new FixedEnvelope(*reinterpret_cast<FixedEnvelope*>(other));
+    return reinterpret_cast<void*>(ret);
+}
+
 const double* massesFixedEnvelope(void* tabulator)
 {
     return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();

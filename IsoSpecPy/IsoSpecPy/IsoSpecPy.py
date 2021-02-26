@@ -342,6 +342,17 @@ class IsoDistribution(object):
     def _get_cobject(self):
         return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
 
+    def copy(self):
+        x = self._get_cobject()
+        c = isoFFI.clib.copyFixedEnvelope(x)
+        isoFFI.clib.deleteFixedEnvelope(x, True)
+        ret = IsoDistribution(cobject = c)
+        ret._total_prob = self._total_prob
+        ret.mass_sorted = self.mass_sorted
+        ret.prob_sorted = self.prob_sorted
+        isoFFI.clib.deleteFixedEnvelope(c, False)
+        return ret
+
     def __add__(self, other):
         x = self._get_cobject()
         y = other._get_cobject()
