@@ -152,8 +152,9 @@ if 'windows' in platform.system().lower():
     # Of course Windows can't even compile stuff. Install prebuilt C++ lib.
     import copy
     win_setup_args = copy.deepcopy(setup_args)
-    win_setup_args['ext_modules'] = []
-    win_setup_args['include_package_data'] = True
+    #win_setup_args['ext_modules'] = []
+    #win_setup_args['include_package_data'] = True
+    extra_compile_args = ["/O2"]
     setup(**win_setup_args)
 elif 'cygwin' in platform.system().lower():
     try:
