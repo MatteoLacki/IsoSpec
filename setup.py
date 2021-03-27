@@ -19,11 +19,11 @@ import shutil
 # For debugging, set the below to True. Run with (sth like): LD_PRELOAD='/usr/lib64/gcc/x86_64-pc-linux-gnu/9.2.0/libasan.so.5.0.0' python ...
 use_asan = False
 
-if not os.path.exists("IsoSpec++"):
-    try:
-        os.symlink("../IsoSpec++", "IsoSpec++")
-    except: # OS doesn't support symlinks
-        shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
+#if not os.path.exists("IsoSpec++"):
+#    try:
+#        os.symlink("../IsoSpec++", "IsoSpec++")
+#    except: # OS doesn't support symlinks
+#        shutil.copytree("../IsoSpec++", "IsoSpec++", symlinks=True)
 
 
 
