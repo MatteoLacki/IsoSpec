@@ -14,6 +14,8 @@ from codecs import open
 import os
 import glob
 import shutil
+import platform
+import sys
 
 
 # For debugging, set the below to True. Run with (sth like): LD_PRELOAD='/usr/lib64/gcc/x86_64-pc-linux-gnu/9.2.0/libasan.so.5.0.0' python ...
@@ -33,18 +35,19 @@ here = os.path.abspath(os.path.dirname(__file__))
 #with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
 #    long_description = f.read()
 
-if use_asan:
-    cmodule = Extension('IsoSpecCppPy',
-                    sources = ['IsoSpec++/unity-build.cpp'],
-                    extra_compile_args = '-O0 -g -DISOSPEC_DEBUG -std=c++17 -fsanitize=address'.split(),
-                    extra_link_args = '-fsanitize=address'.split()
-                    )
-else:
-    cmodule = Extension('IsoSpecCppPy',
-                    sources = ['IsoSpec++/unity-build.cpp'],
-                    extra_compile_args = '-mtune=native -march=native -O3 -std=c++17'.split(),
-                    )
+def get_cflags():
+    if 'windows' in platform.system().lower():
+        # Assuming MSVC, probably Anaconda
+        return ["/O2", "/std:c++17"]
+    if use_asan:
+        return '-O0 -g -DISOSPEC_DEBUG -std=c++17 -fsanitize=address'.split()
+    return '-mtune=native -march=native -O3 -std=c++17'.split()
 
+cmodule = Extension('IsoSpecCppPy',
+                sources = ['IsoSpec++/unity-build.cpp'],
+                extra_compile_args = get_cflags(),
+                extra_link_args = '-fsanitize=address'.split() if use_asan else []
+                )
 
 setup_args = {
 #setup(
@@ -143,20 +146,9 @@ setup_args = {
     'ext_modules' : [cmodule],
 }
 
-import platform
-import sys
 
 
-if 'windows' in platform.system().lower():
-    # Probably Anaconda distribution.
-    # Of course Windows can't even compile stuff. Install prebuilt C++ lib.
-    import copy
-    win_setup_args = copy.deepcopy(setup_args)
-    #win_setup_args['ext_modules'] = []
-    #win_setup_args['include_package_data'] = True
-    win_setup_args['extra_compile_args'] = ["/O2", "/std:c++17"]
-    setup(**win_setup_args)
-elif 'cygwin' in platform.system().lower():
+if 'cygwin' in platform.system().lower():
     try:
         import cffi
     except ImportError:
