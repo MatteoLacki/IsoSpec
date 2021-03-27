@@ -6,6 +6,8 @@
 
 #if ISOSPEC_TEST_WE_ARE_ON_WINDOWS
 
+#error "kvjndfjkv"
+
 #include <Python.h>
 
 // Provide a dumy PyInit function on Windows/MSVC.
