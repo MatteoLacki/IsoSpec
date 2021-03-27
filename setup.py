@@ -44,7 +44,7 @@ def get_cflags():
     return '-mtune=native -march=native -O3 -std=c++17'.split()
 
 cmodule = Extension('IsoSpecCppPy',
-                sources = ['IsoSpec++/unity-build.cpp'],
+                sources = ['IsoSpec++/python-build.cpp'],
                 extra_compile_args = get_cflags(),
                 extra_link_args = '-fsanitize=address'.split() if use_asan else []
                 )
