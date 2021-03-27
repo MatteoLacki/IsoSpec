@@ -4,7 +4,10 @@
 
 #include "platform.h"
 
+
 #if ISOSPEC_TEST_WE_ARE_ON_WINDOWS
+
+#define ISOSPEC_C_API __declspec(dllexport)
 
 #include <Python.h>
 

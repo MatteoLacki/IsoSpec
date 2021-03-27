@@ -29,32 +29,32 @@ extern "C" {
 #include <stdbool.h>
 #endif
 
-void * setupIso(int             dimNumber,
+ISOSPEC_C_API void * setupIso(int             dimNumber,
                 const int*      isotopeNumbers,
                 const int*      atomCounts,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities);
 
-void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water);
+ISOSPEC_C_API void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water);
 
-double getLightestPeakMassIso(void* iso);
-double getHeaviestPeakMassIso(void* iso);
-double getMonoisotopicPeakMassIso(void* iso);
-double getModeLProbIso(void* iso);
-double getModeMassIso(void* iso);
-double getTheoreticalAverageMassIso(void* iso);
-double getIsoVariance(void* iso);
-double getIsoStddev(void* iso);
-double* getMarginalLogSizeEstimates(void* iso, double target_total_prob);
+ISOSPEC_C_API double getLightestPeakMassIso(void* iso);
+ISOSPEC_C_API double getHeaviestPeakMassIso(void* iso);
+ISOSPEC_C_API double getMonoisotopicPeakMassIso(void* iso);
+ISOSPEC_C_API double getModeLProbIso(void* iso);
+ISOSPEC_C_API double getModeMassIso(void* iso);
+ISOSPEC_C_API double getTheoreticalAverageMassIso(void* iso);
+ISOSPEC_C_API double getIsoVariance(void* iso);
+ISOSPEC_C_API double getIsoStddev(void* iso);
+ISOSPEC_C_API double* getMarginalLogSizeEstimates(void* iso, double target_total_prob);
 
 
-void deleteIso(void* iso);
+ISOSPEC_C_API void deleteIso(void* iso);
 
 #define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\
-dataType method##generatorType(void* generator);
+ISOSPEC_C_API dataType method##generatorType(void* generator);
 
 #define ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType)\
-void method##generatorType(void* generator);
+ISOSPEC_C_API void method##generatorType(void* generator);
 
 #define ISOSPEC_C_FN_HEADERS(generatorType)\
 ISOSPEC_C_FN_HEADER(generatorType, double, mass) \
@@ -68,7 +68,7 @@ ISOSPEC_C_FN_HEADER(generatorType, void, delete)
 
 
 // ______________________________________________________THRESHOLD GENERATOR
-void* setupIsoThresholdGenerator(void* iso,
+ISOSPEC_C_API void* setupIsoThresholdGenerator(void* iso,
                                  double threshold,
                                  bool _absolute,
                                  int _tabSize,
@@ -78,7 +78,7 @@ ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
 
 
 // ______________________________________________________LAYERED GENERATOR
-void* setupIsoLayeredGenerator(void* iso,
+ISOSPEC_C_API void* setupIsoLayeredGenerator(void* iso,
                                int _tabSize,
                                int _hashSize,
                                bool reorder_marginals,
@@ -86,85 +86,85 @@ void* setupIsoLayeredGenerator(void* iso,
 ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
 
 // ______________________________________________________ORDERED GENERATOR
-void* setupIsoOrderedGenerator(void* iso,
+ISOSPEC_C_API void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize);
 ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
 
-void* setupIsoStochasticGenerator(void* iso,
+ISOSPEC_C_API void* setupIsoStochasticGenerator(void* iso,
                                    size_t no_molecules,
                                    double precision,
                                    double beta_bias);
 ISOSPEC_C_FN_HEADERS(IsoStochasticGenerator)
 
 
-void* setupThresholdFixedEnvelope(void* iso,
+ISOSPEC_C_API void* setupThresholdFixedEnvelope(void* iso,
                               double threshold,
                               bool absolute,
                               bool get_confs);
 
-void* setupTotalProbFixedEnvelope(void* iso,
+ISOSPEC_C_API void* setupTotalProbFixedEnvelope(void* iso,
                               double taget_coverage,
                               bool optimize,
                               bool get_confs);
 
-void* setupStochasticFixedEnvelope(void* iso,
+ISOSPEC_C_API void* setupStochasticFixedEnvelope(void* iso,
                               size_t no_molecules,
                               double precision,
                               double beta_bias,
                               bool get_confs);
 
-void* setupBinnedFixedEnvelope(void* iso,
+ISOSPEC_C_API void* setupBinnedFixedEnvelope(void* iso,
                     double target_total_prob,
                     double bin_width,
                     double bin_middle);
 
-void freeReleasedArray(void* array);
+ISOSPEC_C_API void freeReleasedArray(void* array);
 
-void array_add(double* array, size_t N, double what);
-void array_mul(double* array, size_t N, double what);
-void array_fma(double* array, size_t N, double mul, double add);
+ISOSPEC_C_API void array_add(double* array, size_t N, double what);
+ISOSPEC_C_API void array_mul(double* array, size_t N, double what);
+ISOSPEC_C_API void array_fma(double* array, size_t N, double mul, double add);
 
-void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
-void* copyFixedEnvelope(void* other);
-void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
+ISOSPEC_C_API void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
+ISOSPEC_C_API void* copyFixedEnvelope(void* other);
+ISOSPEC_C_API void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
 
-const double* massesFixedEnvelope(void* tabulator);
-const double* probsFixedEnvelope(void* tabulator);
-const int*    confsFixedEnvelope(void* tabulator);
-size_t confs_noFixedEnvelope(void* tabulator);
+ISOSPEC_C_API const double* massesFixedEnvelope(void* tabulator);
+ISOSPEC_C_API const double* probsFixedEnvelope(void* tabulator);
+ISOSPEC_C_API const int*    confsFixedEnvelope(void* tabulator);
+ISOSPEC_C_API size_t confs_noFixedEnvelope(void* tabulator);
 
-double empiricAverageMass(void* tabulator);
-double empiricVariance(void* tabulator);
-double empiricStddev(void* tabulator);
+ISOSPEC_C_API double empiricAverageMass(void* tabulator);
+ISOSPEC_C_API double empiricVariance(void* tabulator);
+ISOSPEC_C_API double empiricStddev(void* tabulator);
 
-double wassersteinDistance(void* tabulator1, void* tabulator2);
-double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
-double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth, double other_scale);
+ISOSPEC_C_API double wassersteinDistance(void* tabulator1, void* tabulator2);
+ISOSPEC_C_API double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
+ISOSPEC_C_API double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth, double other_scale);
 
-struct ws_match_res{
+ISOSPEC_C_API struct ws_match_res{
 double res1;
 double res2;
 double flow;
 };
 
-struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist, double other_scale);
+ISOSPEC_C_API struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist, double other_scale);
 
-void* addEnvelopes(void* tabulator1, void* tabulator2);
-void* convolveEnvelopes(void* tabulator1, void* tabulator2);
+ISOSPEC_C_API void* addEnvelopes(void* tabulator1, void* tabulator2);
+ISOSPEC_C_API void* convolveEnvelopes(void* tabulator1, void* tabulator2);
 
-double getTotalProbOfEnvelope(void* envelope);
-void scaleEnvelope(void* envelope, double factor);
-void normalizeEnvelope(void* envelope);
-void shiftMassEnvelope(void* envelope, double d_mass);
-void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias);
-void* binnedEnvelope(void* envelope, double width, double middle);
-void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
+ISOSPEC_C_API double getTotalProbOfEnvelope(void* envelope);
+ISOSPEC_C_API void scaleEnvelope(void* envelope, double factor);
+ISOSPEC_C_API void normalizeEnvelope(void* envelope);
+ISOSPEC_C_API void shiftMassEnvelope(void* envelope, double d_mass);
+ISOSPEC_C_API void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias);
+ISOSPEC_C_API void* binnedEnvelope(void* envelope, double width, double middle);
+ISOSPEC_C_API void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
 
-void sortEnvelopeByMass(void* envelope);
-void sortEnvelopeByProb(void* envelope);
+ISOSPEC_C_API void sortEnvelopeByMass(void* envelope);
+ISOSPEC_C_API void sortEnvelopeByProb(void* envelope);
 
-void parse_fasta_c(const char* fasta, int atomCounts[6]);
+ISOSPEC_C_API void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
 
 #ifdef __cplusplus

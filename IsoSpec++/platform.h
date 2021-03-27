@@ -96,6 +96,8 @@
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
 
+#define ISOSPEC_C_API
+
 #if !defined(__cpp_if_constexpr)
 #define constexpr_if if
 #define ISOSPEC_MAYBE_UNUSED
