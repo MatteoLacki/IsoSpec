@@ -154,7 +154,7 @@ if 'windows' in platform.system().lower():
     win_setup_args = copy.deepcopy(setup_args)
     #win_setup_args['ext_modules'] = []
     #win_setup_args['include_package_data'] = True
-    extra_compile_args = ["/O2"]
+    win_setup_args['extra_compile_args'] = ["/O2", "/std:c++17"]
     setup(**win_setup_args)
 elif 'cygwin' in platform.system().lower():
     try:

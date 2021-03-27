@@ -232,7 +232,7 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
     double cprob = 0.0;
     size_t pidx = -1; // Overflows - but it doesn't matter.
 
-    _probs[_confs_no-1] = std::numeric_limits<double>::max();
+    _probs[_confs_no-1] = (std::numeric_limits<double>::max)();
 
     while(samples > 0)
     {
@@ -427,13 +427,13 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     auto next = [&]() -> std::pair<double, double> {
                             if(idx_this >= _confs_no || (idx_other < other._confs_no && _masses[idx_this] > other._masses[idx_other]))
                             {
-                                auto res = std::pair(other._masses[idx_other], other._probs[idx_other]*other_scale);
+                                std::pair<double, double> res = std::pair<double, double>(other._masses[idx_other], other._probs[idx_other]*other_scale);
                                 idx_other++;
                                 return res;
                             }
                             else
                             {
-                                auto res = std::pair(_masses[idx_this], -_probs[idx_this]);
+                                std::pair<double, double> res = std::pair<double, double>(_masses[idx_this], -_probs[idx_this]);
                                 idx_this++;
                                 return res;
                             }
