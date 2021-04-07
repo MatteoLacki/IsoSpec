@@ -482,7 +482,7 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     for(auto it = carried.cbegin(); it != carried.cend(); it++)
         condemned += fabs(it->second);
 
-    return accd + condemned * abyss_depth * 2.0;
+    return accd + condemned * abyss_depth * 0.5;
 }
 
 std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope& other, double flow_distance, double other_scale)
