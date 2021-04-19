@@ -1,23 +1,22 @@
 import numpy as np
 
+from IsoSpecPy import IsoDistribution
+
 import flows
 import parameters
+import distances
 
 
-def flow_comp_grad(exps, thes, point, e_ab_c, t_ab_c):
+def flow_comp_grad(exp, thes, point, e_ab_c, t_ab_c):
     r_thes = []
     r_thes = [the.scaled(x) for the, x in zip(thes, point)]
 
-    graph_grad = flows.awsd_g(exps, r_thes, e_ab_c, t_ab_c)[1] / np.array(point)
+    graph_grad = flows.awsd_g(exp, r_thes, e_ab_c, t_ab_c)[1] / np.array(point)
 
     return graph_grad
 
 
-def flow_emp_grad(exps, thes, point, e_ab_c, t_ab_c):
-    return flows.empiric_gradient(exps, thes, point, e_ab_c, t_ab_c)
-
-
-def empiric_grad(awsd_fun, exp, the_l, point, exp_ab_cost, th_ab_cost):
+def empiric_grad(awsd_fun, exp, the_l, point, exp_ab_cost, th_ab_cost, single_arg = False):
     dval = parameters.emp_grad_dval
     res = []
     the_l = [i.copy() for i in the_l]
@@ -36,21 +35,28 @@ def empiric_grad(awsd_fun, exp, the_l, point, exp_ab_cost, th_ab_cost):
 
     return np.array(res)
 
-def flow_emp_grad(exps, thes, point, e_ab_c, t_ab_c):
-    return empiric_grad(flows.awsd, exps, thes, point, e_ab_c, t_ab_c)
-    return flows.empiric_gradient(exps, thes, point, e_ab_c, t_ab_c)
+def flow_emp_grad(exp, thes, point, e_ab_c, t_ab_c):
+    return empiric_grad(flows.awsd, exp, thes, point, e_ab_c, t_ab_c)
 
+def algo_emp_grad(exp, thes, point, e_ab_c, t_ab_c):
+    def awsd_fun(exp_i, thes_i, exp_ab_cost_i, th_ab_cost_i):
+        return exp_i.abyssalWassersteinDistance(IsoDistribution.LinearCombination(thes_i, [1.0]*len(thes_i)), exp_ab_cost_i + th_ab_cost_i)
+    return empiric_grad(awsd_fun, exp, thes, point, e_ab_c, t_ab_c)
 
-def checked_grad(exps, thes, point, e_ab_c, t_ab_c):
+def checked_grad(exp, thes, point, e_ab_c, t_ab_c):
     r_thes = []
     for the, x in zip(thes, point):
         c = the.copy()
         c.scale(x)
         r_thes.append(c)
 
-    graph_grad = flow_comp_grad(exps, thes, point, e_ab_c, t_ab_c)
-    emp_grad = flow_emp_grad(exps, thes, point, e_ab_c, t_ab_c)
-    if not all(np.isclose(graph_grad, emp_grad, rtol=0.001, atol=0.000001)):
+    graph_grad = flow_comp_grad(exp, thes, point, e_ab_c, t_ab_c)
+    emp_grad = empiric_grad(distances.awsd_checked, exp, thes, point, e_ab_c, t_ab_c)
+    a_emp_grad = algo_emp_grad(exp, thes, point, e_ab_c, t_ab_c)
+
+    def check(g):
+        return all(np.isclose(graph_grad, emp_grad, rtol=0.001, atol=0.000001))
+    if not (check(emp_grad) and check(a_emp_grad)):
         print(graph_grad)
         print(emp_grad)
         raise Exception()
@@ -66,6 +72,6 @@ if __name__ == '__main__':
     # Get off region boundaries,
     # algos are allowed to return grad from different neighbouring regions there
     # (different elements of the subdifferential)
-    for x, y, xscale, yscale in itertools.product(grid*1.01, grid*1.01, grid, grid):
+    for x, y, xscale, yscale in itertools.product(grid*1.01, grid*1.02, grid*1.03, grid*1.04):
         print(checked_grad(EXP.scaled(xscale), [t.scaled(yscale) for t in THEs], [x, y], 0.2, 0.2))
 

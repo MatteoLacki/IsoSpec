@@ -1,6 +1,9 @@
 
 
 int_fact = 1000000000.0
+emp_grad_dval = 0.0001
+
+assert int_fact * emp_grad_dval > 1.0
 
 def integerize(iso):
     for mass, prob in zip(iso.masses, iso.probs):
