@@ -386,6 +386,11 @@ class IsoDistribution(object):
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob = 1.0
 
+    def normalized(self):
+        ret = self.copy()
+        ret.normalize()
+        return ret
+
     def add_mass(self, d_mass):
         isoFFI.clib.array_add(self.masses, self.size, d_mass)
 
@@ -399,10 +404,17 @@ class IsoDistribution(object):
         isoFFI.clib.array_fma(self.masses, self.size, mul, add)
 
     def scale(self, factor):
+        '''Multiplies the pribabilities of spectrum by factor. Works in place.'''
         co = self._get_cobject()
         isoFFI.clib.scaleEnvelope(co, factor)
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob *= factor
+
+    def scaled(self, factor):
+        '''Returns a copy of the spectrum where each probability was multiplied by factor.'''
+        ret = self.copy()
+        ret.scale(factor)
+        return ret
 
     def resample(self, ionic_current, beta_bias=1.0):
         co = self._get_cobject()
