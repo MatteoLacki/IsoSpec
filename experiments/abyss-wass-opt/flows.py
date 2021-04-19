@@ -5,7 +5,7 @@ import sys
 import numpy as np
 from pprint import pprint
 
-from parameters import int_fact, integerize, flows_loud
+from parameters import int_fact, integerize, flows_loud, emp_grad_dval
 
 
 def awsd_g(exp, the_l, exp_ab_cost, th_ab_cost):
@@ -88,54 +88,10 @@ def awsd_g(exp, the_l, exp_ab_cost, th_ab_cost):
 def awsd(exp, the_l, exp_ab_cost, th_ab_cost):
     return awsd_g(exp, the_l, exp_ab_cost, th_ab_cost)[0]
 
-def empiric_gradient(exp, the_l, point, exp_ab_cost, th_ab_cost):
-    dval = 0.0001
-    res = []
-    assert dval * int_fact > 1.0
-    the_l = [i.copy() for i in the_l]
-    point = point.copy()
-
-    def rescaled(p):
-        res = []
-        for iso, xi in zip(the_l, p):
-            iso = iso.copy()
-            iso.scale(xi)
-            res.append(iso)
-        return res
-        
-
-    base = awsd(exp, rescaled(point), exp_ab_cost, th_ab_cost)
-#    print("base:", base)
-
-    for idx in range(len(the_l)):
-        dpoint = point.copy()
-        dpoint[idx] += dval
-        grpart = (awsd(exp, rescaled(dpoint), exp_ab_cost, th_ab_cost) - base) / dval
-#        print("grpart", awsd(exp, n_the_l, exp_ab_cost, th_ab_cost))
-        res.append(grpart)
-
-    return np.array(res)
-
-
-def check_grad(exps, thes, point, e_ab_c, t_ab_c):
-    r_thes = []
-    for the, x in zip(thes, point):
-        c = the.copy()
-        c.scale(x)
-        r_thes.append(c)
-        
-    graph_grad = awsd_g(exps, r_thes, e_ab_c, t_ab_c)[1] / np.array(point)
-    emp_grad = empiric_gradient(exps, thes, point, e_ab_c, t_ab_c)
-    if not all(np.isclose(graph_grad, emp_grad)):
-        print(graph_grad)
-        print(emp_grad)
-        raise Exception()
-    return emp_grad
 
 if __name__ == '__main__':
     from test_spectra import *
 
 
-    print(check_grad(EXP, THEs, [0.3, 1.0], 0.2, 0.2))
 
 
