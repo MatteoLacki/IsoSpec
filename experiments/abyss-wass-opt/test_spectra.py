@@ -1,11 +1,13 @@
 import IsoSpecPy
 
 
-EXP = IsoSpecPy.IsoDistribution(masses=[1.0, 2.0], probs = [3.0, 4.0])
+EXP = IsoSpecPy.IsoDistribution(masses=[1.0, 2.0], probs = [3.0, 7.0])
 THE1 = IsoSpecPy.IsoDistribution(masses=[1.0, 2.0], probs = [1.0, 0.0])
 
 THE2 = IsoSpecPy.IsoDistribution(masses=[1.0, 2.0], probs = [0.0, 1.0])
-THEs = [THE1, THE2]
+THE3 = IsoSpecPy.IsoDistribution(masses=[1.0, 2.01], probs = [0.0, 1.0])
+
+THEs = [THE1, THE2]#, THE3]
 
 
 

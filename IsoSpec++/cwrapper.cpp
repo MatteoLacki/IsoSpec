@@ -347,6 +347,12 @@ double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double aby
     return reinterpret_cast<FixedEnvelope*>(tabulator1)->AbyssalWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2), abyss_depth, other_scale);
 }
 
+
+double abyssalWassersteinDistanceGrad(void* const* envelopes, const double* scales, double* ret_gradient, size_t N, double abyss_depth_exp, double abyss_depth_the)
+{
+    return AbyssalWassersteinDistanceGrad(reinterpret_cast<FixedEnvelope* const*>(envelopes), scales, ret_gradient, N, abyss_depth_exp, abyss_depth_the);
+}
+
 struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist, double other_scale)
 {
     struct ws_match_res res;

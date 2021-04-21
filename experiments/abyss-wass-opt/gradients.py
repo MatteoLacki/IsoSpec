@@ -68,10 +68,11 @@ if __name__ == '__main__':
     import itertools
 
     grid = np.array([ 0.01, 0.05, 0.1, 0.3, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 100.0,])
+    #grid = np.array([1.0])
 
     # Get off region boundaries,
     # algos are allowed to return grad from different neighbouring regions there
     # (different elements of the subdifferential)
     for x, y, xscale, yscale in itertools.product(grid*1.01, grid*1.02, grid*1.03, grid*1.04):
-        print(checked_grad(EXP.scaled(xscale), [t.scaled(yscale) for t in THEs], [x, y], 0.2, 0.2))
+        print(checked_grad(EXP.scaled(xscale), [t.scaled(yscale) for t in THEs], [x, y], 0.1, 0.1))
 

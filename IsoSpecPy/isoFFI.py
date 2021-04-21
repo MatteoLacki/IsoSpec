@@ -95,6 +95,7 @@ class IsoFFI:
         double wassersteinDistance(void* tabulator1, void* tabulator2);
         double orientedWassersteinDistance(void* tabulator1, void* tabulator2);
         double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth, double other_scale);
+        double abyssalWassersteinDistanceGrad(void* const* envelopes, const double* scales, double* ret_gradient, size_t N, double abyss_depth_exp, double abyss_depth_the);
 
         struct ws_match_res{
         double res1;
