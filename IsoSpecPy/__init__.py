@@ -1,7 +1,7 @@
 from .IsoSpecPy import *
 
 
-__version__ = "2.2.0dev1"
+__version__ = "2.2.0.dev2"
 
 # Old, deprecated name, for compatibility with 1.9.X only
 IsoLayered = IsoTotalProb
