@@ -3,6 +3,8 @@ import os
 import platform
 import sys
 import glob
+if False:
+    import IsoSpecCppPy
 
 
 class IsoFFI:
