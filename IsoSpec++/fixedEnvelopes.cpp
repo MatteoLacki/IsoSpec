@@ -615,6 +615,7 @@ double AbyssalWassersteinDistanceGrad(FixedEnvelope* const* envelopes, const dou
     double condemned = 0.0;
     //double flow;
     const double max_flow_dist = abyss_depth_exp + abyss_depth_the;
+    max_flow_dist *= 2.0;
 
     while(!PQ.empty())
     {

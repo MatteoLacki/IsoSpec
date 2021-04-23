@@ -59,7 +59,7 @@ def checked_grad(exp, thes, point, e_ab_c, t_ab_c):
     if not (check(emp_grad) and check(a_emp_grad)):
         print(graph_grad)
         print(emp_grad)
-        raise Exception()
+        #raise Exception()
     return emp_grad
 
 
@@ -73,6 +73,15 @@ if __name__ == '__main__':
     # Get off region boundaries,
     # algos are allowed to return grad from different neighbouring regions there
     # (different elements of the subdifferential)
-    for x, y, xscale, yscale in itertools.product(grid*1.01, grid*1.02, grid*1.03, grid*1.04):
-        print(checked_grad(EXP.scaled(xscale), [t.scaled(yscale) for t in THEs], [x, y], 0.1, 0.1))
+    #for x, y, xscale, yscale in itertools.product(grid*1.01, grid*1.02, grid*1.03, grid*1.04):
+    #    print(checked_grad(EXP.scaled(xscale), [t.scaled(yscale) for t in THEs], [x, y], 0.1, 0.1))
 
+    for _ in range(100):
+        rerandomize()
+#        p = random_point(2)
+        print("Point:", point)
+#        print(checked_grad(LEXP, LTHEs, point, 2.0, 2.0))
+        print("Exp:")
+        p(EXPa)
+        p(THEsa)
+        print(checked_grad(EXPa, [THEsa], [1.0], 2.0, 2.0))
