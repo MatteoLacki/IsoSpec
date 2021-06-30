@@ -209,7 +209,9 @@ elif 'darwin' in platform.system().lower():
                     return ret == 0
 
                 extra_flags = []
-                if check_flags(["-stdlib=libc++"]):
+                if check_flags([]):
+                    pass
+                elif check_flags(["-stdlib=libc++"]):
                     extra_flags.append("-stdlib=libc++")
                 elif check_flags(["-stdlib=libstdc++"]):
                     extra_flags.append("-stdlib=libstdc++")
@@ -217,6 +219,7 @@ elif 'darwin' in platform.system().lower():
                 for flag in cmodule.extra_compile_args:
                     if check_flags(extra_flags + [flag]):
                         extra_flags.append(flag)
+                cmodule.extra_compile_args = extra_flags
                 # else just hope for the best, that is, that the compiler isn't broken...
             try:
                 super(build_ext_subclass, self).build_extensions()
