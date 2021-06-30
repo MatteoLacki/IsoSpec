@@ -575,10 +575,10 @@ double FixedEnvelope::ScaledAbyssalWassersteinDistance(FixedEnvelope * const * o
 
 #endif
 
+#if 0
 double AbyssalWassersteinDistanceGrad(FixedEnvelope* const* envelopes, const double* scales, double* ret_gradient, size_t N, double abyss_depth_exp, double abyss_depth_the)
 {
 return 0.0;
-#if 0
     std::unique_ptr<size_t[]> env_idx = std::make_unique<size_t[]>(N+1);
     memset(env_idx.get(), 0, (N+1)*sizeof(size_t));
     memset(ret_gradient, 0, (N+1)*sizeof(double));
@@ -719,8 +719,8 @@ return 0.0;
 
 
     return accd + condemned * (abyss_depth_exp + abyss_depth_the) * 0.5;
-#endif
 }
+#endif
 
 
 std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope& other, double flow_distance, double other_scale)
