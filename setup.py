@@ -208,10 +208,18 @@ elif 'darwin' in platform.system().lower():
                     print("Check flags:", ret == 0, flags_l)
                     return ret == 0
 
-                if check_flags(["-stdlib=libc++"]):
-                    cmodule.extra_compile_args.append("-stdlib=libc++")
+                extra_flags = []
+                if check_flags([]):
+                    pass
+                elif check_flags(["-stdlib=libc++"]):
+                    extra_flags.append("-stdlib=libc++")
                 elif check_flags(["-stdlib=libstdc++"]):
-                    cmodule.extra_compile_args.append("-stdlib=libstdc++")
+                    extra_flags.append("-stdlib=libstdc++")
+                # Check flags, because OF COURSE OSX's clang masquerading as g++ doesn't support some of them
+                for flag in cmodule.extra_compile_args:
+                    if check_flags(extra_flags + [flag]):
+                        extra_flags.append(flag)
+                cmodule.extra_compile_args = extra_flags
                 # else just hope for the best, that is, that the compiler isn't broken...
             try:
                 super(build_ext_subclass, self).build_extensions()
