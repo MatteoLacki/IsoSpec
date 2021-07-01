@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - version_2_1
+      - version_2_2
       - ci_wheels
     tags:
       - v*
