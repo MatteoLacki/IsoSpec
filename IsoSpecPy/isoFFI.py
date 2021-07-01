@@ -3,10 +3,8 @@ import os
 import platform
 import sys
 import glob
-try:
+if False:
     import IsoSpecCppPy
-except ImportError:
-    pass
 
 
 class IsoFFI:
