@@ -152,7 +152,7 @@ sure you want to do that, edit the source and disable this check.''')
         extension = ['.so', '.dylib', '.dll']
         try:
             if platform.system() == 'Linux':
-                extension = ['.so', .'pyd']
+                extension = ['.so', 'pyd']
             elif platform.system() == 'Windows':
                 extension = ['.dll', '.pyd']
         except:
