@@ -30,10 +30,6 @@ template<typename T> class unsafe_pod_vector;
 
 template<typename T> class pod_vector
 {
-#if !ISOSPEC_BUILDING_R
-    static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
-#endif
-
     T* backend_past_end;
     T* first_free;
     T* store;
@@ -41,6 +37,10 @@ template<typename T> class pod_vector
  public:
     explicit pod_vector(size_t initial_size = 16)
     {
+    #if !ISOSPEC_BUILDING_R
+        static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+    #endif
+
         store = reinterpret_cast<T*>(malloc(sizeof(T) * initial_size));
         if(store == NULL)
             throw std::bad_alloc();
@@ -220,10 +220,6 @@ template<typename T> class pod_vector
 
 template<typename T> class unsafe_pod_vector
 {
-#if !ISOSPEC_BUILDING_R
-    static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
-    static_assert(std::is_trivially_copyable<unsafe_pod_vector<T> >::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
-#endif
 
     T* backend_past_end;
     T* first_free;
@@ -232,10 +228,20 @@ template<typename T> class unsafe_pod_vector
  public:
     unsafe_pod_vector() = default;
 
-    void init() { memset(this, 0, sizeof(*this)); }
+    void init() {
+    #if !ISOSPEC_BUILDING_R
+        static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+        static_assert(std::is_trivially_copyable<unsafe_pod_vector<T> >::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+    #endif
+        memset(this, 0, sizeof(*this));
+    }
 
     void init(size_t initial_size)
     {
+    #if !ISOSPEC_BUILDING_R
+        static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+        static_assert(std::is_trivially_copyable<unsafe_pod_vector<T> >::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
+    #endif
         store = reinterpret_cast<T*>(malloc(sizeof(T) * initial_size));
         if(store == NULL)
             throw std::bad_alloc();
