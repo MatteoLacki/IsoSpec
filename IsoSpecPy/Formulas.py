@@ -69,3 +69,32 @@ def acgt_dct(no_bases, add_water = True):
 def acgt(no_bases, add_water = True):
     c = acgt_dct(no_bases, add_water = add_water)
     return ''.join(str(key)+str(val) for key, val in sorted(c.items(), key= lambda x: x[0]))
+
+adenosine_base = Counter({
+'C' : 10,
+'H' : 14,
+'N' : 5,
+'O' : 6,
+'P' : 1
+})
+cytosine_base = Counter({
+'C' : 9,
+'H' : 14,
+'N' : 3,
+'O' : 7,
+'P' : 1
+})
+guanine_base = Counter({
+'C' : 10,
+'H' : 14,
+'N' : 5,
+'O' : 7,
+'P' : 1
+})
+tymine_base = Counter({
+'C' : 10,
+'H' : 15,
+'N' : 2,
+'O' : 8,
+'P' : 1
+})
