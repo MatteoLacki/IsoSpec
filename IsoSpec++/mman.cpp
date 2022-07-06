@@ -26,7 +26,7 @@
 #endif /* FILE_MAP_EXECUTE */
 
 
-static int __map_mman_error(const DWORD err, const int deferr)
+static int __map_mman_error(const DWORD err, const int /* deferr */)
 {
     if (err == 0)
         return 0;
@@ -72,7 +72,7 @@ static DWORD __map_mmap_prot_file(const int prot)
     return desiredAccess;
 }
 
-void* mmap(void *addr, size_t len, int prot, int flags, int fildes, OffsetType off)
+void* mmap(void * /* addr */, size_t len, int prot, int flags, int fildes, OffsetType off)
 {
     HANDLE fm, h;
 
@@ -143,7 +143,7 @@ void* mmap(void *addr, size_t len, int prot, int flags, int fildes, OffsetType o
     return map;
 }
 
-int munmap(void *addr, size_t len)
+int munmap(void *addr, size_t /* len */)
 {
     if (UnmapViewOfFile(addr))
         return 0;
@@ -152,6 +152,10 @@ int munmap(void *addr, size_t len)
 
     return -1;
 }
+
+#if 0
+// Unused by IsoSpec
+
 
 int _mprotect(void *addr, size_t len, int prot)
 {
@@ -166,7 +170,7 @@ int _mprotect(void *addr, size_t len, int prot)
     return -1;
 }
 
-int msync(void *addr, size_t len, int flags)
+int msync(void *addr, size_t len, int /* flags */)
 {
     if (FlushViewOfFile(addr, len))
         return 0;
@@ -195,6 +199,6 @@ int munlock(const void *addr, size_t len)
 
     return -1;
 }
-
+#endif
 
 #endif
