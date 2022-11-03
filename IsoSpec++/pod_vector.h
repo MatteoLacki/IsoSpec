@@ -68,13 +68,14 @@ template<typename T> class pod_vector
         other.backend_past_end = other.first_free = other.store = NULL;
     }
 
-    ~pod_vector() { free(store); }
+    ~pod_vector() { free(store); backend_past_end = first_free = store = NULL; }
 
     explicit pod_vector(unsafe_pod_vector<T>&& other)
     {
         backend_past_end = other.backend_past_end;
         first_free = other.first_free;
         store = other.store;
+       other.backend_past_end = other.first_free = other.store = NULL;
     }
 
     void fast_reserve(size_t n)
@@ -254,8 +255,6 @@ template<typename T> class unsafe_pod_vector
     //unsafe_pod_vector(unsafe_pod_vector<T>&& other) = default;
 
     ~unsafe_pod_vector() = default;
-
-    void free() { free(store); }
 
     void fast_reserve(size_t n)
     {
