@@ -18,7 +18,7 @@ jobs:
         os: [windows-2019]
 
     steps:
-     - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       # Used to host cibuildwheel
       - uses: actions/setup-python@v3
