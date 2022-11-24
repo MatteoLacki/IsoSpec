@@ -443,7 +443,9 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
 
     while(!finished())
     {
-        auto [m, p] = next();
+        auto pair = next();
+        double m = pair.first;
+        double p = pair.second;
         if(!carried.empty() && carried[0].second * p > 0.0)
         {
             carried.emplace_back(m, p);
@@ -452,7 +454,8 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
 
         while(!carried.empty())
         {
-            auto& [cm, cp] = carried.back();
+            double cm = carried.back().first;
+            double cp = carried.back().second;
             if(m - cm >= abyss_depth)
             {
                 for(auto it = carried.cbegin(); it != carried.cend(); it++)

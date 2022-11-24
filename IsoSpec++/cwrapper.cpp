@@ -357,10 +357,10 @@ double abyssalWassersteinDistanceGrad(void* const* envelopes, const double* scal
 struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist, double other_scale)
 {
     struct ws_match_res res;
-    auto [t1, t2, t3] = reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinMatch(*reinterpret_cast<FixedEnvelope*>(tabulator2), flow_dist, other_scale);
-    res.res1 = t1;
-    res.res2 = t2;
-    res.flow = t3;
+    auto tuple = reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinMatch(*reinterpret_cast<FixedEnvelope*>(tabulator2), flow_dist, other_scale);
+    res.res1 = std::get<0>(tuple);
+    res.res2 = std::get<1>(tuple);
+    res.flow = std::get<2>(tuple);
     return res;
 }
 
