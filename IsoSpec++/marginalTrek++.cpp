@@ -433,6 +433,9 @@ bool MarginalTrek::add_next_conf()
 
 MarginalTrek::~MarginalTrek()
 {
+    const size_t fringe_size = fringe.size();
+    for(size_t ii = 0; ii < fringe_size; ii++)
+        fringe[ii].clear();
 }
 
 

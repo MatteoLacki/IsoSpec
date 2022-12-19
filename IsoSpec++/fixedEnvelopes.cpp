@@ -153,10 +153,10 @@ template<typename T> void reorder_array(T* arr, size_t* order, size_t size, bool
 
 void FixedEnvelope::sort_by(double* order)
 {
-    size_t* indices = new size_t[_confs_no];
-
     if(_confs_no <= 1)
         return;
+
+    size_t* indices = new size_t[_confs_no];
 
     for(size_t ii = 0; ii < _confs_no; ii++)
         indices[ii] = ii;
@@ -443,7 +443,9 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
 
     while(!finished())
     {
-        auto [m, p] = next();
+        auto pair = next();
+        double m = pair.first;
+        double p = pair.second;
         if(!carried.empty() && carried[0].second * p > 0.0)
         {
             carried.emplace_back(m, p);
@@ -452,7 +454,8 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
 
         while(!carried.empty())
         {
-            auto& [cm, cp] = carried.back();
+            double cm = carried.back().first;
+            double cp = carried.back().second;
             if(m - cm >= abyss_depth)
             {
                 for(auto it = carried.cbegin(); it != carried.cend(); it++)

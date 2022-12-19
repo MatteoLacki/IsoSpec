@@ -18,6 +18,7 @@
 
 #include <type_traits>
 #include <cstdlib>
+#include <cstddef>
 #include <utility>
 #include <new>
 #include <algorithm>
@@ -68,22 +69,24 @@ template<typename T> class pod_vector
         other.backend_past_end = other.first_free = other.store = NULL;
     }
 
-    ~pod_vector() { free(store); }
+    ~pod_vector() { free(store); backend_past_end = first_free = store = NULL; }
 
     explicit pod_vector(unsafe_pod_vector<T>&& other)
     {
         backend_past_end = other.backend_past_end;
         first_free = other.first_free;
         store = other.store;
+       other.backend_past_end = other.first_free = other.store = NULL;
     }
 
     void fast_reserve(size_t n)
     {
         ISOSPEC_IMPOSSIBLE(n < static_cast<size_t>(backend_past_end - store));
+        const std::ptrdiff_t store_used_size = first_free - store;
         T* new_store = reinterpret_cast<T*>(realloc(store, n * sizeof(T)));
         if(new_store == NULL)
             throw std::bad_alloc();
-        first_free = new_store + (first_free - store);
+        first_free = new_store + store_used_size;
         backend_past_end = new_store + n;
         store = new_store;
     }
@@ -254,8 +257,6 @@ template<typename T> class unsafe_pod_vector
     //unsafe_pod_vector(unsafe_pod_vector<T>&& other) = default;
 
     ~unsafe_pod_vector() = default;
-
-    void free() { free(store); }
 
     void fast_reserve(size_t n)
     {
