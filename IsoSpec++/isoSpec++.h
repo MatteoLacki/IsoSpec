@@ -64,7 +64,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     int*            isotopeNumbers; /*!< A table with numbers of isotopes for each element. */
     int*            atomCounts;     /*!< A table with numbers of isotopes for each element. */
     unsigned int    confSize;       /*!< The number of bytes needed to represent the counts of isotopes present in the extended chemical formula. */
-    int             allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H20 it is 2+3=5. */
+    int             allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H2O (water) it is 2+3=5. */
     Marginal**      marginals;      /*!< The table of pointers to the distributions of individual subisotopologues. */
 
     bool doMarginalsNeedSorting() const;
