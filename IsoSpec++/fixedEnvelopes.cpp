@@ -153,10 +153,10 @@ template<typename T> void reorder_array(T* arr, size_t* order, size_t size, bool
 
 void FixedEnvelope::sort_by(double* order)
 {
-    size_t* indices = new size_t[_confs_no];
-
     if(_confs_no <= 1)
         return;
+
+    size_t* indices = new size_t[_confs_no];
 
     for(size_t ii = 0; ii < _confs_no; ii++)
         indices[ii] = ii;
