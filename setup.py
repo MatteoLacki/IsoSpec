@@ -8,7 +8,6 @@ https://github.com/pypa/sampleproject
 
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages, Extension
-from distutils import spawn
 # To use a consistent encoding
 from codecs import open
 import os
@@ -148,7 +147,7 @@ if 'cygwin' in platform.system().lower():
         print("You appear to be using CYGWIN, and CFFI was not found. Please use the Cygwin installer to install the cffi-python package for the appropriate Python version.")
         print("Installing CFFI using pip will most likely NOT work. This is *NOT* a bug in IsoSpecPy.")
         sys.exit(1)
-    if spawn.find_executable('clang++') == None:
+    if shutil.which('clang++') is None:
         print("You appear to be using CYGWIN and clang++ executable was not found. Please install the clang++ package using Cygwin installer.")
         sys.exit(1)
     import distutils
