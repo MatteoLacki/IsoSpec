@@ -27,13 +27,18 @@ here = os.path.abspath(os.path.dirname(__file__))
 #with open(path.join(here, 'DESCRIPTION.rst'), encoding='utf-8') as f:
 #    long_description = f.read()
 
+native_ok = not ('darwin' in platform.system().lower())
+
 def get_cflags():
     if 'windows' in platform.system().lower():
         # Assuming MSVC, probably Anaconda
         return ["/O2", "/std:c++17"]
     if use_asan:
         return '-O0 -g -DISOSPEC_DEBUG -std=c++17 -fsanitize=address'.split()
-    return '-mtune=native -march=native -O3 -std=c++17'.split()
+    ret = ['-O3', '-std=c++17']
+    if native_ok:
+        ret.extend(['-mtune=native', '-march=native'])
+    return ret
 
 cmodule = Extension('IsoSpecCppPy',
                 sources = ['IsoSpec++/python-build.cpp'],
