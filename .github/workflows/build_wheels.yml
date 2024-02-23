@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         #os: [ubuntu-20.04, windows-2019, macos-10.15]
-        os: [windows-latest, macos-14]
+        os: [windows-latest, macos-14, macos-13, macos=12, macos-11, macos-10]
 
     steps:
       - uses: actions/checkout@v4
@@ -34,4 +34,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
