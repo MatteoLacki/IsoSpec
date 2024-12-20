@@ -34,6 +34,9 @@ except NameError:
 import re
 from .IsoSpecPy import IsoTotalProb, IsoThreshold
 
+DIGIT_PATTERN = re.compile(r"\d+")
+NON_DIGIT_PATTERN = re.compile(r"\D+")
+
 class IsoSpec():
     def __init__(
                     self,
@@ -95,8 +98,8 @@ class IsoSpec():
     def IsoFromFormula(formula, cutoff, tabSize = 1000, hashSize = 1000, classId = None, method = 'threshold_relative', step = 0.25, trim = True):
         # It's much easier to just parse it in python than to use the C parsing function
         # and retrieve back into Python the relevant object sizes
-        symbols = re.findall("\D+", formula)
-        atom_counts = [int(x) for x in re.findall("\d+", formula)]
+        symbols = re.findall(NON_DIGIT_PATTERN, formula)
+        atom_counts = [int(x) for x in re.findall(DIGIT_PATTERN, formula)]
 
         if not len(symbols) == len(atom_counts):
             raise ValueError("Invalid formula")
