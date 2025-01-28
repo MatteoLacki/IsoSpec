@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 """A setuptools based setup module.
 
@@ -62,7 +63,7 @@ setup_args = {
     'url': 'http://matteolacki.github.io/IsoSpec/',
 
     # Author details
-    'author': 'Mateusz Lacki & Michal Startek',
+    'author': 'Mateusz Łącki & Michał Startek',
     'author_email': 'matteo.lacki@gmail.com',
 
     # Choose your license
