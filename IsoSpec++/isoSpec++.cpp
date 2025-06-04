@@ -658,14 +658,14 @@ IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso
     maxConfsLPSum = new double[dimNumber-1];
     currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
     lastLThreshold = (std::numeric_limits<double>::min)();
-    marginalResultsUnsorted = new LayeredMarginal*[dimNumber];
+    marginalResultsUnsorted = new MarginalType*[dimNumber];
     resetPositions = new const double*[dimNumber];
     marginalsNeedSorting = doMarginalsNeedSorting();
 
     memset(counter, 0, sizeof(int)*dimNumber);
 
     for(int ii = 0; ii < dimNumber; ii++)
-        marginalResultsUnsorted[ii] = new LayeredMarginal(std::move(*(marginals[ii])), tabSize, hashSize);
+        marginalResultsUnsorted[ii] = new MarginalType(std::move(*(marginals[ii])), tabSize, hashSize);
 
     if(reorder_marginals && dimNumber > 1)
     {
@@ -681,7 +681,7 @@ IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso
         TableOrder<double> TO(marginal_priorities);
 
         std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, TO);
-        marginalResults = new LayeredMarginal*[dimNumber];
+        marginalResults = new MarginalType*[dimNumber];
 
         for(int ii = 0; ii < dimNumber; ii++)
             marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
@@ -809,6 +809,8 @@ IsoLayeredGeneratorTemplate<MarginalType>::~IsoLayeredGeneratorTemplate()
 }
 
 template class IsoLayeredGeneratorTemplate<LayeredMarginal>;
+//template class IsoLayeredGeneratorTemplate<PrecalculatedMarginal>;
+//template class IsoLayeredGeneratorTemplate<MarginalTrek>;
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------
@@ -923,8 +925,8 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
  * ---------------------------------------------------------------------------------------------------
  */
 
-
-IsoStochasticGenerator::IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double _precision, double _beta_bias) :
+template<typename IsoType>
+IsoStochasticGeneratorTemplate<IsoType>::IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double _precision, double _beta_bias) :
 IsoGenerator(std::move(iso)),
 ILG(std::move(*this)),
 to_sample_left(no_molecules),
@@ -933,6 +935,10 @@ beta_bias(_beta_bias),
 confs_prob(0.0),
 chasing_prob(0.0)
 {}
+
+template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;
+template class IsoStochasticGeneratorTemplate<IsoOrderedGenerator>;
+//template class IsoStochasticGeneratorTemplate<IsoThresholdGenerator>;
 
 /*
  * ---------------------------------------------------------------------------------------------------

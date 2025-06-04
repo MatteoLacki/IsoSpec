@@ -538,10 +538,10 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 };
 using IsoLayeredGenerator = IsoLayeredGeneratorTemplate<LayeredMarginal>;
 
-
-class IsoStochasticGenerator : public IsoGenerator
+template<typename IsoType>
+class IsoStochasticGeneratorTemplate : public IsoGenerator
 {
-    IsoLayeredGenerator ILG;
+    IsoType ILG;
     size_t to_sample_left;
     const double precision;
     const double beta_bias;
@@ -550,7 +550,7 @@ class IsoStochasticGenerator : public IsoGenerator
     size_t current_count;
 
  public:
-    IsoStochasticGenerator(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
+    IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
 
     ISOSPEC_FORCE_INLINE size_t count() const { return current_count; }
 
@@ -638,5 +638,6 @@ class IsoStochasticGenerator : public IsoGenerator
     }
 };
 
+using IsoStochasticGenerator = IsoStochasticGeneratorTemplate<IsoLayeredGenerator>;
 
 }  // namespace IsoSpec
