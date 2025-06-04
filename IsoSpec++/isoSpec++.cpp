@@ -808,6 +808,7 @@ IsoLayeredGeneratorTemplate<MarginalType>::~IsoLayeredGeneratorTemplate()
       delete[] marginalOrder;
 }
 
+template class IsoLayeredGeneratorTemplate<LayeredMarginal>;
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------
