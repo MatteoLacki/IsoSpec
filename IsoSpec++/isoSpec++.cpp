@@ -650,8 +650,8 @@ IsoThresholdGenerator::~IsoThresholdGenerator()
  * ------------------------------------------------------------------------------------------------------------------------
  */
 
-
-IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals, double t_prob_hint)
+template <typename MarginalType>
+IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals, double t_prob_hint)
 : IsoGenerator(std::move(iso))
 {
     counter = new int[dimNumber];
@@ -715,10 +715,11 @@ IsoLayeredGenerator::IsoLayeredGenerator(Iso&& iso, int tabSize, int hashSize, b
     counter[0]--;
     lProbs_ptr--;
     lastLThreshold = 10.0;
-    IsoLayeredGenerator::nextLayer(-0.00001);
+    IsoLayeredGeneratorTemplate<MarginalType>::nextLayer(-0.00001);
 }
 
-bool IsoLayeredGenerator::nextLayer(double offset)
+template <typename MarginalType>
+bool IsoLayeredGeneratorTemplate<MarginalType>::nextLayer(double offset)
 {
     size_t first_mrg_size = marginalResults[0]->get_no_confs();
 
@@ -746,7 +747,8 @@ bool IsoLayeredGenerator::nextLayer(double offset)
     return true;
 }
 
-bool IsoLayeredGenerator::carry()
+template <typename MarginalType>
+bool IsoLayeredGeneratorTemplate<MarginalType>::carry()
 {
     // If we reached this point, a carry is needed
 
@@ -781,8 +783,8 @@ bool IsoLayeredGenerator::carry()
     return false;
 }
 
-
-void IsoLayeredGenerator::terminate_search()
+template<typename MarginalType>
+void IsoLayeredGeneratorTemplate<MarginalType>::terminate_search()
 {
     for(int ii = 0; ii < dimNumber; ii++)
     {
@@ -793,7 +795,8 @@ void IsoLayeredGenerator::terminate_search()
     lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
 }
 
-IsoLayeredGenerator::~IsoLayeredGenerator()
+template<typename MarginalType>
+IsoLayeredGeneratorTemplate<MarginalType>::~IsoLayeredGeneratorTemplate()
 {
     delete[] counter;
     delete[] maxConfsLPSum;

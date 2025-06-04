@@ -41,7 +41,7 @@ def est_fun_margs(formula, threshold):
 
 from IsoSpecPy.Formulas import *
 
-for formula in "bovine_insulin horse_myoglobin surcose water ubiquitin caffeine averagine(100.0) averagine(1000.0) averagine(100000.0) Hg10Sn5 H1000N1000".split():
+for formula in "bovine_insulin horse_myoglobin sucrose water ubiquitin caffeine averagine(100.0) averagine(1000.0) averagine(100000.0) Hg10Sn5 H1000N1000".split():
     try:
         fformula = eval(formula)
     except NameError:

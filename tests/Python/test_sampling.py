@@ -217,7 +217,7 @@ from scipy.stats import chisquare
 import sys
 
 if __name__ == '__main__':
-    test_mol = surcose
+    test_mol = sucrose
     count = 10000000
 
     print("Starting...")

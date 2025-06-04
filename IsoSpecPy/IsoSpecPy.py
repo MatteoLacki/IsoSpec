@@ -262,7 +262,7 @@ class IsoDistribution(object):
         """Return computed masses as a numpy array."""
         try:
             import numpy as np
-        except ImportError:
+        except ImportError as e:
             raise Exception(e.msg + "\nThis requires numpy to be installed.")
         return np.frombuffer(isoFFI.ffi.buffer(self.masses))
 

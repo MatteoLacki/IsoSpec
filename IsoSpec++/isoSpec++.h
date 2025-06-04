@@ -435,15 +435,15 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 
 
 
-
-class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
+template<typename MarginalType>
+class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 {
  private:
     int*                    counter;            /*!< An array storing the position of an isotopologue in terms of the subisotopologues ordered by decreasing probability. */
     double*                 maxConfsLPSum;
     double currentLThreshold, lastLThreshold;
-    LayeredMarginal** marginalResults;
-    LayeredMarginal** marginalResultsUnsorted;
+    MarginalType** marginalResults;
+    MarginalType** marginalResultsUnsorted;
     int* marginalOrder;
 
     const double* lProbs_ptr;
@@ -455,8 +455,8 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 
 
  public:
-    IsoLayeredGenerator(const IsoLayeredGenerator& other) = delete;
-    IsoLayeredGenerator& operator=(const IsoLayeredGenerator& other) = delete;
+    IsoLayeredGeneratorTemplate(const IsoLayeredGeneratorTemplate& other) = delete;
+    IsoLayeredGeneratorTemplate& operator=(const IsoLayeredGeneratorTemplate& other) = delete;
 
     inline void get_conf_signature(int* space) const override final
     {
@@ -482,9 +482,9 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 
     inline double get_currentLThreshold() const { return currentLThreshold; }
 
-    IsoLayeredGenerator(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoLayeredGeneratorTemplate(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
-    ~IsoLayeredGenerator();
+    ~IsoLayeredGeneratorTemplate();
 
     ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration() override final
     {
@@ -492,7 +492,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
         {
             if(advanceToNextConfigurationWithinLayer())
                 return true;
-        } while(IsoLayeredGenerator::nextLayer(-2.0));
+        } while(IsoLayeredGeneratorTemplate<MarginalType>::nextLayer(-2.0));
         return false;
     }
 
@@ -536,7 +536,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
  private:
     bool carry();
 };
-
+using IsoLayeredGenerator = IsoLayeredGeneratorTemplate<LayeredMarginal>;
 
 
 class IsoStochasticGenerator : public IsoGenerator
