@@ -190,6 +190,7 @@ sure you want to do that, edit the source and disable this check.''')
         for libpath in set(paths_to_check):
             try:
                 self.clib = self.ffi.dlopen(libpath)
+                self.libpath = libpath
                 break
             except (IndexError, OSError) as e:
                 errmsg = "Load libIsoSpec++.so, tried: " + libpath + '\n' + "Got error: " + str(type(e)) + ": " + str(e)
