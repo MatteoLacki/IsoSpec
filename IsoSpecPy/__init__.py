@@ -1,7 +1,7 @@
 from .IsoSpecPy import *
+import importlib.metadata
 
-
-__version__ = "2.2.3"
+__version__ = importlib.metadata.version("IsoSpecPy")
 
 # Old, deprecated name, for compatibility with 1.9.X only
 IsoLayered = IsoTotalProb

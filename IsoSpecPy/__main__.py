@@ -5,7 +5,7 @@ if __name__ == "__main__":
     from pathlib import Path
 
     parser = argparse.ArgumentParser(description="IsoSpecPy: Python interface to IsoSpec++ library, a fast and memory-efficient library for computing isotopic distributions.")
-    parser.add_argument('--version', '-v', action='version', version=f'%(prog)s {__version__}')
+    parser.add_argument('--version', '-v', action='version', version=__version__)
     parser.add_argument('--libpath', action='store_true',
                         help='Print the path to the loaded C++ library and exit.')
     parser.add_argument('--include', action='store_true',
