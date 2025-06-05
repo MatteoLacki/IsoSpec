@@ -8,7 +8,10 @@ if __name__ == "__main__":
     parser.add_argument('--version', '-v', action='version', version=f'%(prog)s {__version__}')
     parser.add_argument('--libpath', action='store_true',
                         help='Print the path to the loaded C++ library and exit.')
+    parser.add_argument('--include', action='store_true',
+                        help='Print the include path for the headers of the C++ library and exit.')
     args = parser.parse_args()
+
     if args.libpath:
         try:
             from .isoFFI import IsoFFI
@@ -17,3 +20,6 @@ if __name__ == "__main__":
         except ImportError as e:
             print(f"Error loading IsoSpecPy: {e}")
         exit(0)
+
+    if args.include:
+        print(Path(__file__).parent.resolve())
