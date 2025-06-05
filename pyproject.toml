@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools", "scikit-build-core", "cmake", "ninja"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.source-dir = "skbuild"
+
+[project]
+name = "IsoSpecPy"
+dependencies = ["cffi"]
+description = "IsoSpecPy is a Python library for computing isotopic distributions of molecules."
+version = "2.2.4"
