@@ -6,6 +6,7 @@ project(IsoSpecPy CXX)
 #find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 add_library(IsoSpecCppPy SHARED ../IsoSpec++/unity-build.cpp)
+target_compile_features(IsoSpecCppPy PRIVATE cxx_std_17)
 #python_extension_module(IsoSpecCppPy)
 install(TARGETS IsoSpecCppPy LIBRARY DESTINATION IsoSpecPy)
 install(DIRECTORY ../IsoSpec++/ DESTINATION IsoSpecPy/IsoSpec++
