@@ -926,14 +926,15 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
  */
 
 template<typename IsoType>
-IsoStochasticGeneratorTemplate<IsoType>::IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double _precision, double _beta_bias) :
+IsoStochasticGeneratorTemplate<IsoType>::IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double _precision, double _beta_bias, std::mt19937& _rng) :
 IsoGenerator(std::move(iso)),
 ILG(std::move(*this)),
 to_sample_left(no_molecules),
 precision(_precision),
 beta_bias(_beta_bias),
 confs_prob(0.0),
-chasing_prob(0.0)
+chasing_prob(0.0),
+rdvariate_gen(_rng)
 {}
 
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;

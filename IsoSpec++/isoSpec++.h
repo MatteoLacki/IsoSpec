@@ -548,9 +548,10 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
     double confs_prob;
     double chasing_prob;
     size_t current_count;
+    std::mt19937& rdvariate_gen;  /*!< The random number generator used to generate random numbers. */
 
  public:
-    IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
+    IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0, std::mt19937& rdvariate_gen = random_gen);
 
     ISOSPEC_FORCE_INLINE size_t count() const { return current_count; }
 
