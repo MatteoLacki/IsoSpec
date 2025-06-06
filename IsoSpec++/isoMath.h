@@ -70,8 +70,8 @@ inline double InverseChiSquareCDF2(int k, double x)
     return InverseLowerIncompleteGamma2(k, x*tgamma(static_cast<double>(k)/2.0)) * 2.0;
 }
 
-extern std::mt19937 random_gen;
-extern std::uniform_real_distribution<double> stdunif;
+extern thread_local std::mt19937 random_gen;
+extern thread_local std::uniform_real_distribution<double> stdunif;
 
 inline double rdvariate_beta_1_b(double b, std::mt19937& rgen = random_gen)
 {
