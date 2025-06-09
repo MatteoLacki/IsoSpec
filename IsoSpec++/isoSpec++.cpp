@@ -811,13 +811,14 @@ IsoLayeredGeneratorTemplate<MarginalType>::~IsoLayeredGeneratorTemplate()
 template class IsoLayeredGeneratorTemplate<LayeredMarginal>;
 //template class IsoLayeredGeneratorTemplate<PrecalculatedMarginal>;
 //template class IsoLayeredGeneratorTemplate<MarginalTrek>;
+template class IsoLayeredGeneratorTemplate<SingleAtomMarginal>;
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------
  */
 
-
-IsoOrderedGenerator::IsoOrderedGenerator(Iso&& iso, int _tabSize, int _hashSize) :
+template<typename MarginalType>
+IsoOrderedGeneratorTemplate<MarginalType>::IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize, int _hashSize) :
 IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
     partialLProbs = &currentLProb;
@@ -857,8 +858,8 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     pq.push(topConf);
 }
 
-
-IsoOrderedGenerator::~IsoOrderedGenerator()
+template<typename MarginalType>
+IsoOrderedGeneratorTemplate<MarginalType>::~IsoOrderedGeneratorTemplate()
 {
     dealloc_table<MarginalTrek*>(marginalResults, dimNumber);
     delete[] logProbs;
@@ -869,8 +870,8 @@ IsoOrderedGenerator::~IsoOrderedGenerator()
     partialProbs = nullptr;
 }
 
-
-bool IsoOrderedGenerator::advanceToNextConfiguration()
+template<typename MarginalType>
+bool IsoOrderedGeneratorTemplate<MarginalType>::advanceToNextConfiguration()
 {
     if(pq.size() < 1)
         return false;
@@ -938,7 +939,8 @@ rdvariate_gen(_rng)
 {}
 
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;
-template class IsoStochasticGeneratorTemplate<IsoOrderedGenerator>;
+template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<SingleAtomMarginal>>;
+template class IsoStochasticGeneratorTemplate<IsoOrderedGeneratorTemplate<MarginalTrek>>;
 //template class IsoStochasticGeneratorTemplate<IsoThresholdGenerator>;
 
 /*

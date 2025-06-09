@@ -413,4 +413,72 @@ class LayeredMarginal : public Marginal
 
 
 
+
+
+
+
+
+
+
+
+
+
+class SingleAtomMarginal : public Marginal
+{
+ private:
+    double current_threshold;
+    pod_vector<double> lProbs;
+    pod_vector<double> probs;
+    pod_vector<double> masses;
+    pod_vector<size_t> original_indexes;
+    double* guarded_lProbs;
+
+ public:
+    //! Move constructor: specializes the Marginal class.
+    /*!
+    */
+    SingleAtomMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
+
+    SingleAtomMarginal(const SingleAtomMarginal& other) = delete;
+    SingleAtomMarginal& operator=(const SingleAtomMarginal& other) = delete;
+
+    //! Extend the set of computed subisotopologues to those above the new threshold.
+    /*!
+        \param new_threshold The new log-probability limiting the subisotopologues from below.
+        \return Returns false, if there are no fringe-subisotopologues (subisotopologues that were neighbours of the previously calculated subisotopologues, with log-probability below the previous threshold).
+    */
+    bool extend(double new_threshold, [[maybe_unused]] bool do_sort = true) { current_threshold = new_threshold; return false;};
+
+    //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
+    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
+
+    //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
+    inline double get_prob(int idx) const { return probs[idx]; }
+
+    //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
+    inline double get_mass(int idx) const { return masses[idx]; }
+
+    //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
+    inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
+
+    //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
+    inline const Conf& get_conf([[maybe_unused]] int idx) const { throw std::logic_error("Not implemented"); /*return configurations[idx];*/ }
+
+    //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
+    inline unsigned int get_no_confs() const { throw std::logic_error("Not implemented"); }
+
+    //! Get the minimal mass in current layer
+    inline double get_min_mass() const { throw std::logic_error("Not implemented"); };
+
+    //! Get the maximal mass in current layer
+    double get_max_mass() const { throw std::logic_error("Not implemented"); };
+
+    //! Get the log-probability of the mode subisotopologue.
+    /*!
+        \return The log-probability of a/the most probable subisotopologue.
+    */
+    inline double getModeLProb() const { return mode_lprob; }
+};
+
+
 }  // namespace IsoSpec

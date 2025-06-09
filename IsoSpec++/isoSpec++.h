@@ -233,10 +233,11 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
     This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
     Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
 */
-class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
+template<typename MarginalType>
+class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
 {
  private:
-    MarginalTrek**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
+    MarginalType**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
     std::priority_queue<void*, pod_vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
     void*                       topConf;                            /*!< Most probable configuration. */
     DirtyAllocator              allocator;                          /*!< Structure used for alocating memory for isotopologues. */
@@ -249,8 +250,8 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
     int                         ccount;
 
  public:
-    IsoOrderedGenerator(const IsoOrderedGenerator& other) = delete;
-    IsoOrderedGenerator& operator=(const IsoOrderedGenerator& other) = delete;
+    IsoOrderedGeneratorTemplate(const IsoOrderedGeneratorTemplate& other) = delete;
+    IsoOrderedGeneratorTemplate& operator=(const IsoOrderedGeneratorTemplate& other) = delete;
 
     bool advanceToNextConfiguration() override final;
 
@@ -277,13 +278,13 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
     };
 
     //! The move-contstructor.
-    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
-    virtual ~IsoOrderedGenerator();
+    virtual ~IsoOrderedGeneratorTemplate();
 };
 
-
+using IsoOrderedGenerator = IsoOrderedGeneratorTemplate<MarginalTrek>;
 
 
 //! The generator of isotopologues above a given threshold value.
