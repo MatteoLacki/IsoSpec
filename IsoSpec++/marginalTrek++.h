@@ -485,6 +485,15 @@ class SingleAtomMarginal : public Marginal
     }
     const pod_vector<double>& conf_lprobs() const { return lProbs; }
     const pod_vector<double>& conf_masses() const { return masses; }
+
+    int get_original_position(int idx) const
+    {
+        #ifdef ISOSPEC_DEBUG
+        if (idx < 0 || static_cast<size_t>(idx) >= original_indexes.size())
+            throw std::out_of_range("Index out of range in SingleAtomMarginal::et_original_position");
+        #endif
+        return original_indexes[idx];
+    }
 };
 
 

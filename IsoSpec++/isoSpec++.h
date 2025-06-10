@@ -286,6 +286,21 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
 
     //! Destructor.
     virtual ~IsoOrderedGeneratorTemplate();
+
+    inline void get_conf_by_indexes(int* space)
+    {
+        if constexpr (std::is_same<MarginalType, SingleAtomMarginal<false>>::value)
+        {
+            if(dimNumber == 0)
+                return;
+
+            int* c = getConf(topConf);
+            space[0] = std::max(c[0]-1, 0);
+
+            for(int ii = 1; ii < dimNumber; ii++)
+                space[ii] = c[ii];
+        }
+    }
 };
 
 using IsoOrderedGenerator = IsoOrderedGeneratorTemplate<MarginalTrek>;
@@ -538,6 +553,29 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 
     bool nextLayer(double offset);
 
+    void get_conf_by_indexes(int* space) const
+    {
+        if constexpr (std::is_same<MarginalType, SingleAtomMarginal<true>>::value)
+        {
+            counter[0] = lProbs_ptr - lProbs_ptr_start;
+            if(marginalOrder != nullptr)
+            {
+                for(int ii = 0; ii < dimNumber; ii++)
+                {
+                    int jj = marginalOrder[ii];
+                    space[ii] = marginalResultsUnsorted[ii]->get_original_position(counter[jj]);
+                }
+            }
+            else
+            {
+                for(int ii = 0; ii < dimNumber; ii++)
+                    space[ii] = marginalResultsUnsorted[ii]->get_original_position(counter[ii]);
+            }
+        }
+        else
+            throw std::runtime_error("IsoLayeredGeneratorTemplate::get_conf_by_indexes() called on a non-SingleAtomMarginal generator. This is not supported yet.");
+    }
+
  private:
     bool carry();
 };
@@ -641,6 +679,11 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
                     return true;
             }
         };
+    }
+
+    ISOSPEC_FORCE_INLINE void get_indexes(int* space)
+    {
+        ILG.get_conf_by_indexes(space);
     }
 };
 
