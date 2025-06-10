@@ -811,7 +811,7 @@ IsoLayeredGeneratorTemplate<MarginalType>::~IsoLayeredGeneratorTemplate()
 template class IsoLayeredGeneratorTemplate<LayeredMarginal>;
 //template class IsoLayeredGeneratorTemplate<PrecalculatedMarginal>;
 //template class IsoLayeredGeneratorTemplate<MarginalTrek>;
-template class IsoLayeredGeneratorTemplate<SingleAtomMarginal>;
+template class IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>>;
 
 /*
  * ------------------------------------------------------------------------------------------------------------------------
@@ -825,20 +825,18 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
     partialMasses = &currentMass;
     partialProbs = &currentProb;
 
-    marginalResults = new MarginalTrek*[dimNumber];
+    marginalResults = new MarginalType*[dimNumber];
 
     for(int i = 0; i < dimNumber; i++)
-        marginalResults[i] = new MarginalTrek(std::move(*(marginals[i])), _tabSize, _hashSize);
+        marginalResults[i] = new MarginalType(std::move(*(marginals[i])), _tabSize, _hashSize);
 
     logProbs        = new const pod_vector<double>*[dimNumber];
     masses          = new const pod_vector<double>*[dimNumber];
-    marginalConfs   = new const pod_vector<int*>*[dimNumber];
 
     for(int i = 0; i < dimNumber; i++)
     {
         masses[i] = &marginalResults[i]->conf_masses();
         logProbs[i] = &marginalResults[i]->conf_lprobs();
-        marginalConfs[i] = &marginalResults[i]->confs();
     }
 
     topConf = allocator.newConf();
@@ -864,7 +862,6 @@ IsoOrderedGeneratorTemplate<MarginalType>::~IsoOrderedGeneratorTemplate()
     dealloc_table<MarginalTrek*>(marginalResults, dimNumber);
     delete[] logProbs;
     delete[] masses;
-    delete[] marginalConfs;
     partialLProbs = nullptr;
     partialMasses = nullptr;
     partialProbs = nullptr;
@@ -921,6 +918,9 @@ bool IsoOrderedGeneratorTemplate<MarginalType>::advanceToNextConfiguration()
     return true;
 }
 
+template class IsoOrderedGeneratorTemplate<MarginalTrek>;
+//template class IsoOrderedGeneratorTemplate<SingleAtomMarginal>;
+
 
 /*
  * ---------------------------------------------------------------------------------------------------
@@ -939,7 +939,7 @@ rdvariate_gen(_rng)
 {}
 
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;
-template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<SingleAtomMarginal>>;
+template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>>>;
 template class IsoStochasticGeneratorTemplate<IsoOrderedGeneratorTemplate<MarginalTrek>>;
 //template class IsoStochasticGeneratorTemplate<IsoThresholdGenerator>;
 

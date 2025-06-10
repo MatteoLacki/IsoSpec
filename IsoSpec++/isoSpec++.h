@@ -243,7 +243,6 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
     DirtyAllocator              allocator;                          /*!< Structure used for alocating memory for isotopologues. */
     const pod_vector<double>**  logProbs;                           /*!< Obtained log-probabilities. */
     const pod_vector<double>**  masses;                             /*!< Obtained masses. */
-    const pod_vector<Conf>**    marginalConfs;                      /*!< Obtained counts of isotopes. */
     double                      currentLProb;                       /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                        /*!< The mass of the current isotopologue. */
     double                      currentProb;                        /*!< The probability of the current isotopologue. */
@@ -262,19 +261,24 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
     */
     inline void get_conf_signature(int* space) const override final
     {
-        int* c = getConf(topConf);
-
-        if (ccount >= 0)
-            c[ccount]--;
-
-        for(int ii = 0; ii < dimNumber; ii++)
+        if constexpr (std::is_same<MarginalType, MarginalTrek>::value)
         {
-            memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
+            int* c = getConf(topConf);
 
-        if (ccount >= 0)
-            c[ccount]++;
+            if (ccount >= 0)
+                c[ccount]--;
+
+            for(int ii = 0; ii < dimNumber; ii++)
+            {
+                memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+
+            if (ccount >= 0)
+                c[ccount]++;
+        }
+        else
+            throw std::runtime_error("IsoOrderedGeneratorTemplate::get_conf_signature() called on a non-MarginalTrek generator. This is not supported yet.");
     };
 
     //! The move-contstructor.

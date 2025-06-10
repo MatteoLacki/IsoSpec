@@ -697,7 +697,8 @@ double LayeredMarginal::get_max_mass() const
 
 /* ===============================================================   */
 
-SingleAtomMarginal::SingleAtomMarginal(Marginal&& m, int, int)
+template<bool add_guards>
+SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
 : Marginal(std::move(m)), current_threshold(1.0)
 {
     original_indexes.reserve(isotopeNo);
@@ -709,9 +710,14 @@ SingleAtomMarginal::SingleAtomMarginal(Marginal&& m, int, int)
 
     masses.reserve(isotopeNo);
     probs.reserve(isotopeNo);
-    lProbs.reserve(isotopeNo+2);  // +2 for the guardians
 
-    lProbs.push_back(std::numeric_limits<double>::infinity());
+    if constexpr (add_guards)
+    {
+        lProbs.reserve(isotopeNo+2);
+        lProbs.push_back(std::numeric_limits<double>::infinity());
+    }
+    else
+        lProbs.reserve(isotopeNo);
 
     for(size_t idx : original_indexes)
     {
@@ -719,8 +725,14 @@ SingleAtomMarginal::SingleAtomMarginal(Marginal&& m, int, int)
         probs.push_back(exp(lProbs.back()));
         masses.push_back(0.0);
     }
-    lProbs.push_back(-std::numeric_limits<double>::infinity());
-    guarded_lProbs = lProbs.data()+1;
+
+    if constexpr (add_guards)
+   {
+        lProbs.push_back(-std::numeric_limits<double>::infinity());
+        guarded_lProbs = lProbs.data()+1;
+    }
+    else
+        guarded_lProbs = lProbs.data();
 }
 
 }  // namespace IsoSpec

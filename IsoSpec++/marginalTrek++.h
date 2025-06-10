@@ -422,7 +422,7 @@ class LayeredMarginal : public Marginal
 
 
 
-
+template <bool add_guards>
 class SingleAtomMarginal : public Marginal
 {
  private:
@@ -478,6 +478,11 @@ class SingleAtomMarginal : public Marginal
         \return The log-probability of a/the most probable subisotopologue.
     */
     inline double getModeLProb() const { return mode_lprob; }
+
+    inline bool probeConfigurationIdx(int idx)
+    {
+        return idx < static_cast<int>(original_indexes.size());
+    }
 };
 
 
