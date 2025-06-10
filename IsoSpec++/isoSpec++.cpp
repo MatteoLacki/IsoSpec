@@ -859,7 +859,7 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 template<typename MarginalType>
 IsoOrderedGeneratorTemplate<MarginalType>::~IsoOrderedGeneratorTemplate()
 {
-    dealloc_table<MarginalTrek*>(marginalResults, dimNumber);
+    dealloc_table<MarginalType*>(marginalResults, dimNumber);
     delete[] logProbs;
     delete[] masses;
     partialLProbs = nullptr;
@@ -919,7 +919,7 @@ bool IsoOrderedGeneratorTemplate<MarginalType>::advanceToNextConfiguration()
 }
 
 template class IsoOrderedGeneratorTemplate<MarginalTrek>;
-//template class IsoOrderedGeneratorTemplate<SingleAtomMarginal>;
+template class IsoOrderedGeneratorTemplate<SingleAtomMarginal<false>>;
 
 
 /*

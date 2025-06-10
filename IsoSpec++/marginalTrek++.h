@@ -483,6 +483,8 @@ class SingleAtomMarginal : public Marginal
     {
         return idx < static_cast<int>(original_indexes.size());
     }
+    const pod_vector<double>& conf_lprobs() const { return lProbs; }
+    const pod_vector<double>& conf_masses() const { return masses; }
 };
 
 
