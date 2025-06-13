@@ -941,6 +941,7 @@ rdvariate_gen(_rng)
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>>>;
 template class IsoStochasticGeneratorTemplate<IsoOrderedGeneratorTemplate<MarginalTrek>>;
+template class IsoStochasticGeneratorTemplate<IsoOrderedGeneratorTemplate<SingleAtomMarginal<false>>>;
 //template class IsoStochasticGeneratorTemplate<IsoThresholdGenerator>;
 
 /*
