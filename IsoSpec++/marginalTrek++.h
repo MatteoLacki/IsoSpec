@@ -462,16 +462,16 @@ class SingleAtomMarginal : public Marginal
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
-    inline const Conf& get_conf([[maybe_unused]] int idx) const { throw std::logic_error("Not implemented"); /*return configurations[idx];*/ }
+    inline const Conf& get_conf([[maybe_unused]] int idx) const { throw std::logic_error("SingleAtomMarginal.get_conf: not implemented"); /*return configurations[idx];*/ }
 
     //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
-    inline unsigned int get_no_confs() const { throw std::logic_error("Not implemented"); }
+    inline unsigned int get_no_confs() const { return original_indexes.size(); }
 
     //! Get the minimal mass in current layer
-    inline double get_min_mass() const { throw std::logic_error("Not implemented"); };
+    inline double get_min_mass() const { throw std::logic_error("SingleAtomMarginal.get_min_mass: not implemented"); };
 
     //! Get the maximal mass in current layer
-    double get_max_mass() const { throw std::logic_error("Not implemented"); };
+    double get_max_mass() const { throw std::logic_error("SingleAtomMarginal.get_max_mass: not implemented"); };
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
