@@ -701,12 +701,14 @@ template<bool add_guards>
 SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
 : Marginal(std::move(m)), current_threshold(1.0)
 {
-    original_indexes.reserve(isotopeNo);
+    original_indexes.resize(isotopeNo);
     for(size_t ii = 0; ii < isotopeNo; ++ii)
         original_indexes[ii] = ii;
+
     std::sort(original_indexes.begin(), original_indexes.end(), [&](int a, int b) {
         return atom_lProbs[a] > atom_lProbs[b];
     });
+
 
     masses.reserve(isotopeNo);
     probs.reserve(isotopeNo);

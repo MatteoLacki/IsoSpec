@@ -96,6 +96,11 @@ template<typename T> void printVector(const std::vector<T>& vec)
     printArray<T>(vec.data(), vec.size());
 }
 
+template<typename T> void printVector(const pod_vector<T>& vec)
+{
+    printArray<T>(vec.data(), vec.size());
+}
+
 template<typename T> void printOffsets(const T** array, int size, const T* offset, const char* prefix = "")
 {
     if (strlen(prefix) > 0)
