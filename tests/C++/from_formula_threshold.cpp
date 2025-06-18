@@ -25,7 +25,7 @@ int main(int argc, char** argv)
             print_confs = (strcmp(argv[3], "true") == 0);
 
 	size_t no_visited = test_threshold(argv[1], atof(argv[2]), print_confs);
-	
+
 	std::cout << "The number of visited configurations is:" << no_visited << std::endl;
 
 }
@@ -46,7 +46,7 @@ size_t test_threshold(const char* formula, double threshold, bool print_confs)
         int* confspace2 = new int[i2.getAllDim()];
         //int* confspace3 = new int[i3.getAllDim()]; // these will be in different order...
         size_t no_visited = 0;
-        double total_prob = 0.0;
+        [[maybe_unused]] double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
                 assert(i2.advanceToNextConfiguration());
