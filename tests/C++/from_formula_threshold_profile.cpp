@@ -19,7 +19,7 @@ int main(int argc, char** argv)
         size_t v = 0;
         for (int ii=0; ii<10000; ii++)
 	    v += test_threshold_simple(argv[1], atof(argv[2]));
-	
+
 	std::cout << "The number of visited configurations is:" << v << std::endl;
 
 }
@@ -30,8 +30,8 @@ size_t test_threshold_simple(const char* formula, double threshold)
 {
 
 	IsoThresholdGenerator i(formula, threshold, true, 100, 100, true);
-        int no_visited = 0;
-        double total_prob = 0.0;
+    int no_visited = 0;
+    [[maybe_unused]] double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
 		no_visited += 1;
