@@ -409,11 +409,10 @@ class LayeredMarginal : public Marginal
         \return The log-probability of a/the most probable subisotopologue.
     */
     inline double getModeLProb() const { return mode_lprob; }
+    const pod_vector<double>& conf_lprobs() const { return lProbs; }
+    const pod_vector<double>& conf_masses() const { return masses; }
+
 };
-
-
-
-
 
 
 
@@ -432,6 +431,7 @@ class SingleAtomMarginal : public Marginal
     pod_vector<double> masses;
     pod_vector<size_t> original_indexes;
     double* guarded_lProbs;
+    int extended_to_idx;
 
  public:
     //! Move constructor: specializes the Marginal class.
@@ -447,7 +447,18 @@ class SingleAtomMarginal : public Marginal
         \param new_threshold The new log-probability limiting the subisotopologues from below.
         \return Returns false, if there are no fringe-subisotopologues (subisotopologues that were neighbours of the previously calculated subisotopologues, with log-probability below the previous threshold).
     */
-    bool extend(double new_threshold, [[maybe_unused]] bool do_sort = true) { current_threshold = new_threshold; return false;};
+    bool extend(double new_threshold, [[maybe_unused]] bool do_sort = true) {
+        static_assert(add_guards, "SingleAtomMarginal::extend: add_guards must be true");
+        printArray<double>(lProbs.data(), lProbs.size());
+        current_threshold = new_threshold;
+        bool extended = false;
+        while(guarded_lProbs[extended_to_idx] >= current_threshold)
+        {
+            extended_to_idx++;
+            extended = true;
+        }
+        return extended or (guarded_lProbs[extended_to_idx] != -std::numeric_limits<double>::infinity());
+    };
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
     inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
@@ -465,7 +476,11 @@ class SingleAtomMarginal : public Marginal
     inline const Conf& get_conf([[maybe_unused]] int idx) const { throw std::logic_error("SingleAtomMarginal.get_conf: not implemented"); /*return configurations[idx];*/ }
 
     //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
-    inline unsigned int get_no_confs() const { return original_indexes.size(); }
+    inline unsigned int get_no_confs() const {
+        if constexpr(add_guards)
+            return extended_to_idx;
+        else
+            return static_cast<unsigned int>(original_indexes.size());}
 
     //! Get the minimal mass in current layer
     inline double get_min_mass() const { throw std::logic_error("SingleAtomMarginal.get_min_mass: not implemented"); };

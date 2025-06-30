@@ -699,7 +699,7 @@ double LayeredMarginal::get_max_mass() const
 
 template<bool add_guards>
 SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
-: Marginal(std::move(m)), current_threshold(1.0)
+: Marginal(std::move(m)), current_threshold(1.0), extended_to_idx(0)
 {
     original_indexes.resize(isotopeNo);
     for(size_t ii = 0; ii < isotopeNo; ++ii)
@@ -725,7 +725,7 @@ SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
     {
         lProbs.push_back(atom_lProbs[idx]);
         probs.push_back(exp(lProbs.back()));
-        masses.push_back(0.0);
+        masses.push_back(atom_masses[idx]);
     }
 
     if constexpr (add_guards)
