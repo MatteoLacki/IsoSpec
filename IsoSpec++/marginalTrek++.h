@@ -449,7 +449,6 @@ class SingleAtomMarginal : public Marginal
     */
     bool extend(double new_threshold, [[maybe_unused]] bool do_sort = true) {
         static_assert(add_guards, "SingleAtomMarginal::extend: add_guards must be true");
-        printArray<double>(lProbs.data(), lProbs.size());
         current_threshold = new_threshold;
         bool extended = false;
         while(guarded_lProbs[extended_to_idx] >= current_threshold)
