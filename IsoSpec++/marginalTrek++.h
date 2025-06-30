@@ -21,6 +21,7 @@
 #include <vector>
 #include <functional>
 #include <utility>
+#include <memory>
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
