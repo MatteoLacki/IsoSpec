@@ -30,10 +30,10 @@ extern const double aa_elem_probabilities[19];
 
 extern const int aa_symbol_to_elem_counts[256*6];
 
-//! Count elemental composition of an unmodificed sequence of amino acids.
+//! Count elemental composition of an unmodificed sequence of amino acids, resulting in CHNOSSe counts.
 /*!
-    WARNING!!! This function does deal with any questions regarding Water.
-    If you pass in a sequence (from a fasta, but someone here does not discern between the two), add water yourself. If you pass in a b or y fragment, add water yourself.
+    WARNING!!! This function does not add the terminating H and OH groups, resulting in a residue backbone skeleton formula.
+    If you don't know what that means, you should probably be using parse_fasta_full function.
 */
 inline void parse_fasta(const char* fasta, int atomCounts[6])
 {
@@ -47,11 +47,11 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
     }
 }
 
-//! Count elemental composition of an unmodified (stripped and hot) sequeqnce.
+//! Turn an input FASTA aminoacid sequence into atom counts, in CHNOSSe order.
 /*!
-    This function adds the missing water.
+    Unlike parse_fasta, this function includes the H and OH groups at the N- and C- termini of the skeleton, resulting in a formula of a full (inert) molecule.
 */
-inline void atom_counts_from_unmodified_sequence(const char* fasta, int atomCounts[6])
+inline void parse_fasta_full(const char* fasta, int atomCounts[6])
 {
     parse_fasta(fasta, atomCounts)
     // Add terminal water (H2O) for either precursor or fragment.
