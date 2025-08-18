@@ -21,6 +21,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
