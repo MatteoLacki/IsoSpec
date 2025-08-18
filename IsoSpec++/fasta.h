@@ -53,7 +53,7 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
 */
 inline void parse_fasta_full(const char* fasta, int atomCounts[6])
 {
-    parse_fasta(fasta, atomCounts)
+    parse_fasta(fasta, atomCounts);
     // Add terminal water (H2O) for either precursor or fragment.
     const int H_INDEX = 1; // Indexing: 0=C, 1=H, 2=N, 3=O, 4=S, 5=Se
     const int O_INDEX = 3;
