@@ -457,7 +457,7 @@ class SingleAtomMarginal : public Marginal
             extended_to_idx++;
             extended = true;
         }
-        return extended or (guarded_lProbs[extended_to_idx] != -std::numeric_limits<double>::infinity());
+        return extended || (guarded_lProbs[extended_to_idx] != -std::numeric_limits<double>::infinity());
     };
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
