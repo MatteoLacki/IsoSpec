@@ -656,7 +656,7 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
             if(expected_confs <= beta_bias)
             {
                 // Beta mode: we keep making beta jumps until we leave the current configuration
-                chasing_prob += rdvariate_beta_1_b(to_sample_left) * prob_left_to_1;
+                chasing_prob += rdvariate_beta_1_b(to_sample_left, rdvariate_gen) * prob_left_to_1;
                 while(chasing_prob <= confs_prob)
                 {
                     current_count++;
@@ -664,7 +664,7 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
                     if(to_sample_left == 0)
                         return true;
                     prob_left_to_1 = precision - chasing_prob;
-                    chasing_prob += rdvariate_beta_1_b(to_sample_left) * prob_left_to_1;
+                    chasing_prob += rdvariate_beta_1_b(to_sample_left, rdvariate_gen) * prob_left_to_1;
                 }
                 if(current_count > 0)
                     return true;
@@ -672,7 +672,7 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
             else
             {
                 // Binomial mode: a single binomial step
-                size_t rbin = rdvariate_binom(to_sample_left, curr_conf_prob_left/prob_left_to_1);
+                size_t rbin = rdvariate_binom(to_sample_left, curr_conf_prob_left/prob_left_to_1, rdvariate_gen);
                 current_count += rbin;
                 to_sample_left -= rbin;
                 chasing_prob = confs_prob;
