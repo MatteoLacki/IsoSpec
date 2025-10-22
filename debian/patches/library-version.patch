@@ -1,46 +1,13 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ecc3ce8..9479523 100644
+index d839ba8..3fa336b 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -20,19 +20,19 @@ project(IsoSpec
+@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.12)
+ ############################################################
+ # Basic information about project
+ 
+-project(IsoSpec VERSION 2.3.0
++project(IsoSpec VERSION 2.3.0
+     DESCRIPTION "A program to calculate isotopic clusters"
      HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
-
- set(ISOSPEC_VERSION_MAJOR "2")
--set(ISOSPEC_VERSION_MINOR "2")
-+set(ISOSPEC_VERSION_MINOR "2")
- set(ISOSPEC_VERSION_PATCH "3")
- set(ISOSPEC_LIB_NAME "libIsoSpec++")
- set(ISOSPEC_VERSION "${ISOSPEC_VERSION_MAJOR}.${ISOSPEC_VERSION_MINOR}.${ISOSPEC_VERSION_PATCH}")
--set(VERSION 2.2.3)
-+set(VERSION 2.2.3)
- set(ISOSPEC_LIB_VERSION ${ISOSPEC_VERSION})
- set(ISOSPEC_LIB_SOVERSION ${ISOSPEC_VERSION_MAJOR})
-
- # Command to enable debug mode
--# cmake -DCMAKE_BUILD_TYPE=Debug
-+# cmake -DCMAKE_BUILD_TYPE=Debug
-
-
--# This setting is also typically overridden by
-+# This setting is also typically overridden by
- # configuring the build system like this:
- # cmake -DCMAKE_INSTALL_PREFIX=/usr
- # It needs to be set before include(GNUInstallDirs)
-@@ -42,7 +42,7 @@ if(NOT CMAKE_INSTALL_PREFIX)
-     set(CMAKE_INSTALL_PREFIX /usr)
- endif()
-
--# This module sets a number of installation directories
-+# This module sets a number of installation directories
- # according to the GNU coding standards. It takes the
- # CMAKE_INSTALL_PREFIX and then add the directories to it.
- include(GNUInstallDirs)
-@@ -56,7 +56,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_UTILS_PATH}/modules)
- #message("CMAKE_MODULE_PATH:" ${CMAKE_MODULE_PATH})
-
- # This says that when compiling, .h files must also be
--# searche in the current directory where cpp files are
-+# searche in the current directory where cpp files are
- # compiled.
- set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
+ 

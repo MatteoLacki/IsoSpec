@@ -1,6 +1,4 @@
-# No need for this version because we update the software
-# along with Michal and Mateo.
-# library-version.patch
+library-version.patch
 header-file-inclusion.patch
 disable-pdf-refman-generation.patch
 
