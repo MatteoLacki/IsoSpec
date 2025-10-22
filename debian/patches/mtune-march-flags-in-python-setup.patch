@@ -1,0 +1,24 @@
+diff --git a/setup.py b/setup.py
+index 29826cb..cbf0dd6 100644
+--- a/setup.py
++++ b/setup.py
+@@ -37,8 +37,8 @@ def get_cflags():
+     if use_asan:
+         return '-O0 -g -DISOSPEC_DEBUG -std=c++17 -fsanitize=address'.split()
+     ret = ['-O3', '-std=c++17']
+-    if native_ok:
+-        ret.extend(['-mtune=native', '-march=native'])
++    # if native_ok:
++    #     ret.extend(['-mtune=native', '-march=native'])
+     return ret
+ 
+ cmodule = Extension('IsoSpecCppPy',
+@@ -178,7 +178,7 @@ elif 'darwin' in platform.system().lower():
+     # clang which needs extra commandline arguments to compile anything that imports stdlib headers. Because hey, it's absolutely normal
+     # that C++ compiler should require extra commandline args to compile a "Hello World" program, and of course those commandline options
+     # are incompatible with g++ it's pretending to be. Someone at Apple should be tarred and feathered for this. For now we will do
+-    # some convoluted logic to try to find out experimentally whether "g++" really is g++, or is working clang or is broken clang, and 
++    # some convoluted logic to try to find out experimentally whether "g++" really is g++, or is working clang or is broken clang, and
+     # which flags are needed to compile stuff. Setuptools don't make this easy to do as well...
+     #
+     # See https://github.com/mciach/wassersteinms/issues/1 for the rationale behind this.

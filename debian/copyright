@@ -1,17 +1,13 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: libisospec
 Source: https://github.com/MatteoLacki/IsoSpec
-Files-Excluded: IsoSpecPy/IsoSpecPy/prebuilt-libIsoSpec++-*.dll
- man/html
- man/man
- man/latex
 Comment: The upstream source tarball contains Windows dll files and 
     other documentation files that are regenerated using doxygen.
     All these files are thereby not useful or appropriate for use as 
     source files. This violates DFSG §2.
 
 Files: *
-Copyright: 2015-2018 Michal Startek
+Copyright: 2015-2018 Micha Startek
            2015-2018 Mateusz Lacki
 License: BSD-2-Clause
  Redistribution and use in source and binary forms, with or without

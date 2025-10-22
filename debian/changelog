@@ -1,17 +1,84 @@
-isospec (2.1.3+dfsg1-1) unstable; urgency=low
+isospec (2.3.0-1) unstable; urgency=medium
+
+  * New upstream release with source configuration worked alongside
+    upstream.
+
+  * Disabled production of the refman.pdf file due to bug in Doxygen
+    (Closes: #1114157) and synchronize the git repos.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 22 Oct 2025 12:14:20 +0200
+
+isospec (2.2.3+cleaned2-1) UNRELEASED; urgency=medium
+
+  * Disabled production of the refman.pdf file due to bug in Doxygen
+    (Closes: #1114157) and synchronize the git repos.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 22 Oct 2025 12:14:20 +0200
+
+isospec (2.2.3+cleaned1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Standards-Version: 4.7.2
+
+ -- Filippo Rusconi <lopippo@debian.org>  Thu, 16 Oct 2025 11:52:51 +0200
+
+isospec (2.2.1-4.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Rename libraries for 64-bit time_t transition.  Closes: #1062459
+
+ -- Lukas Märdian <slyon@debian.org>  Wed, 28 Feb 2024 11:50:05 +0000
+
+isospec (2.2.1-4) unstable; urgency=low
+
+  * Fixes as suggested by Janitor. See below.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Fri, 25 Aug 2023 12:18:04 +0200
+
+isospec (2.2.1-3) unstable; urgency=low
+
+  * Fix the Bug#1047034: isospec: Fails to build source after successful build
+    by improving the override_dh_clean target in d/rules. Thanks to Lucas
+    Nussbaum <lucas@debian.org> for reporting. Closes: #1047034.
+
+ -- Filippo Rusconi <lopippo@debian.org>  Fri, 25 Aug 2023 11:42:48 +0200
+
+isospec (2.2.1-2) UNRELEASED; urgency=medium
+
+  * Remove constraints unnecessary since buster (oldstable):
+    + Build-Depends: Drop versioned constraint on cmake, d-shlibs, dh-exec and
+      dpkg-dev.
+
+ -- Debian Janitor <janitor@jelmer.uk>  Mon, 31 Oct 2022 15:36:43 -0000
+
+isospec (2.2.1-1) unstable; urgency=low
+
+  * New upstream version.
+
+  * Updates to patches.
+
+  * Standards-Version: 4.6.1 (routine update).
+
+ -- Filippo Rusconi <lopippo@debian.org>  Sat, 12 Nov 2022 22:05:29 +0100
+
+isospec (2.1.3-1) unstable; urgency=low
 
   * New upstream 2.1.3 release.
+
+  * d/copyright: remove stanza on exclusion of files because these are now
+    removed from upstream following my own recommendation, yay! Also, no more
+    dfsg suffix to the package name.
 
  -- Filippo Rusconi <lopippo@debian.org>  Thu, 15 Oct 2020 16:04:44 +0200
 
 isospec (2.1.2+dfsg1-3) unstable; urgency=low
 
   * Remove the r-cran-isospec package as it is alreay packaged by Dylan Aîssi
-    <daissi@debian.org>. 
+    <daissi@debian.org>.
     See https://salsa.debian.org/r-pkg-team/r-cran-isospecr.
 
   * Closes: #962130 by Dylan Aîssi although we'll need to sort out
-    how to provide the R package basing it on the R-cran repository 
+    how to provide the R package basing it on the R-cran repository
     IsoSpecR package (see mail in the bug). Dylan, if you are listening,
     maybe you could open an ITP bug?
 
@@ -19,7 +86,7 @@ isospec (2.1.2+dfsg1-3) unstable; urgency=low
 
 isospec (2.1.2+dfsg1-2) unstable; urgency=low
 
-  * Remove unversioned Python (Closes: #967147), thanks to 
+  * Remove unversioned Python (Closes: #967147), thanks to
     Matthias Klose <doko@debian.org> for the report. Nothing more to do than
     remove the python* build-depends packages.
 
@@ -122,3 +189,4 @@ isospec (1.9.1-1) unstable; urgency=medium
   * Initial release (Closes: #916218).
 
  -- Filippo Rusconi <lopippo@debian.org>  Sat, 19 Jan 2019 13:56:13 +0100
+
