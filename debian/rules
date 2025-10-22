@@ -14,78 +14,76 @@ include /usr/share/dpkg/buildflags.mk
 export LC_ALL=C.UTF-8
 
 # For automating the d/*.links stuff.
-export ISOSPEC_LIB_VERSION=2.1.3
+export ISOSPEC_LIB_VERSION=$(DEB_VERSION_UPSTREAM)
 export ISOSPEC_LIB_SOVERSION=2
 
 export PYBUILD_NAME=isospec
+
+export PYBUILD_SYSTEM=pyproject
+
 
 # Taken from CDBS file for R.
 rversion	:= $(shell dpkg-query -W -f='$${Version}' r-base-dev)
 rapiversion	:= $(shell dpkg-query -W -f='$${Provides}' r-base-core | grep -o 'r-api[^, ]*')
 
 %:
-	dh $@ --with python3
+	dh $@ --with python3 --buildsystem=pybuild
 
 override_dh_clean:
-	rm -rf obj-x86_64-linux-gnu
-	# The setup.py script immediately creates that link which
-	# makes the package building to stop because it finds that 
-	# the source tree has changed. So, first remove that link,
-	# that we'll recreate when we need it later, in the
-	# override_dh_auto_build target.
-	rm -rf IsoSpecPy/IsoSpec++
+	dh_quilt_unpatch
+	rm -rf obj-$(DEB_HOST_MULTIARCH)
+	rm -rf build
+	rm -f compile_commands.json
+	rm -rf .pc
+	rm -rf IsoSpecPy.egg-info
 	rm -rf .pybuild/
 	rm -rf tmp-install/
 	rm -rf IsoSpec++/IsoSpec++
 	rm -rf IsoSpecPy/build/
-	rm -rf man/html/
-	rm -rf man/latex/
-	rm -rf man/man/
+
 	# Now the default target
 	dh_clean
-
-configure_python_module:
-	dh_auto_configure -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
 
 configure_cpp_library:
 	dh_auto_configure -O--buildsystem=cmake -- \
 		-DCMAKE_INSTALL_PREFIX=/usr \
-		-DISOSPEC_LIB_VERSION=2.1.0 -DISOSPEC_LIB_SOVERSION=2
+		-DISOSPEC_LIB_VERSION=$(ISOSPEC_LIB_VERSION) -DISOSPEC_LIB_SOVERSION=$(ISOSPEC_LIB_SOVERSION)
+
+configure_python_module:
+	dh_auto_configure -O--buildsystem=pybuild -O--system=distutils --sourcedirectory=./IsoSpecPy
 
 configure_cpp_library_doc:
 	dh_auto_configure -O--buildsystem=cmake -- \
 		-DCMAKE_INSTALL_PREFIX=/usr \
-		-DISOSPEC_LIB_VERSION=2.1.0 -DISOSPEC_LIB_SOVERSION=2
+		-DISOSPEC_LIB_VERSION=$(ISOSPEC_LIB_VERSION) -DISOSPEC_LIB_SOVERSION=$(ISOSPEC_LIB_SOVERSION)
 
-override_dh_auto_configure: configure_python_module configure_cpp_library configure_cpp_library_doc
+override_dh_auto_configure:
+	dh_auto_configure -O--buildsystem=cmake -- \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DISOSPEC_LIB_VERSION=$(ISOSPEC_LIB_VERSION) -DISOSPEC_LIB_SOVERSION=$(ISOSPEC_LIB_SOVERSION)
 
-build_python_module: configure_python_module
-	dh_auto_build -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
-
-build_cpp_library: configure_cpp_library
+override_dh_auto_build:
+	# The C++ lib
 	dh_auto_build -O--buildsystem=cmake
+	# The Python module
+	dh_auto_build --buildsystem=pybuild
+	# The Doxygen-based HTML format documentation
+	dh_auto_build -O--buildsystem=cmake -- html_doc
+	# The Doxygen-based PDF format documentation
+	# As of 20251016, pdflatex refman.tex fails.
+	# dh_auto_build -O--buildsystem=cmake -- pdf_doc
 
-build_cpp_library_doc: configure_cpp_library_doc
-	# Generate the dev-doc in the man/hml and man/latex directories
-	#doxygen man/doxyfile
-	dh_auto_build -O--buildsyste=cmake -- html_doc
-	dh_auto_build -O--buildsyste=cmake -- pdf_doc
 	# sed-based replacement of the cloudflare URL with the MathJax.js file from the
 	# libjs-mathjax package
 	sh debian/replace-mathjax-cloudflare-url-local-file.sh
 
-override_dh_auto_build: build_python_module build_cpp_library build_cpp_library_doc
-	# Recreate the symlink that was created by setup.py 
-	# and that we had to remove at the override_dh_clean target.
-	ln -sf IsoSpec++ IsoSpecPy/IsoSpec++
-
-override_dh_auto_install: override_dh_auto_build
-	# Install the Python module
-	dh_auto_install -O--buildsystem=pybuild --sourcedirectory=IsoSpecPy
-	# Install the C++ library
+override_dh_auto_install:
+	# The C++ lib
 	dh_auto_install -O--buildsystem=cmake
+	# The Python module
+	dh_auto_install -O--buildsystem=pybuild
 	# Now remove the links, that we'll provide using d/*.links
 	# So that we can use libIsoSpec++.so.* in d/*.install
-	rm -f debian/tmp/usr/lib/*/libIsoSpec++.so 
+	rm -f debian/tmp/usr/lib/*/libIsoSpec++.so
 	rm -f debian/tmp/usr/lib/*/libIsoSpec++.so.$(ISOSPEC_LIB_SOVERSION)
 

@@ -1,3 +1,6 @@
-0001-Ensure-the-header-files-are-found-in-the-system.patch
-0002-Remove-the-mtune-native-march-native.patch
+# No need for this version because we update the software
+# along with Michal and Mateo.
+# library-version.patch
+header-file-inclusion.patch
+disable-pdf-refman-generation.patch
 

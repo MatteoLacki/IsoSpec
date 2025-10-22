@@ -15,24 +15,25 @@ cmake_minimum_required(VERSION 3.12)
 ############################################################
 # Basic information about project
 
-project(IsoSpec
+project(IsoSpec VERSION 2.3.0
     DESCRIPTION "A program to calculate isotopic clusters"
     HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
 
-set(ISOSPEC_VERSION_MAJOR "2")
-set(ISOSPEC_VERSION_MINOR "1")
-set(ISOSPEC_VERSION_PATCH "3")
-set(ISOSPEC_LIB_NAME "libIsoSpec++")
-set(ISOSPEC_VERSION "${ISOSPEC_VERSION_MAJOR}.${ISOSPEC_VERSION_MINOR}.${ISOSPEC_VERSION_PATCH}")
-set(VERSION 2.1.3)
-set(ISOSPEC_LIB_VERSION ${ISOSPEC_VERSION})
-set(ISOSPEC_LIB_SOVERSION ${ISOSPEC_VERSION_MAJOR})
+# The call above, make these variables available:
+# ${PROJECT_NAME}_VERSION        # full version string
+# ${PROJECT_NAME}_VERSION_MAJOR
+# ${PROJECT_NAME}_VERSION_MINOR
+# ${PROJECT_NAME}_VERSION_PATCH
+
+message("Library version: ${${PROJECT_NAME}_VERSION}")
+set(${PROJECT_NAME}_LIB_SOVERSION "${${PROJECT_NAME}_VERSION_MAJOR}")
+message("Library soname: ${${PROJECT_NAME}_LIB_SOVERSION}")
 
 # Command to enable debug mode
-# cmake -DCMAKE_BUILD_TYPE=Debug 
+# cmake -DCMAKE_BUILD_TYPE=Debug
 
 
-# This setting is also typically overridden by 
+# This setting is also typically overridden by
 # configuring the build system like this:
 # cmake -DCMAKE_INSTALL_PREFIX=/usr
 # It needs to be set before include(GNUInstallDirs)
@@ -42,7 +43,7 @@ if(NOT CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX /usr)
 endif()
 
-# This module sets a number of installation directories 
+# This module sets a number of installation directories
 # according to the GNU coding standards. It takes the
 # CMAKE_INSTALL_PREFIX and then add the directories to it.
 include(GNUInstallDirs)
@@ -56,7 +57,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_UTILS_PATH}/modules)
 #message("CMAKE_MODULE_PATH:" ${CMAKE_MODULE_PATH})
 
 # This says that when compiling, .h files must also be
-# searche in the current directory where cpp files are 
+# searche in the current directory where cpp files are
 # compiled.
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -121,8 +122,9 @@ message(STATUS "${BoldGreen}CMAKE_BINARY_DIR: ${CMAKE_BINARY_DIR}${ColourReset}"
 # to build Win software right into GNU/Linux.
 if(MXE)
 
-    include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain.cmake)
-    #include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain-olivier.cmake)
+    # Run the following cmake command line:
+    # x86_64-w64-mingw32.shared-cmake -DCMAKE_BUILD_TYPE=Release -DMXE=1 ../development
+    include(${CMAKE_TOOLCHAINS_PATH}/mxe-toolchain-$ENV{USER}.cmake)
 
     # Set the name to the systemUname variable because in this situation that name
     # is not found, it it passed as a flag in the command line.
@@ -137,10 +139,6 @@ elseif(WIN32 OR _WIN32)
     if(WIN10MINGW64)
         include(${CMAKE_TOOLCHAINS_PATH}/win10-mingw64-toolchain.cmake)
     endif()
-
-elseif(APPLE)
-
-    include(${CMAKE_TOOLCHAINS_PATH}/apple-macport-toolchain.cmake)
 
 endif()
 
@@ -177,8 +175,11 @@ endif(CMAKE_BUILD_TYPE MATCHES "RelWithDebInfo")
 message(STATUS "${BoldYellow}CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}.${ColourReset}")
 message(STATUS "${BoldYellow}CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}.${ColourReset}")
 
-
 # message(STATUS CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH})
 
 # Now actually deal with the C++ source code.
 add_subdirectory(IsoSpec++)
+
+# if (UNIX AND NOT APPLE)
+#   add_subdirectory(skbuild)
+# endif()

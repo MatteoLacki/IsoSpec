@@ -1,0 +1,30 @@
+diff --git a/man/CMakeLists.txt b/man/CMakeLists.txt
+index 79c91a1..ef07d8f 100644
+--- a/man/CMakeLists.txt
++++ b/man/CMakeLists.txt
+@@ -54,13 +54,18 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/images
+ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
+ 	DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/doc/isospec)
+ 
+-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
+-	DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/doc/isospec/pdf)
+-
+-file(GLOB man3_pages "${CMAKE_CURRENT_BINARY_DIR}/man/man3/*")
+-
+-install(FILES ${man3_pages}
+-	DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man3)
++# As of 20251020 the Doxygen-based generation of the pdf
++# man page via pdflatex fails.
++# install(FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
++# 	DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/doc/isospec/pdf)
++
++# Install the man pages
++install(
++    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/man/man3
++    DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/
++    FILES_MATCHING
++    PATTERN "*.3"
++)
+ 
+ message("")
+ message(STATUS "${BoldGreen}Finished configuration of the doc material.${ColourReset}")

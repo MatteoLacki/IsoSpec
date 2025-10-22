@@ -9,6 +9,7 @@ Format: HTML
 Index: /usr/share/doc/isospec/html/index.html
 Files: /usr/share/doc/isospec/html/*.html
 
-Format: PDF
-Files: /usr/share/doc/isospec/pdf/refman.pdf.gz
+# As of 20251016, pdflatex refman.tex fails.
+# Format: PDF
+# Files: /usr/share/doc/isospec/pdf/refman.pdf.gz
 
