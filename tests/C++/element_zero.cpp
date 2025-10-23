@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 	}
 	size_t nc = test_zero(0.1, true);
         std::cout << "No confs visited: " << nc << std::endl;
-	
+
 
 }
 #endif /* ISOSPEC_TESTS_SKIP_MAIN */
@@ -43,7 +43,7 @@ size_t test_zero(double threshold, bool print_confs)
         i.reset();
         int* confspace = new int[i.getAllDim()];
         int no_visited = 0;
-        double total_prob = 0.0;
+        [[maybe_unused]] double total_prob = 0.0;
 	while(i.advanceToNextConfiguration())
 	{
                 i.get_conf_signature(confspace);

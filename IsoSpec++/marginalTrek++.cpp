@@ -695,4 +695,46 @@ double LayeredMarginal::get_max_mass() const
     return ret;
 }
 
+/* ===============================================================   */
+
+template<bool add_guards>
+SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
+: Marginal(std::move(m)), current_threshold(1.0), extended_to_idx(0)
+{
+    original_indexes.resize(isotopeNo);
+    for(size_t ii = 0; ii < isotopeNo; ++ii)
+        original_indexes[ii] = ii;
+
+    std::sort(original_indexes.begin(), original_indexes.end(), [&](int a, int b) {
+        return atom_lProbs[a] > atom_lProbs[b];
+    });
+
+
+    masses.reserve(isotopeNo);
+    probs.reserve(isotopeNo);
+
+    if constexpr (add_guards)
+    {
+        lProbs.reserve(isotopeNo+2);
+        lProbs.push_back(std::numeric_limits<double>::infinity());
+    }
+    else
+        lProbs.reserve(isotopeNo);
+
+    for(size_t idx : original_indexes)
+    {
+        lProbs.push_back(atom_lProbs[idx]);
+        probs.push_back(exp(lProbs.back()));
+        masses.push_back(atom_masses[idx]);
+    }
+
+    if constexpr (add_guards)
+   {
+        lProbs.push_back(-std::numeric_limits<double>::infinity());
+        guarded_lProbs = lProbs.data()+1;
+    }
+    else
+        guarded_lProbs = lProbs.data();
+}
+
 }  // namespace IsoSpec

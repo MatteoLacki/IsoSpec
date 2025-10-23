@@ -15,6 +15,7 @@
 #include "platform.h"
 #if ISOSPEC_GOT_MMAN && !ISOSPEC_GOT_SYSTEM_MMAN
 
+#define NOMINMAX
 #include <windows.h>
 #include <errno.h>
 #include <io.h>

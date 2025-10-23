@@ -21,6 +21,7 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "platform.h"
 #include "dirtyAllocator.h"
 #include "summator.h"
@@ -233,24 +234,24 @@ class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
     This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
     Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
 */
-class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
+template<typename MarginalType>
+class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
 {
  private:
-    MarginalTrek**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
+    MarginalType**              marginalResults;                    /*!< Table of pointers to marginal distributions of subisotopologues. */
     std::priority_queue<void*, pod_vector<void*>, ConfOrder> pq;   /*!< The priority queue used to generate isotopologues ordered by descending probability. */
     void*                       topConf;                            /*!< Most probable configuration. */
     DirtyAllocator              allocator;                          /*!< Structure used for alocating memory for isotopologues. */
     const pod_vector<double>**  logProbs;                           /*!< Obtained log-probabilities. */
     const pod_vector<double>**  masses;                             /*!< Obtained masses. */
-    const pod_vector<Conf>**    marginalConfs;                      /*!< Obtained counts of isotopes. */
     double                      currentLProb;                       /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                        /*!< The mass of the current isotopologue. */
     double                      currentProb;                        /*!< The probability of the current isotopologue. */
     int                         ccount;
 
  public:
-    IsoOrderedGenerator(const IsoOrderedGenerator& other) = delete;
-    IsoOrderedGenerator& operator=(const IsoOrderedGenerator& other) = delete;
+    IsoOrderedGeneratorTemplate(const IsoOrderedGeneratorTemplate& other) = delete;
+    IsoOrderedGeneratorTemplate& operator=(const IsoOrderedGeneratorTemplate& other) = delete;
 
     bool advanceToNextConfiguration() override final;
 
@@ -261,29 +262,49 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
     */
     inline void get_conf_signature(int* space) const override final
     {
-        int* c = getConf(topConf);
-
-        if (ccount >= 0)
-            c[ccount]--;
-
-        for(int ii = 0; ii < dimNumber; ii++)
+        if constexpr (std::is_same<MarginalType, MarginalTrek>::value)
         {
-            memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
-            space += isotopeNumbers[ii];
-        }
+            int* c = getConf(topConf);
 
-        if (ccount >= 0)
-            c[ccount]++;
+            if (ccount >= 0)
+                c[ccount]--;
+
+            for(int ii = 0; ii < dimNumber; ii++)
+            {
+                memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
+                space += isotopeNumbers[ii];
+            }
+
+            if (ccount >= 0)
+                c[ccount]++;
+        }
+        else
+            throw std::runtime_error("IsoOrderedGeneratorTemplate::get_conf_signature() called on a non-MarginalTrek generator. This is not supported yet.");
     };
 
     //! The move-contstructor.
-    IsoOrderedGenerator(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
-    virtual ~IsoOrderedGenerator();
+    virtual ~IsoOrderedGeneratorTemplate();
+
+    inline void get_conf_by_indexes(int* space)
+    {
+        if constexpr (std::is_same<MarginalType, SingleAtomMarginal<false>>::value)
+        {
+            if(dimNumber == 0)
+                return;
+
+            int* c = getConf(topConf);
+            space[0] = std::max(c[0]-1, 0);
+
+            for(int ii = 1; ii < dimNumber; ii++)
+                space[ii] = c[ii];
+        }
+    }
 };
 
-
+using IsoOrderedGenerator = IsoOrderedGeneratorTemplate<MarginalTrek>;
 
 
 //! The generator of isotopologues above a given threshold value.
@@ -533,6 +554,29 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 
     bool nextLayer(double offset);
 
+    void get_conf_by_indexes(int* space) const
+    {
+        if constexpr (std::is_same<MarginalType, SingleAtomMarginal<true>>::value)
+        {
+            counter[0] = lProbs_ptr - lProbs_ptr_start;
+            if(marginalOrder != nullptr)
+            {
+                for(int ii = 0; ii < dimNumber; ii++)
+                {
+                    int jj = marginalOrder[ii];
+                    space[ii] = marginalResultsUnsorted[ii]->get_original_position(counter[jj]);
+                }
+            }
+            else
+            {
+                for(int ii = 0; ii < dimNumber; ii++)
+                    space[ii] = marginalResultsUnsorted[ii]->get_original_position(counter[ii]);
+            }
+        }
+        else
+            throw std::runtime_error("IsoLayeredGeneratorTemplate::get_conf_by_indexes() called on a non-SingleAtomMarginal generator. This is not supported yet.");
+    }
+
  private:
     bool carry();
 };
@@ -548,9 +592,10 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
     double confs_prob;
     double chasing_prob;
     size_t current_count;
+    std::mt19937& rdvariate_gen;  /*!< The random number generator used to generate random numbers. */
 
  public:
-    IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0);
+    IsoStochasticGeneratorTemplate(Iso&& iso, size_t no_molecules, double precision = 0.9999, double beta_bias = 5.0, std::mt19937& rdvariate_gen = random_gen);
 
     ISOSPEC_FORCE_INLINE size_t count() const { return current_count; }
 
@@ -611,7 +656,7 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
             if(expected_confs <= beta_bias)
             {
                 // Beta mode: we keep making beta jumps until we leave the current configuration
-                chasing_prob += rdvariate_beta_1_b(to_sample_left) * prob_left_to_1;
+                chasing_prob += rdvariate_beta_1_b(to_sample_left, rdvariate_gen) * prob_left_to_1;
                 while(chasing_prob <= confs_prob)
                 {
                     current_count++;
@@ -619,7 +664,7 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
                     if(to_sample_left == 0)
                         return true;
                     prob_left_to_1 = precision - chasing_prob;
-                    chasing_prob += rdvariate_beta_1_b(to_sample_left) * prob_left_to_1;
+                    chasing_prob += rdvariate_beta_1_b(to_sample_left, rdvariate_gen) * prob_left_to_1;
                 }
                 if(current_count > 0)
                     return true;
@@ -627,7 +672,7 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
             else
             {
                 // Binomial mode: a single binomial step
-                size_t rbin = rdvariate_binom(to_sample_left, curr_conf_prob_left/prob_left_to_1);
+                size_t rbin = rdvariate_binom(to_sample_left, curr_conf_prob_left/prob_left_to_1, rdvariate_gen);
                 current_count += rbin;
                 to_sample_left -= rbin;
                 chasing_prob = confs_prob;
@@ -635,6 +680,11 @@ class IsoStochasticGeneratorTemplate : public IsoGenerator
                     return true;
             }
         };
+    }
+
+    ISOSPEC_FORCE_INLINE void get_indexes(int* space)
+    {
+        ILG.get_conf_by_indexes(space);
     }
 };
 
