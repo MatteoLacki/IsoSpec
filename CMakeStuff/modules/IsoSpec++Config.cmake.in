@@ -5,20 +5,20 @@
 
 set(IsoSpec++_INCLUDE_DIRS ${CMAKE_INSTALL_FULL_INCLUDEDIR}/IsoSpec++)
 
-set(IsoSpec++_LIBRARIES ${CMAKE_INSTALL_FULL_LIBDIR}/libIsoSpec++.so.${PROJECT_NAME}_VERSION)
+set(IsoSpec++_LIBRARIES ${CMAKE_INSTALL_FULL_LIBDIR}/libIsoSpec++.so.${${PROJECT_NAME}_VERSION})
 
 if(NOT TARGET IsoSpec++::IsoSpec++)
 
 	add_library(IsoSpec++::IsoSpec++ UNKNOWN IMPORTED)
 
 	set_target_properties(IsoSpec++::IsoSpec++ PROPERTIES
-		IMPORTED_LOCATION "${CMAKE_INSTALL_FULL_LIBDIR}/libIsoSpec++.so.${PROJECT_NAME}_VERSION"
+		IMPORTED_LOCATION "${CMAKE_INSTALL_FULL_LIBDIR}/libIsoSpec++.so.${${PROJECT_NAME}_VERSION}"
 		INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_INSTALL_FULL_INCLUDEDIR}/IsoSpec++"
 		)
 
 endif()
 
-message(STATUS "Found Found IsoSpec++_LIBRARY: ${IsoSpec++_LIBRARY}")
+message(STATUS "Found IsoSpec++ library: ${IsoSpec++_LIBRARIES}")
 
 set(IsoSpec++_FOUND TRUE)
 

@@ -4,13 +4,13 @@
 
 find_path(IsoSpec++_INCLUDE_DIRS IsoSpec++/isoSpec++.h
 	PATHS /usr/local/include /usr/include
-	PATH_SUFFIXES isospec++ libisospec++ ENV PATH)
+	PATH_SUFFIXES isospec++ libisospec++ IsoSpec++ ENV PATH)
 
-find_library(IsoSpec++_LIBRARY NAMES isospec libisospec isospec++ libisospec++)
+find_library(IsoSpec++_LIBRARY NAMES isospec libisospec isospec++ libisospec++ libIsoSpec libIsoSpec++)
 
 if(IsoSpec++_INCLUDE_DIRS AND IsoSpec++_LIBRARY)
 
-	message(STATUS "Found Found IsoSpec++_LIBRARY: ${IsoSpec++_LIBRARY}")
+	message(STATUS "Found IsoSpec++_LIBRARY: ${IsoSpec++_LIBRARY}")
 
 	set(IsoSpec++_FOUND TRUE)
 
