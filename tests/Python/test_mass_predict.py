@@ -21,13 +21,14 @@ def check_estimates(formula, est_fun, thr):
 
 def est_fun_trivial(formula, _):
     i = Iso(formula)
-    return i.getLightestPeakMass(), i.getHeaviestPeakMass()
+    return i.getLightestPeakMass()-1.0, i.getHeaviestPeakMass()+1.0
 
 
 def est_fun_margs(formula, threshold):
     PC = ParseFormula(formula)
     it = IsoThreshold(threshold, formula, get_confs = True)
-    marginals = [Iso(elem, cnt) for elem, cnt in zip(PC[0], PC[1])]
+    PC = list(PC.items())
+    marginals = [Iso(elem, cnt) for elem, cnt in PC]
     mconfs = [set() for _ in marginals]
     for conf in it.confs:
         for marg_conf, marg_set in zip(conf, mconfs):
@@ -41,11 +42,23 @@ def est_fun_margs(formula, threshold):
 
 from IsoSpecPy.Formulas import *
 
-for formula in "bovine_insulin horse_myoglobin sucrose water ubiquitin caffeine averagine(100.0) averagine(1000.0) averagine(100000.0) Hg10Sn5 H1000N1000".split():
-    try:
-        fformula = eval(formula)
-    except NameError:
-        fformula = formula
-    for thr in [0.1, 0.01, 0.001, 0.00001]:
-        print(formula, thr, check_estimates(fformula, est_fun_margs, thr))
+formulas = [bovine_insulin, horse_myoglobin, sucrose, water, ubiquitin, caffeine, averagine(100.0), averagine(1000.0), "Hg7Sn3", "H1000N1000"]
 
+
+def check_mass_predict(formula):
+    for thr in [0.1, 0.01, 0.001, 0.00001]:
+        for ef in [est_fun_margs, est_fun_trivial]:
+            ce = check_estimates(formula, ef, thr)
+            print(formula, thr, ce)
+            assert ce[4], "Estimates do not bound the actual masses for formula %s at threshold %e" % (formula, thr)
+
+try:
+    import pytest
+    test_mass_predict = pytest.mark.parametrize("formula", formulas)(check_mass_predict)
+except ImportError:
+    test_mass_predict = check_mass_predict
+
+
+if __name__ == "__main__":
+    for formula in formulas:
+        test_mass_predict(formula)

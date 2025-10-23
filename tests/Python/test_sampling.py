@@ -212,11 +212,12 @@ def sample_ciic(formula, count, precision):
 
 
 
-from IsoSpecPy.Formulas import *
-from scipy.stats import chisquare
-import sys
-
 if __name__ == '__main__':
+    from IsoSpecPy.Formulas import *
+    from scipy.stats import chisquare
+    import sys
+
+
     test_mol = sucrose
     count = 10000000
 
