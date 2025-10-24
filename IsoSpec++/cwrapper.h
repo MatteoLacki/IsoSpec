@@ -143,7 +143,7 @@ ISOSPEC_C_API double orientedWassersteinDistance(void* tabulator1, void* tabulat
 ISOSPEC_C_API double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth, double other_scale);
 //ISOSPEC_C_API double abyssalWassersteinDistanceGrad(void* const* envelopes, const double* scales, double* ret_gradient, size_t N, double abyss_depth_exp, double abyss_depth_the);
 
-ISOSPEC_C_API struct ws_match_res{
+struct ws_match_res{
 double res1;
 double res2;
 double flow;
