@@ -159,7 +159,7 @@ template<typename T> size_t* get_order(T* order_array, size_t N)
     for(size_t ii = 0; ii < N; ii++)
         arr[ii] = ii;
 
-    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] < order_array[j]; });
+    std::sort(arr, arr + N, [&](size_t i, size_t j) { return order_array[i] < order_array[j]; });
 
     return arr;
 }
@@ -170,7 +170,7 @@ template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
     for(size_t ii = 0; ii < N; ii++)
         arr[ii] = ii;
 
-    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] > order_array[j]; });
+    std::sort(arr, arr + N, [&](size_t i, size_t j) { return order_array[i] > order_array[j]; });
 
     return arr;
 }
