@@ -11,6 +11,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(IsoSpecCppPy SHARED ../IsoSpec++/unity-build.cpp)
 target_compile_features(IsoSpecCppPy PRIVATE cxx_std_17)
+if(MSVC)
+        set(IsoSpecCppPy_WARNINGS /W3)
+else()
+        set(IsoSpecCppPy_WARNINGS -Wall -Wextra -Wconversion -Wno-sign-conversion)# -Wsign-conversion -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wcast-align -Woverloaded-virtual -Wpedantic)
+endif()
+
+target_compile_options(IsoSpecCppPy PRIVATE ${IsoSpecCppPy_WARNINGS})
 #python_extension_module(IsoSpecCppPy)
 install(TARGETS IsoSpecCppPy LIBRARY DESTINATION IsoSpecPy)
 install(DIRECTORY ../IsoSpec++/ DESTINATION IsoSpecPy/IsoSpec++

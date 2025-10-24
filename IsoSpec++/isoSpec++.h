@@ -335,7 +335,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 
     inline void get_conf_signature(int* space) const override final
     {
-        counter[0] = lProbs_ptr - lProbs_ptr_start;
+        counter[0] = static_cast<int>(lProbs_ptr - lProbs_ptr_start);
         if(marginalOrder != nullptr)
         {
             for(int ii = 0; ii < dimNumber; ii++)
