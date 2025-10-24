@@ -5,6 +5,7 @@ on:
         branches:
             - ci_test
             - main
+            - winworkflow
         tags:
             - 'v*'
 
