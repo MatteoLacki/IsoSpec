@@ -61,7 +61,7 @@ ISOSPEC_C_API void* setupIsoThresholdGenerator(void* iso,
 ISOSPEC_C_API double massIsoThresholdGenerator(void* generator);
 ISOSPEC_C_API double lprobIsoThresholdGenerator(void* generator);
 ISOSPEC_C_API double probIsoThresholdGenerator(void* generator);
-ISOSPEC_C_API void methodIsoThresholdGenerator(void* generator);
+ISOSPEC_C_API void get_conf_signatureIsoThresholdGenerator(void* generator);
 ISOSPEC_C_API bool advanceToNextConfigurationIsoThresholdGenerator(void* generator);
 ISOSPEC_C_API void deleteIsoThresholdGenerator(void* generator);
 
@@ -75,7 +75,7 @@ ISOSPEC_C_API void* setupIsoLayeredGenerator(void* iso,
 ISOSPEC_C_API double massIsoLayeredGenerator(void* generator);
 ISOSPEC_C_API double lprobIsoLayeredGenerator(void* generator);
 ISOSPEC_C_API double probIsoLayeredGenerator(void* generator);
-ISOSPEC_C_API void methodIsoLayeredGenerator(void* generator);
+ISOSPEC_C_API void get_conf_signatureIsoLayeredGenerator(void* generator);
 ISOSPEC_C_API bool advanceToNextConfigurationIsoLayeredGenerator(void* generator);
 ISOSPEC_C_API void deleteIsoLayeredGenerator(void* generator);
 
@@ -86,7 +86,7 @@ ISOSPEC_C_API void* setupIsoOrderedGenerator(void* iso,
 ISOSPEC_C_API double massIsoOrderedGenerator(void* generator);
 ISOSPEC_C_API double lprobIsoOrderedGenerator(void* generator);
 ISOSPEC_C_API double probIsoOrderedGenerator(void* generator);
-ISOSPEC_C_API void methodIsoOrderedGenerator(void* generator);
+ISOSPEC_C_API void get_conf_signatureIsoOrderedGenerator(void* generator);
 ISOSPEC_C_API bool advanceToNextConfigurationIsoOrderedGenerator(void* generator);
 ISOSPEC_C_API void deleteIsoOrderedGenerator(void* generator);
 
@@ -98,7 +98,7 @@ ISOSPEC_C_API void* setupIsoStochasticGenerator(void* iso,
 ISOSPEC_C_API double massIsoStochasticGenerator(void* generator);
 ISOSPEC_C_API double lprobIsoStochasticGenerator(void* generator);
 ISOSPEC_C_API double probIsoStochasticGenerator(void* generator);
-ISOSPEC_C_API void methodIsoStochasticGenerator(void* generator);
+ISOSPEC_C_API void get_conf_signatureIsoStochasticGenerator(void* generator);
 ISOSPEC_C_API bool advanceToNextConfigurationIsoStochasticGenerator(void* generator);
 ISOSPEC_C_API void deleteIsoStochasticGenerator(void* generator);
 
