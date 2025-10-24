@@ -6,6 +6,9 @@ import glob
 if False:
     import IsoSpecCppPy
 
+def dprint(*args):
+    print(*args, file=sys.stderr, flush=True)
+    print(*args, flush=True)
 
 class IsoFFI:
     def __init__(self):
@@ -141,6 +144,7 @@ class IsoFFI:
                         ''');
 
         mod_dir = os.path.dirname(os.path.abspath(__file__))
+        dprint("mod_dir:", mod_dir)
 
         if os.path.exists(os.path.join(mod_dir, '..', 'setup.py')):
             raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
@@ -158,6 +162,11 @@ sure you want to do that, edit the source and disable this check.''')
         except:
             pass
 
+        dprint("Looking for libIsoSpec++.so in", mod_dir)
+        dprint("Library name patterns:", libnames)
+        dprint("Library prefix patterns:", libprefix)
+        dprint("Library extension patterns:", extension)
+
         prebuilt =  ['', 'prebuilt-']
 
         def cprod(ll1, ll2):
@@ -165,22 +174,24 @@ sure you want to do that, edit the source and disable this check.''')
             for l1 in ll1:
                 for l2 in ll2:
                     res.append(l1+l2)
+            dprint("cprod:", ll1, ll2, "->", res)
             return res
 
         paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
-
+        dprint("Constructed paths to check:", paths_to_check)
         dpc = []
 
         for dirpath in [mod_dir, mod_dir + '/..']:
             dpc.extend([os.path.join(dirpath, p) for p in paths_to_check])
 
         paths_to_check = dpc
-
+        dprint("Final paths to check before globbing:", paths_to_check)
         paths_to_check = sum(map(glob.glob, paths_to_check), [])
-
+        dprint("Final paths to check after globbing:", paths_to_check)
         try:
             import importlib
             paths_to_check.insert(0, importlib.util.find_spec("IsoSpecCppPy").origin)
+            dprint("Also trying to load IsoSpecCppPy from:", paths_to_check[0])
         except (ImportError, AttributeError):
             pass
 
@@ -189,8 +200,10 @@ sure you want to do that, edit the source and disable this check.''')
         self.clib = None
         for libpath in set(paths_to_check):
             try:
+                dprint("Trying to load libIsoSpec++.so from:", libpath)
                 self.clib = self.ffi.dlopen(libpath)
                 self.libpath = libpath
+                dprint("Successfully loaded libIsoSpec++.so from:", libpath)
                 break
             except (IndexError, OSError) as e:
                 errmsg = "Load libIsoSpec++.so, tried: " + libpath + '\n' + "Got error: " + str(type(e)) + ": " + str(e)
