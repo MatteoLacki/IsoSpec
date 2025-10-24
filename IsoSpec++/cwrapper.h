@@ -50,22 +50,6 @@ ISOSPEC_C_API double* getMarginalLogSizeEstimates(void* iso, double target_total
 
 ISOSPEC_C_API void deleteIso(void* iso);
 
-#define ISOSPEC_C_FN_HEADER(generatorType, dataType, method)\
-ISOSPEC_C_API dataType method##generatorType(void* generator);
-
-#define ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType)\
-ISOSPEC_C_API void method##generatorType(void* generator);
-
-#define ISOSPEC_C_FN_HEADERS(generatorType)\
-ISOSPEC_C_FN_HEADER(generatorType, double, mass) \
-ISOSPEC_C_FN_HEADER(generatorType, double, lprob) \
-ISOSPEC_C_FN_HEADER(generatorType, double, prob) \
-ISOSPEC_C_FN_HEADER_GET_CONF_SIGNATURE(generatorType) \
-ISOSPEC_C_FN_HEADER(generatorType, bool, advanceToNextConfiguration) \
-ISOSPEC_C_FN_HEADER(generatorType, void, delete)
-
-
-
 
 // ______________________________________________________THRESHOLD GENERATOR
 ISOSPEC_C_API void* setupIsoThresholdGenerator(void* iso,
@@ -74,7 +58,12 @@ ISOSPEC_C_API void* setupIsoThresholdGenerator(void* iso,
                                  int _tabSize,
                                  int _hashSize,
                                  bool reorder_marginals);
-ISOSPEC_C_FN_HEADERS(IsoThresholdGenerator)
+ISOSPEC_C_API double massIsoThresholdGenerator(void* generator);
+ISOSPEC_C_API double lprobIsoThresholdGenerator(void* generator);
+ISOSPEC_C_API double probIsoThresholdGenerator(void* generator);
+ISOSPEC_C_API void methodIsoThresholdGenerator(void* generator);
+ISOSPEC_C_API bool advanceToNextConfigurationIsoThresholdGenerator(void* generator);
+ISOSPEC_C_API void deleteIsoThresholdGenerator(void* generator);
 
 
 // ______________________________________________________LAYERED GENERATOR
@@ -83,20 +72,35 @@ ISOSPEC_C_API void* setupIsoLayeredGenerator(void* iso,
                                int _hashSize,
                                bool reorder_marginals,
                                double t_prob_hint);
-ISOSPEC_C_FN_HEADERS(IsoLayeredGenerator)
+ISOSPEC_C_API double massIsoLayeredGenerator(void* generator);
+ISOSPEC_C_API double lprobIsoLayeredGenerator(void* generator);
+ISOSPEC_C_API double probIsoLayeredGenerator(void* generator);
+ISOSPEC_C_API void methodIsoLayeredGenerator(void* generator);
+ISOSPEC_C_API bool advanceToNextConfigurationIsoLayeredGenerator(void* generator);
+ISOSPEC_C_API void deleteIsoLayeredGenerator(void* generator);
 
 // ______________________________________________________ORDERED GENERATOR
 ISOSPEC_C_API void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize);
-ISOSPEC_C_FN_HEADERS(IsoOrderedGenerator)
+ISOSPEC_C_API double massIsoOrderedGenerator(void* generator);
+ISOSPEC_C_API double lprobIsoOrderedGenerator(void* generator);
+ISOSPEC_C_API double probIsoOrderedGenerator(void* generator);
+ISOSPEC_C_API void methodIsoOrderedGenerator(void* generator);
+ISOSPEC_C_API bool advanceToNextConfigurationIsoOrderedGenerator(void* generator);
+ISOSPEC_C_API void deleteIsoOrderedGenerator(void* generator);
 
+// ______________________________________________________STOCHASTIC GENERATOR
 ISOSPEC_C_API void* setupIsoStochasticGenerator(void* iso,
                                    size_t no_molecules,
                                    double precision,
                                    double beta_bias);
-ISOSPEC_C_FN_HEADERS(IsoStochasticGenerator)
-
+ISOSPEC_C_API double massIsoStochasticGenerator(void* generator);
+ISOSPEC_C_API double lprobIsoStochasticGenerator(void* generator);
+ISOSPEC_C_API double probIsoStochasticGenerator(void* generator);
+ISOSPEC_C_API void methodIsoStochasticGenerator(void* generator);
+ISOSPEC_C_API bool advanceToNextConfigurationIsoStochasticGenerator(void* generator);
+ISOSPEC_C_API void deleteIsoStochasticGenerator(void* generator);
 
 ISOSPEC_C_API void* setupThresholdFixedEnvelope(void* iso,
                               double threshold,
