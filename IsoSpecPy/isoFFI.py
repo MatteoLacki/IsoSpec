@@ -36,7 +36,13 @@ class IsoFFI:
                                          int _tabSize,
                                          int _hashSize,
                                          bool reorder_marginals);
-        double massIsoThresholdGenerator(void* generator); double lprobIsoThresholdGenerator(void* generator); double probIsoThresholdGenerator(void* generator); void methodIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator); void deleteIsoThresholdGenerator(void* generator); void get_conf_signatureIsoThresholdGenerator(void* generator, int* space);
+        double massIsoThresholdGenerator(void* generator);
+        double lprobIsoThresholdGenerator(void* generator);
+        double probIsoThresholdGenerator(void* generator);
+        void methodIsoThresholdGenerator(void* generator);
+        bool advanceToNextConfigurationIsoThresholdGenerator(void* generator);
+        void deleteIsoThresholdGenerator(void* generator);
+        void get_conf_signatureIsoThresholdGenerator(void* generator, int* space);
 
 
 
@@ -45,19 +51,37 @@ class IsoFFI:
                                        int _hashSize,
                                        bool reorder_marginals,
                                        double t_prob_hint);
-        double massIsoLayeredGenerator(void* generator); double lprobIsoLayeredGenerator(void* generator); double probIsoLayeredGenerator(void* generator); void methodIsoLayeredGenerator(void* generator); bool advanceToNextConfigurationIsoLayeredGenerator(void* generator); void deleteIsoLayeredGenerator(void* generator); void get_conf_signatureIsoLayeredGenerator(void* generator, int* space);
+        double massIsoLayeredGenerator(void* generator);
+        double lprobIsoLayeredGenerator(void* generator);
+        double probIsoLayeredGenerator(void* generator);
+        void methodIsoLayeredGenerator(void* generator);
+        bool advanceToNextConfigurationIsoLayeredGenerator(void* generator);
+        void deleteIsoLayeredGenerator(void* generator);
+        void get_conf_signatureIsoLayeredGenerator(void* generator, int* space);
 
 
         void* setupIsoOrderedGenerator(void* iso,
                                        int _tabSize,
                                        int _hashSize);
-        double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
+        double massIsoOrderedGenerator(void* generator);
+        double lprobIsoOrderedGenerator(void* generator);
+        double probIsoOrderedGenerator(void* generator);
+        void methodIsoOrderedGenerator(void* generator);
+        bool advanceToNextConfigurationIsoOrderedGenerator(void* generator);
+        void deleteIsoOrderedGenerator(void* generator);
+        void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
         void* setupIsoStochasticGenerator(void* iso,
                                    size_t no_molecules,
                                    double precision,
                                    double beta_bias);
-        double massIsoStochasticGenerator(void* generator); double lprobIsoStochasticGenerator(void* generator); double probIsoStochasticGenerator(void* generator); void methodIsoStochasticGenerator(void* generator); bool advanceToNextConfigurationIsoStochasticGenerator(void* generator); void deleteIsoStochasticGenerator(void* generator); void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
+        double massIsoStochasticGenerator(void* generator);
+        double lprobIsoStochasticGenerator(void* generator);
+        double probIsoStochasticGenerator(void* generator);
+        void methodIsoStochasticGenerator(void* generator);
+        bool advanceToNextConfigurationIsoStochasticGenerator(void* generator);
+        void deleteIsoStochasticGenerator(void* generator);
+        void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
 
         void* setupThresholdFixedEnvelope(void* iso,
                                     double threshold,
