@@ -29,7 +29,7 @@ class DirtyAllocator
     void*   currentConf;
     void*   endOfTablePtr;
     const size_t tabSize;
-    int     cellSize;
+    size_t     cellSize;
     pod_vector<void*>  prevTabs;
 
  public:

@@ -34,7 +34,7 @@ template <typename T> class Allocator
 {
  private:
     T* currentTab;
-    int currentId;
+    size_t currentId;
     const size_t dim, tabSize;
     pod_vector<T*>  prevTabs;
 

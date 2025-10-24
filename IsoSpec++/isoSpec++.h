@@ -34,13 +34,13 @@ namespace IsoSpec
 {
 
 // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
-unsigned int parse_formula(const char* formula,
-                           std::vector<double>& isotope_masses,
-                           std::vector<double>& isotope_probabilities,
-                           int** isotopeNumbers,
-                           int** atomCounts,
-                           unsigned int* confSize,
-                           bool use_nominal_masses = false);
+size_t parse_formula(const char* formula,
+                     std::vector<double>& isotope_masses,
+                     std::vector<double>& isotope_probabilities,
+                     int** isotopeNumbers,
+                     int** atomCounts,
+                     unsigned int* confSize,
+                     bool use_nominal_masses = false);
 
 
 //! The Iso class for the calculation of the isotopic distribution.
@@ -164,7 +164,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     double stddev() const { return sqrt(variance()); }
 
     //! Get the number of elements in the chemical formula of the molecule.
-    inline int getDimNumber() const { return dimNumber; }
+    inline size_t getDimNumber() const { return dimNumber; }
 
     //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; }
@@ -430,7 +430,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 
  private:
     //! Recalculate the current partial log-probabilities, masses, and probabilities.
-    ISOSPEC_FORCE_INLINE void recalc(int idx)
+    ISOSPEC_FORCE_INLINE void recalc(size_t idx)
     {
         for(; idx > 0; idx--)
         {
@@ -443,7 +443,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         lcfmsv = Lcutoff - partialLProbs_second_val;
     }
 
-    ISOSPEC_FORCE_INLINE void short_recalc(int idx)
+    ISOSPEC_FORCE_INLINE void short_recalc(size_t idx)
     {
         for(; idx > 0; idx--)
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
@@ -481,7 +481,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 
     inline void get_conf_signature(int* space) const override final
     {
-        counter[0] = lProbs_ptr - lProbs_ptr_start;
+        counter[0] = static_cast<int>(lProbs_ptr - lProbs_ptr_start);
         if(marginalOrder != nullptr)
         {
             for(size_t ii = 0; ii < dimNumber; ii++)
@@ -558,7 +558,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
     {
         if constexpr (std::is_same<MarginalType, SingleAtomMarginal<true>>::value)
         {
-            counter[0] = lProbs_ptr - lProbs_ptr_start;
+            counter[0] = static_cast<int>(lProbs_ptr - lProbs_ptr_start);
             if(marginalOrder != nullptr)
             {
                 for(size_t ii = 0; ii < dimNumber; ii++)

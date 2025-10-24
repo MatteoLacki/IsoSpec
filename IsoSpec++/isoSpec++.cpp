@@ -352,7 +352,7 @@ void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_p
         priorities[ii] = marginals[ii]->getLogSizeEstimate(log_R2);
 }
 
-unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
+size_t parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
@@ -423,11 +423,11 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
         _isotope_numbers.push_back(num);
     }
 
-    const unsigned int dimNumber = elements.size();
+    const size_t dimNumber = elements.size();
 
     *isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
     *atomCounts = array_copy<int>(numbers.data(), dimNumber);
-    *confSize = dimNumber * sizeof(int);
+    *confSize = static_cast<int>(dimNumber * sizeof(int));
 
     return dimNumber;
 }
@@ -506,7 +506,7 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
         int* tmpMarginalOrder = new int[dimNumber];
 
         for(size_t ii = 0; ii < dimNumber; ii++)
-            tmpMarginalOrder[ii] = ii;
+            tmpMarginalOrder[ii] = static_cast<int>(ii);
 
         std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
         marginalResults = new PrecalculatedMarginal*[dimNumber];
@@ -556,7 +556,7 @@ void IsoThresholdGenerator::terminate_search()
 {
     for(size_t ii = 0; ii < dimNumber; ii++)
     {
-        counter[ii] = marginalResults[ii]->get_no_confs()-1;
+        counter[ii] = static_cast<int>(marginalResults[ii]->get_no_confs()-1);
         partialLProbs[ii] = -std::numeric_limits<double>::infinity();
     }
     partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
@@ -676,7 +676,7 @@ IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso
         int* tmpMarginalOrder = new int[dimNumber];
 
         for(size_t ii = 0; ii < dimNumber; ii++)
-            tmpMarginalOrder[ii] = ii;
+            tmpMarginalOrder[ii] = static_cast<int>(ii);
 
         TableOrder<double> TO(marginal_priorities);
 
@@ -688,7 +688,7 @@ IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso
 
         marginalOrder = new int[dimNumber];
         for(size_t ii = 0; ii < dimNumber; ii++)
-            marginalOrder[tmpMarginalOrder[ii]] = ii;
+            marginalOrder[tmpMarginalOrder[ii]] = static_cast<int>(ii);
 
         delete[] tmpMarginalOrder;
         delete[] marginal_priorities;
@@ -788,7 +788,7 @@ void IsoLayeredGeneratorTemplate<MarginalType>::terminate_search()
 {
     for(size_t ii = 0; ii < dimNumber; ii++)
     {
-        counter[ii] = marginalResults[ii]->get_no_confs()-1;
+        counter[ii] = static_cast<int>(marginalResults[ii]->get_no_confs()-1);
         partialLProbs[ii] = -std::numeric_limits<double>::infinity();
     }
     partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();

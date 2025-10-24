@@ -21,7 +21,7 @@ namespace IsoSpec
 {
 
 template <typename T>
-Allocator<T>::Allocator(const size_t dim_, const size_t tabSize_): currentTab(new T[dim_ * tabSize_]), currentId(-1), dim(dim_), tabSize(tabSize_) {}
+Allocator<T>::Allocator(const size_t dim_, const size_t tabSize_): currentTab(new T[dim_ * tabSize_]), currentId(std::numeric_limits<size_t>::max()), dim(dim_), tabSize(tabSize_) {}
 
 
 template <typename T>
