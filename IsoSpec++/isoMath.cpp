@@ -153,7 +153,9 @@ size_t rdvariate_binom(size_t tries, double succ_prob, std::mt19937& rgen)
 {
     if (succ_prob >= 1.0)
         return tries;
-    return IsoSpec::boost_binomial_distribution_variate(tries, succ_prob, rgen);
+    return static_cast<size_t>(
+        IsoSpec::boost_binomial_distribution_variate(static_cast<long int>(tries), succ_prob, rgen)
+    );
 }
 
 

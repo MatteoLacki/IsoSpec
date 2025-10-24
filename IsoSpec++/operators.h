@@ -28,15 +28,15 @@ namespace IsoSpec
 class KeyHasher
 {
  private:
-    int dim;
+    size_t dim;
 
  public:
-    explicit KeyHasher(int dim);
+    explicit KeyHasher(size_t dim);
 
     inline std::size_t operator()(const int* conf) const noexcept
     {
         std::size_t seed = conf[0];
-        for(int i = 1; i < dim; ++i )
+        for(size_t i = 1; i < dim; ++i )
         {
             constexpr_if(sizeof(std::size_t) == 8)
                 seed = seed << 6;
@@ -53,10 +53,10 @@ class KeyHasher
 class ConfEqual
 {
  private:
-    int size;
+    size_t size;
 
  public:
-    explicit ConfEqual(int dim);
+    explicit ConfEqual(size_t dim);
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
@@ -88,9 +88,9 @@ class ConfOrderMarginal
 {
 // configurations comparator
     const double*  logProbs;
-    int dim;
+    size_t dim;
  public:
-    ConfOrderMarginal(const double* logProbs, int dim);
+    ConfOrderMarginal(const double* logProbs, size_t dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {
@@ -103,9 +103,9 @@ class ConfOrderMarginalDescending
 {
 // configurations comparator
     const double*  logProbs;
-    int dim;
+    size_t dim;
  public:
-    ConfOrderMarginalDescending(const double* logProbs, int dim);
+    ConfOrderMarginalDescending(const double* logProbs, size_t dim);
 
     inline bool operator()(const Conf conf1, const Conf conf2)
     {

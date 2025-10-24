@@ -58,7 +58,7 @@ inline double getLProb(void* conf)
 }
 
 
-inline double unnormalized_logProb(const int* conf, const double* logProbs, int dim)
+inline double unnormalized_logProb(const int* conf, const double* logProbs, size_t dim)
 {
     double  res = 0.0;
 
@@ -68,11 +68,11 @@ inline double unnormalized_logProb(const int* conf, const double* logProbs, int 
     return res;
 }
 
-inline double calc_mass(const int* conf, const double* masses, int dim)
+inline double calc_mass(const int* conf, const double* masses, size_t dim)
 {
     double res = 0.0;
 
-    for(int i = 0; i < dim; i++)
+    for(size_t i = 0; i < dim; i++)
     {
         res += conf[i] * masses[i];
     }
@@ -118,7 +118,7 @@ template<typename T> void printNestedArray(const T** array, const int* shape, si
 }
 
 //! Quickly select the n'th positional statistic, including the weights.
-void* quickselect(const void** array, int n, int start, int end);
+//void* quickselect(const void** array, int n, int start, int end);
 
 
 template <typename T> inline static T* array_copy(const T* A, size_t size)

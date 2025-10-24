@@ -230,7 +230,7 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
 
     double pprob = 0.0;
     double cprob = 0.0;
-    size_t pidx = -1; // Overflows - but it doesn't matter.
+    size_t pidx = std::numeric_limits<size_t>::max();
 
     _probs[_confs_no-1] = (std::numeric_limits<double>::max)();
 
@@ -1097,7 +1097,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     size_t no_bins = static_cast<size_t>(range_len / bin_width) + 2;
     double half_width = 0.5*bin_width;
     double hwmm = half_width-bin_middle;
-    size_t idx_min = floor((min_mass + hwmm) / bin_width);
+    size_t idx_min = static_cast<size_t>(floor((min_mass + hwmm) / bin_width));
     size_t idx_max = idx_min + no_bins;
 
     double* acc;
@@ -1122,14 +1122,14 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     if(non_empty)
     {
         double accum_prob = ITG.prob();
-        size_t nonzero_idx = floor((ITG.mass() + hwmm)/bin_width);
+        size_t nonzero_idx = static_cast<size_t>(floor((ITG.mass() + hwmm)/bin_width));
         acc[nonzero_idx] = accum_prob;
 
         while(ITG.advanceToNextConfiguration() && accum_prob < target_total_prob)
         {
             double prob = ITG.prob();
             accum_prob += prob;
-            size_t bin_idx = floor((ITG.mass() + hwmm)/bin_width);
+            size_t bin_idx = static_cast<size_t>(floor((ITG.mass() + hwmm)/bin_width));
             acc[bin_idx] += prob;
         }
 

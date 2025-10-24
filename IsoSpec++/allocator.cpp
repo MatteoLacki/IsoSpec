@@ -13,7 +13,7 @@
  *   You should have received a copy of the Simplified BSD Licence
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
-
+#include <limits>
 
 #include "allocator.h"
 

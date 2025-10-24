@@ -47,7 +47,7 @@ namespace IsoSpec
     \param atomCnt
 
 */
-void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const double* lprobs, int* res)
+void writeInitialConfiguration(const size_t atomCnt, const size_t isotopeNo, const double* lprobs, int* res)
 {
     /*!
     Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
@@ -55,15 +55,15 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     */
 
     // This approximates the mode (heuristics: the mean is close to the mode).
-    for(int i = 0; i < isotopeNo; ++i)
+    for(size_t i = 0; i < isotopeNo; ++i)
         res[i] = static_cast<int>( atomCnt * exp(lprobs[i]) ) + 1;
 
     // The number of assigned atoms above.
-    int s = 0;
+    long int s = 0;
 
-    for(int i = 0; i < isotopeNo; ++i) s += res[i];
+    for(size_t i = 0; i < isotopeNo; ++i) s += res[i];
 
-    int diff = atomCnt - s;
+    long int diff = static_cast<long int>(atomCnt) - s;
 
     // Too little: enlarging fist index.
     if( diff > 0 ){
@@ -75,7 +75,7 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
         int i = 0;
 
         while( diff > 0){
-            int coordDiff = res[i] - diff;
+            long int coordDiff = res[i] - diff;
 
             if( coordDiff >= 0 ){
                 res[i] -= diff;
@@ -97,8 +97,8 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
     while(modified)
     {
         modified = false;
-        for(int ii = 0; ii < isotopeNo; ii++)
-            for(int jj = 0; jj < isotopeNo; jj++)
+        for(size_t ii = 0; ii < isotopeNo; ii++)
+            for(size_t jj = 0; jj < isotopeNo; jj++)
                 if(ii != jj && res[ii] > 0)
                 {
                     res[ii]--;
@@ -119,21 +119,21 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
 }
 
 
-double* getMLogProbs(const double* probs, int isoNo)
+double* getMLogProbs(const double* probs, size_t isoNo)
 {
     /*!
     Here we order the processor to round the numbers up rather than down.
     Rounding down could result in the algorithm falling in an infinite loop
     because of the numerical instability of summing.
     */
-    for(int ii = 0; ii < isoNo; ii++)
+    for(size_t ii = 0; ii < isoNo; ii++)
         if(probs[ii] <= 0.0 || probs[ii] > 1.0)
             throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
 
     double* ret = new double[isoNo];
 
     // here we change the table of probabilities and log it.
-    for(int i = 0; i < isoNo; i++)
+    for(size_t i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
         for(int j = 0; j < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
@@ -146,14 +146,14 @@ double* getMLogProbs(const double* probs, int isoNo)
     return ret;
 }
 
-double get_loggamma_nominator(int x)
+double get_loggamma_nominator(size_t x)
 {
     // calculate log gamma of the nominator calculated in the binomial exression.
     double ret = lgamma(x+1);
     return ret;
 }
 
-int verify_atom_cnt(int atomCnt)
+size_t verify_atom_cnt(size_t atomCnt)
 {
     #if !ISOSPEC_BUILDING_OPENMS
     if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
@@ -165,8 +165,8 @@ int verify_atom_cnt(int atomCnt)
 Marginal::Marginal(
     const double* _masses,
     const double* _probs,
-    int _isotopeNo,
-    int _atomCnt
+    size_t _isotopeNo,
+    size_t _atomCnt
 ) :
 disowned(false),
 isotopeNo(_isotopeNo),
@@ -322,8 +322,8 @@ double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
 // this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
     Marginal&& m,
-    int tabSize,
-    int
+    size_t tabSize,
+    size_t
 ) :
 Marginal(std::move(m)),
 current_count(0),
@@ -443,8 +443,8 @@ MarginalTrek::~MarginalTrek()
 PrecalculatedMarginal::PrecalculatedMarginal(Marginal&& m,
     double lCutOff,
     bool sort,
-    int tabSize,
-    int
+    size_t tabSize,
+    size_t
 ) : Marginal(std::move(m)),
 allocator(isotopeNo, tabSize)
 {
@@ -553,7 +553,7 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 
 
 
-LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int)
+LayeredMarginal::LayeredMarginal(Marginal&& m, size_t tabSize, size_t)
 : Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize),
 equalizer(isotopeNo), keyHasher(isotopeNo)
 {

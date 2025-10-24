@@ -65,7 +65,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     int*            isotopeNumbers; /*!< A table with numbers of isotopes for each element. */
     int*            atomCounts;     /*!< A table with numbers of isotopes for each element. */
     unsigned int    confSize;       /*!< The number of bytes needed to represent the counts of isotopes present in the extended chemical formula. */
-    int             allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H2O (water) it is 2+3=5. */
+    size_t          allDim;         /*!< The total number of isotopes of elements present in a chemical formula, e.g. for H2O (water) it is 2+3=5. */
     Marginal**      marginals;      /*!< The table of pointers to the distributions of individual subisotopologues. */
 
     bool doMarginalsNeedSorting() const;
@@ -167,7 +167,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     inline size_t getDimNumber() const { return dimNumber; }
 
     //! Get the total number of isotopes of elements present in a chemical formula.
-    inline int getAllDim() const { return allDim; }
+    inline size_t getAllDim() const { return allDim; }
 
     //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
     void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
@@ -283,7 +283,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
     };
 
     //! The move-contstructor.
-    IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoOrderedGeneratorTemplate(Iso&& iso, size_t _tabSize  = 1000, size_t _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
     virtual ~IsoOrderedGeneratorTemplate();

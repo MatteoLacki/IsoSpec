@@ -45,8 +45,8 @@ class Marginal
  private:
     bool disowned;
  protected:
-    const unsigned int isotopeNo;       /*!< The number of isotopes of the given element. */
-    const unsigned int atomCnt;         /*!< The number of atoms of the given element. */
+    const size_t isotopeNo;       /*!< The number of isotopes of the given element. */
+    const size_t atomCnt;         /*!< The number of atoms of the given element. */
     const double* const atom_lProbs;    /*!< Table of log-probabilities of all the isotopeNo isotopes. */
     const double* const atom_masses;    /*!< Table of atomic masses of all the isotopeNo isotopes. */
     const double loggamma_nominator;    /*!< The constant nominator that appears in the expressions for the multinomial probabilities. */
@@ -66,8 +66,8 @@ class Marginal
     Marginal(
         const double* _masses,   // masses size = logProbs size = isotopeNo
         const double* _probs,
-        int _isotopeNo,
-        int _atomCnt
+        size_t _isotopeNo,
+        size_t _atomCnt
     );
 
     // Get rid of the C++ generated assignment constructor.
@@ -202,8 +202,8 @@ class MarginalTrek : public Marginal
     */
     MarginalTrek(
         Marginal&& m,
-        int tabSize = 1000,
-        int hashSize = 1000
+        size_t tabSize = 1000,
+        size_t hashSize = 1000
     );  // NOLINT(runtime/explicit) - Constructor deliberately left usable as a conversion.
 
     MarginalTrek(const MarginalTrek& other) = delete;
@@ -272,8 +272,8 @@ class PrecalculatedMarginal : public Marginal
         Marginal&& m,
         double lCutOff,
         bool sort = true,
-        int tabSize = 1000,
-        int hashSize = 1000
+        size_t tabSize = 1000,
+        size_t hashSize = 1000
     );
 
     PrecalculatedMarginal(const PrecalculatedMarginal& other) = delete;
@@ -369,7 +369,7 @@ class LayeredMarginal : public Marginal
         \param tabSize The size of the table used to store configurations in the allocator.
         \param hashSize The size of the hash table used to store visited subisotopologues.
     */
-    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
+    LayeredMarginal(Marginal&& m, size_t tabSize = 1000, size_t hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
 
     LayeredMarginal(const LayeredMarginal& other) = delete;
     LayeredMarginal& operator=(const LayeredMarginal& other) = delete;
@@ -432,7 +432,7 @@ class SingleAtomMarginal : public Marginal
     pod_vector<double> masses;
     pod_vector<size_t> original_indexes;
     double* guarded_lProbs;
-    int extended_to_idx;
+    size_t extended_to_idx;
 
  public:
     //! Move constructor: specializes the Marginal class.

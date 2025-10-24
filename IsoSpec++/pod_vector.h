@@ -128,8 +128,9 @@ template<typename T> class pod_vector
 
     ISOSPEC_FORCE_INLINE void push_back(const T& val)
     {
+        ISOSPEC_IMPOSSIBLE(backend_past_end-store < 0);
         if(first_free >= backend_past_end)
-            fast_reserve((std::max<std::ptrdiff_t>)(4, (backend_past_end-store)) * 2);
+            fast_reserve((std::max<std::size_t>)(4, static_cast<size_t>(backend_past_end-store)) * 2);
         *first_free = val;
         first_free++;
     }
@@ -148,12 +149,12 @@ template<typename T> class pod_vector
 
     ISOSPEC_FORCE_INLINE size_t size() const noexcept
     {
-        return first_free - store;
+        return static_cast<size_t>(first_free - store);
     }
 
     ISOSPEC_FORCE_INLINE size_t capacity() const noexcept
     {
-        return backend_past_end - store;
+        return static_cast<size_t>(backend_past_end - store);
     }
 
     ISOSPEC_FORCE_INLINE T* data() noexcept
@@ -306,8 +307,9 @@ template<typename T> class unsafe_pod_vector
 
     ISOSPEC_FORCE_INLINE void push_back(const T& val)
     {
+        ISOSPEC_IMPOSSIBLE(backend_past_end-store < 0);
         if(first_free >= backend_past_end)
-            fast_reserve((std::max<std::ptrdiff_t>)(4, (backend_past_end-store)) * 2);
+            fast_reserve((std::max<size_t>)(4, static_cast<size_t>(backend_past_end-store)) * 2);
         *first_free = val;
         first_free++;
     }

@@ -20,19 +20,19 @@
 namespace IsoSpec
 {
 
-KeyHasher::KeyHasher(int _dim)
+KeyHasher::KeyHasher(size_t _dim)
 : dim(_dim-1)
 {}
 
-ConfEqual::ConfEqual(int dim)
+ConfEqual::ConfEqual(size_t dim)
 : size( dim*sizeof(int) )
 {}
 
-ConfOrderMarginal::ConfOrderMarginal(const double* _logProbs, int _dim)
+ConfOrderMarginal::ConfOrderMarginal(const double* _logProbs, size_t _dim)
 : logProbs(_logProbs), dim(_dim)
 {}
 
-ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs, int _dim)
+ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs, size_t _dim)
 : logProbs(_logProbs), dim(_dim)
 {}
 }  // namespace IsoSpec

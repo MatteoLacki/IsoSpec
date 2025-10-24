@@ -818,7 +818,7 @@ template class IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>>;
  */
 
 template<typename MarginalType>
-IsoOrderedGeneratorTemplate<MarginalType>::IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize, int _hashSize) :
+IsoOrderedGeneratorTemplate<MarginalType>::IsoOrderedGeneratorTemplate(Iso&& iso, size_t _tabSize, size_t _hashSize) :
 IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
     partialLProbs = &currentLProb;

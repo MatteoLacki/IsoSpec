@@ -43,7 +43,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     double* _probs;
     int*    _confs;
     size_t  _confs_no;
-    int     allDim;
+    size_t  allDim;
     bool sorted_by_mass;
     bool sorted_by_prob;
     double total_prob;
@@ -51,7 +51,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     double* tmasses;
     double* tprobs;
     int*    tconfs;
-    int allDimSizeofInt;
+    size_t allDimSizeofInt;
 
  public:
     ISOSPEC_FORCE_INLINE FixedEnvelope() : _masses(nullptr),
@@ -83,7 +83,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     FixedEnvelope operator*(const FixedEnvelope& other) const;
 
     inline size_t    confs_no()  const { return _confs_no; }
-    inline int       getAllDim() const { return allDim; }
+    inline size_t    getAllDim() const { return allDim; }
 
     inline const double*   masses() const { return _masses; }
     inline const double*   probs()  const { return _probs; }

@@ -24,7 +24,7 @@
 
 namespace IsoSpec
 {
-
+#if 0
 void* quickselect(void ** array, int n, int start, int end)
 {
     if(start == end)
@@ -64,5 +64,5 @@ void* quickselect(void ** array, int n, int start, int end)
             start = loweridx+1;
     };
 }
-
+#endif
 }  // namespace IsoSpec
