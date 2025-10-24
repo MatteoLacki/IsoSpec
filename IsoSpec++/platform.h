@@ -96,7 +96,11 @@
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#define ISOSPEC_C_API __declspec(dllexport)
+#else
 #define ISOSPEC_C_API
+#endif
 
 #if !defined(__cpp_if_constexpr)
 #define constexpr_if if
