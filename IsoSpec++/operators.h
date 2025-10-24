@@ -126,7 +126,7 @@ template<typename T> class TableOrder
         const T* tbl;
  public:
         inline explicit TableOrder(const T* _tbl) : tbl(_tbl) {}
-        inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; }
+        inline bool operator()(size_t i, size_t j) { return tbl[i] < tbl[j]; }
 };
 
 }  // namespace IsoSpec
