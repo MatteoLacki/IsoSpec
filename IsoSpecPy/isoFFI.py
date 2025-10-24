@@ -6,10 +6,6 @@ from pathlib import Path
 if False:
     import IsoSpecCppPy
 
-def dprint(*args):
-    print(*args, file=sys.stderr, flush=True)
-    print(*args, flush=True)
-
 class IsoFFI:
     def __init__(self):
         self.ffi = cffi.FFI()
@@ -144,8 +140,6 @@ class IsoFFI:
                         ''');
 
         mod_dir = Path(__file__).resolve().parent
-        dprint("mod_dir:", mod_dir)
-        dprint("mod_dir parent content recursive tree:", list(mod_dir.parent.rglob('*')))
 
         if (mod_dir.parent / 'setup.py').exists():
             raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
@@ -163,11 +157,6 @@ sure you want to do that, edit the source and disable this check.''')
         except:
             pass
 
-        dprint("Looking for libIsoSpec++.so in", mod_dir)
-        dprint("Library name patterns:", libnames)
-        dprint("Library prefix patterns:", libprefix)
-        dprint("Library extension patterns:", extension)
-
         prebuilt =  ['', 'prebuilt-']
 
         def cprod(ll1, ll2):
@@ -175,28 +164,23 @@ sure you want to do that, edit the source and disable this check.''')
             for l1 in ll1:
                 for l2 in ll2:
                     res.append(l1+l2)
-            dprint("cprod:", ll1, ll2, "->", res)
             return res
 
         paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
-        dprint("Constructed paths to check:", paths_to_check)
         dpc = []
 
         for dirpath in [mod_dir, mod_dir.parent, mod_dir.parent / 'bin', mod_dir.parent / 'lib']:
             dpc.extend([dirpath / p for p in paths_to_check])
 
         paths_to_check = dpc
-        dprint("Final paths to check before globbing:", paths_to_check)
         # expand glob patterns using pathlib (keep only actual matches, like glob.glob did)
         expanded = []
         for p in paths_to_check:
             expanded.extend(p.parent.glob(p.name))
         paths_to_check = expanded
-        dprint("Final paths to check after globbing:", paths_to_check)
         try:
             import importlib
             paths_to_check.insert(0, Path(importlib.util.find_spec("IsoSpecCppPy").origin))
-            dprint("Also trying to load IsoSpecCppPy from:", paths_to_check[0])
         except (ImportError, AttributeError):
             pass
 
@@ -205,10 +189,8 @@ sure you want to do that, edit the source and disable this check.''')
         self.clib = None
         for libpath in set(paths_to_check):
             try:
-                dprint("Trying to load libIsoSpec++.so from:", libpath)
                 self.clib = self.ffi.dlopen(str(libpath))
                 self.libpath = libpath
-                dprint("Successfully loaded libIsoSpec++.so from:", libpath)
                 break
             except (IndexError, OSError) as e:
                 errmsg = "Load libIsoSpec++.so, tried: " + libpath + '\n' + "Got error: " + str(type(e)) + ": " + str(e)
