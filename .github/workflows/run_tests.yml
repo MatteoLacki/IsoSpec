@@ -1,0 +1,36 @@
+name: Build
+
+on:
+    push:
+        branches:
+            - ci_test
+            - main
+        tags:
+            - 'v*'
+
+jobs:
+  run_pytest:
+    name: Run pytest on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # macos-13 is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest, windows-11-arm]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+      - name: Install package
+        run: |
+          python -m pip install .[testing]
+      - name: Test with pytest
+        run: |
+          python -m pytest .
+
