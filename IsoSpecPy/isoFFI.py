@@ -145,6 +145,7 @@ class IsoFFI:
 
         mod_dir = Path(__file__).resolve().parent
         dprint("mod_dir:", mod_dir)
+        dprint("mod_dir parent content tree:", list(mod_dir.parent.iterdir()))
 
         if (mod_dir.parent / 'setup.py').exists():
             raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
