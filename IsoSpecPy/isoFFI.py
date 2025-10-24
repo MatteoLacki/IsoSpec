@@ -186,7 +186,11 @@ sure you want to do that, edit the source and disable this check.''')
 
         paths_to_check = dpc
         dprint("Final paths to check before globbing:", paths_to_check)
-        paths_to_check = sum(map(glob.glob, paths_to_check), [])
+        # expand glob patterns using pathlib (keep only actual matches, like glob.glob did)
+        expanded = []
+        for p in paths_to_check:
+            expanded.extend(p.parent.glob(p.name))
+        paths_to_check = expanded
         dprint("Final paths to check after globbing:", paths_to_check)
         try:
             import importlib
