@@ -31,6 +31,7 @@ jobs:
         run: |
           python -m pip install .[testing]
       - name: Test with pytest
+        working-directory: ./tests/Python
         run: |
           python -m pytest .
 
