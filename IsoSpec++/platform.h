@@ -64,7 +64,7 @@
 #define ISOSPEC_IMPOSSIBLE(condition) __assume(!(condition));
 #define ISOSPEC_LIKELY(condition) condition
 #define ISOSPEC_UNLIKELY(condition) condition
-#define ISOSPEC_FORCE_INLINE __forceinline inline
+#define ISOSPEC_FORCE_INLINE __forceinline
 #else
 #define ISOSPEC_IMPOSSIBLE(condition)
 #define ISOSPEC_LIKELY(condition) condition
