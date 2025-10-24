@@ -182,7 +182,7 @@ sure you want to do that, edit the source and disable this check.''')
         dprint("Constructed paths to check:", paths_to_check)
         dpc = []
 
-        for dirpath in [mod_dir, mod_dir.parent]:
+        for dirpath in [mod_dir, mod_dir.parent, mod_dir.parent / 'bin', mod_dir.parent / 'lib']:
             dpc.extend([dirpath / p for p in paths_to_check])
 
         paths_to_check = dpc
