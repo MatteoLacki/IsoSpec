@@ -93,19 +93,20 @@ def confs_from_threshold(formula, target_prob):
 
 
 
-is_ok = False
-try:
-    i = IsoSpecPy.IsoThreshold(0.1, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
-    for x in i:
-        print(x)
-except ValueError:
-    is_ok = True
-assert is_ok
+def test_zeroprob_assert():
+    is_ok = False
+    try:
+        i = IsoSpecPy.IsoThreshold(0.1, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
+        for x in i:
+            print(x)
+    except ValueError:
+        is_ok = True
+    assert is_ok
 
-total_confs = 0
 
-for molecule in molecules:
-    for parameter in parameters:
+
+def check_mol_param(molecule, parameter):
+        total_confs = 0
         if not silentish_run:
             sprint("{} {}... ".format(molecule, parameter))
             old_ordered = OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="ordered").getConfs()
@@ -136,5 +137,22 @@ for molecule in molecules:
 
         if not silentish_run:
             print("... OK!")
+        return total_confs
 
-sprint("Total confs: " + str(total_confs) + "\n")
+try:
+    import pytest
+    @pytest.mark.parametrize("molecule", molecules)
+    @pytest.mark.parametrize("parameter", parameters)
+    def test_mol_param(molecule, parameter):
+        check_mol_param(molecule, parameter)
+except ImportError:
+    test_mol_param = check_mol_param
+
+
+if __name__ == "__main__":
+    test_zeroprob_assert()
+    total_confs = 0
+    for molecule in molecules:
+        for parameter in parameters:
+            total_confs += check_mol_param(molecule, parameter)
+    sprint("Total confs: " + str(total_confs) + "\n")
