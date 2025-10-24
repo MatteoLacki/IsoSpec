@@ -28,12 +28,12 @@ class DirtyAllocator
     void*   currentTab;
     void*   currentConf;
     void*   endOfTablePtr;
-    const int       tabSize;
+    const size_t tabSize;
     int     cellSize;
     pod_vector<void*>  prevTabs;
 
  public:
-    explicit DirtyAllocator(const int dim, const int tabSize = 10000);
+    explicit DirtyAllocator(const size_t dim, const size_t tabSize = 10000);
     ~DirtyAllocator();
 
     DirtyAllocator(const DirtyAllocator& other) = delete;

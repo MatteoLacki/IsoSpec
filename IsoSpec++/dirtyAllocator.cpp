@@ -22,7 +22,7 @@ namespace IsoSpec
 {
 
 DirtyAllocator::DirtyAllocator(
-    const int dim, const int tabSize_
+    const size_t dim, const size_t tabSize_
 ): tabSize(tabSize_)
 {
     cellSize        = sizeof(double) + sizeof(int) * dim;
@@ -39,7 +39,7 @@ DirtyAllocator::DirtyAllocator(
 
 DirtyAllocator::~DirtyAllocator()
 {
-    for(unsigned int i = 0; i < prevTabs.size(); ++i) free(prevTabs[i]);
+    for(size_t i = 0; i < prevTabs.size(); ++i) free(prevTabs[i]);
     free(currentTab);
 }
 

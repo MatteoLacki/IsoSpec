@@ -25,7 +25,7 @@ namespace IsoSpec
 
 template <typename T> inline void copyConf(
     const T* source, T* destination,
-    int dim
+    size_t dim
 ){
     memcpy(destination, source, dim*sizeof(T));
 }
@@ -33,13 +33,13 @@ template <typename T> inline void copyConf(
 template <typename T> class Allocator
 {
  private:
-    T*      currentTab;
+    T* currentTab;
     int currentId;
-    const int       dim, tabSize;
+    const size_t dim, tabSize;
     pod_vector<T*>  prevTabs;
 
  public:
-    explicit Allocator(const int dim, const int tabSize = 10000);
+    explicit Allocator(const size_t dim, const size_t tabSize = 10000);
     ~Allocator();
 
     Allocator(const Allocator& other) = delete;

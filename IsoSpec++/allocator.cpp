@@ -21,7 +21,7 @@ namespace IsoSpec
 {
 
 template <typename T>
-Allocator<T>::Allocator(const int dim_, const int tabSize_): currentTab(new T[dim_ * tabSize_]), currentId(-1), dim(dim_), tabSize(tabSize_) {}
+Allocator<T>::Allocator(const size_t dim_, const size_t tabSize_): currentTab(new T[dim_ * tabSize_]), currentId(-1), dim(dim_), tabSize(tabSize_) {}
 
 
 template <typename T>
@@ -34,7 +34,7 @@ Allocator<T>::~Allocator()
         delete [] currentTab;
     }
 
-    for(unsigned int i = 0; i < prevTabs.size(); ++i)
+    for(size_t i = 0; i < prevTabs.size(); ++i)
         delete [] prevTabs[i];
 }
 

@@ -247,7 +247,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
     double                      currentLProb;                       /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                        /*!< The mass of the current isotopologue. */
     double                      currentProb;                        /*!< The probability of the current isotopologue. */
-    int                         ccount;
+    long int                    ccount;
 
  public:
     IsoOrderedGeneratorTemplate(const IsoOrderedGeneratorTemplate& other) = delete;
@@ -538,7 +538,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 
 
     //! Recalculate the current partial log-probabilities, masses, and probabilities.
-    ISOSPEC_FORCE_INLINE void recalc(int idx)
+    ISOSPEC_FORCE_INLINE void recalc(size_t idx)
     {
         for(; idx > 0; idx--)
         {

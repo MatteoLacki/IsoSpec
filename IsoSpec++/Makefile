@@ -1,9 +1,12 @@
 OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g -Werror -DISOSPEC_DEBUG -DDEBUG -D_GLIBCXX_DEBUG
-CXXFLAGS=-std=c++17 -Wall -pedantic -Wextra -Wshadow -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wno-old-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wno-sign-conversion -Wsign-promo -Wswitch-default -Wundef
+CXXFLAGS=-std=c++17 -Wall -pedantic -Wextra -Wshadow -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wno-old-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wno-sign-conversion -Wsign-promo -Wswitch-default -Wundef -Wshorten-64-to-32
 SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp mman.cpp fixedEnvelopes.cpp fasta.cpp
 
-all: unitylib
+all: syntax
+
+syntax:
+	$(CXX) $(CXXFLAGS) unity-build.cpp -fsyntax-only
 
 unitylib:
 	$(CXX) $(CXXFLAGS) $(OPTFLAGS) unity-build.cpp -fPIC -shared -o libIsoSpec++.so

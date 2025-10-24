@@ -27,19 +27,19 @@ namespace IsoSpec
 {
 
 inline double combinedSum(
-    const int* conf, const std::vector<double>** valuesContainer, int dimNumber
+    const int* conf, const std::vector<double>** valuesContainer, size_t dimNumber
 ){
     double res = 0.0;
-    for(int i = 0; i < dimNumber; i++)
+    for(size_t i = 0; i < dimNumber; i++)
         res += (*(valuesContainer[i]))[conf[i]];
     return res;
 }
 
 inline double combinedSum(
-    const int* conf, const pod_vector<double>** valuesContainer, int dimNumber
+    const int* conf, const pod_vector<double>** valuesContainer, size_t dimNumber
 ){
     double res = 0.0;
-    for(int i = 0; i < dimNumber; i++)
+    for(size_t i = 0; i < dimNumber; i++)
         res += (*(valuesContainer[i]))[conf[i]];
     return res;
 }
@@ -135,9 +135,9 @@ template <typename T> static T* array_copy_nptr(const T* A, size_t size)
     return array_copy(A, size);
 }
 
-template<typename T> void dealloc_table(T* tbl, int dim)
+template<typename T> void dealloc_table(T* tbl, size_t dim)
 {
-    for(int i = 0; i < dim; i++)
+    for(size_t i = 0; i < dim; i++)
     {
         delete tbl[i];
     }
