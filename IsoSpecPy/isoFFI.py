@@ -1,8 +1,8 @@
 import cffi
-import os
 import platform
 import sys
 import glob
+from pathlib import Path
 if False:
     import IsoSpecCppPy
 
@@ -143,10 +143,10 @@ class IsoFFI:
         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
                         ''');
 
-        mod_dir = os.path.dirname(os.path.abspath(__file__))
+        mod_dir = Path(__file__).resolve().parent
         dprint("mod_dir:", mod_dir)
 
-        if os.path.exists(os.path.join(mod_dir, '..', 'setup.py')):
+        if (mod_dir.parent / 'setup.py').exists():
             raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
 won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
 sure you want to do that, edit the source and disable this check.''')
@@ -181,8 +181,8 @@ sure you want to do that, edit the source and disable this check.''')
         dprint("Constructed paths to check:", paths_to_check)
         dpc = []
 
-        for dirpath in [mod_dir, mod_dir + '/..']:
-            dpc.extend([os.path.join(dirpath, p) for p in paths_to_check])
+        for dirpath in [mod_dir, mod_dir.parent]:
+            dpc.extend([dirpath / p for p in paths_to_check])
 
         paths_to_check = dpc
         dprint("Final paths to check before globbing:", paths_to_check)
@@ -190,7 +190,7 @@ sure you want to do that, edit the source and disable this check.''')
         dprint("Final paths to check after globbing:", paths_to_check)
         try:
             import importlib
-            paths_to_check.insert(0, importlib.util.find_spec("IsoSpecCppPy").origin)
+            paths_to_check.insert(0, Path(importlib.util.find_spec("IsoSpecCppPy").origin))
             dprint("Also trying to load IsoSpecCppPy from:", paths_to_check[0])
         except (ImportError, AttributeError):
             pass
@@ -201,7 +201,7 @@ sure you want to do that, edit the source and disable this check.''')
         for libpath in set(paths_to_check):
             try:
                 dprint("Trying to load libIsoSpec++.so from:", libpath)
-                self.clib = self.ffi.dlopen(libpath)
+                self.clib = self.ffi.dlopen(str(libpath))
                 self.libpath = libpath
                 dprint("Successfully loaded libIsoSpec++.so from:", libpath)
                 break
