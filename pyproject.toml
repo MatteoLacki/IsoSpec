@@ -12,7 +12,7 @@ description = "IsoSpecPy is a Python library for computing isotopic distribution
 version = "2.3.0dev4"
 
 [project.optional-dependencies]
-testing = ["pytest", "numpy", "OldIsoSpecPy @ https://files.pythonhosted.org/packages/95/b8/181b61fd1762304d5d0b897624b3773494840cbfc3b6af1494b02bddc372/oldisospecpy-1.0.11.tar.gz"]
+testing = ["pytest", "numpy", "OldIsoSpecPy @ https://files.pythonhosted.org/packages/96/5e/5d4074ccfa8bd59019411e150c7e58ea8b6609db91be605de5abc9852863/oldisospecpy-1.0.12.tar.gz"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/Python"]
