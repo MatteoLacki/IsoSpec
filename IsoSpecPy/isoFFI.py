@@ -1,11 +1,10 @@
 import cffi
-import os
 import platform
 import sys
 import glob
+from pathlib import Path
 if False:
     import IsoSpecCppPy
-
 
 class IsoFFI:
     def __init__(self):
@@ -37,7 +36,12 @@ class IsoFFI:
                                          int _tabSize,
                                          int _hashSize,
                                          bool reorder_marginals);
-        double massIsoThresholdGenerator(void* generator); double lprobIsoThresholdGenerator(void* generator); double probIsoThresholdGenerator(void* generator); void methodIsoThresholdGenerator(void* generator); bool advanceToNextConfigurationIsoThresholdGenerator(void* generator); void deleteIsoThresholdGenerator(void* generator); void get_conf_signatureIsoThresholdGenerator(void* generator, int* space);
+        double massIsoThresholdGenerator(void* generator);
+        double lprobIsoThresholdGenerator(void* generator);
+        double probIsoThresholdGenerator(void* generator);
+        bool advanceToNextConfigurationIsoThresholdGenerator(void* generator);
+        void deleteIsoThresholdGenerator(void* generator);
+        void get_conf_signatureIsoThresholdGenerator(void* generator, int* space);
 
 
 
@@ -46,19 +50,34 @@ class IsoFFI:
                                        int _hashSize,
                                        bool reorder_marginals,
                                        double t_prob_hint);
-        double massIsoLayeredGenerator(void* generator); double lprobIsoLayeredGenerator(void* generator); double probIsoLayeredGenerator(void* generator); void methodIsoLayeredGenerator(void* generator); bool advanceToNextConfigurationIsoLayeredGenerator(void* generator); void deleteIsoLayeredGenerator(void* generator); void get_conf_signatureIsoLayeredGenerator(void* generator, int* space);
+        double massIsoLayeredGenerator(void* generator);
+        double lprobIsoLayeredGenerator(void* generator);
+        double probIsoLayeredGenerator(void* generator);
+        bool advanceToNextConfigurationIsoLayeredGenerator(void* generator);
+        void deleteIsoLayeredGenerator(void* generator);
+        void get_conf_signatureIsoLayeredGenerator(void* generator, int* space);
 
 
         void* setupIsoOrderedGenerator(void* iso,
                                        int _tabSize,
                                        int _hashSize);
-        double massIsoOrderedGenerator(void* generator); double lprobIsoOrderedGenerator(void* generator); double probIsoOrderedGenerator(void* generator); void methodIsoOrderedGenerator(void* generator); bool advanceToNextConfigurationIsoOrderedGenerator(void* generator); void deleteIsoOrderedGenerator(void* generator); void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
+        double massIsoOrderedGenerator(void* generator);
+        double lprobIsoOrderedGenerator(void* generator);
+        double probIsoOrderedGenerator(void* generator);
+        bool advanceToNextConfigurationIsoOrderedGenerator(void* generator);
+        void deleteIsoOrderedGenerator(void* generator);
+        void get_conf_signatureIsoOrderedGenerator(void* generator, int* space);
 
         void* setupIsoStochasticGenerator(void* iso,
                                    size_t no_molecules,
                                    double precision,
                                    double beta_bias);
-        double massIsoStochasticGenerator(void* generator); double lprobIsoStochasticGenerator(void* generator); double probIsoStochasticGenerator(void* generator); void methodIsoStochasticGenerator(void* generator); bool advanceToNextConfigurationIsoStochasticGenerator(void* generator); void deleteIsoStochasticGenerator(void* generator); void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
+        double massIsoStochasticGenerator(void* generator);
+        double lprobIsoStochasticGenerator(void* generator);
+        double probIsoStochasticGenerator(void* generator);
+        bool advanceToNextConfigurationIsoStochasticGenerator(void* generator);
+        void deleteIsoStochasticGenerator(void* generator);
+        void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
 
         void* setupThresholdFixedEnvelope(void* iso,
                                     double threshold,
@@ -140,9 +159,9 @@ class IsoFFI:
         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
                         ''');
 
-        mod_dir = os.path.dirname(os.path.abspath(__file__))
+        mod_dir = Path(__file__).resolve().parent
 
-        if os.path.exists(os.path.join(mod_dir, '..', 'setup.py')):
+        if (mod_dir.parent / 'setup.py').exists():
             raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
 won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
 sure you want to do that, edit the source and disable this check.''')
@@ -168,19 +187,20 @@ sure you want to do that, edit the source and disable this check.''')
             return res
 
         paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
-
         dpc = []
 
-        for dirpath in [mod_dir, mod_dir + '/..']:
-            dpc.extend([os.path.join(dirpath, p) for p in paths_to_check])
+        for dirpath in [mod_dir, mod_dir.parent, mod_dir.parent / 'bin', mod_dir.parent / 'lib']:
+            dpc.extend([dirpath / p for p in paths_to_check])
 
         paths_to_check = dpc
-
-        paths_to_check = sum(map(glob.glob, paths_to_check), [])
-
+        # expand glob patterns using pathlib (keep only actual matches, like glob.glob did)
+        expanded = []
+        for p in paths_to_check:
+            expanded.extend(p.parent.glob(p.name))
+        paths_to_check = expanded
         try:
             import importlib
-            paths_to_check.insert(0, importlib.util.find_spec("IsoSpecCppPy").origin)
+            paths_to_check.insert(0, Path(importlib.util.find_spec("IsoSpecCppPy").origin))
         except (ImportError, AttributeError):
             pass
 
@@ -189,7 +209,7 @@ sure you want to do that, edit the source and disable this check.''')
         self.clib = None
         for libpath in set(paths_to_check):
             try:
-                self.clib = self.ffi.dlopen(libpath)
+                self.clib = self.ffi.dlopen(str(libpath))
                 self.libpath = libpath
                 break
             except (IndexError, OSError) as e:

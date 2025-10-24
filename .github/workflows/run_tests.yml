@@ -5,6 +5,7 @@ on:
         branches:
             - ci_test
             - main
+            - winworkflow
         tags:
             - 'v*'
 
@@ -34,8 +35,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
       - name: Install package
+        env:
+          VERBOSE: '1'
         run: |
-          python -m pip install .[testing]
+          python -m pip install -v .[testing]
       - name: Wipe code so it wont mess up import
         run: |
           python .github/scripts/rmiso.py
