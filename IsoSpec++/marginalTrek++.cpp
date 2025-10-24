@@ -662,7 +662,7 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
        // but don't reallocate on every call
 
 //    printVector(lProbs);
-    for(unsigned int ii = probs.size(); ii < configurations.size(); ii++)
+    for(size_t ii = probs.size(); ii < configurations.size(); ii++)
     {
         probs.push_back(exp(lProbs[ii+1]));
         masses.push_back(calc_mass(configurations[ii], atom_masses, isotopeNo));

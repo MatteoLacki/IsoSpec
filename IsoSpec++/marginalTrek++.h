@@ -254,7 +254,7 @@ class PrecalculatedMarginal : public Marginal
  protected:
     pod_vector<Conf> configurations;
     Conf* confs;
-    unsigned int no_confs;
+    size_t no_confs;
     double* masses;
     pod_vector<double> lProbs;
     double* probs;
@@ -286,28 +286,28 @@ class PrecalculatedMarginal : public Marginal
     /*!
         \return Returns true if idx does not exceed the number of pre-computed configurations.
     */
-    inline bool inRange(unsigned int idx) const { return idx < no_confs; }
+    inline bool inRange(size_t idx) const { return idx < no_confs; }
 
     //! Get the log-probability of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The log-probability of the idx-th subisotopologue.
     */
-    inline const double& get_lProb(int idx) const { return lProbs[idx]; }
+    inline const double& get_lProb(size_t idx) const { return lProbs[idx]; }
 
     //! Get the probability of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The probability of the idx-th subisotopologue.
     */
-    inline const double& get_prob(int idx) const { return probs[idx]; }
+    inline const double& get_prob(size_t idx) const { return probs[idx]; }
 
     //! Get the mass of the idx-th subisotopologue.
     /*!
         \param idx The number of the considered subisotopologue.
         \return The mass of the idx-th subisotopologue.
     */
-    inline const double& get_mass(int idx) const { return masses[idx]; }
+    inline const double& get_mass(size_t idx) const { return masses[idx]; }
 
     //! Get the table of the log-probabilities of subisotopologues.
     /*!
@@ -327,13 +327,13 @@ class PrecalculatedMarginal : public Marginal
         \param idx The number of the considered subisotopologue.
         \return The counts of isotopes that define the subisotopologue.
     */
-    inline const Conf& get_conf(int idx) const { return confs[idx]; }
+    inline const Conf& get_conf(size_t idx) const { return confs[idx]; }
 
     //! Get the number of precomputed subisotopologues.
     /*!
         \return The number of precomputed subisotopologues.
     */
-    inline unsigned int get_no_confs() const { return no_confs; }
+    inline size_t get_no_confs() const { return no_confs; }
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
@@ -382,22 +382,22 @@ class LayeredMarginal : public Marginal
     bool extend(double new_threshold, bool do_sort = true);
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
-    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
+    inline double get_lProb(size_t idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
 
     //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
-    inline double get_prob(int idx) const { return probs[idx]; }
+    inline double get_prob(size_t idx) const { return probs[idx]; }
 
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
-    inline double get_mass(int idx) const { return masses[idx]; }
+    inline double get_mass(size_t idx) const { return masses[idx]; }
 
     //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
-    inline const Conf& get_conf(int idx) const { return configurations[idx]; }
+    inline const Conf& get_conf(size_t idx) const { return configurations[idx]; }
 
     //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
-    inline unsigned int get_no_confs() const { return configurations.size(); }
+    inline size_t get_no_confs() const { return configurations.size(); }
 
     //! Get the minimal mass in current layer
     double get_min_mass() const;
@@ -461,26 +461,26 @@ class SingleAtomMarginal : public Marginal
     };
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
-    inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
+    inline double get_lProb(size_t idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
 
     //! get the probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_eProb.
-    inline double get_prob(int idx) const { return probs[idx]; }
+    inline double get_prob(size_t idx) const { return probs[idx]; }
 
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
-    inline double get_mass(int idx) const { return masses[idx]; }
+    inline double get_mass(size_t idx) const { return masses[idx]; }
 
     //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
-    inline const Conf& get_conf([[maybe_unused]] int idx) const { throw std::logic_error("SingleAtomMarginal.get_conf: not implemented"); /*return configurations[idx];*/ }
+    inline const Conf& get_conf([[maybe_unused]] size_t idx) const { throw std::logic_error("SingleAtomMarginal.get_conf: not implemented"); /*return configurations[idx];*/ }
 
     //! Get the number of precomputed subisotopologues, see details in @ref PrecalculatedMarginal::get_no_confs.
-    inline unsigned int get_no_confs() const {
+    inline size_t get_no_confs() const {
         if constexpr(add_guards)
             return extended_to_idx;
         else
-            return static_cast<unsigned int>(original_indexes.size());}
+            return original_indexes.size();}
 
     //! Get the minimal mass in current layer
     inline double get_min_mass() const { throw std::logic_error("SingleAtomMarginal.get_min_mass: not implemented"); };
@@ -530,12 +530,12 @@ class LoggingMarginal : public Marginal
     LoggingMarginal& operator=(const LoggingMarginal& other) = delete;
 
     inline double getModeLProb() const { auto ret = real_marginal->getModeLProb(); std::cout << "LoggingMarginal::getModeLProb: " << ret << std::endl; return ret; }
-    inline double get_lProb(int idx) const { auto ret = real_marginal->get_lProb(idx); std::cout << "LoggingMarginal::get_lProb: " << idx << " " << ret << std::endl; return ret; }
-    inline double get_prob(int idx) const { auto ret = real_marginal->get_prob(idx); std::cout << "LoggingMarginal::get_prob: " << idx << " " << ret << std::endl; return ret; }
-    inline double get_mass(int idx) const { auto ret = real_marginal->get_mass(idx); std::cout << "LoggingMarginal::get_mass: " << idx << " " << ret << std::endl; return ret; }
+    inline double get_lProb(size_t idx) const { auto ret = real_marginal->get_lProb(idx); std::cout << "LoggingMarginal::get_lProb: " << idx << " " << ret << std::endl; return ret; }
+    inline double get_prob(size_t idx) const { auto ret = real_marginal->get_prob(idx); std::cout << "LoggingMarginal::get_prob: " << idx << " " << ret << std::endl; return ret; }
+    inline double get_mass(size_t idx) const { auto ret = real_marginal->get_mass(idx); std::cout << "LoggingMarginal::get_mass: " << idx << " " << ret << std::endl; return ret; }
     inline const double* get_lProbs_ptr() const { auto ret = real_marginal->get_lProbs_ptr(); std::cout << "LoggingMarginal::get_lProbs_ptr: "; printArray<double>(ret, real_marginal->get_no_confs()); return ret; }
-    inline const Conf& get_conf(int idx) const { auto ret = real_marginal->get_conf(idx); std::cout << "LoggingMarginal::get_conf: " << idx << std::endl; return ret; }
-    inline unsigned int get_no_confs() const { auto ret = real_marginal->get_no_confs(); std::cout << "LoggingMarginal::get_no_confs: " << ret << std::endl; return ret; }
+    inline const Conf& get_conf(size_t idx) const { auto ret = real_marginal->get_conf(idx); std::cout << "LoggingMarginal::get_conf: " << idx << std::endl; return ret; }
+    inline size_t get_no_confs() const { auto ret = real_marginal->get_no_confs(); std::cout << "LoggingMarginal::get_no_confs: " << ret << std::endl; return ret; }
     inline bool probeConfigurationIdx(int idx) { auto ret = real_marginal->probeConfigurationIdx(idx); std::cout << "LoggingMarginal::probeConfigurationIdx: " << idx << " " << ret << std::endl; return ret; }
     inline double get_min_mass() const { auto ret = real_marginal->get_min_mass(); std::cout << "LoggingMarginal::get_min_mass: " << ret << std::endl; return ret; }
     inline double get_max_mass() const { auto ret = real_marginal->get_max_mass(); std::cout << "LoggingMarginal::get_max_mass: " << ret << std::endl; return ret; }
@@ -555,7 +555,7 @@ class LoggingMarginal : public Marginal
     inline void ensureModeConf() { real_marginal->ensureModeConf(); std::cout << "LoggingMarginal::ensureModeConf" << std::endl; }
     inline const pod_vector<double>& conf_lprobs() const { return real_marginal->conf_lprobs(); }
     inline const pod_vector<double>& conf_masses() const { return real_marginal->conf_masses(); }
-    inline int get_original_position(int idx) const { return real_marginal->get_original_position(idx); }
+    inline int get_original_position(size_t idx) const { return real_marginal->get_original_position(idx); }
     inline int get_isotopeNo() const { return real_marginal->get_isotopeNo(); }
     inline const double* get_lProbs() const { return real_marginal->get_lProbs(); }
     inline const double* get_masses() const { return real_marginal->get_masses(); }

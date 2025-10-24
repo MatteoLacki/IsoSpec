@@ -61,7 +61,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     bool            disowned;       /*!< A variable showing if the Iso class was specialized by its child-class. If so, then the description of the molecules has been transfered there and Iso is a carcass class, dead as a dodo, an ex-class if you will. */
 
  protected:
-    int             dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
+    size_t          dimNumber;      /*!< The number of elements in the chemical formula of the molecule. */
     int*            isotopeNumbers; /*!< A table with numbers of isotopes for each element. */
     int*            atomCounts;     /*!< A table with numbers of isotopes for each element. */
     unsigned int    confSize;       /*!< The number of bytes needed to represent the counts of isotopes present in the extended chemical formula. */
@@ -269,7 +269,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
             if (ccount >= 0)
                 c[ccount]--;
 
-            for(int ii = 0; ii < dimNumber; ii++)
+            for(size_t ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResults[ii]->confs()[c[ii]], isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
@@ -298,7 +298,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
             int* c = getConf(topConf);
             space[0] = std::max(c[0]-1, 0);
 
-            for(int ii = 1; ii < dimNumber; ii++)
+            for(size_t ii = 1; ii < dimNumber; ii++)
                 space[ii] = c[ii];
         }
     }
@@ -321,7 +321,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     const double            Lcutoff;            /*!< The logarithm of the lower bound on the calculated probabilities. */
     PrecalculatedMarginal** marginalResults;
     PrecalculatedMarginal** marginalResultsUnsorted;
-    int* marginalOrder;
+    size_t* marginalOrder;
 
     const double* lProbs_ptr;
     const double* lProbs_ptr_start;
@@ -338,16 +338,16 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         counter[0] = static_cast<int>(lProbs_ptr - lProbs_ptr_start);
         if(marginalOrder != nullptr)
         {
-            for(int ii = 0; ii < dimNumber; ii++)
+            for(size_t ii = 0; ii < dimNumber; ii++)
             {
-                int jj = marginalOrder[ii];
+                size_t jj = marginalOrder[ii];
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
             }
         }
         else
         {
-            for(int ii = 0; ii < dimNumber; ii++)
+            for(size_t ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
@@ -381,7 +381,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 
         // If we reached this point, a carry is needed
 
-        int idx = 0;
+        size_t idx = 0;
         lProbs_ptr = lProbs_ptr_start;
 
         int * cntr_ptr = counter;
@@ -484,7 +484,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
         counter[0] = lProbs_ptr - lProbs_ptr_start;
         if(marginalOrder != nullptr)
         {
-            for(int ii = 0; ii < dimNumber; ii++)
+            for(size_t ii = 0; ii < dimNumber; ii++)
             {
                 int jj = marginalOrder[ii];
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[jj]), isotopeNumbers[ii]*sizeof(int));
@@ -493,7 +493,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
         }
         else
         {
-            for(int ii = 0; ii < dimNumber; ii++)
+            for(size_t ii = 0; ii < dimNumber; ii++)
             {
                 memcpy(space, marginalResultsUnsorted[ii]->get_conf(counter[ii]), isotopeNumbers[ii]*sizeof(int));
                 space += isotopeNumbers[ii];
@@ -561,16 +561,16 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
             counter[0] = lProbs_ptr - lProbs_ptr_start;
             if(marginalOrder != nullptr)
             {
-                for(int ii = 0; ii < dimNumber; ii++)
+                for(size_t ii = 0; ii < dimNumber; ii++)
                 {
                     int jj = marginalOrder[ii];
-                    space[ii] = marginalResultsUnsorted[ii]->get_original_position(counter[jj]);
+                    space[ii] = static_cast<int>(marginalResultsUnsorted[ii]->get_original_position(counter[jj]));
                 }
             }
             else
             {
-                for(int ii = 0; ii < dimNumber; ii++)
-                    space[ii] = marginalResultsUnsorted[ii]->get_original_position(counter[ii]);
+                for(size_t ii = 0; ii < dimNumber; ii++)
+                    space[ii] = static_cast<int>(marginalResultsUnsorted[ii]->get_original_position(counter[ii]));
             }
         }
         else
