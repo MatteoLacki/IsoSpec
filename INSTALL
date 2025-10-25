@@ -2,27 +2,19 @@
 Building and installing the C/C++ library
 
 Requirements:
-   A C++11 compiler, clang++ (v3.3 or later) or g++ (v4.7 or later)
+   A C++17 compiler
    Make (GNU make is OK)
 
 
-Note: clang++ is the default (and preferred) compiler as it produces 
-faster code (in our tests, the difference in speed is about 20%). 
-If you'd like to use g++ instead, please edit the first line of 
-IsoSpec++/Makefile appropriately.
-
 Next, execute the following commands:
 
-cd IsoSpec++
+cd src/IsoSpec++
 make
 
 You may copy the resulting .so file to a convenient location.
-If you wish to develop software using this library, you will also 
+If you wish to develop software using this library, you will also
 have to place the header files (*.hpp/*.h) somewhere your C/C++
 compiler can find them.
-
-On Windows, you should turn on the MANN_LIBRARY pre-processor directive when
-building the library.
 
 ------------------------------------------
 Building and installing the Python package
@@ -34,37 +26,24 @@ IsoSpecPy is compatible with both CPython and PyPy, running on Unix,
 Cygwin or in MinGW environment.
 
 The preferred method of installation is by using the pip package manager.
-In order to do that, simply issue the following command, replacing 
+In order to do that, simply issue the following command, replacing
 "<python>" with your Python executable (python/python3/pypy/...)
 
 <python> -m pip install IsoSpecPy
 
-If, instead, you wish to install the package manually, follow these 
+If, instead, you wish to install the package manually, follow these
 instructions:
 
 Requirements:
-    Python (obviously) (v2 and v3 are supported)
-    C++11 compiler, clang++ (v3.3 or later) or g++ (v4.7 or later)
-    setuptools
-    cffi (this, if not present, will be automatically downloaded and
-          installed by the setup script, however you may prefer to use 
-          your distribution's package manager to install that)
+    Python (obviously)
+    C++17 compiler
 
 Execute the following commands:
-cd IsoSpecPy
-sudo python setup.py install
-
-Again, clang++ is the preferred compiler and will be used if found by the 
-setup script. If you want to override the behaviour (if you have clang++ 
-installed, but still want to use g++) you will have to replace the last 
-command with:
-
-ISO_USE_DEFAULT_CXX=TRUE sudo python setup.py install
-
+pip install .
 
 ------------------------------------------
 Building and installing the R package
-	
+
 The preferred installation method is to use the CRAN package installer.
 To do that, simply issue the command:
 
@@ -80,8 +59,9 @@ Requirements:
 
 Move to the folder containing the IsoSpecR folder. Then run in terminal:
 
-	R CMD build IsoSpecR 
-	R CMD INSTALL IsoSpecR_*.tar.gz  
+   cd src
+	R CMD build IsoSpecR
+	R CMD INSTALL IsoSpecR_*.tar.gz
 
-All necessary packages should download automatically. 
+All necessary packages should download automatically.
 
