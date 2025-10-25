@@ -25,7 +25,7 @@
 namespace IsoSpec
 {
 
-void* quickselect(void ** array, int n, int start, int end)
+void* quickselect(void ** array, size_t n, size_t start, size_t end)
 {
     if(start == end)
         return array[start];
@@ -33,9 +33,9 @@ void* quickselect(void ** array, int n, int start, int end)
     while(true)
     {
         // Partition part
-        int len = end - start;
+        size_t len = end - start;
 #if ISOSPEC_BUILDING_R
-        int pivot = len/2 + start;
+        size_t pivot = len/2 + start;
 #else
         size_t pivot = random_gen() % len + start;  // Using Mersenne twister directly - we don't
                                                     // need a very uniform distribution just for pivot
@@ -44,8 +44,8 @@ void* quickselect(void ** array, int n, int start, int end)
         void* pval = array[pivot];
         double pprob = getLProb(pval);
         std::swap(array[pivot], array[end-1]);
-        int loweridx = start;
-        for(int i = start; i < end-1; i++)
+        size_t loweridx = start;
+        for(size_t i = start; i < end-1; i++)
         {
             if(getLProb(array[i]) < pprob)
             {

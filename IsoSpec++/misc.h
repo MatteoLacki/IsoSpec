@@ -82,11 +82,11 @@ inline double calc_mass(const int* conf, const double* masses, int dim)
 
 
 
-template<typename T> void printArray(const T* array, int size, const char* prefix = "")
+template<typename T> void printArray(const T* array, size_t size, const char* prefix = "")
 {
     if (strlen(prefix) > 0)
         std::cout << prefix << " ";
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
         std::cout << array[i] << " ";
     std::cout << std::endl;
 }
@@ -101,34 +101,34 @@ template<typename T> void printVector(const pod_vector<T>& vec)
     printArray<T>(vec.data(), vec.size());
 }
 
-template<typename T> void printOffsets(const T** array, int size, const T* offset, const char* prefix = "")
+template<typename T> void printOffsets(const T** array, size_t size, const T* offset, const char* prefix = "")
 {
     if (strlen(prefix) > 0)
         std::cout << prefix << " ";
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
         std::cout << array[i] - offset << " ";
     std::cout << std::endl;
 }
 
-template<typename T> void printNestedArray(const T** array, const int* shape, int size)
+template<typename T> void printNestedArray(const T** array, const int* shape, size_t size)
 {
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
         printArray(array[i], shape[i]);
     std::cout << std::endl;
 }
 
 //! Quickly select the n'th positional statistic, including the weights.
-void* quickselect(const void** array, int n, int start, int end);
+void* quickselect(const void** array, size_t n, size_t start, size_t end);
 
 
-template <typename T> inline static T* array_copy(const T* A, int size)
+template <typename T> inline static T* array_copy(const T* A, size_t size)
 {
     T* ret = new T[size];
     memcpy(ret, A, size*sizeof(T));
     return ret;
 }
 
-template <typename T> static T* array_copy_nptr(const T* A, int size)
+template <typename T> static T* array_copy_nptr(const T* A, size_t size)
 {
     if(A == nullptr)
         return nullptr;
@@ -159,7 +159,7 @@ template<typename T> size_t* get_order(T* order_array, size_t N)
     for(size_t ii = 0; ii < N; ii++)
         arr[ii] = ii;
 
-    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] < order_array[j]; });
+    std::sort(arr, arr + N, [&](size_t i, size_t j) { return order_array[i] < order_array[j]; });
 
     return arr;
 }
@@ -170,7 +170,7 @@ template<typename T> size_t* get_inverse_order(T* order_array, size_t N)
     for(size_t ii = 0; ii < N; ii++)
         arr[ii] = ii;
 
-    std::sort(arr, arr + N, [&](int i, int j) { return order_array[i] > order_array[j]; });
+    std::sort(arr, arr + N, [&](size_t i, size_t j) { return order_array[i] > order_array[j]; });
 
     return arr;
 }
