@@ -16,6 +16,6 @@ def pyproject_version():
     return version
 
 if __name__ == "__main__":
-    assert git_version() == pyproject_version(), \
+    assert git_version() == "v"+pyproject_version(), \
         f"Version mismatch: git version '{git_version()}' != pyproject.toml version '{pyproject_version()}'"
     print("Version check passed:", git_version())
