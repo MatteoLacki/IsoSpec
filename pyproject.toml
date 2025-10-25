@@ -46,15 +46,11 @@ test-extras = ["testing"]
 [tool.scikit-build.sdist]
 exclude = ["**/*"]
 include = [
-    "/IsoSpecPy/*.py",
-    "/IsoSpec++/*.c",
-    "/IsoSpec++/*.h",
-    "/IsoSpec++/*.hpp",
-    "/IsoSpec++/*.cpp",
-    "/src/**/*.hpp",
-    "/src/**/*.h",
-    "/src/**/*.cpp",
-    "/src/**/*.cc",
+    "/src/IsoSpecPy/*.py",
+    "/src/IsoSpec++/*.c",
+    "/src/IsoSpec++/*.h",
+    "/src/IsoSpec++/*.hpp",
+    "/src/IsoSpec++/*.cpp",
     "/LICENCE",
     "/README.md",
     "/pyproject.toml",
