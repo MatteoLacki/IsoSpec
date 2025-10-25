@@ -19,6 +19,7 @@ testpaths = ["tests/Python"]
 
 [tool.cibuildwheel]
 enable = ["pypy"]
+skip = ["cp36-*", "cp37-*"]
 test-command = "python -m pytest {project}/tests/Python"
 #test-sources = ["tests/Python"]
 test-extras = ["testing"]
