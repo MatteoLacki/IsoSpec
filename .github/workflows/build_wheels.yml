@@ -43,6 +43,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check version
+        run: python .github/scripts/check_version.py
+
       - name: Build sdist
         run: pipx run build --sdist
 
