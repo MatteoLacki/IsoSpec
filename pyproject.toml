@@ -18,7 +18,7 @@ testing = ["pytest", "numpy", "OldIsoSpecPy @ https://files.pythonhosted.org/pac
 testpaths = ["tests/Python"]
 
 [tool.cibuildwheel]
-build = "cp*-* pp*-*"
+enable = ["pypy"]
 test-command = "python -m pytest"
 test-sources = "tests/Python"
 test-extras = ["testing"]
