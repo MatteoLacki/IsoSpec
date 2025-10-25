@@ -80,5 +80,5 @@ jobs:
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         # To test uploads to TestPyPI, uncomment the following:
-        with:
-          repository-url: https://test.pypi.org/legacy/
+        # with:
+        #   repository-url: https://test.pypi.org/legacy/
