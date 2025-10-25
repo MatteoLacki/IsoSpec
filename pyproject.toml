@@ -16,3 +16,9 @@ testing = ["pytest", "numpy", "OldIsoSpecPy @ https://files.pythonhosted.org/pac
 
 [tool.pytest.ini_options]
 testpaths = ["tests/Python"]
+
+[tool.cibuildwheel]
+build = "cp*-* pp*-*"
+test-command = "python -m pytest"
+test-sources = "tests/Python"
+test-extras = ["testing"]
