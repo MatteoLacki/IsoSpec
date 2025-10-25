@@ -20,5 +20,5 @@ testpaths = ["tests/Python"]
 [tool.cibuildwheel]
 enable = ["pypy"]
 test-command = "python -m pytest"
-test-sources = "tests/Python"
+test-sources = ["tests/Python"]
 test-extras = ["testing"]
