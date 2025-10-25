@@ -39,9 +39,6 @@ jobs:
           VERBOSE: '1'
         run: |
           python -m pip install -v .[testing]
-      - name: Wipe code so it wont mess up import
-        run: |
-          python .github/scripts/rmiso.py
       - name: Test with pytest
         working-directory: ./tests/Python
         run: |
