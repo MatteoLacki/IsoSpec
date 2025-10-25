@@ -1,38 +1,35 @@
 citHeader("To cite IsoSpecR in publications use:")
 
-citEntry(entry = "Article",
-title          = "{IsoSpec2}: Ultrafast Fine Structure Calculator",
-author         = personList(as.person("Mateusz K. Łącki"), as.person("Dirk Valkenborg"), as.person("Michał Startek")),
-year           = "2020",
-journal        = "Analytical Chemistry",
-volume         = "92",
-number         = "14",
-pages          = "9472-9475",
-doi            = "10.1021/acs.analchem.0c00959",
-url            = "https://doi.org/10.1021/acs.analchem.0c00959",
-
-textVersion = paste("Mateusz K. Łącki, Dirk Valkenborg, Michał Startek (2020).",
-                    "IsoSpec2: Ultrafast Fine Structure Calculator",
-                    "Analytical Chemistry, Published online ahead of print",
-                    "URL https://doi.org/10.1021/acs.analchem.0c00959")
+bibentry(
+  bibtype = "Article",
+  title   = "{IsoSpec2}: Ultrafast Fine Structure Calculator",
+  author  = c(person("Mateusz K. Łącki"), person("Dirk Valkenborg"), person("Michał Startek")),
+  year    = "2020",
+  journal = "Analytical Chemistry",
+  volume  = "92",
+  number  = "14",
+  pages   = "9472-9475",
+  doi     = "10.1021/acs.analchem.0c00959",
+  url     = "https://doi.org/10.1021/acs.analchem.0c00959",
+  note    = paste("Mateusz K. Łącki, Dirk Valkenborg, Michał Startek (2020).",
+                  "IsoSpec2: Ultrafast Fine Structure Calculator",
+                  "Analytical Chemistry, Published online ahead of print",
+                  "URL https://doi.org/10.1021/acs.analchem.0c00959")
 )
 
-citEntry(entry = "Article",
-  title        = "{IsoSpec}: Hyperfast Fine Structure Calculator",
-  author       = personList(as.person("Mateusz K. Łącki"),
-                   as.person("Michał Startek"),
-                   as.person("Dirk Valkenborg"),
-                   as.person("Anna Gambin")),
-  journal      = "Analytical Chemistry",
-  year         = "2017",
-  volume       = "89",
-  number       = "6",
-  pages        = "3272-3277",
-  url          = "https://doi.org/10.1021/acs.analchem.6b01459",
-
-  textVersion  =
-  paste("Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, Anna Gambin (2017).",
-        "IsoSpec: Hyperfast Fine Structure Calculator.",
-        "Analytical Chemistry 89(6), 3272-3277.",
-        "URL https://doi.org/10.1021/acs.analchem.6b01459")
+bibentry(
+  bibtype = "Article",
+  title   = "{IsoSpec}: Hyperfast Fine Structure Calculator",
+  author  = c(person("Mateusz K. Łącki"), person("Michał Startek"),
+              person("Dirk Valkenborg"), person("Anna Gambin")),
+  journal = "Analytical Chemistry",
+  year    = "2017",
+  volume  = "89",
+  number  = "6",
+  pages   = "3272-3277",
+  url     = "https://doi.org/10.1021/acs.analchem.6b01459",
+  note    = paste("Mateusz K. Łącki, Michał Startek, Dirk Valkenborg, Anna Gambin (2017).",
+                  "IsoSpec: Hyperfast Fine Structure Calculator.",
+                  "Analytical Chemistry 89(6), 3272-3277.",
+                  "URL https://doi.org/10.1021/acs.analchem.6b01459")
 )

@@ -16,6 +16,7 @@
 
 #include "fixedEnvelopes.h"
 #include <limits>
+#include <cassert>
 #include "isoMath.h"
 
 namespace IsoSpec

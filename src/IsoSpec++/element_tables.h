@@ -18,6 +18,8 @@
 
 #include <stddef.h>
 
+#include "platform.h"
+
 namespace IsoSpec
 {
 

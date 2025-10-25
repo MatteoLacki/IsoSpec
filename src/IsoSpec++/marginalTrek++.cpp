@@ -737,4 +737,7 @@ SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
         guarded_lProbs = lProbs.data();
 }
 
+template class SingleAtomMarginal<true>;
+template SingleAtomMarginal<false>::SingleAtomMarginal(IsoSpec::Marginal&&, int, int);
+
 }  // namespace IsoSpec

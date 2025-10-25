@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "platform.h"
+
 #define ISOSPEC_ALGO_LAYERED 0
 #define ISOSPEC_ALGO_ORDERED 1
 #define ISOSPEC_ALGO_THRESHOLD_ABSOLUTE 2
