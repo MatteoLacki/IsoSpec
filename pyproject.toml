@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "scikit-build-core", "cmake", "ninja"]
+requires = ["setuptools", "scikit-build-core"]
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
@@ -9,4 +9,50 @@ cmake.source-dir = "skbuild"
 name = "IsoSpecPy"
 dependencies = ["cffi"]
 description = "IsoSpecPy is a Python library for computing isotopic distributions of molecules."
-version = "2.3.0dev4"
+version = "2.3.0"
+license = "BSD-2-Clause"
+license-files = ["LICENCE"]
+authors = [{name = "Michał Startek"}, {name = "Mateusz Łącki"}]
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent",
+]
+keywords = ["isotopic distribution", "mass spectrometry", "chemistry", "isotopic envelope", "isotopologues"]
+
+[project.urls]
+Homepage = "https://github.com/MatteoLacki/IsoSpec"
+Repository = "https://github.com/MatteoLacki/IsoSpec"
+
+
+
+[project.optional-dependencies]
+testing = ["pytest", "OldIsoSpecPy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/Python"]
+
+[tool.cibuildwheel]
+enable = ["pypy"]
+skip = ["cp36-*", "cp37-*", "pp37-*"]
+test-command = "python -m pytest {project}/tests/Python"
+#test-sources = ["tests/Python"]
+test-extras = ["testing"]
+
+[tool.scikit-build.sdist]
+exclude = ["**/*"]
+include = [
+    "/src/IsoSpecPy/*.py",
+    "/src/IsoSpec++/*.c",
+    "/src/IsoSpec++/*.h",
+    "/src/IsoSpec++/*.hpp",
+    "/src/IsoSpec++/*.cpp",
+    "/LICENCE",
+    "/README.md",
+    "/pyproject.toml",
+    "/skbuild/CMakeLists.txt"
+]

@@ -27,6 +27,9 @@ else:
 # - but is still WAAAY too strict. Often we can justifiably get different configurations, or different counts of configurations...
 
 molecules = "H2O1 C100 P1 P100 C1 H10C10O10N10S5 Se1 Se10 Sn1 Sn4 Sn4C1 C2H6O1 C1000 C520H817N139O147S8 C1H1O2N2Se1Sn1P1 P1C1Sn1 Se5 Sn5 Se50 Sn15 Se2Sn2C2O2N2S2B2He2U2Na2Cl2".split()
+import platform
+if platform.python_implementation() != "CPython":
+    molecules = molecules[:5]  # limit test size on non-CPython implementations
 
 parameters = list(map(float, "0.0 0.1 0.5 0.01 0.9 0.99 0.01 0.0001 0.999 0.362 0.852348".split()))
 
@@ -93,19 +96,20 @@ def confs_from_threshold(formula, target_prob):
 
 
 
-is_ok = False
-try:
-    i = IsoSpecPy.IsoThreshold(0.1, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
-    for x in i:
-        print(x)
-except ValueError:
-    is_ok = True
-assert is_ok
+def test_zeroprob_assert():
+    is_ok = False
+    try:
+        i = IsoSpecPy.IsoThreshold(0.1, atomCounts = [100], isotopeMasses = [[1.0, 2.0, 3.0]], isotopeProbabilities = [[0.0, 0.6, 0.4]])
+        for x in i:
+            print(x)
+    except ValueError:
+        is_ok = True
+    assert is_ok
 
-total_confs = 0
 
-for molecule in molecules:
-    for parameter in parameters:
+
+def check_mol_param(molecule, parameter):
+        total_confs = 0
         if not silentish_run:
             sprint("{} {}... ".format(molecule, parameter))
             old_ordered = OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(molecule, parameter, method="ordered").getConfs()
@@ -136,5 +140,22 @@ for molecule in molecules:
 
         if not silentish_run:
             print("... OK!")
+        return total_confs
 
-sprint("Total confs: " + str(total_confs) + "\n")
+try:
+    import pytest
+    @pytest.mark.parametrize("molecule", molecules)
+    @pytest.mark.parametrize("parameter", parameters)
+    def test_mol_param(molecule, parameter):
+        check_mol_param(molecule, parameter)
+except ImportError:
+    test_mol_param = check_mol_param
+
+
+if __name__ == "__main__":
+    test_zeroprob_assert()
+    total_confs = 0
+    for molecule in molecules:
+        for parameter in parameters:
+            total_confs += check_mol_param(molecule, parameter)
+    sprint("Total confs: " + str(total_confs) + "\n")

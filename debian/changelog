@@ -1,12 +1,12 @@
-isospec (2.3.0-1) unstable; urgency=medium
+isospec (2.3.1-1) unstable; urgency=medium
 
-  * New upstream release with source configuration worked alongside
-    upstream.
+  * New upstream release with source configuration and Debian packaging
+    worked alongside upstream (thank you michalsta !).
 
   * Disabled production of the refman.pdf file due to bug in Doxygen
-    (Closes: #1114157) and synchronize the git repos.
+    (Closes: #1114157).
 
- -- Filippo Rusconi <lopippo@debian.org> Wed, 22 Oct 2025 21:06:59 +0200
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 22 Oct 2025 21:06:59 +0200
 
 isospec (2.2.3+cleaned2-1) UNRELEASED; urgency=medium
 

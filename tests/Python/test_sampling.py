@@ -1,9 +1,6 @@
 import IsoSpecPy
 
 
-from random import uniform, choice
-from numpy.random import binomial
-from math import inf, nan
 
 
 def _beta_1_b(b):
@@ -30,7 +27,7 @@ def sample_isospec(formula, count, precision):
     #for x in population:
     #    yield x
     '''Performs sampling with replacement from population argument, with
-    associated probabilities from second argument. The probabilities must 
+    associated probabilities from second argument. The probabilities must
     sum to 1. Yields a stream of tuples: (population_member, times_chosen).
     Accepts generators as first and second argument. May return duplicate
     tuples and tuples with times_chosen == 0.
@@ -49,7 +46,7 @@ def sample_isospec(formula, count, precision):
         while (pprob - cprob) * count / (1.0 - cprob) < 1.0:
             cprob += _beta_1_b(count) * (1.0 - cprob)
             while pprob < cprob:
-                if accumulated > 0: 
+                if accumulated > 0:
                     yield (pop_next, accumulated)
                     accumulated = 0
                 pop_next, prob_next = next(iso_iter)
@@ -212,11 +209,16 @@ def sample_ciic(formula, count, precision):
 
 
 
-from IsoSpecPy.Formulas import *
-from scipy.stats import chisquare
-import sys
-
 if __name__ == '__main__':
+    from random import uniform, choice
+    from numpy.random import binomial
+    from math import inf, nan
+
+    from IsoSpecPy.Formulas import *
+    from scipy.stats import chisquare
+    import sys
+
+
     test_mol = sucrose
     count = 10000000
 

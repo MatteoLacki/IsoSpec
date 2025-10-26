@@ -55,12 +55,15 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/html
 	DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/doc/isospec)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/latex/refman.pdf
-	DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/doc/isospec/pdf)
+  DESTINATION ${CMAKE_INSTALL_FULL_DATAROOTDIR}/doc/isospec/pdf)
 
-file(GLOB man3_pages "${CMAKE_CURRENT_BINARY_DIR}/man/man3/*")
-
-install(FILES ${man3_pages}
-	DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man3)
+# Install the man pages
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/man/man3
+    DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/
+    FILES_MATCHING
+    PATTERN "*.3"
+)
 
 message("")
 message(STATUS "${BoldGreen}Finished configuration of the doc material.${ColourReset}")

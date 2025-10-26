@@ -14,10 +14,10 @@ def max_confs_cnt(formula=""):
     """Get the maximal number of configurations for a given chemical formula."""
     from IsoSpecPy import IsoParamsFromFormula
     f = IsoParamsFromFormula(formula)
-    if f.atomCount:
+    if f.atomCounts:
         N = 1
-        for n, p in zip(f.atomCount, f.prob):
-            N *= binom(n+len(p)-1, n) 
+        for n, p in zip(f.atomCounts, f.probs):
+            N *= binom(n+len(p)-1, n)
         return N
     else:
         return 0

@@ -126,7 +126,7 @@ template<typename T> class TableOrder
         const T* tbl;
  public:
         inline explicit TableOrder(const T* _tbl) : tbl(_tbl) {}
-        inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; }
+        inline bool operator()(size_t i, size_t j) { return tbl[i] < tbl[j]; }
 };
 
 }  // namespace IsoSpec
@@ -143,7 +143,7 @@ template<typename T> class OrderMarginalsBySizeDecresing
     T const* const* const MT;
  public:
     explicit OrderMarginalsBySizeDecresing(T const* const * const MT_) : MT(MT_) {};
-    inline bool operator()(int m1, int m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); }
+    inline bool operator()(size_t m1, size_t m2) { return MT[m1]->get_no_confs() > MT[m2]->get_no_confs(); }
 };
 
 

@@ -9,11 +9,11 @@
 #
 #   IsoSpec is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 #   You should have received a copy of the Simplified BSD Licence
 #   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
-# 
+#
 
 from .isoFFI import isoFFI
 import re
@@ -39,7 +39,7 @@ def ParseFormula(formula):
 
     Args:
         formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O"
-    
+
     Returns:
         A tuple containing element symbols and atomCounts of elements in the parsed formula.
     """
@@ -109,6 +109,19 @@ def IsoParamsFromDict(formula, use_nominal_masses = False):
 
     return ParsedFormula(atomCounts, masses, probs, symbols)
 
+
+def IsoParamsFromFormula(formula, use_nominal_masses = False):
+    """Produces a set of IsoSpec parameters from a chemical formula.
+
+    Args:
+        formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O"
+        use_nominal_masses (boolean): use masses of elements rounded to integer numbers (nominal masses)
+
+    Returns:
+        ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
+    """
+    parsed = ParseFormula(formula)
+    return IsoParamsFromDict(parsed, use_nominal_masses = use_nominal_masses)
 
 
 class Iso(object):
@@ -699,7 +712,7 @@ class IsoGenerator(Iso):
 
     def __del__(self):
         super(IsoGenerator, self).__del__()
-        
+
 
 class IsoThresholdGenerator(IsoGenerator):
     """Class alowing memory-efficient iteration over the isotopic distribution up till some probability threshold.

@@ -2,9 +2,18 @@ Encoding: UTF-8
 Package: IsoSpecR
 Type: Package
 Title: The IsoSpec Algorithm
-Version: 2.2.0
-Date: 2021-07-01
-Author: Mateusz Krzysztof Lacki and Michal Startek
+Version: 2.3.0
+Date: 2025-10-25
+Authors@R: c(person(given = c("Mateusz", "Krzysztof"),
+                      family = "Łącki",
+                      role = c("cre", "aut"),
+                      email = "matteo.lacki@gmail.com",
+                      comment = c(ORCID = "0000-0001-7415-4748")),
+               person(given = c("Michał", "Piotr"),
+                      family = "Startek",
+                      role = "aut",
+                      comment = c(ORCID = "0000-0001-5227-3447"))
+               )
 Maintainer: Matteo Lacki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most
     probable masses of a chemical compound given the frequencies of the composing
@@ -27,5 +36,5 @@ Suggests:
 LazyData: no
 LinkingTo: Rcpp
 NeedsCompilation: yes
-SystemRequirements: C++14
+SystemRequirements: C++17
 RoxygenNote: 7.1.1
