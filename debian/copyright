@@ -7,7 +7,7 @@ Comment: The upstream source tarball contains Windows dll files and
     source files. This violates DFSG §2.
 
 Files: *
-Copyright: 2015-2018 Micha Startek
+Copyright: 2015-2018 Michal Startek
            2015-2018 Mateusz Lacki
 License: BSD-2-Clause
  Redistribution and use in source and binary forms, with or without
