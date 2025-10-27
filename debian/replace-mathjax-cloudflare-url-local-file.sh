@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd man/html
+cd obj-$(dpkg-architecture -qDEB_HOST_MULTIARCH)/man/html
 
 for file in *.html
 do
@@ -8,6 +8,6 @@ do
 
 	if [ "$?" = "0" ]
 	then
-		sed -i 's|src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/\([0-9].[0-9].[0-9]\)/MathJax.js\"|src="file:///usr/share/javascript/mathjax/MathJax.js"|' ${file} 
+		sed -i 's|src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/\([0-9].[0-9].[0-9]\)/MathJax.js\"|src="file:///usr/share/javascript/mathjax/MathJax.js"|' ${file}
 	fi
 done
