@@ -280,15 +280,8 @@ size_t Marginal::getMonoisotopicAtomIndex() const
 
 double Marginal::getMonoisotopicConfMass() const
 {
-    double found_prob = -std::numeric_limits<double>::infinity();
-    double found_mass = 0.0;  // to avoid uninitialized var warning
-    for(unsigned int ii = 0; ii < isotopeNo; ii++)
-        if( found_prob < atom_lProbs[ii] )
-        {
-            found_prob = atom_lProbs[ii];
-            found_mass = atom_masses[ii];
-        }
-    return found_mass*atomCnt;
+    size_t idx = getMonoisotopicAtomIndex();
+    return atom_masses[idx]*atomCnt;
 }
 
 double Marginal::getAtomAverageMass() const
