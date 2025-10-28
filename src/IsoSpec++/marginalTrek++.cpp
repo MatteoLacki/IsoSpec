@@ -265,6 +265,19 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
+size_t Marginal::getMonoisotopicAtomIndex() const
+{
+    double found_prob = -std::numeric_limits<double>::infinity();
+    size_t found_idx = 0;
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        if( found_prob < atom_lProbs[ii] )
+        {
+            found_prob = atom_lProbs[ii];
+            found_idx = ii;
+        }
+    return found_idx;
+}
+
 double Marginal::getMonoisotopicConfMass() const
 {
     double found_prob = -std::numeric_limits<double>::infinity();
