@@ -18,13 +18,13 @@ configure_file(${CMAKE_SOURCE_DIR}/CMakeStuff/isospec_logo2_long.svg.in
 
 if(UNIX AND NOT APPLE)
 
-	execute_process(COMMAND gm convert -geometry 200x
-		${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_high_versioned.svg
-		${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_high_versioned.png)
+  execute_process(COMMAND rsvg-convert -w 200 -f png -o
+    ${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_high_versioned.png
+    ${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_high_versioned.svg)
 
-		execute_process(COMMAND gm convert -geometry 200x
-		${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_long_versioned.svg
-		${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_long_versioned.png)
+		execute_process(COMMAND rsvg-convert -w 200 -f png -o
+		${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_long_versioned.png
+		${CMAKE_CURRENT_BINARY_DIR}/images/isospec_logo2_long_versioned.svg)
 
 endif()
 
