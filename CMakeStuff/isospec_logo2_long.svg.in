@@ -34006,6 +34006,6 @@
          id="tspan21336"
          x="33.963207"
          y="46.170403"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'EB Garamond SC';-inkscape-font-specification:'EB Garamond SC';fill:#00fff3;fill-opacity:1;stroke-width:0.26458332px">IsoSpec2 v @VERSION@</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'EB Garamond SC';-inkscape-font-specification:'EB Garamond SC';fill:#00fff3;fill-opacity:1;stroke-width:0.26458332px">IsoSpec2 v @PROJECT_VERSION@</tspan></text>
   </g>
 </svg>
