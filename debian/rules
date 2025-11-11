@@ -45,12 +45,12 @@ override_dh_clean:
 	dh_clean
 
 configure_cpp_library:
-	dh_auto_configure -O--buildsystem=cmake -- \
+	dh_auto_configure -O--buildsystem=cmake  --sourcedirectory=./src/IsoSpec++ -- \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DISOSPEC_LIB_VERSION=$(ISOSPEC_LIB_VERSION) -DISOSPEC_LIB_SOVERSION=$(ISOSPEC_LIB_SOVERSION)
 
 configure_python_module:
-	dh_auto_configure -O--buildsystem=pybuild -O--system=distutils --sourcedirectory=./IsoSpecPy
+	dh_auto_configure -O--buildsystem=pybuild -O--system=distutils --sourcedirectory=./src/IsoSpecPy
 
 configure_cpp_library_doc:
 	dh_auto_configure -O--buildsystem=cmake -- \
@@ -58,6 +58,7 @@ configure_cpp_library_doc:
 		-DISOSPEC_LIB_VERSION=$(ISOSPEC_LIB_VERSION) -DISOSPEC_LIB_SOVERSION=$(ISOSPEC_LIB_SOVERSION)
 
 override_dh_auto_configure:
+	dh_quilt_patch
 	dh_auto_configure -O--buildsystem=cmake -- \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DISOSPEC_LIB_VERSION=$(ISOSPEC_LIB_VERSION) -DISOSPEC_LIB_SOVERSION=$(ISOSPEC_LIB_SOVERSION)

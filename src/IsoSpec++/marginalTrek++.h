@@ -109,10 +109,17 @@ class Marginal
     */
     double getMonoisotopicConfMass() const;
 
+    //! Get the index of the monoisotopic (most probable) atom.
+    /*!
+        \return The index of the most probable isotope of the element.
+    */
+    size_t getMonoisotopicAtomIndex() const;
+
     //! The the mass of the mode subisotopologue.
     /*!
         \return The mass of one of the most probable subisotopologues.
     */
+
     inline double getModeMass() { ensureModeConf(); return calc_mass(mode_conf, atom_masses, isotopeNo); }
 
     //! Get the log-probability of the mode subisotopologue.

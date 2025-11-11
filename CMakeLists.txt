@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.12)
 ############################################################
 # Basic information about project
 
-project(IsoSpec VERSION 2.3.0
+project(IsoSpec VERSION 2.3.2
     DESCRIPTION "A program to calculate isotopic clusters"
     HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
 
@@ -177,8 +177,8 @@ message(STATUS "${BoldYellow}CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}.${Col
 
 # message(STATUS CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH})
 
-# Now actually deal with the C++ source code.
-add_subdirectory(IsoSpec++)
+# Now actually deal with the source code.
+add_subdirectory(src)
 
 # if (UNIX AND NOT APPLE)
 #   add_subdirectory(skbuild)

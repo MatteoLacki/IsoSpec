@@ -1,12 +1,30 @@
-isospec (2.3.0-1) unstable; urgency=medium
+isospec (2.3.2-1) unstable; urgency=medium
 
-  * New upstream release with source configuration worked alongside
-    upstream.
+  * Steer away from graphicsmagick and replace by librsvg2-bin for
+    conversion of svg to png.
+
+  * libisospec++-dev: Drop Multi-Arch: same (Janitor pull request).
+
+ -- Filippo Rusconi <lopippo@debian.org>  Tue, 04 Nov 2025 19:05:21 +0100
+
+isospec (2.3.1-2) unstable; urgency=medium
+
+  * Fix missing dh_quilt_patch at configure target. Odd because in my
+    chroot the package builds fine.
+
+  * libisospec++-dev: Drop Multi-Arch: same (Janitor pull request).
+
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 29 Oct 2025 12:32:42 +0100
+
+isospec (2.3.1-1) unstable; urgency=medium
+
+  * New upstream release with source configuration and Debian packaging
+    worked alongside upstream (thank you michalsta !).
 
   * Disabled production of the refman.pdf file due to bug in Doxygen
-    (Closes: #1114157) and synchronize the git repos.
+    (Closes: #1114157).
 
- -- Filippo Rusconi <lopippo@debian.org> Wed, 22 Oct 2025 21:06:59 +0200
+ -- Filippo Rusconi <lopippo@debian.org>  Wed, 22 Oct 2025 21:06:59 +0200
 
 isospec (2.2.3+cleaned2-1) UNRELEASED; urgency=medium
 

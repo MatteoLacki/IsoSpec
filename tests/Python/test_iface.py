@@ -159,6 +159,13 @@ def test_empiric_stddev():
     assert max(diffs) < 1e-6
     print(" -> OK!")
 
+def test_get_monoisotopic_mass():
+    print("Checking monoisotopic mass...", end=" ")
+    mol = IsoSpecPy.Iso(formula="C100H100N100O100Se100Sn100Pb100U100")
+    mono_mass = mol.getMonoisotopicPeakMass()
+    print(mono_mass, end=" ")
+    assert math.isclose(68885.198515667, mono_mass, rel_tol=1e-9)
+    print("OK!")
 
 if __name__ == "__main__":
     test_wasserstein_distance()
@@ -173,3 +180,4 @@ if __name__ == "__main__":
     test_empiric_avg_mass()
     test_empiric_variance()
     test_empiric_stddev()
+    test_get_monoisotopic_mass()

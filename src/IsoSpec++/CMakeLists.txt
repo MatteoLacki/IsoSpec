@@ -46,8 +46,7 @@ install(TARGETS IsoSpec++-shared IsoSpec++-static
 	)
 
 # Install the header files
-install(
-    DIRECTORY IsoSpec++
+install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     FILES_MATCHING
     PATTERN "*.h"
