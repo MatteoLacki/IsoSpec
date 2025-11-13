@@ -13,6 +13,8 @@ set(MXE_SHIPPED_DLLS_DIR "${MXE_ROOT_DIR}/dll-set-for-packages")
 set(CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES ${HOME_DEVEL_DIR}/mxe/usr/x86_64-w64-mingw32.shared/include)
 set(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES ${HOME_DEVEL_DIR}/mxe/usr/x86_64-w64-mingw32.shared/include)
 
+add_definitions(-D MANN_LIBRARY -D MXE)
+
 if(WIN32 OR _WIN32)
     message(STATUS "Building with WIN32 defined.")
 endif()
@@ -20,8 +22,8 @@ endif()
 ## We can build the package setup executable with this specific command.
 add_custom_target(
     dllinstall
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/IsoSpec++/libIsoSpec++.dll ${MXE_SHIPPED_DLLS_DIR}
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/src/IsoSpec++/libIsoSpec++.dll ${MXE_SHIPPED_DLLS_DIR}
     COMMENT "Build and copy the dll file to its MXE destination."
-    DEPENDS ${CMAKE_BINARY_DIR}/IsoSpec++/libIsoSpec++.dll
+    DEPENDS ${CMAKE_BINARY_DIR}/src/IsoSpec++/libIsoSpec++.dll
     VERBATIM
 )
