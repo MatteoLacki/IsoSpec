@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.12)
 ############################################################
 # Basic information about project
 
-project(IsoSpec VERSION 2.3.2
+project(IsoSpec VERSION 2.3.3
     DESCRIPTION "A program to calculate isotopic clusters"
     HOMEPAGE_URL "https://github.com/MatteoLacki/IsoSpec")
 
