@@ -96,7 +96,7 @@
 #define ISOSPEC_EXPORT_SYMBOL
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64)) && !defined(MXE)
 #define ISOSPEC_C_API __declspec(dllexport)
 #else
 #define ISOSPEC_C_API
