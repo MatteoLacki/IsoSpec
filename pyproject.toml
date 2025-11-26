@@ -9,7 +9,7 @@ cmake.source-dir = "skbuild"
 name = "IsoSpecPy"
 dependencies = ["cffi"]
 description = "IsoSpecPy is a Python library for computing isotopic distributions of molecules."
-version = "2.3.2"
+version = "2.3.3"
 license = "BSD-2-Clause"
 license-files = ["LICENCE"]
 authors = [{name = "Michał Startek"}, {name = "Mateusz Łącki"}]
