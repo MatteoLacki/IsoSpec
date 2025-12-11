@@ -3,7 +3,7 @@ Package: IsoSpecR
 Type: Package
 Title: The IsoSpec Algorithm
 Version: 2.3.0
-Date: 2025-10-25
+Date: 2025-12-07
 Authors@R: c(person(given = c("Mateusz", "Krzysztof"),
                       family = "Łącki",
                       role = c("cre", "aut"),
@@ -14,7 +14,7 @@ Authors@R: c(person(given = c("Mateusz", "Krzysztof"),
                       role = "aut",
                       comment = c(ORCID = "0000-0001-5227-3447"))
                )
-Maintainer: Matteo Lacki <matteo.lacki@gmail.com>
+Maintainer: Mateusz Krzysztof Łącki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most
     probable masses of a chemical compound given the frequencies of the composing
     isotopes and their masses. It finds the smallest set of isotopologues with
