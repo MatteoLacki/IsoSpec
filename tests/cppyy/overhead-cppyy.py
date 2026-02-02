@@ -10,7 +10,7 @@ cppyy.load_library("../../IsoSpec++/libIsoSpec++.so")
 
 
 t = 0.0
-for x in tqdm(xrange(1000000)):
+for x in tqdm(range(1000000)):
     i = cppyy.gbl.IsoSpec.Iso("C100H100N100O100")
     t += i.getTheoreticalAverageMass()
-print t
+print(t)

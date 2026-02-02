@@ -23,11 +23,6 @@ from .confs_passthrough import ConfsPassthrough
 from collections import namedtuple, OrderedDict
 import math
 
-try:
-    xrange
-except NameError:
-    xrange = range
-
 regex_pattern = re.compile('([A-Z][a-z]?)(-?[0-9]*)')
 ParsedFormula = namedtuple('ParsedFormula', 'atomCounts masses probs elems')
 
@@ -200,9 +195,9 @@ class Iso(object):
 
         if get_confs:
             i = 0
-            for j in xrange(self.dimNumber):
+            for j in range(self.dimNumber):
                 newl = []
-                for k in xrange(self.isotopeNumbers[j]):
+                for k in range(self.isotopeNumbers[j]):
                     newl.append(i)
                     i += 1
                 offsets.append(tuple(newl))
@@ -289,10 +284,10 @@ class IsoDistribution(object):
 
     def __iter__(self):
         if hasattr(self, "confs") and self.confs is not None:
-            for i in xrange(self.size):
+            for i in range(self.size):
                 yield(self.masses[i], self.probs[i], self.confs[i])
         else:
-            for i in xrange(self.size):
+            for i in range(self.size):
                 yield (self.masses[i], self.probs[i])
 
     def __getitem__(self, idx):

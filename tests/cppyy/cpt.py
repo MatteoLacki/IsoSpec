@@ -5,4 +5,4 @@ cppyy.load_library("libIsoSpec++.so")
 i = cppyy.gbl.IsoSpec.Iso("C100H100")
 iso = cppyy.gbl.IsoSpec.IsoThresholdGenerator(cppyy.gbl.std.move(i), 0.01)
 while iso.advanceToNextConfiguration():
-    print iso.prob(), iso.mass()
+    print(iso.prob(), iso.mass())

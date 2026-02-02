@@ -1,10 +1,6 @@
 from .isoFFI import isoFFI
 from collections import defaultdict
 
-try:
-    xrange
-except NameError:
-    xrange = range
 
 number_of_isotopic_entries = isoFFI.clib.NUMBER_OF_ISOTOPIC_ENTRIES
 
@@ -13,7 +9,7 @@ symbol_to_massNo = defaultdict(tuple)
 symbol_to_probs  = defaultdict(tuple)
 symbol_to_atomic_number = {}
 
-for i in xrange(number_of_isotopic_entries):
+for i in range(number_of_isotopic_entries):
     symbol = isoFFI.ffi.string(isoFFI.clib.elem_table_symbol[i]).decode("ascii")
     symbol_to_masses[symbol] += (isoFFI.clib.elem_table_mass[i],)
     symbol_to_massNo[symbol] += (isoFFI.clib.elem_table_massNo[i],)

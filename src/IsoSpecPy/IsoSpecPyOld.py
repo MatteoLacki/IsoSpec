@@ -9,7 +9,7 @@
 #
 #   IsoSpec is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
 #   You should have received a copy of the Simplified BSD Licence
 #   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
@@ -26,10 +26,6 @@ tested too...
 The current API is implemented in __init__.py, use that instead
 '''
 
-try:
-    xrange
-except NameError:
-    xrange = range
 
 import re
 from .IsoSpecPy import IsoTotalProb, IsoThreshold
@@ -80,7 +76,7 @@ class IsoSpec():
         except KeyError:
             raise Exception("Invalid ISO method")
 
-        # Reference to iso needs to be held in this object: it will deallocate masses/lprobs/etc arrays on C++ side if we 
+        # Reference to iso needs to be held in this object: it will deallocate masses/lprobs/etc arrays on C++ side if we
         # allow GC to collect it prematurely
         self.iso = algo(_stopCondition)
 
@@ -136,7 +132,7 @@ class IsoSpec():
         masses  = list(masses)
         logProbs= list(logProbs)
         confs = []
-        for i in xrange(rows_no):
+        for i in range(rows_no):
             confs.append([x for sublist in isoCounts[i] for x in sublist])
         return masses, logProbs, confs
 
@@ -157,7 +153,7 @@ class IsoSpec():
     def splitConf(self, l, offset = 0):
         conf = []
         idx = self.allIsotopeNumber * offset
-        for i in xrange(self.dimNumber):
+        for i in range(self.dimNumber):
             conf.append(tuple(l[idx:idx+self._isotopeNumbers[i]]))
             idx += self._isotopeNumbers[i]
         return tuple(conf)
@@ -169,7 +165,7 @@ class IsoSpec():
         masses, logProbs, isoCounts = self.getConfsRaw()
         confs = []
         step = sum(self._isotopeNumbers)
-        for i in xrange(len(masses)):
+        for i in range(len(masses)):
             confs.append((masses[i], logProbs[i], self.splitConf(isoCounts, i)))
 
         for conf in confs:
@@ -184,7 +180,7 @@ class IsoPlot(dict):
         self.bin_w = bin_w
         masses, logProbs, _isoCounts = iso.getConfsRaw()
         dd = defaultdict(Summator)
-        for i in xrange(len(masses)):
+        for i in range(len(masses)):
             dd[float(int(masses[i]/bin_w))*bin_w].add(math.exp(logProbs[i]))
         for key, val in dd.items():
             self[key] = val.get()
