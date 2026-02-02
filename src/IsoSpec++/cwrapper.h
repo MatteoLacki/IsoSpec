@@ -41,10 +41,13 @@ ISOSPEC_C_API void * isoFromFasta(const char* fasta, bool use_nominal_masses, bo
 
 ISOSPEC_C_API double getLightestPeakMassIso(void* iso);
 ISOSPEC_C_API double getLightestPeakLProbIso(void* iso);
+ISOSPEC_C_API void getLightestPeakSignature(void* iso, int* space);
 ISOSPEC_C_API double getHeaviestPeakMassIso(void* iso);
 ISOSPEC_C_API double getHeaviestPeakLProbIso(void* iso);
+ISOSPEC_C_API void getHeaviestPeakSignature(void* iso, int* space);
 ISOSPEC_C_API double getMonoisotopicPeakMassIso(void* iso);
 ISOSPEC_C_API double getMonoisotopicPeakLProbIso(void* iso);
+ISOSPEC_C_API void getMonoisotopicPeakSignature(void* iso, int* space);
 ISOSPEC_C_API double getModeLProbIso(void* iso);
 ISOSPEC_C_API double getModeMassIso(void* iso);
 ISOSPEC_C_API double getTheoreticalAverageMassIso(void* iso);

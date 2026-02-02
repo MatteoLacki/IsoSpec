@@ -23,10 +23,13 @@ class IsoFFI:
 
         double getLightestPeakMassIso(void* iso);
         double getLightestPeakLProbIso(void* iso);
+        void getLightestPeakSignature(void* iso, int* space);
         double getHeaviestPeakMassIso(void* iso);
         double getHeaviestPeakLProbIso(void* iso);
+        void getHeaviestPeakSignature(void* iso, int* space);
         double getMonoisotopicPeakMassIso(void* iso);
         double getMonoisotopicPeakLProbIso(void* iso);
+        void getMonoisotopicPeakSignature(void* iso, int* space);
         double getModeLProbIso(void* iso);
         double getModeMassIso(void* iso);
         double getTheoreticalAverageMassIso(void* iso);

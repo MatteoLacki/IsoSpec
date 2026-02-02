@@ -173,11 +173,14 @@ def test_lightest_peak():
     iso = IsoSpecPy.Iso(formula=formula)
     lightest_mass = iso.getLightestPeakMass()
     lightest_lprob = iso.getLightestPeakLProb()
-    iso_threshold = IsoSpecPy.IsoThreshold(0.0, formula=formula)
+    lightest_conf = iso.getLightestPeakConf()
+    iso_threshold = IsoSpecPy.IsoThreshold(0.0, formula=formula, get_confs=True)
     masses = list(iso_threshold.masses)
     probs = list(iso_threshold.probs)
+    confs = list(iso_threshold.confs)
     min_index = masses.index(min(masses))
-    print(lightest_mass, lightest_lprob, end=" ")
+    print(lightest_conf, lightest_mass, lightest_lprob, end=" ")
+    assert lightest_conf == confs[min_index]
     assert lightest_mass == masses[min_index]
     assert math.isclose(lightest_lprob, math.log(probs[min_index]), rel_tol=1e-9)
     print("OK!")
@@ -188,11 +191,14 @@ def test_heaviest_peak():
     iso = IsoSpecPy.Iso(formula=formula)
     heaviest_mass = iso.getHeaviestPeakMass()
     heaviest_lprob = iso.getHeaviestPeakLProb()
-    iso_threshold = IsoSpecPy.IsoThreshold(0.0, formula=formula)
+    heaviest_conf = iso.getHeaviestPeakConf()
+    iso_threshold = IsoSpecPy.IsoThreshold(0.0, formula=formula, get_confs=True)
     masses = list(iso_threshold.masses)
     probs = list(iso_threshold.probs)
+    confs = list(iso_threshold.confs)
     max_index = masses.index(max(masses))
-    print(heaviest_mass, heaviest_lprob, end=" ")
+    print(heaviest_conf, heaviest_mass, heaviest_lprob, end=" ")
+    assert heaviest_conf == confs[max_index]
     assert heaviest_mass == masses[max_index]
     assert math.isclose(heaviest_lprob, math.log(probs[max_index]), rel_tol=1e-9)
     print("OK!")
@@ -203,13 +209,16 @@ def test_monoisotopic_peak():
     iso = IsoSpecPy.Iso(formula=formula)
     monoisotopic_mass = iso.getMonoisotopicPeakMass()
     monoisotopic_lprob = iso.getMonoisotopicPeakLProb()
+    monoisotopic_conf = iso.getMonoisotopicPeakConf()
     iso_threshold = IsoSpecPy.IsoThreshold(0.0, formula=formula, get_confs=True)
     masses = list(iso_threshold.masses)
     probs = list(iso_threshold.probs)
     confs = list(iso_threshold.confs)
-    monoisotopic_conf = ((10, 0), (0, 1000), (10, 0), (0,0,0,0,0,0,0,1,0,0))
+    monoisotopic_conf2 = ((10, 0), (0, 1000), (10, 0), (0,0,0,0,0,0,0,1,0,0))
     monoisotopic_peak_idx = confs.index(monoisotopic_conf)
-    print(monoisotopic_mass, monoisotopic_lprob, end=" ")
+    print(monoisotopic_conf, monoisotopic_mass, monoisotopic_lprob, end=" ")
+    assert monoisotopic_conf == confs[monoisotopic_peak_idx]
+    assert monoisotopic_conf == monoisotopic_conf2
     assert monoisotopic_mass == masses[monoisotopic_peak_idx]
     assert math.isclose(monoisotopic_lprob, math.log(probs[monoisotopic_peak_idx]), rel_tol=1e-9)
     print("OK!")

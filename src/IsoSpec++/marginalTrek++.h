@@ -124,6 +124,18 @@ class Marginal
     */
     size_t getMonoisotopicAtomIndex() const;
 
+    //! Get the index of the lightest atom.
+    /*!
+        \return The index of the lightest isotope of the element.
+    */
+    size_t getLightestAtomIndex() const;
+
+    //! Get the index of the heaviest atom.
+    /*!
+        \return The index of the heaviest isotope of the element.
+    */
+    size_t getHeaviestAtomIndex() const;
+    
     //! The the mass of the mode subisotopologue.
     /*!
         \return The mass of one of the most probable subisotopologues.

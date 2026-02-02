@@ -138,11 +138,23 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //! Get the log-probability of the lightest peak in the isotopic distribution.
     double getLightestPeakLProb() const;
 
+    /*!
+        Write the counts of isotopes in the lightest peak into target memory location. It must be large enough to accomodate it.
+        \param space An array where counts of isotopes shall be written. Must be as big as the overall number of isotopes.
+    */
+    void getLightestPeakSignature(int* space) const;
+
     //! Get the mass of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakMass() const;
 
     //! Get the log-probability of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakLProb() const;
+
+    /*!
+        Write the counts of isotopes in the heaviest peak into target memory location. It must be large enough to accomodate it.
+        \param space An array where counts of isotopes shall be written. Must be as big as the overall number of isotopes.
+    */
+    void getHeaviestPeakSignature(int* space) const;
 
     /*!
         Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as
@@ -157,6 +169,12 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
         lightest ones. Making this often (but again, not always) equal to getLightestPeakLProb()
     */
     double getMonoisotopicPeakLProb() const;
+
+    /*!
+        Write the counts of isotopes in the monoisotopic peak into target memory location. It must be large enough to accomodate it.
+        \param space An array where counts of isotopes shall be written. Must be as big as the overall number of isotopes.
+    */
+    void getMonoisotopicPeakSignature(int* space) const;
 
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
     double getModeLProb() const;

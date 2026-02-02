@@ -258,6 +258,17 @@ double Iso::getLightestPeakLProb() const
     return lprob;
 }
 
+void Iso::getLightestPeakSignature(int* space) const
+{
+    for (int ii = 0; ii < dimNumber; ii++)
+    {
+        size_t lightest_idx = marginals[ii]->getLightestAtomIndex();
+        for(int jj = 0; jj < isotopeNumbers[ii]; jj++)
+            space[jj] = (jj == lightest_idx ? atomCounts[ii] : 0);
+        space += isotopeNumbers[ii];
+    }
+}
+
 double Iso::getHeaviestPeakMass() const
 {
     double mass = 0.0;
@@ -274,6 +285,17 @@ double Iso::getHeaviestPeakLProb() const
     return lprob;
 }
 
+void Iso::getHeaviestPeakSignature(int* space) const
+{
+    for (int ii = 0; ii < dimNumber; ii++)
+    {
+        size_t heaviest_idx = marginals[ii]->getHeaviestAtomIndex();
+        for(int jj = 0; jj < isotopeNumbers[ii]; jj++)
+            space[jj] = (jj == heaviest_idx ? atomCounts[ii] : 0);
+        space += isotopeNumbers[ii];
+    }
+}
+
 double Iso::getMonoisotopicPeakMass() const
 {
     double mass = 0.0;
@@ -288,6 +310,17 @@ double Iso::getMonoisotopicPeakLProb() const
     for (int ii = 0; ii < dimNumber; ii++)
         lprob += marginals[ii]->getMonoisotopicConfLProb();
     return lprob;
+}
+
+void Iso::getMonoisotopicPeakSignature(int* space) const
+{
+    for (int ii = 0; ii < dimNumber; ii++)
+    {
+        size_t monoisotopic_idx = marginals[ii]->getMonoisotopicAtomIndex();
+        for(int jj = 0; jj < isotopeNumbers[ii]; jj++)
+            space[jj] = (jj == monoisotopic_idx ? atomCounts[ii] : 0);
+        space += isotopeNumbers[ii];
+    }
 }
 
 double Iso::getUnlikeliestPeakLProb() const

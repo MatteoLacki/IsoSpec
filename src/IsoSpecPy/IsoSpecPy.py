@@ -202,6 +202,8 @@ class Iso(object):
             offsets.append(tuple(newl))
         self.offsets = tuple(offsets)
 
+        self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
+
         self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
                                      self.atomCounts,
                                      [i/charge for s in self.isotopeMasses for i in s],
@@ -223,6 +225,11 @@ class Iso(object):
         """Get the log probability of the lightest peak in the isotopic distribution."""
         return self.ffi.getLightestPeakLProbIso(self.iso)
 
+    def getLightestPeakConf(self):
+        """Get the isotopic configuration of the lightest peak in the isotopic distribution."""
+        self.ffi.getLightestPeakSignature(self.iso, self.conf_space)
+        return self.parse_conf(self.conf_space)
+
     def getHeaviestPeakMass(self):
         """Get the heaviest peak in the isotopic distribution."""
         return self.ffi.getHeaviestPeakMassIso(self.iso)
@@ -231,6 +238,11 @@ class Iso(object):
         """Get the log probability of the heaviest peak in the isotopic distribution."""
         return self.ffi.getHeaviestPeakLProbIso(self.iso)
 
+    def getHeaviestPeakConf(self):
+        """Get the isotopic configuration of the heaviest peak in the isotopic distribution."""
+        self.ffi.getHeaviestPeakSignature(self.iso, self.conf_space)
+        return self.parse_conf(self.conf_space)
+
     def getMonoisotopicPeakMass(self):
         """Get the monoisotopic mass of the peak."""
         return self.ffi.getMonoisotopicPeakMassIso(self.iso)
@@ -238,6 +250,11 @@ class Iso(object):
     def getMonoisotopicPeakLProb(self):
         """Get the log probability of the monoisotopic peak in the isotopic distribution."""
         return self.ffi.getMonoisotopicPeakLProbIso(self.iso)
+
+    def getMonoisotopicPeakConf(self):
+        """Get the isotopic configuration of the monoisotopic peak in the isotopic distribution."""
+        self.ffi.getMonoisotopicPeakSignature(self.iso, self.conf_space)
+        return self.parse_conf(self.conf_space)
 
     def getModeLProb(self):
         """Get the log probability of the most probable peak(s) in the isotopic distribution."""
@@ -700,7 +717,6 @@ class IsoGenerator(Iso):
         """
         self.cgen = None
         super(IsoGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
-        self.conf_space = isoFFI.ffi.new("int[" + str(sum(self.isotopeNumbers)) + "]")
         self.firstuse = True
 
     def __iter__(self):
