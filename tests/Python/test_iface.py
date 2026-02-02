@@ -199,7 +199,7 @@ def test_heaviest_peak():
 
 def test_monoisotopic_peak():
     print("Checking monoisotopic peak...", end=" ")
-    formula = "C10B10H10Sn1"
+    formula = "C10B1000H10Sn1"
     iso = IsoSpecPy.Iso(formula=formula)
     monoisotopic_mass = iso.getMonoisotopicPeakMass()
     monoisotopic_lprob = iso.getMonoisotopicPeakLProb()
@@ -207,7 +207,7 @@ def test_monoisotopic_peak():
     masses = list(iso_threshold.masses)
     probs = list(iso_threshold.probs)
     confs = list(iso_threshold.confs)
-    monoisotopic_conf = ((10, 0), (0, 10), (10, 0), (0,0,0,0,0,0,0,1,0,0))
+    monoisotopic_conf = ((10, 0), (0, 1000), (10, 0), (0,0,0,0,0,0,0,1,0,0))
     monoisotopic_peak_idx = confs.index(monoisotopic_conf)
     print(monoisotopic_mass, monoisotopic_lprob, end=" ")
     assert monoisotopic_mass == masses[monoisotopic_peak_idx]
