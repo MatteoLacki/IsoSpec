@@ -135,8 +135,14 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //! Get the mass of the lightest peak in the isotopic distribution.
     double getLightestPeakMass() const;
 
+    //! Get the log-probability of the lightest peak in the isotopic distribution.
+    double getLightestPeakLProb() const;
+
     //! Get the mass of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakMass() const;
+
+    //! Get the log-probability of the heaviest peak in the isotopic distribution.
+    double getHeaviestPeakLProb() const;
 
     /*!
         Get the mass of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as
@@ -144,6 +150,13 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
         lightest ones, making this often (but again, not always) equal to getLightestPeakMass()
     */
     double getMonoisotopicPeakMass() const;
+
+    /*!
+        Get the log-probability of the monoisotopic peak in the isotopic distribution. Monoisotopc molecule is defined as
+        consisting only of the most frequent isotopes of each element. These are often (but not always) the
+        lightest ones. Making this often (but again, not always) equal to getLightestPeakLProb()
+    */
+    double getMonoisotopicPeakLProb() const;
 
     //! Get the log-probability of the mode-configuration (if there are many modes, they share this value).
     double getModeLProb() const;

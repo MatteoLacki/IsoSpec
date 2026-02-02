@@ -256,6 +256,22 @@ double Marginal::getLightestConfMass() const
     return ret_mass*atomCnt;
 }
 
+double Marginal::getLightestConfLProb() const
+{
+    std::unique_ptr<int[]> lightest_conf = std::make_unique<int[]>(isotopeNo);
+    size_t lightest_idx = 0;
+    double min_mass = std::numeric_limits<double>::infinity();
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        if( min_mass > atom_masses[ii] )
+        {
+            min_mass = atom_masses[ii];
+            lightest_idx = ii;
+        }
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        lightest_conf[ii] = (ii == lightest_idx ? atomCnt : 0);
+    return logProb(lightest_conf.get());
+}
+
 double Marginal::getHeaviestConfMass() const
 {
     double ret_mass = 0.0;
@@ -263,6 +279,22 @@ double Marginal::getHeaviestConfMass() const
         if( ret_mass < atom_masses[ii] )
             ret_mass = atom_masses[ii];
     return ret_mass*atomCnt;
+}
+
+double Marginal::getHeaviestConfLProb() const
+{
+    std::unique_ptr<int[]> heaviest_conf = std::make_unique<int[]>(isotopeNo);
+    size_t heaviest_idx = 0;
+    double max_mass = -std::numeric_limits<double>::infinity();
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        if( max_mass < atom_masses[ii] )
+        {
+            max_mass = atom_masses[ii];
+            heaviest_idx = ii;
+        }
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        heaviest_conf[ii] = (ii == heaviest_idx ? atomCnt : 0);
+    return logProb(heaviest_conf.get());
 }
 
 size_t Marginal::getMonoisotopicAtomIndex() const
@@ -282,6 +314,15 @@ double Marginal::getMonoisotopicConfMass() const
 {
     size_t idx = getMonoisotopicAtomIndex();
     return atom_masses[idx]*atomCnt;
+}
+
+double Marginal::getMonoisotopicConfLProb() const
+{
+    size_t idx = getMonoisotopicAtomIndex();
+    std::unique_ptr<int[]> monoisotopic_conf = std::make_unique<int[]>(isotopeNo);
+    for(unsigned int ii = 0; ii < isotopeNo; ii++)
+        monoisotopic_conf[ii] = (ii == idx ? atomCnt : 0);
+    return logProb(monoisotopic_conf.get());
 }
 
 double Marginal::getAtomAverageMass() const

@@ -40,8 +40,11 @@ ISOSPEC_C_API void * setupIso(int             dimNumber,
 ISOSPEC_C_API void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water);
 
 ISOSPEC_C_API double getLightestPeakMassIso(void* iso);
+ISOSPEC_C_API double getLightestPeakLProbIso(void* iso);
 ISOSPEC_C_API double getHeaviestPeakMassIso(void* iso);
+ISOSPEC_C_API double getHeaviestPeakLProbIso(void* iso);
 ISOSPEC_C_API double getMonoisotopicPeakMassIso(void* iso);
+ISOSPEC_C_API double getMonoisotopicPeakLProbIso(void* iso);
 ISOSPEC_C_API double getModeLProbIso(void* iso);
 ISOSPEC_C_API double getModeMassIso(void* iso);
 ISOSPEC_C_API double getTheoreticalAverageMassIso(void* iso);

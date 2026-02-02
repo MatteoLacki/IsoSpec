@@ -3,13 +3,16 @@ import platform
 import sys
 import glob
 from pathlib import Path
+
 if False:
     import IsoSpecCppPy
+
 
 class IsoFFI:
     def __init__(self):
         self.ffi = cffi.FFI()
-        self.ffi.cdef('''
+        self.ffi.cdef(
+            """
         void * setupIso(int dimNumber,
                 const int* isotopeNumbers,
                 const int* atomCounts,
@@ -19,8 +22,11 @@ class IsoFFI:
         void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water);
 
         double getLightestPeakMassIso(void* iso);
+        double getLightestPeakLProbIso(void* iso);
         double getHeaviestPeakMassIso(void* iso);
+        double getHeaviestPeakLProbIso(void* iso);
         double getMonoisotopicPeakMassIso(void* iso);
+        double getMonoisotopicPeakLProbIso(void* iso);
         double getModeLProbIso(void* iso);
         double getModeMassIso(void* iso);
         double getTheoreticalAverageMassIso(void* iso);
@@ -157,39 +163,47 @@ class IsoFFI:
         extern const char* elem_table_element[NUMBER_OF_ISOTOPIC_ENTRIES];
         extern const char* elem_table_symbol[NUMBER_OF_ISOTOPIC_ENTRIES];
         extern const bool elem_table_Radioactive[NUMBER_OF_ISOTOPIC_ENTRIES];
-                        ''');
+                        """
+        )
 
         mod_dir = Path(__file__).resolve().parent
 
-        if (mod_dir.parent / 'setup.py').exists():
-            raise ImportError('''Attempted to load IsoSpecPy module from its build directory. This usually
+        if (mod_dir.parent / "setup.py").exists():
+            raise ImportError(
+                """Attempted to load IsoSpecPy module from its build directory. This usually
 won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
-sure you want to do that, edit the source and disable this check.''')
+sure you want to do that, edit the source and disable this check."""
+            )
 
-        libnames  = ['IsoSpecCppPy*', 'IsoSpec++*']
-        libprefix = ['', 'lib', 'Lib']
-        extension = ['.so', '.dylib', '.dll']
+        libnames = ["IsoSpecCppPy*", "IsoSpec++*"]
+        libprefix = ["", "lib", "Lib"]
+        extension = [".so", ".dylib", ".dll"]
         try:
-            if platform.system() == 'Linux':
-                extension = ['.so', 'pyd']
-            elif platform.system() == 'Windows':
-                extension = ['.dll', '.pyd']
+            if platform.system() == "Linux":
+                extension = [".so", "pyd"]
+            elif platform.system() == "Windows":
+                extension = [".dll", ".pyd"]
         except:
             pass
 
-        prebuilt =  ['', 'prebuilt-']
+        prebuilt = ["", "prebuilt-"]
 
         def cprod(ll1, ll2):
             res = []
             for l1 in ll1:
                 for l2 in ll2:
-                    res.append(l1+l2)
+                    res.append(l1 + l2)
             return res
 
         paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
         dpc = []
 
-        for dirpath in [mod_dir, mod_dir.parent, mod_dir.parent / 'bin', mod_dir.parent / 'lib']:
+        for dirpath in [
+            mod_dir,
+            mod_dir.parent,
+            mod_dir.parent / "bin",
+            mod_dir.parent / "lib",
+        ]:
             dpc.extend([dirpath / p for p in paths_to_check])
 
         paths_to_check = dpc
@@ -200,7 +214,10 @@ sure you want to do that, edit the source and disable this check.''')
         paths_to_check = expanded
         try:
             import importlib
-            paths_to_check.insert(0, Path(importlib.util.find_spec("IsoSpecCppPy").origin))
+
+            paths_to_check.insert(
+                0, Path(importlib.util.find_spec("IsoSpecCppPy").origin)
+            )
         except (ImportError, AttributeError):
             pass
 
@@ -213,11 +230,21 @@ sure you want to do that, edit the source and disable this check.''')
                 self.libpath = libpath
                 break
             except (IndexError, OSError) as e:
-                errmsg = "Load libIsoSpec++.so, tried: " + libpath + '\n' + "Got error: " + str(type(e)) + ": " + str(e)
+                errmsg = (
+                    "Load libIsoSpec++.so, tried: "
+                    + libpath
+                    + "\n"
+                    + "Got error: "
+                    + str(type(e))
+                    + ": "
+                    + str(e)
+                )
                 errors.append(errmsg)
 
         if self.clib == None:
-            raise ImportError("Cannot find or load the C++ part of the library\n" + '\n'.join(errors))
+            raise ImportError(
+                "Cannot find or load the C++ part of the library\n" + "\n".join(errors)
+            )
 
 
 isoFFI = IsoFFI()  # This is done while including the module

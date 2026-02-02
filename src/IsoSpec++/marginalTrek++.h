@@ -96,11 +96,17 @@ class Marginal
     */
     double getLightestConfMass() const;
 
+    //! Get the log-probability of the lightest subisotopologue.
+    double getLightestConfLProb() const;
+
     //! Get the mass of the heaviest subisotopologue.
     /*! This is trivially obtained by considering all atomNo atoms to be the heaviest isotope possible.
         \return The mass of the heaviest subisotopologue.
     */
     double getHeaviestConfMass() const;
+
+    //! Get the log-probability of the heaviest subisotopologue.
+    double getHeaviestConfLProb() const;
 
     //! Get the mass of the monoisotopic subisotopologue.
     /*! The monoisotopic subisotopologue is defined as the molecule consiting only
@@ -108,6 +114,9 @@ class Marginal
         making this frequently (but not always) equal to getLightestConfMass()
     */
     double getMonoisotopicConfMass() const;
+
+    //! Get the log-probability of the monoisotopic subisotopologue.
+    double getMonoisotopicConfLProb() const;
 
     //! Get the index of the monoisotopic (most probable) atom.
     /*!

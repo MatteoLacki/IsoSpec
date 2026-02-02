@@ -167,6 +167,21 @@ def test_get_monoisotopic_mass():
     assert math.isclose(68885.198515667, mono_mass, rel_tol=1e-9)
     print("OK!")
 
+def test_lightest_peak():
+    print("Checking lightest peak...", end=" ")
+    formula = "C10B10H10Sn1"
+    iso = IsoSpecPy.Iso(formula=formula)
+    lightest_mass = iso.getLightestPeakMass()
+    lightest_lprob = iso.getLightestPeakLProb()
+    iso_threshold = IsoSpecPy.IsoThreshold(0.0, formula=formula)
+    masses = list(iso_threshold.masses)
+    probs = list(iso_threshold.probs)
+    min_index = masses.index(min(masses))
+    print(lightest_mass, lightest_lprob, end=" ")
+    assert lightest_mass == masses[min_index]
+    assert math.isclose(lightest_lprob, math.log(probs[min_index]), rel_tol=1e-9)
+    print("OK!")
+
 if __name__ == "__main__":
     test_wasserstein_distance()
     test_normalization()
@@ -181,3 +196,4 @@ if __name__ == "__main__":
     test_empiric_variance()
     test_empiric_stddev()
     test_get_monoisotopic_mass()
+    test_lightest_peak()

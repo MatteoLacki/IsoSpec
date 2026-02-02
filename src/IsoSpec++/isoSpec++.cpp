@@ -250,6 +250,14 @@ double Iso::getLightestPeakMass() const
     return mass;
 }
 
+double Iso::getLightestPeakLProb() const
+{
+    double lprob = 0.0;
+    for (int ii = 0; ii < dimNumber; ii++)
+        lprob += marginals[ii]->getLightestConfLProb();
+    return lprob;
+}
+
 double Iso::getHeaviestPeakMass() const
 {
     double mass = 0.0;
@@ -258,12 +266,28 @@ double Iso::getHeaviestPeakMass() const
     return mass;
 }
 
+double Iso::getHeaviestPeakLProb() const
+{
+    double lprob = 0.0;
+    for (int ii = 0; ii < dimNumber; ii++)
+        lprob += marginals[ii]->getHeaviestConfLProb();
+    return lprob;
+}
+
 double Iso::getMonoisotopicPeakMass() const
 {
     double mass = 0.0;
     for (int ii = 0; ii < dimNumber; ii++)
         mass += marginals[ii]->getMonoisotopicConfMass();
     return mass;
+}
+
+double Iso::getMonoisotopicPeakLProb() const
+{
+    double lprob = 0.0;
+    for (int ii = 0; ii < dimNumber; ii++)
+        lprob += marginals[ii]->getMonoisotopicConfLProb();
+    return lprob;
 }
 
 double Iso::getUnlikeliestPeakLProb() const

@@ -59,14 +59,29 @@ double getLightestPeakMassIso(void* iso)
     return reinterpret_cast<Iso*>(iso)->getLightestPeakMass();
 }
 
+double getLightestPeakLProbIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getLightestPeakLProb();
+}
+
 double getHeaviestPeakMassIso(void* iso)
 {
     return reinterpret_cast<Iso*>(iso)->getHeaviestPeakMass();
 }
 
+double getHeaviestPeakLProbIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getHeaviestPeakLProb();
+}
+
 double getMonoisotopicPeakMassIso(void* iso)
 {
     return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakMass();
+}
+
+double getMonoisotopicPeakLProbIso(void* iso)
+{
+    return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakLProb();
 }
 
 double getModeLProbIso(void* iso)

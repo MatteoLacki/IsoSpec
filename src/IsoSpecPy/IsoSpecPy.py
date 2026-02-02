@@ -219,13 +219,25 @@ class Iso(object):
         """Get the lightest peak in the isotopic distribution."""
         return self.ffi.getLightestPeakMassIso(self.iso)
 
+    def getLightestPeakLProb(self):
+        """Get the log probability of the lightest peak in the isotopic distribution."""
+        return self.ffi.getLightestPeakLProbIso(self.iso)
+
     def getHeaviestPeakMass(self):
         """Get the heaviest peak in the isotopic distribution."""
         return self.ffi.getHeaviestPeakMassIso(self.iso)
 
+    def getHeaviestPeakLProb(self):
+        """Get the log probability of the heaviest peak in the isotopic distribution."""
+        return self.ffi.getHeaviestPeakLProbIso(self.iso)
+
     def getMonoisotopicPeakMass(self):
         """Get the monoisotopic mass of the peak."""
         return self.ffi.getMonoisotopicPeakMassIso(self.iso)
+
+    def getMonoisotopicPeakLProb(self):
+        """Get the log probability of the monoisotopic peak in the isotopic distribution."""
+        return self.ffi.getMonoisotopicPeakLProbIso(self.iso)
 
     def getModeLProb(self):
         """Get the log probability of the most probable peak(s) in the isotopic distribution."""
