@@ -193,15 +193,14 @@ class Iso(object):
 
         offsets = []
 
-        if get_confs:
-            i = 0
-            for j in range(self.dimNumber):
-                newl = []
-                for k in range(self.isotopeNumbers[j]):
-                    newl.append(i)
-                    i += 1
-                offsets.append(tuple(newl))
-            self.offsets = tuple(offsets)
+        i = 0
+        for j in range(self.dimNumber):
+            newl = []
+            for k in range(self.isotopeNumbers[j]):
+                newl.append(i)
+                i += 1
+            offsets.append(tuple(newl))
+        self.offsets = tuple(offsets)
 
         self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
                                      self.atomCounts,
