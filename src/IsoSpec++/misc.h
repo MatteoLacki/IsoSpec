@@ -128,12 +128,30 @@ template <typename T> inline static T* array_copy(const T* A, size_t size)
     return ret;
 }
 
+template <typename T> inline static T* array_copy_malloc(const T* A, size_t size)
+{
+    T* ret = reinterpret_cast<T*>(malloc(size * sizeof(T)));
+    if(ret == nullptr)
+        throw std::bad_alloc();
+    memcpy(ret, A, size*sizeof(T));
+    return ret;
+}
+
+
 template <typename T> static T* array_copy_nptr(const T* A, size_t size)
 {
     if(A == nullptr)
         return nullptr;
     return array_copy(A, size);
 }
+
+template <typename T> static T* array_copy_nptr_malloc(const T* A, size_t size)
+{
+    if(A == nullptr)
+        return nullptr;
+    return array_copy_malloc(A, size);
+}
+
 
 template<typename T> void dealloc_table(T* tbl, int dim)
 {
