@@ -295,6 +295,12 @@ void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_s
     return reinterpret_cast<void*>(ret);
 }
 
+void* setupFixedEnvelopeWithConfs(double* masses, double* probs, int* confs, size_t size, int allDim, bool mass_sorted, bool prob_sorted, double total_prob)
+{
+    FixedEnvelope* ret = new FixedEnvelope(masses, probs, confs, size, allDim, mass_sorted, prob_sorted, total_prob);
+    return reinterpret_cast<void*>(ret);
+}
+
 void deleteFixedEnvelope(void* t, bool release_everything)
 {
     FixedEnvelope* tt = reinterpret_cast<FixedEnvelope*>(t);

@@ -56,6 +56,19 @@ _probs(in_probs),
 _confs(nullptr),
 _confs_no(in_confs_no),
 allDim(0),
+allDimSizeofInt(0),
+sorted_by_mass(masses_sorted),
+sorted_by_prob(probs_sorted),
+total_prob(_total_prob)
+{}
+
+FixedEnvelope::FixedEnvelope(double* in_masses, double* in_probs, int* in_confs, size_t in_confs_no, int _allDim, bool masses_sorted, bool probs_sorted, double _total_prob) :
+_masses(in_masses),
+_probs(in_probs),
+_confs(in_confs),
+_confs_no(in_confs_no),
+allDim(_allDim),
+allDimSizeofInt(_allDim * sizeof(int)),
 sorted_by_mass(masses_sorted),
 sorted_by_prob(probs_sorted),
 total_prob(_total_prob)

@@ -376,7 +376,10 @@ class IsoDistribution(object):
             raise RuntimeError("Invalid arguments for IsoDistribution constructor")
 
     def _get_cobject(self):
-        return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
+        if hasattr(self, 'raw_confs') and self.raw_confs is not None:
+            return isoFFI.clib.setupFixedEnvelopeWithConfs(self.masses, self.probs, self.raw_confs, len(self.masses), self.sum_isotope_numbers, self.mass_sorted, self.prob_sorted, self._total_prob)
+        else:
+            return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
 
     def copy(self):
         x = self._get_cobject()

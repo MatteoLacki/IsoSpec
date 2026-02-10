@@ -71,6 +71,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     FixedEnvelope(FixedEnvelope&& other);
 
     FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted = false, bool probs_sorted = false, double _total_prob = NAN);
+    FixedEnvelope(double* masses, double* probs, int* confs, size_t confs_no, int _allDim, bool masses_sorted = false, bool probs_sorted = false, double _total_prob = NAN);
 
     virtual ~FixedEnvelope()
     {

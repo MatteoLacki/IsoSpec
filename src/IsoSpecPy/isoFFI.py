@@ -110,6 +110,7 @@ class IsoFFI:
                             double bin_middle);
 
         void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
+        void* setupFixedEnvelopeWithConfs(double* masses, double* probs, int* confs, size_t size, int allDim, bool mass_sorted, bool prob_sorted, double total_prob);
         void* copyFixedEnvelope(void* other);
         void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
 

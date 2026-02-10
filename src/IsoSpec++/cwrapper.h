@@ -138,6 +138,7 @@ ISOSPEC_C_API void array_mul(double* array, size_t N, double what);
 ISOSPEC_C_API void array_fma(double* array, size_t N, double mul, double add);
 
 ISOSPEC_C_API void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob);
+ISOSPEC_C_API void* setupFixedEnvelopeWithConfs(double* masses, double* probs, int* confs, size_t size, int allDim, bool mass_sorted, bool prob_sorted, double total_prob);
 ISOSPEC_C_API void* copyFixedEnvelope(void* other);
 ISOSPEC_C_API void deleteFixedEnvelope(void* tabulator, bool releaseEverything);
 
