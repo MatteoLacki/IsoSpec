@@ -147,6 +147,8 @@ try:
     @pytest.mark.parametrize("molecule", molecules)
     @pytest.mark.parametrize("parameter", parameters)
     def test_mol_param(molecule, parameter):
+        global silentish_run
+        silentish_run = True
         check_mol_param(molecule, parameter)
 except ImportError:
     test_mol_param = check_mol_param
