@@ -16,7 +16,6 @@ def simple_inverse(fun, prec = 0.01):
             end *= 2.0
 
         while (end - start) > prec:
-            print(start, end)
             mid = (end + start) * 0.5
             if fun(mid) < x:
                 start = mid
