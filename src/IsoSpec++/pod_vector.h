@@ -103,6 +103,7 @@ template<typename T> class pod_vector
         size_t cap = capacity();
         if(cap < new_size)
         {
+            cap = (std::max<size_t>)(4, cap);
             do {
             cap = cap * 2;
             } while(cap < new_size);
@@ -281,6 +282,7 @@ template<typename T> class unsafe_pod_vector
         size_t cap = capacity();
         if(cap < new_size)
         {
+            cap = (std::max<size_t>)(4, cap);
             do {
             cap = cap * 2;
             } while(cap < new_size);
