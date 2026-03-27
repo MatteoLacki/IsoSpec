@@ -299,7 +299,7 @@ class IsoDistribution(object):
         try:
             import numpy as np
         except ImportError as e:
-            raise Exception(e.msg + "\nThis requires numpy to be installed.")
+            raise Exception(str(e) + "\nThis requires numpy to be installed.")
         return np.frombuffer(isoFFI.ffi.buffer(self.masses))
 
     def np_probs(self):
@@ -307,7 +307,7 @@ class IsoDistribution(object):
         try:
             import numpy as np
         except ImportError as e:
-            raise Exception(e.msg + "\nThis requires numpy to be installed.")
+            raise Exception(str(e) + "\nThis requires numpy to be installed.")
         return np.frombuffer(isoFFI.ffi.buffer(self.probs))
 
     def __iter__(self):
