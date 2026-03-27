@@ -483,7 +483,7 @@ void array_fma(double* array, size_t N, double mul, double add)
 #if defined(FP_FAST_FMA)
         array[ii] = std::fma(array[ii], mul, add);
 #else
-        array[ii] += (array[ii] * mul) + add;
+        array[ii] = (array[ii] * mul) + add;
 #endif
 }
 
