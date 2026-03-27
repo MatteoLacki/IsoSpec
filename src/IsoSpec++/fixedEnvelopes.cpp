@@ -248,6 +248,12 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
     double cprob = 0.0;
     size_t pidx = -1; // Overflows - but it doesn't matter.
 
+    // Sentinel: prevents the inner while(pprob < cprob) from walking off the end
+    // if floating-point rounding leaves the accumulated probability sum slightly
+    // below 1.0. Safe to overwrite in-place: rdvariate_binom guards succ_prob>=1.0
+    // so infinity is handled correctly, and the sentinel is always cleaned up before
+    // return — either by the loop zeroing the slot when it advances pidx to here,
+    // or by the memset below when the loop terminates earlier.
     _probs[_confs_no-1] = (std::numeric_limits<double>::max)();
 
     while(samples > 0)
