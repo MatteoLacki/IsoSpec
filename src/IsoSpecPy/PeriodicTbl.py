@@ -20,7 +20,7 @@ symbol_to_masses = dict(symbol_to_masses)
 symbol_to_probs = dict(symbol_to_probs)
 
 # Several derivative convenience dicts...
-symbol_to_massprob = dict((key, [zip(symbol_to_masses[key], symbol_to_probs[key])]) for key in symbol_to_probs.keys())
+symbol_to_massprob = dict((key, list(zip(symbol_to_masses[key], symbol_to_probs[key]))) for key in symbol_to_probs.keys())
 
 def crossprod(l1, l2):
     return sum(x1*x2 for x1, x2 in zip(l1, l2))
