@@ -34,9 +34,6 @@ namespace IsoSpec
 
 class FixedEnvelope;
 
-double AbyssalWassersteinDistanceGrad(FixedEnvelope* const* envelopes, const double* scales, double* ret_gradient, size_t N, double abyss_depth_exp, double abyss_depth_the);
-
-
 class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
  protected:
     double* _masses;
@@ -241,7 +238,6 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
         return Binned(Iso(iso, false), target_total_prob, bin_width, bin_middle);
     }
 
-    friend double AbyssalWassersteinDistanceGrad(FixedEnvelope* const* envelopes, const double* scales, double* ret_gradient, size_t N, double abyss_depth_exp, double abyss_depth_the);
 };
 
 }  // namespace IsoSpec
