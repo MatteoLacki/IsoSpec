@@ -661,13 +661,15 @@ def IsoStochastic(no_molecules,
                  beta_bias=5.0,
                  get_confs=False,
                  **kwargs):
-        """Initialize the IsoDistribution isotopic distribution by total probability.
+        """Initialize the isotopic distribution by stochastic sampling, simulating a measured mass spectrum
+        with a given number of ions. Each configuration is drawn independently according to its isotopic
+        probability, producing integer ion counts rather than exact probabilities.
 
         Args:
-            no_molecules (uint): ionic current in instrument
+            no_molecules (uint): number of ions to simulate (ionic current).
             formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
-            precision (float): passed to IsoTotalProbGenerator. Between 0.0 and 1.0.
-            beta_bias (float, nonnegative): fiddling with this parameter does not change the result, but might make computations slightly faster (or likely, much, much slower is you screw it up...)
+            precision (float): total probability of the envelope used for sampling. Between 0.0 and 1.0.
+            beta_bias (float, nonnegative): fiddling with this parameter does not change the result, but might make computations slightly faster (or likely, much, much slower if you screw it up...)
             get_confs (boolean): should we report the counts of isotopologues?
             **kwargs: named arguments to the superclass.
         """
@@ -683,14 +685,14 @@ def IsoBinned(bin_width,
                  target_total_prob=0.9999,
                  bin_middle=0.0,
                  **kwargs):
-        """Initialize the IsoDistribution isotopic distribution by total probability.
+        """Initialize the isotopic distribution as a binned (histogram) envelope.
+        Configurations are grouped into bins of equal width and their probabilities summed.
 
         Args:
-            no_molecules (uint): ionic current in instrument
+            bin_width (float): width of each bin in Da.
             formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
-            precision (float): passed to IsoTotalProbGenerator. Between 0.0 and 1.0.
-            beta_bias (float, nonnegative): fiddling with this parameter does not change the result, but might make computations slightly faster (or likely, much, much slower is you screw it up...)
-            get_confs (boolean): should we report the counts of isotopologues?
+            target_total_prob (float): total probability of configurations to include before binning. Between 0.0 and 1.0.
+            bin_middle (float): offset of bin centres from zero.
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=False, **kwargs)
@@ -776,12 +778,13 @@ class IsoThresholdGenerator(IsoGenerator):
 class IsoLayeredGenerator(IsoGenerator):
     """Class alowing memory-efficient iteration over the isotopic distribution up till some joint probability of the reported peaks."""
     def __init__(self, formula="", get_confs=False, reorder_marginals = True, t_prob_hint = 0.99, **kwargs):
-        """Initialize IsoThresholdGenerator.
+        """Initialize IsoLayeredGenerator.
 
         Args:
             formula (str): a chemical formula, e.g. "C2H6O1" or "C2H6O".
-            absolute (boolean): should we report peaks with probabilities above an absolute probability threshold, or above a relative threshold amounting to a given proportion of the most probable peak?
             get_confs (boolean): should we report the counts of isotopologues?
+            reorder_marginals (boolean): should the marginal distributions be reordered for efficiency?
+            t_prob_hint (float): hint for the target total probability, used to size internal buffers.
             **kwargs: named arguments to the superclass.
         """
         super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
