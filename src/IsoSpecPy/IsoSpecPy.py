@@ -832,7 +832,7 @@ class IsoOrderedGenerator(IsoGenerator):
     def __del__(self):
         try:
             if self.cgen is not None:
-                self.ffi.deleteIsoLayeredGenerator(self.cgen)
+                self.ffi.deleteIsoOrderedGenerator(self.cgen)
                 self.cgen = None
         except AttributeError:
             pass
