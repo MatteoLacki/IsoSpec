@@ -422,11 +422,11 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     if(slen == 0)
         throw std::invalid_argument("Invalid formula: can't be empty");
 
-    if(!isdigit(formula[slen-1]))
+    if(!isdigit(static_cast<unsigned char>(formula[slen-1])))
         throw std::invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
 
     for(size_t ii = 0; ii < slen; ii++)
-        if(!isdigit(formula[ii]) && !isalpha(formula[ii]))
+        if(!isdigit(static_cast<unsigned char>(formula[ii])) && !isalpha(static_cast<unsigned char>(formula[ii])))
             throw std::invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
 
     size_t position = 0;
@@ -434,10 +434,10 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     while(position < slen)
     {
         size_t elem_end = position;
-        while(isalpha(formula[elem_end]))
+        while(isalpha(static_cast<unsigned char>(formula[elem_end])))
             elem_end++;
         size_t digit_end = elem_end;
-        while(isdigit(formula[digit_end]))
+        while(isdigit(static_cast<unsigned char>(formula[digit_end])))
             digit_end++;
         elements.emplace_back(&formula[position], elem_end-position);
         numbers.push_back(std::stoi(&formula[elem_end]));
