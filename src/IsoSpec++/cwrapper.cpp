@@ -129,8 +129,9 @@ double* getMarginalLogSizeEstimates(void* iso, double target_total_prob)
 {
     Iso* i = reinterpret_cast<Iso*>(iso);
     double* ret = reinterpret_cast<double*>(malloc(sizeof(double)*i->getDimNumber()));
-    if(ret != nullptr)
-        i->saveMarginalLogSizeEstimates(ret, target_total_prob);
+    if(ret == nullptr)
+        throw std::bad_alloc();
+    i->saveMarginalLogSizeEstimates(ret, target_total_prob);
     return ret;
 }
 

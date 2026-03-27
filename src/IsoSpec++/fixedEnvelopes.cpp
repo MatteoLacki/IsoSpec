@@ -682,7 +682,6 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 
 template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
-    current_size = new_size;
     if(new_size > SIZE_MAX / sizeof(double))
         throw std::bad_alloc();
     double* tmp_masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
@@ -707,11 +706,11 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
         _confs = tmp_confs;
         tconfs = _confs + (allDim * _confs_no);
     }
+    current_size = new_size;
 }
 
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
-    current_size = new_size;
     if(new_size > SIZE_MAX / sizeof(double))
         throw std::bad_alloc();
     double* tmp_masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
@@ -736,6 +735,7 @@ void FixedEnvelope::slow_reallocate_memory(size_t new_size)
         _confs = tmp_confs;
         tconfs = _confs + (allDim * _confs_no);
     }
+    current_size = new_size;
 }
 
 template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double threshold, bool absolute)
