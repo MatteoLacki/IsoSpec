@@ -236,7 +236,7 @@ sure you want to do that, edit the source and disable this check."""
             except (IndexError, OSError) as e:
                 errmsg = (
                     "Load libIsoSpec++.so, tried: "
-                    + libpath
+                    + str(libpath)
                     + "\n"
                     + "Got error: "
                     + str(type(e))
