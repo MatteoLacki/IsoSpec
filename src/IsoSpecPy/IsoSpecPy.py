@@ -183,8 +183,10 @@ class Iso(object):
                     raise ValueError("All isotope probabilities p must fulfill: 0.0 < p <= 1.0")
 
         self.isotopeNumbers = tuple(map(len, self.isotopeMasses))
-        assert self.isotopeNumbers == tuple(map(len, self.isotopeProbabilities))
-        assert len(self.atomCounts) == len(self.isotopeNumbers) == len(self.isotopeProbabilities)
+        if self.isotopeNumbers != tuple(map(len, self.isotopeProbabilities)):
+            raise ValueError("isotopeMasses and isotopeProbabilities must have the same number of isotopes per element")
+        if len(self.atomCounts) != len(self.isotopeNumbers) or len(self.isotopeNumbers) != len(self.isotopeProbabilities):
+            raise ValueError("atomCounts, isotopeMasses, and isotopeProbabilities must all have the same length")
 
         self.dimNumber = len(self.isotopeNumbers)
 
@@ -358,8 +360,10 @@ class IsoDistribution(object):
                 self.parse_conf = iso._get_parse_conf_fun()
 
         elif probs is not None or masses is not None:
-            assert probs is not None and masses is not None
-            assert len(probs) == len(masses)
+            if probs is None or masses is None:
+                raise ValueError("masses and probs must both be provided together")
+            if len(probs) != len(masses):
+                raise ValueError("masses and probs must have the same length")
             self.size = len(probs)
             type_str = "double["+str(self.size)+"]"
             self.probs  = isoFFI.ffi.new(type_str, probs)
