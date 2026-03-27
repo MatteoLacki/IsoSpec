@@ -31,7 +31,8 @@ allDim(other.allDim),
 allDimSizeofInt(other.allDimSizeofInt),
 sorted_by_mass(other.sorted_by_mass),
 sorted_by_prob(other.sorted_by_prob),
-total_prob(other.total_prob)
+total_prob(other.total_prob),
+current_size(other._confs_no)
 {}
 
 FixedEnvelope::FixedEnvelope(FixedEnvelope&& other) :
@@ -43,13 +44,57 @@ allDim(other.allDim),
 allDimSizeofInt(other.allDimSizeofInt),
 sorted_by_mass(other.sorted_by_mass),
 sorted_by_prob(other.sorted_by_prob),
-total_prob(other.total_prob)
+total_prob(other.total_prob),
+current_size(other.current_size)
 {
 other._masses = nullptr;
 other._probs  = nullptr;
 other._confs  = nullptr;
 other._confs_no = 0;
 other.total_prob = 0.0;
+other.current_size = 0;
+}
+
+FixedEnvelope& FixedEnvelope::operator=(const FixedEnvelope& other)
+{
+    if(this == &other)
+        return *this;
+    // Copy-and-swap: construct the copy first so that if any allocation inside
+    // the copy constructor throws, *this is left untouched.  Only after tmp is
+    // fully built do we pilfer its pointers; tmp then destructs holding the old
+    // ones, which frees them without any possibility of failure.
+    FixedEnvelope tmp(other);
+    std::swap(_masses,         tmp._masses);
+    std::swap(_probs,          tmp._probs);
+    std::swap(_confs,          tmp._confs);
+    _confs_no       = tmp._confs_no;
+    allDim          = tmp.allDim;
+    allDimSizeofInt = tmp.allDimSizeofInt;
+    sorted_by_mass  = tmp.sorted_by_mass;
+    sorted_by_prob  = tmp.sorted_by_prob;
+    total_prob      = tmp.total_prob;
+    current_size    = tmp.current_size;
+    return *this;
+}
+
+FixedEnvelope& FixedEnvelope::operator=(FixedEnvelope&& other)
+{
+    if(this == &other)
+        return *this;
+    free(_masses);
+    free(_probs);
+    free(_confs);
+    _masses         = other._masses;         other._masses      = nullptr;
+    _probs          = other._probs;          other._probs       = nullptr;
+    _confs          = other._confs;          other._confs       = nullptr;
+    _confs_no       = other._confs_no;       other._confs_no    = 0;
+    allDim          = other.allDim;
+    allDimSizeofInt = other.allDimSizeofInt;
+    sorted_by_mass  = other.sorted_by_mass;
+    sorted_by_prob  = other.sorted_by_prob;
+    total_prob      = other.total_prob;      other.total_prob   = 0.0;
+    current_size    = other.current_size;    other.current_size = 0;
+    return *this;
 }
 
 FixedEnvelope::FixedEnvelope(double* in_masses, double* in_probs, size_t in_confs_no, bool masses_sorted, bool probs_sorted, double _total_prob) :
