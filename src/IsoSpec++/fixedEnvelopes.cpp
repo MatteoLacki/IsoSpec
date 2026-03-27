@@ -871,21 +871,24 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     current_size = new_size;
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
-    if(_masses == nullptr)
+    double* tmp_masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
+    if(tmp_masses == nullptr)
         throw std::bad_alloc();
+    _masses = tmp_masses;
     tmasses = _masses + _confs_no;
 
-    _probs  = reinterpret_cast<double*>(realloc(_probs,  new_size * sizeof(double)));
-    if(_probs == nullptr)
+    double* tmp_probs = reinterpret_cast<double*>(realloc(_probs,  new_size * sizeof(double)));
+    if(tmp_probs == nullptr)
         throw std::bad_alloc();
+    _probs = tmp_probs;
     tprobs  = _probs  + _confs_no;
 
     constexpr_if(tgetConfs)
     {
-        _confs  = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
-        if(_confs == nullptr)
+        int* tmp_confs = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
+        if(tmp_confs == nullptr)
             throw std::bad_alloc();
+        _confs = tmp_confs;
         tconfs = _confs + (allDim * _confs_no);
     }
 }
@@ -894,21 +897,24 @@ void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     current_size = new_size;
     // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
-    _masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
-    if(_masses == nullptr)
+    double* tmp_masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
+    if(tmp_masses == nullptr)
         throw std::bad_alloc();
+    _masses = tmp_masses;
     tmasses = _masses + _confs_no;
 
-    _probs  = reinterpret_cast<double*>(realloc(_probs,  new_size * sizeof(double)));
-    if(_probs == nullptr)
+    double* tmp_probs = reinterpret_cast<double*>(realloc(_probs,  new_size * sizeof(double)));
+    if(tmp_probs == nullptr)
         throw std::bad_alloc();
+    _probs = tmp_probs;
     tprobs  = _probs  + _confs_no;
 
     if(_confs != nullptr)
     {
-        _confs  = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
-        if(_confs == nullptr)
+        int* tmp_confs = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
+        if(tmp_confs == nullptr)
             throw std::bad_alloc();
+        _confs = tmp_confs;
         tconfs = _confs + (allDim * _confs_no);
     }
 }
