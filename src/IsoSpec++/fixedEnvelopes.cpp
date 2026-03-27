@@ -876,7 +876,8 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 {
     current_size = new_size;
-    // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+    if(new_size > SIZE_MAX / sizeof(double))
+        throw std::bad_alloc();
     double* tmp_masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
     if(tmp_masses == nullptr)
         throw std::bad_alloc();
@@ -891,6 +892,8 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 
     constexpr_if(tgetConfs)
     {
+        if(allDimSizeofInt > 0 && new_size > SIZE_MAX / static_cast<size_t>(allDimSizeofInt))
+            throw std::bad_alloc();
         int* tmp_confs = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
         if(tmp_confs == nullptr)
             throw std::bad_alloc();
@@ -902,7 +905,8 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     current_size = new_size;
-    // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+    if(new_size > SIZE_MAX / sizeof(double))
+        throw std::bad_alloc();
     double* tmp_masses = reinterpret_cast<double*>(realloc(_masses, new_size * sizeof(double)));
     if(tmp_masses == nullptr)
         throw std::bad_alloc();
@@ -917,6 +921,8 @@ void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 
     if(_confs != nullptr)
     {
+        if(allDimSizeofInt > 0 && new_size > SIZE_MAX / static_cast<size_t>(allDimSizeofInt))
+            throw std::bad_alloc();
         int* tmp_confs = reinterpret_cast<int*>(realloc(_confs,  new_size * allDimSizeofInt));
         if(tmp_confs == nullptr)
             throw std::bad_alloc();
