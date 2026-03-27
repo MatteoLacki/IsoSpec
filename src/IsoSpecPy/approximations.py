@@ -24,15 +24,6 @@ def test_log_multinomial_confs_cnt():
 	assert abs(x - 4.189655) < 10**(-5)
 
 
-def multinomial_confs_cnt(n, i):
-	"""Return the approximate number of configurations of the multinomial distribution.
-
-	Args:
-		n (int): The number of trials.
-		i (int): The number of possible outcomes.
-	"""
-	return exp(log_subiso_cnt_simplex(n, i))
-
 
 def log_V_simplex(n, i):
 	"""Get the natural logarithm of the volume of a simplex {(x_1,..,x_{i-1}): \sum_{j=1}^i = n}.
