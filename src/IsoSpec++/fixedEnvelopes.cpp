@@ -1163,7 +1163,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
         ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
 
-        for(size_t ii = nonzero_idx; ii >= idx_min && empty_steps < distance_10da; ii--)
+        for(size_t ii = nonzero_idx; empty_steps < distance_10da; )
         {
             if(acc[ii] > 0.0)
             {
@@ -1172,6 +1172,8 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
             }
             else
                 empty_steps++;
+            if(ii == idx_min) break;
+            ii--;
         }
 
         empty_steps = 0;
