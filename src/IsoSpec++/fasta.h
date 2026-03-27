@@ -41,7 +41,7 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
 
     for(size_t idx = 0; fasta[idx] != '\0'; ++idx)
     {
-        const int* counts = &aa_symbol_to_elem_counts[fasta[idx]*6];
+        const int* counts = &aa_symbol_to_elem_counts[static_cast<unsigned char>(fasta[idx])*6];
         for(int ii = 0; ii < 6; ++ii)
             atomCounts[ii] += counts[ii];
     }

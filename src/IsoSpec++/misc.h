@@ -118,7 +118,7 @@ template<typename T> void printNestedArray(const T** array, const int* shape, si
 }
 
 //! Quickly select the n'th positional statistic, including the weights.
-void* quickselect(const void** array, size_t n, size_t start, size_t end);
+void* quickselect(void** array, size_t n, size_t start, size_t end);
 
 
 template <typename T> inline static T* array_copy(const T* A, size_t size)

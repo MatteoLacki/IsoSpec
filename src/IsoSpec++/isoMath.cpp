@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <new>
 #include "isoMath.h"
 #include "platform.h"
 #include "btrd.h"
@@ -34,8 +35,12 @@ double* alloc_lfact_table()
     double* ret;
 # if ISOSPEC_GOT_MMAN
     ret = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*ISOSPEC_G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+    if(ret == MAP_FAILED)
+        throw std::bad_alloc();
 #else
     ret = reinterpret_cast<double*>(calloc(ISOSPEC_G_FACT_TABLE_SIZE, sizeof(double)));
+    if(ret == nullptr)
+        throw std::bad_alloc();
 #endif
     std::atexit(release_g_lfact_table);
     return ret;
