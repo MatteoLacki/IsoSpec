@@ -62,11 +62,10 @@ def ParseFormula(formula):
 
     return ret
 
-fasta_parsing_space = isoFFI.ffi.new("int[6]")
-
 def ParseFASTA(fasta):
     if isinstance(fasta, str):
         fasta = fasta.encode("ascii")
+    fasta_parsing_space = isoFFI.ffi.new("int[6]")
     isoFFI.clib.parse_fasta_c(fasta, fasta_parsing_space)
     elements = list("CHNOS")
     if fasta_parsing_space[5] > 0:
