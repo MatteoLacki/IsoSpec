@@ -536,6 +536,12 @@ IsoThresholdGenerator::IsoThresholdGenerator(Iso&& iso, double _threshold, bool 
 : IsoGenerator(std::move(iso)),
 Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_threshold) + mode_lprob))
 {
+    // Reject empty Iso early: the maxConfsLPSum allocation below would otherwise
+    // request new double[(size_t)(-1)] == new double[SIZE_MAX] and throw a
+    // misleading bad_alloc.
+    if (dimNumber == 0)
+        throw std::invalid_argument("IsoThresholdGenerator requires a non-empty Iso");
+
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
     marginalResultsUnsorted = new PrecalculatedMarginal*[dimNumber];
@@ -711,6 +717,10 @@ template <typename MarginalType>
 IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso, int tabSize, int hashSize, bool reorder_marginals, double t_prob_hint)
 : IsoGenerator(std::move(iso))
 {
+    // Reject empty Iso early; see comment in IsoThresholdGenerator's ctor.
+    if (dimNumber == 0)
+        throw std::invalid_argument("IsoLayeredGenerator requires a non-empty Iso");
+
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
     currentLThreshold = nextafter(mode_lprob, -std::numeric_limits<double>::infinity());
