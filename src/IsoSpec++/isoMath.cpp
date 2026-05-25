@@ -42,6 +42,21 @@ double* alloc_lfact_table()
     if(ret == nullptr)
         throw std::bad_alloc();
 #endif
+
+    // Eager-fill the bottom of the table.  Done before any thread can call
+    // minuslogFactorial(), so the eager region is immutable post-init and the
+    // hot path reads it with no synchronisation.  The lazy tail (if any) uses
+    // std::atomic_ref to handle racing fills safely.
+    constexpr std::size_t eager_end =
+        static_cast<std::size_t>(ISOSPEC_G_FACT_TABLE_SIZE) <
+                static_cast<std::size_t>(ISOSPEC_LFACT_EAGER_FILL)
+            ? static_cast<std::size_t>(ISOSPEC_G_FACT_TABLE_SIZE)
+            : static_cast<std::size_t>(ISOSPEC_LFACT_EAGER_FILL);
+    if (eager_end > 0) ret[0] = 0.0;
+    if (eager_end > 1) ret[1] = 0.0;
+    for (std::size_t n = 2; n < eager_end; ++n)
+        ret[n] = -lgamma(static_cast<double>(n + 1));
+
     std::atexit(release_g_lfact_table);
     return ret;
 }

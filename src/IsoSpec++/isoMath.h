@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <atomic>
 #include <cmath>
+#include <cstddef>
 #include <random>
 
 #if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
@@ -31,6 +33,17 @@
   #endif
 #endif
 
+// Prefix of g_lfact_table that is filled eagerly at startup.  Accessing those
+// entries needs no synchronisation (immutable post-init); the lazy tail above
+// goes through std::atomic_ref to keep the racing fill thread-safe.
+#if !defined(ISOSPEC_LFACT_EAGER_FILL)
+  #if ISOSPEC_BUILDING_OPENMS
+    #define ISOSPEC_LFACT_EAGER_FILL ISOSPEC_G_FACT_TABLE_SIZE
+  #else
+    #define ISOSPEC_LFACT_EAGER_FILL 65536
+  #endif
+#endif
+
 namespace IsoSpec
 {
 
@@ -40,14 +53,21 @@ static inline double minuslogFactorial(int n)
 {
     if (n < 2)
         return 0.0;
+    if (static_cast<std::size_t>(n) < static_cast<std::size_t>(ISOSPEC_LFACT_EAGER_FILL))
+        return g_lfact_table[n];                              // immutable after startup
+
     #if ISOSPEC_BUILDING_OPENMS
     if (n >= ISOSPEC_G_FACT_TABLE_SIZE)
         return -lgamma(n+1);
     #endif
-    if (g_lfact_table[n] == 0.0)
-        g_lfact_table[n] = -lgamma(n+1);
 
-    return g_lfact_table[n];
+    std::atomic_ref<double> slot(g_lfact_table[n]);
+    double v = slot.load(std::memory_order_relaxed);
+    if (v == 0.0) {
+        v = -lgamma(n+1);
+        slot.store(v, std::memory_order_relaxed);
+    }
+    return v;
 }
 
 const double pi = 3.14159265358979323846264338328;
