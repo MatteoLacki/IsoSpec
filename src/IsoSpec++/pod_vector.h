@@ -364,7 +364,7 @@ template<typename T> class unsafe_pod_vector
         first_free--;
     }
 
-    void swap(pod_vector<T>& other) noexcept
+    void swap(unsafe_pod_vector<T>& other) noexcept
     {
         std::swap(backend_past_end, other.backend_past_end);
         std::swap(first_free, other.first_free);
