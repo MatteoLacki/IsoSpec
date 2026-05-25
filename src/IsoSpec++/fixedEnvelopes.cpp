@@ -937,8 +937,11 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     size_t no_bins = static_cast<size_t>(range_len / bin_width) + 2;
     double half_width = 0.5*bin_width;
     double hwmm = half_width-bin_middle;
-    size_t idx_min = floor((min_mass + hwmm) / bin_width);
-    size_t idx_max = idx_min + no_bins;
+    // Bin indices are signed: for masses below bin_middle - half_width they
+    // are legitimately negative.  Using size_t here would UB on the floor()
+    // cast and underflow the acc-=idx_min pointer arithmetic below.
+    std::ptrdiff_t idx_min = static_cast<std::ptrdiff_t>(floor((min_mass + hwmm) / bin_width));
+    std::ptrdiff_t idx_max = idx_min + static_cast<std::ptrdiff_t>(no_bins);
 
     double* acc;
 # if ISOSPEC_GOT_MMAN
@@ -962,14 +965,14 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     if(non_empty)
     {
         double accum_prob = ITG.prob();
-        size_t nonzero_idx = floor((ITG.mass() + hwmm)/bin_width);
+        std::ptrdiff_t nonzero_idx = static_cast<std::ptrdiff_t>(floor((ITG.mass() + hwmm)/bin_width));
         acc[nonzero_idx] = accum_prob;
 
         while(ITG.advanceToNextConfiguration() && accum_prob < target_total_prob)
         {
             double prob = ITG.prob();
             accum_prob += prob;
-            size_t bin_idx = floor((ITG.mass() + hwmm)/bin_width);
+            std::ptrdiff_t bin_idx = static_cast<std::ptrdiff_t>(floor((ITG.mass() + hwmm)/bin_width));
             acc[bin_idx] += prob;
         }
 
@@ -981,7 +984,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
         ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
 
-        for(size_t ii = nonzero_idx; empty_steps < distance_10da; )
+        for(std::ptrdiff_t ii = nonzero_idx; empty_steps < distance_10da; )
         {
             if(acc[ii] > 0.0)
             {
@@ -995,7 +998,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         }
 
         empty_steps = 0;
-        for(size_t ii = nonzero_idx+1; ii < idx_max && empty_steps < distance_10da; ii++)
+        for(std::ptrdiff_t ii = nonzero_idx+1; ii < idx_max && empty_steps < distance_10da; ii++)
         {
             if(acc[ii] > 0.0)
             {
