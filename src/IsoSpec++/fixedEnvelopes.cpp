@@ -16,6 +16,7 @@
 
 #include "fixedEnvelopes.h"
 #include <limits>
+#include <memory>
 #include <cassert>
 #include "isoMath.h"
 
@@ -194,11 +195,12 @@ void FixedEnvelope::sort_by_prob()
 
 template<typename T> void reorder_array(T* arr, size_t* order, size_t size, bool can_destroy = false)
 {
+    std::unique_ptr<size_t[]> order_owned;
     if(!can_destroy)
     {
-        size_t* order_c = new size_t[size];
-        memcpy(order_c, order, sizeof(size_t)*size);
-        order = order_c;
+        order_owned = std::make_unique<size_t[]>(size);
+        memcpy(order_owned.get(), order, sizeof(size_t)*size);
+        order = order_owned.get();
     }
 
     for(size_t ii = 0; ii < size; ii++)
@@ -207,9 +209,6 @@ template<typename T> void reorder_array(T* arr, size_t* order, size_t size, bool
             std::swap(arr[ii], arr[order[ii]]);
             std::swap(order[order[ii]], order[ii]);
         }
-
-    if(!can_destroy)
-        delete[] order;
 }
 
 void FixedEnvelope::sort_by(double* order)
