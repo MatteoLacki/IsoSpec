@@ -87,8 +87,8 @@ if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json" )
 endif()
 
 
-# We want C++17
-set(CMAKE_CXX_STANDARD 17)
+# We want C++20
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "${BoldGreen}CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER}${ColourReset}")
 
