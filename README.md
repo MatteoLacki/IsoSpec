@@ -4,21 +4,6 @@ IsoSpec is a fine-structure isotopic distribution calculator for chemical formul
 
 IsoSpec is primarily used as a library by mass spectrometry software. It is implemented in C++ (`src/IsoSpec++/`) and shipped with first-class bindings for Python (`IsoSpecPy`, on PyPI) and R (`IsoSpecR`, on CRAN).
 
-## Features
-
-- **Multiple distribution algorithms** — pick the one that matches your use case:
-  - `IsoTotalProb` — smallest set of isotopologues whose summed probability exceeds a target (e.g. cover 99.9% of the spectrum). Optimal in the sense that no smaller set achieves the same coverage.
-  - `IsoThreshold` — all isotopologues with probability above a threshold.
-  - `IsoStochastic` — simulate a measured spectrum by sampling integer ion counts.
-  - `IsoBinned` — histogram-style envelope at a chosen bin width.
-- **Tabulated or streaming.** The high-level functions above return materialized envelopes (arrays of masses/probabilities) for random access. For constant-memory iteration — useful when binning on the fly or when you don't know up-front how many isotopologues you'll need — use the generator classes (`IsoThresholdGenerator`, `IsoLayeredGenerator`, `IsoOrderedGenerator`, `IsoStochasticGenerator`). `IsoOrderedGenerator` streams in strict order of decreasing probability.
-- **FASTA support** — build an `Iso` directly from an amino-acid sequence; optionally include the N/C-terminal water.
-- **Custom isotopic tables** — override natural abundances per element (e.g. for radio- or stable-isotope labelling).
-- **Fixed-envelope arithmetic** — addition, normalization, convolution, Wasserstein distance.
-- **Nominal-mass mode** — compute distributions over nucleon counts instead of real masses.
-
-Algorithmic details are in the papers cited at the bottom of this file (the Supporting Information of each is the better starting point for implementation specifics).
-
 ## Installation
 
 ### Python
@@ -58,16 +43,18 @@ Requires a C++20 compiler. CMake produces both shared and static libraries and i
 
 ## Quick start
 
+The most common usage is `IsoTotalProb`: ask for the smallest set of isotopologues whose summed probability covers a chosen fraction of the spectrum (typically 0.99–0.9999). The result is a materialized envelope — arrays of masses and probabilities you can read directly.
+
 ### Python
 
 ```python
 import IsoSpecPy
 
 # Isotopologues covering at least 99.9% of the probability mass of water.
-iso = IsoSpecPy.IsoTotalProb(formula="H2O1", prob_to_cover=0.999, get_confs=True)
+iso = IsoSpecPy.IsoTotalProb(formula="H2O1", prob_to_cover=0.999)
 
-for mass, prob, conf in iso:
-    print(mass, prob, conf)
+for mass, prob in zip(iso.masses, iso.probs):
+    print(mass, prob)
 
 # From an amino-acid FASTA sequence:
 iso = IsoSpecPy.IsoTotalProb(fasta="AAAPPGQAAC", prob_to_cover=0.999)
@@ -111,6 +98,20 @@ IsoSpecify(molecule = water, stopCondition = 0.999)
 
 See `Examples/R/` for radiolabelling and full-spectrum extraction.
 
+## Advanced features
+
+- **Alternative algorithms** — for cases where `IsoTotalProb` isn't the right shape:
+  - `IsoThreshold` — all isotopologues with probability above a fixed threshold.
+  - `IsoStochastic` — simulate a measured spectrum by sampling integer ion counts.
+  - `IsoBinned` — histogram-style envelope at a chosen bin width.
+- **FASTA support** — build an `Iso` directly from an amino-acid sequence; optionally include the N/C-terminal water.
+- **Custom isotopic tables** — override natural abundances per element (e.g. for radio- or stable-isotope labelling). See `Examples/*/radiolabelling.*`.
+- **Fixed-envelope arithmetic** — addition, normalization, convolution, Wasserstein distance.
+- **Nominal-mass mode** — compute distributions over nucleon counts instead of real masses.
+- **Streaming generators (for performance)** — the tabulated functions above materialize the full envelope into arrays. For large molecules where that uses too much memory, or for pipelines that consume one configuration at a time (e.g. binning on the fly), use the generator classes instead: `IsoThresholdGenerator`, `IsoLayeredGenerator`, `IsoOrderedGenerator`, `IsoStochasticGenerator`. They yield one isotopologue per call to `advanceToNextConfiguration()` without ever storing the full set. `IsoOrderedGenerator` additionally streams in strict order of decreasing probability.
+
+Algorithmic details are in the papers cited below; the Supporting Information of each is the better starting point for implementation specifics.
+
 ## Repository layout
 
 ```
@@ -121,8 +122,6 @@ Examples/         Working examples in each language
 tests/            C, C++, and Python test suites
 skbuild/          scikit-build-core entry point used when installing the Python wheel
 ```
-
-Architectural notes for developers (build flags, generator class hierarchy, allocator design) live in `CLAUDE.md`.
 
 ## Citation
 
