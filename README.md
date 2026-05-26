@@ -126,10 +126,10 @@ Architectural notes for developers (build flags, generator class hierarchy, allo
 
 ## Citation
 
-If IsoSpec is useful in your research, please cite the IsoSpec papers in Analytical Chemistry:
+If IsoSpec is useful in your research, please cite:
 
-- Łącki, Valkenborg, Startek (2020). <https://doi.org/10.1021/acs.analchem.0c00959>
-- 2017 paper. <https://doi.org/10.1021/acs.analchem.6b01459>
+- Łącki, M. K.; Valkenborg, D.; Startek, M. P. *IsoSpec2: Ultrafast Fine Structure Calculator.* Analytical Chemistry **2020**, *92* (14), 9472–9475. <https://doi.org/10.1021/acs.analchem.0c00959>
+- Łącki, M. K.; Startek, M.; Valkenborg, D.; Gambin, A. *IsoSpec: Hyperfast Fine Structure Calculator.* Analytical Chemistry **2017**, *89* (6), 3272–3277. <https://doi.org/10.1021/acs.analchem.6b01459>
 
 The Supporting Information of each paper has the algorithmic detail.
 
