@@ -162,29 +162,48 @@ int verify_atom_cnt(int atomCnt)
     return atomCnt;
 }
 
+// Delegated-to constructor: the two arrays arrive already allocated and owned
+// by unique_ptrs, so any throw during the rest of construction (e.g. from
+// verify_atom_cnt) frees them via the unique_ptr parameters rather than leaking.
 Marginal::Marginal(
-    const double* _masses,
-    const double* _probs,
+    std::unique_ptr<const double[]> _atom_lProbs,
+    std::unique_ptr<const double[]> _atom_masses,
     int _isotopeNo,
     int _atomCnt
 ) :
 disowned(false),
 isotopeNo(_isotopeNo),
 atomCnt(verify_atom_cnt(_atomCnt)),
-atom_lProbs(getMLogProbs(_probs, isotopeNo)),
-atom_masses(array_copy<double>(_masses, _isotopeNo)),
+atom_lProbs(_atom_lProbs.release()),
+atom_masses(_atom_masses.release()),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(nullptr)
 // Deliberately not initializing mode_lprob
 {}
 
+Marginal::Marginal(
+    const double* _masses,
+    const double* _probs,
+    int _isotopeNo,
+    int _atomCnt
+) :
+// The two allocating expressions are wrapped in unique_ptr temporaries: if the
+// second one throws, the first is freed during cleanup of the full-expression
+// instead of being leaked (constructor bodies/init-lists don't free raw members
+// on throw). The target constructor then takes ownership.
+Marginal(std::unique_ptr<const double[]>(getMLogProbs(_probs, _isotopeNo)),
+         std::unique_ptr<const double[]>(array_copy<double>(_masses, _isotopeNo)),
+         _isotopeNo, _atomCnt)
+{}
+
 Marginal::Marginal(const Marginal& other) :
-disowned(false),
-isotopeNo(other.isotopeNo),
-atomCnt(other.atomCnt),
-atom_lProbs(array_copy<double>(other.atom_lProbs, isotopeNo)),
-atom_masses(array_copy<double>(other.atom_masses, isotopeNo)),
-loggamma_nominator(other.loggamma_nominator)
+// Same exception-safety reasoning as the public constructor above. Because this
+// delegates to the target constructor, once that completes the object is fully
+// constructed, so if the mode_conf copy below throws the destructor runs and
+// frees atom_lProbs/atom_masses too.
+Marginal(std::unique_ptr<const double[]>(array_copy<double>(other.atom_lProbs, other.isotopeNo)),
+         std::unique_ptr<const double[]>(array_copy<double>(other.atom_masses, other.isotopeNo)),
+         other.isotopeNo, other.atomCnt)
 {
     if(other.mode_conf == nullptr)
     {

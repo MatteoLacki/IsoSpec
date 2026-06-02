@@ -44,6 +44,17 @@ class Marginal
 {
  private:
     bool disowned;
+
+    //! Delegated-to constructor. Takes ownership of two already-allocated arrays
+    //! via unique_ptr so that, should any initialization step throw, the arrays
+    //! are released by the unique_ptr temporaries instead of being leaked. See
+    //! the leak-on-OOM note for the public/copy constructors.
+    Marginal(
+        std::unique_ptr<const double[]> _atom_lProbs,
+        std::unique_ptr<const double[]> _atom_masses,
+        int _isotopeNo,
+        int _atomCnt
+    );
  protected:
     const unsigned int isotopeNo;       /*!< The number of isotopes of the given element. */
     const unsigned int atomCnt;         /*!< The number of atoms of the given element. */
