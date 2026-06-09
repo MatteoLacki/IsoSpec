@@ -25,6 +25,14 @@
 #define ISOSPEC_ALGO_LAYERED_ESTIMATE 4
 
 
+// Error reporting across the C ABI: these functions never let a C++ exception
+// escape (that would be undefined behaviour for a C / cffi caller). On bad input
+// or out-of-memory they instead return an out-of-band error value:
+//   * functions returning a handle/pointer return NULL,
+//   * functions returning a double return NaN,
+//   * functions returning an integer/bool return 0 / false.
+// Callers should check the returned handle for NULL before using it.
+
 #ifdef __cplusplus
 extern "C" {
 #else

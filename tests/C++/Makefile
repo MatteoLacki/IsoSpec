@@ -96,5 +96,29 @@ IsoThresholdGenerator:
 nr_conf:
 	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread
 
+# Regression tests for bugs identified during code review.  See the comment
+# block at the top of bug_regression_tests.cpp for what each test pins down.
+# - bug_regression_tests       : plain build; runs unit-style asserts.
+# - bug_regression_tests_asan  : built with ASan+UBSan; catches the latent UB
+#                                bugs that the plain build silently rolls over.
+# - fasta_header_isolation     : compile-only; must compile cleanly because
+#                                fasta.h includes <cstring> and <cstddef>.
+bug_regression: bug_regression_tests bug_regression_tests_asan fasta_header_isolation
+
+bug_regression_tests:
+	clang++ -std=c++20 -O0 -g -I../../src/IsoSpec++ \
+	    ../../src/IsoSpec++/unity-build.cpp \
+	    bug_regression_tests.cpp -o bug_regression_tests
+
+bug_regression_tests_asan:
+	clang++ -std=c++20 -O0 -g -fsanitize=address,undefined \
+	    -I../../src/IsoSpec++ \
+	    ../../src/IsoSpec++/unity-build.cpp \
+	    bug_regression_tests.cpp -o bug_regression_tests_asan
+
+fasta_header_isolation:
+	clang++ -std=c++20 -I../../src/IsoSpec++ \
+	    -c fasta_header_isolation.cpp -o fasta_header_isolation.o
+
 clean:
-	rm -rf *_gcc *_clang *_dbg *_memsan *_asan IsoThresholdGenerator layered main_test_cfi main_test_ss marginal nr_conf tabulator titin *.dSYM a.out from_formula_layered_clang_more main_test_dbg_fast
+	rm -rf *_gcc *_clang *_dbg *_memsan *_asan IsoThresholdGenerator layered main_test_cfi main_test_ss marginal nr_conf tabulator titin *.dSYM a.out from_formula_layered_clang_more main_test_dbg_fast bug_regression_tests bug_regression_tests_asan fasta_header_isolation.o

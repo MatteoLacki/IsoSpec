@@ -19,6 +19,9 @@
 #include <algorithm>
 #include <utility>
 #include <stdexcept>
+#include <type_traits>
+#include <limits>
+#include <cmath>
 #include "cwrapper.h"
 #include "misc.h"
 #include "marginalTrek++.h"
@@ -29,6 +32,41 @@
 using namespace IsoSpec;  // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
 
 
+// Letting a C++ exception unwind across an extern "C" function into a C (or, in
+// our case, Python/cffi) caller is undefined behaviour. The library internals
+// throw std::invalid_argument / std::length_error / std::bad_alloc on bad input
+// or OOM, so every wrapper below funnels its body through c_guard(), which turns
+// any escaped exception into an out-of-band error value:
+//   * pointer returns  -> nullptr   (callers must null-check the returned handle)
+//   * floating returns -> NaN       (matches the pre-existing Wasserstein behaviour)
+//   * integral/bool    -> zero / false
+//   * void             -> no-op
+// See the matching note in cwrapper.h.
+namespace
+{
+template<typename T> struct c_fallback         { static T      value() noexcept { return T(); } };
+template<>           struct c_fallback<double>  { static double value() noexcept { return std::numeric_limits<double>::quiet_NaN(); } };
+template<>           struct c_fallback<float>   { static float  value() noexcept { return std::numeric_limits<float>::quiet_NaN(); } };
+
+template<typename F>
+static inline auto c_guard(F&& f) noexcept -> decltype(f())
+{
+    using R = decltype(f());
+    try
+    {
+        return f();
+    }
+    catch(...)
+    {
+        if constexpr (std::is_void_v<R>)
+            return;
+        else
+            return c_fallback<R>::value();
+    }
+}
+}  // anonymous namespace
+
+
 extern "C"
 {
 void * setupIso(int             dimNumber,
@@ -37,16 +75,18 @@ void * setupIso(int             dimNumber,
                 const double*   isotopeMasses,
                 const double*   isotopeProbabilities)
 {
-    Iso* iso = new Iso(dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
-
-    return reinterpret_cast<void*>(iso);
+    return c_guard([&]() -> void*
+    {
+        return new Iso(dimNumber, isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+    });
 }
 
 void * isoFromFasta(const char* fasta, bool use_nominal_masses, bool add_water)
 {
-    Iso* iso = new Iso(Iso::FromFASTA(fasta, use_nominal_masses, add_water));
-
-    return reinterpret_cast<void*>(iso);
+    return c_guard([&]() -> void*
+    {
+        return new Iso(Iso::FromFASTA(fasta, use_nominal_masses, add_water));
+    });
 }
 
 void deleteIso(void* iso)
@@ -56,93 +96,96 @@ void deleteIso(void* iso)
 
 double getLightestPeakMassIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getLightestPeakMass();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getLightestPeakMass(); });
 }
 
 double getLightestPeakLProbIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getLightestPeakLProb();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getLightestPeakLProb(); });
 }
 
 void getLightestPeakSignature(void* iso, int* space)
 {
-    reinterpret_cast<Iso*>(iso)->getLightestPeakSignature(space);
+    return c_guard([&]{ reinterpret_cast<Iso*>(iso)->getLightestPeakSignature(space); });
 }
 
 double getHeaviestPeakMassIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getHeaviestPeakMass();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getHeaviestPeakMass(); });
 }
 
 double getHeaviestPeakLProbIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getHeaviestPeakLProb();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getHeaviestPeakLProb(); });
 }
 
 void getHeaviestPeakSignature(void* iso, int* space)
 {
-    reinterpret_cast<Iso*>(iso)->getHeaviestPeakSignature(space);
+    return c_guard([&]{ reinterpret_cast<Iso*>(iso)->getHeaviestPeakSignature(space); });
 }
 
 double getMonoisotopicPeakMassIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakMass();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakMass(); });
 }
 
 double getMonoisotopicPeakLProbIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakLProb();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakLProb(); });
 }
 
 void getMonoisotopicPeakSignature(void* iso, int* space)
 {
-    reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakSignature(space);
+    return c_guard([&]{ reinterpret_cast<Iso*>(iso)->getMonoisotopicPeakSignature(space); });
 }
 
 double getModeLProbIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getModeLProb();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getModeLProb(); });
 }
 
 double getModeMassIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getModeMass();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getModeMass(); });
 }
 
 double getTheoreticalAverageMassIso(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->getTheoreticalAverageMass();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->getTheoreticalAverageMass(); });
 }
 
 double getIsoVariance(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->variance();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->variance(); });
 }
 
 double getIsoStddev(void* iso)
 {
-    return reinterpret_cast<Iso*>(iso)->stddev();
+    return c_guard([&]{ return reinterpret_cast<Iso*>(iso)->stddev(); });
 }
 
 
 double* getMarginalLogSizeEstimates(void* iso, double target_total_prob)
 {
-    Iso* i = reinterpret_cast<Iso*>(iso);
-    double* ret = reinterpret_cast<double*>(malloc(sizeof(double)*i->getDimNumber()));
-    if(ret == nullptr)
-        throw std::bad_alloc();
-    i->saveMarginalLogSizeEstimates(ret, target_total_prob);
-    return ret;
+    return c_guard([&]() -> double*
+    {
+        Iso* i = reinterpret_cast<Iso*>(iso);
+        double* ret = reinterpret_cast<double*>(malloc(sizeof(double)*i->getDimNumber()));
+        if(ret == nullptr)
+            throw std::bad_alloc();
+        i->saveMarginalLogSizeEstimates(ret, target_total_prob);
+        return ret;
+    });
 }
 
 
 
 #define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
-dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
+dataType method##generatorType(void* generator){ return c_guard([&]{ return reinterpret_cast<generatorType*>(generator)->method(); }); }
 
 #define ISOSPEC_C_FN_CODE_GET_CONF_SIGNATURE(generatorType)\
 void get_conf_signature##generatorType(void* generator, int* space)\
-{ reinterpret_cast<generatorType*>(generator)->get_conf_signature(space); }
+{ return c_guard([&]{ reinterpret_cast<generatorType*>(generator)->get_conf_signature(space); }); }
 
 
 #define ISOSPEC_C_FN_DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
@@ -165,15 +208,16 @@ void* setupIsoThresholdGenerator(void* iso,
                                  int _hashSize,
                                  bool reorder_marginals)
 {
-    IsoThresholdGenerator* iso_tmp = new IsoThresholdGenerator(
-        std::move(*reinterpret_cast<Iso*>(iso)),
-        threshold,
-        _absolute,
-        _tabSize,
-        _hashSize,
-        reorder_marginals);
-
-    return reinterpret_cast<void*>(iso_tmp);
+    return c_guard([&]() -> void*
+    {
+        return new IsoThresholdGenerator(
+            std::move(*reinterpret_cast<Iso*>(iso)),
+            threshold,
+            _absolute,
+            _tabSize,
+            _hashSize,
+            reorder_marginals);
+    });
 }
 ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 
@@ -186,15 +230,15 @@ void* setupIsoLayeredGenerator(void* iso,
                      double t_prob_hint
                 )
 {
-    IsoLayeredGenerator* iso_tmp = new IsoLayeredGenerator(
-        std::move(*reinterpret_cast<Iso*>(iso)),
-        _tabSize,
-        _hashSize,
-        reorder_marginals,
-        t_prob_hint
-    );
-
-    return reinterpret_cast<void*>(iso_tmp);
+    return c_guard([&]() -> void*
+    {
+        return new IsoLayeredGenerator(
+            std::move(*reinterpret_cast<Iso*>(iso)),
+            _tabSize,
+            _hashSize,
+            reorder_marginals,
+            t_prob_hint);
+    });
 }
 ISOSPEC_C_FN_CODES(IsoLayeredGenerator)
 
@@ -204,12 +248,13 @@ void* setupIsoOrderedGenerator(void* iso,
                                int _tabSize,
                                int _hashSize)
 {
-    IsoOrderedGenerator* iso_tmp = new IsoOrderedGenerator(
-        std::move(*reinterpret_cast<Iso*>(iso)),
-        _tabSize,
-        _hashSize);
-
-    return reinterpret_cast<void*>(iso_tmp);
+    return c_guard([&]() -> void*
+    {
+        return new IsoOrderedGenerator(
+            std::move(*reinterpret_cast<Iso*>(iso)),
+            _tabSize,
+            _hashSize);
+    });
 }
 ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
@@ -219,13 +264,14 @@ void* setupIsoStochasticGenerator(void* iso,
                                   double precision,
                                   double beta_bias)
 {
-    IsoStochasticGenerator* iso_tmp = new IsoStochasticGenerator(
-        std::move(*reinterpret_cast<Iso*>(iso)),
-        no_molecules,
-        precision,
-        beta_bias);
-
-    return reinterpret_cast<void*>(iso_tmp);
+    return c_guard([&]() -> void*
+    {
+        return new IsoStochasticGenerator(
+            std::move(*reinterpret_cast<Iso*>(iso)),
+            no_molecules,
+            precision,
+            beta_bias);
+    });
 }
 ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
 
@@ -236,13 +282,14 @@ void* setupThresholdFixedEnvelope(void* iso,
                      bool absolute,
                      bool  get_confs)
 {
-    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
+    return c_guard([&]() -> void*
+    {  // Use copy elision to allocate on heap with named constructor
+        return new FixedEnvelope(
             FixedEnvelope::FromThreshold(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          threshold,
                                          absolute,
                                          get_confs));
-
-    return reinterpret_cast<void*>(ret);
+    });
 }
 
 void* setupTotalProbFixedEnvelope(void* iso,
@@ -250,13 +297,14 @@ void* setupTotalProbFixedEnvelope(void* iso,
                      bool optimize,
                      bool get_confs)
 {
-    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
+    return c_guard([&]() -> void*
+    {  // Use copy elision to allocate on heap with named constructor
+        return new FixedEnvelope(
             FixedEnvelope::FromTotalProb(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                          target_coverage,
                                          optimize,
                                          get_confs));
-
-    return reinterpret_cast<void*>(ret);
+    });
 }
 
 void* setupStochasticFixedEnvelope(void* iso,
@@ -265,14 +313,15 @@ void* setupStochasticFixedEnvelope(void* iso,
                     double beta_bias,
                     bool get_confs)
 {
-    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
+    return c_guard([&]() -> void*
+    {  // Use copy elision to allocate on heap with named constructor
+        return new FixedEnvelope(
             FixedEnvelope::FromStochastic(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                           no_molecules,
                                           precision,
                                           beta_bias,
                                           get_confs));
-
-    return reinterpret_cast<void*>(ret);
+    });
 }
 
 
@@ -281,25 +330,30 @@ void* setupBinnedFixedEnvelope(void* iso,
                     double bin_width,
                     double bin_middle)
 {
-    FixedEnvelope* ret = new FixedEnvelope(  // Use copy elision to allocate on heap with named constructor
+    return c_guard([&]() -> void*
+    {  // Use copy elision to allocate on heap with named constructor
+        return new FixedEnvelope(
             FixedEnvelope::Binned(Iso(*reinterpret_cast<const Iso*>(iso), true),
                                   target_total_prob,
                                   bin_width,
                                   bin_middle));
-
-    return reinterpret_cast<void*>(ret);
+    });
 }
 
 void* setupFixedEnvelope(double* masses, double* probs, size_t size, bool mass_sorted, bool prob_sorted, double total_prob)
 {
-    FixedEnvelope* ret = new FixedEnvelope(masses, probs, size, mass_sorted, prob_sorted, total_prob);
-    return reinterpret_cast<void*>(ret);
+    return c_guard([&]() -> void*
+    {
+        return new FixedEnvelope(masses, probs, size, mass_sorted, prob_sorted, total_prob);
+    });
 }
 
 void* setupFixedEnvelopeWithConfs(double* masses, double* probs, int* confs, size_t size, int allDim, bool mass_sorted, bool prob_sorted, double total_prob)
 {
-    FixedEnvelope* ret = new FixedEnvelope(masses, probs, confs, size, allDim, mass_sorted, prob_sorted, total_prob);
-    return reinterpret_cast<void*>(ret);
+    return c_guard([&]() -> void*
+    {
+        return new FixedEnvelope(masses, probs, confs, size, allDim, mass_sorted, prob_sorted, total_prob);
+    });
 }
 
 void deleteFixedEnvelope(void* t, bool release_everything)
@@ -316,142 +370,141 @@ void deleteFixedEnvelope(void* t, bool release_everything)
 
 void* copyFixedEnvelope(void* other)
 {
-    FixedEnvelope* ret = new FixedEnvelope(*reinterpret_cast<FixedEnvelope*>(other));
-    return reinterpret_cast<void*>(ret);
+    return c_guard([&]() -> void*
+    {
+        return new FixedEnvelope(*reinterpret_cast<FixedEnvelope*>(other));
+    });
 }
 
 const double* massesFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->release_masses(); });
 }
 
 const double* probsFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_probs();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->release_probs(); });
 }
 
 const int* confsFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->release_confs();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->release_confs(); });
 }
 
 size_t confs_noFixedEnvelope(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->confs_no(); });
 }
 
 double empiricAverageMass(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_average_mass();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_average_mass(); });
 }
 
 double empiricVariance(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_variance();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_variance(); });
 }
 
 double empiricStddev(void* tabulator)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_stddev();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator)->empiric_stddev(); });
 }
 
 double wassersteinDistance(void* tabulator1, void* tabulator2)
 {
-    try
-    {
-        return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
-    }
-    catch(std::logic_error&)
-    {
-        return NAN;
-    }
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2)); });
 }
 
 double orientedWassersteinDistance(void* tabulator1, void* tabulator2)
 {
-    try
-    {
-        return reinterpret_cast<FixedEnvelope*>(tabulator1)->OrientedWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2));
-    }
-    catch(std::logic_error&)
-    {
-        return NAN;
-    }
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator1)->OrientedWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2)); });
 }
 
 double abyssalWassersteinDistance(void* tabulator1, void* tabulator2, double abyss_depth, double other_scale)
 {
-    return reinterpret_cast<FixedEnvelope*>(tabulator1)->AbyssalWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2), abyss_depth, other_scale);
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(tabulator1)->AbyssalWassersteinDistance(*reinterpret_cast<FixedEnvelope*>(tabulator2), abyss_depth, other_scale); });
 }
 
 struct ws_match_res wassersteinMatch(void* tabulator1, void* tabulator2, double flow_dist, double other_scale)
 {
-    struct ws_match_res res;
-    auto tuple = reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinMatch(*reinterpret_cast<FixedEnvelope*>(tabulator2), flow_dist, other_scale);
-    res.res1 = std::get<0>(tuple);
-    res.res2 = std::get<1>(tuple);
-    res.flow = std::get<2>(tuple);
-    return res;
+    return c_guard([&]() -> struct ws_match_res
+    {
+        struct ws_match_res res;
+        auto tuple = reinterpret_cast<FixedEnvelope*>(tabulator1)->WassersteinMatch(*reinterpret_cast<FixedEnvelope*>(tabulator2), flow_dist, other_scale);
+        res.res1 = std::get<0>(tuple);
+        res.res2 = std::get<1>(tuple);
+        res.flow = std::get<2>(tuple);
+        return res;
+    });
 }
 
 void* addEnvelopes(void* tabulator1, void* tabulator2)
 {
-    //  Hopefully the compiler will do the copy elision...
-    return reinterpret_cast<void*>(new FixedEnvelope((*reinterpret_cast<FixedEnvelope*>(tabulator1))+(*reinterpret_cast<FixedEnvelope*>(tabulator2))));
+    return c_guard([&]() -> void*
+    {  //  Hopefully the compiler will do the copy elision...
+        return new FixedEnvelope((*reinterpret_cast<FixedEnvelope*>(tabulator1))+(*reinterpret_cast<FixedEnvelope*>(tabulator2)));
+    });
 }
 
 void* convolveEnvelopes(void* tabulator1, void* tabulator2)
 {
-    //  Hopefully the compiler will do the copy elision...
-    return reinterpret_cast<void*>(new FixedEnvelope((*reinterpret_cast<FixedEnvelope*>(tabulator1))*(*reinterpret_cast<FixedEnvelope*>(tabulator2))));
+    return c_guard([&]() -> void*
+    {  //  Hopefully the compiler will do the copy elision...
+        return new FixedEnvelope((*reinterpret_cast<FixedEnvelope*>(tabulator1))*(*reinterpret_cast<FixedEnvelope*>(tabulator2)));
+    });
 }
 
 double getTotalProbOfEnvelope(void* envelope)
 {
-    return reinterpret_cast<FixedEnvelope*>(envelope)->get_total_prob();
+    return c_guard([&]{ return reinterpret_cast<FixedEnvelope*>(envelope)->get_total_prob(); });
 }
 
 void scaleEnvelope(void* envelope, double factor)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->scale(factor);
+    return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->scale(factor); });
 }
 
 void normalizeEnvelope(void* envelope)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->normalize();
+    return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->normalize(); });
 }
 
 void shiftMassEnvelope(void* envelope, double d_mass)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->shift_mass(d_mass);
+    return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->shift_mass(d_mass); });
 }
 
 void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->resample(ionic_current, beta_bias);
+    return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->resample(ionic_current, beta_bias); });
 }
 
 
 void* binnedEnvelope(void* envelope, double width, double middle)
 {
-    //  Again, counting on copy elision...
-    return reinterpret_cast<void*>(new FixedEnvelope(reinterpret_cast<FixedEnvelope*>(envelope)->bin(width, middle)));
+    return c_guard([&]() -> void*
+    {  //  Again, counting on copy elision...
+        return new FixedEnvelope(reinterpret_cast<FixedEnvelope*>(envelope)->bin(width, middle));
+    });
 }
 
 void* linearCombination(void* const * const envelopes, const double* intensities, size_t count)
 {
-    //  Same...
-    return reinterpret_cast<void*>(new FixedEnvelope(FixedEnvelope::LinearCombination(reinterpret_cast<const FixedEnvelope* const *>(envelopes), intensities, count)));
+    return c_guard([&]() -> void*
+    {  //  Same...
+        return new FixedEnvelope(FixedEnvelope::LinearCombination(reinterpret_cast<const FixedEnvelope* const *>(envelopes), intensities, count));
+    });
 }
 
 void sortEnvelopeByMass(void* envelope)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_mass();
+    return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_mass(); });
 }
 
 void sortEnvelopeByProb(void* envelope)
 {
-    reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_prob();
+    return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->sort_by_prob(); });
 }
 
 void freeReleasedArray(void* array)
