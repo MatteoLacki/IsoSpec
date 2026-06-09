@@ -917,15 +917,36 @@ double FixedEnvelope::empiric_average_mass()
 
 double FixedEnvelope::empiric_variance()
 {
-    double ret = 0.0;
-    double avg = empiric_average_mass();
+    // Single sweep replacing the previous implementation, which swept the arrays
+    // up to three times (empiric_average_mass(), the centered-square loop, and
+    // get_total_prob()). Masses are shifted by a reference m0 (the first mass)
+    // before accumulating, so the running sums stay O(spread) rather than
+    // O(mass^2); this keeps the final subtraction between same-magnitude
+    // quantities and avoids the catastrophic cancellation that a raw
+    // Sum(m^2 p) - avg^2 would suffer for the large absolute masses seen here.
+    const double m0 = (_confs_no > 0) ? _masses[0] : 0.0;
+    double sum_p   = 0.0;  // Sum p
+    double sum_dp  = 0.0;  // Sum p (m - m0)
+    double sum_d2p = 0.0;  // Sum p (m - m0)^2
     for(size_t ii = 0; ii < _confs_no; ii++)
     {
-        double msq = _masses[ii] - avg;
-        ret += msq * msq * _probs[ii];
+        const double p  = _probs[ii];
+        const double d  = _masses[ii] - m0;
+        const double dp = d * p;
+        sum_p   += p;
+        sum_dp  += dp;
+        sum_d2p += d * dp;
     }
 
-    return ret / get_total_prob();
+    // Match the memoised get_total_prob(): reuse the cached value if present,
+    // otherwise the total we just computed (and cache it, as get_total_prob would).
+    if(std::isnan(total_prob))
+        total_prob = sum_p;
+
+    // avg - m0, then Var = Sum_ii p_ii ((m_ii - m0) - (avg - m0))^2 / total,
+    // expanded so the loop above is the only pass over the arrays.
+    const double avg_d = (sum_dp + m0 * sum_p) / total_prob - m0;
+    return (sum_d2p - 2.0 * avg_d * sum_dp + avg_d * avg_d * sum_p) / total_prob;
 }
 
 FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle)
