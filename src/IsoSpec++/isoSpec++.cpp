@@ -263,7 +263,7 @@ void Iso::getLightestPeakSignature(int* space) const
     for (int ii = 0; ii < dimNumber; ii++)
     {
         size_t lightest_idx = marginals[ii]->getLightestAtomIndex();
-        for(int jj = 0; jj < isotopeNumbers[ii]; jj++)
+        for(size_t jj = 0; jj < static_cast<size_t>(isotopeNumbers[ii]); jj++)
             space[jj] = (jj == lightest_idx ? atomCounts[ii] : 0);
         space += isotopeNumbers[ii];
     }
@@ -290,7 +290,7 @@ void Iso::getHeaviestPeakSignature(int* space) const
     for (int ii = 0; ii < dimNumber; ii++)
     {
         size_t heaviest_idx = marginals[ii]->getHeaviestAtomIndex();
-        for(int jj = 0; jj < isotopeNumbers[ii]; jj++)
+        for(size_t jj = 0; jj < static_cast<size_t>(isotopeNumbers[ii]); jj++)
             space[jj] = (jj == heaviest_idx ? atomCounts[ii] : 0);
         space += isotopeNumbers[ii];
     }
@@ -317,7 +317,7 @@ void Iso::getMonoisotopicPeakSignature(int* space) const
     for (int ii = 0; ii < dimNumber; ii++)
     {
         size_t monoisotopic_idx = marginals[ii]->getMonoisotopicAtomIndex();
-        for(int jj = 0; jj < isotopeNumbers[ii]; jj++)
+        for(size_t jj = 0; jj < static_cast<size_t>(isotopeNumbers[ii]); jj++)
             space[jj] = (jj == monoisotopic_idx ? atomCounts[ii] : 0);
         space += isotopeNumbers[ii];
     }

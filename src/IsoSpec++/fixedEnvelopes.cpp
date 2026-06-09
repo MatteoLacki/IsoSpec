@@ -29,11 +29,11 @@ _probs(array_copy_malloc<double>(other._probs, other._confs_no)),
 _confs(array_copy_nptr_malloc<int>(other._confs, other._confs_no*other.allDim)),
 _confs_no(other._confs_no),
 allDim(other.allDim),
-allDimSizeofInt(other.allDimSizeofInt),
 sorted_by_mass(other.sorted_by_mass),
 sorted_by_prob(other.sorted_by_prob),
 total_prob(other.total_prob),
-current_size(other._confs_no)
+current_size(other._confs_no),
+allDimSizeofInt(other.allDimSizeofInt)
 {}
 
 FixedEnvelope::FixedEnvelope(FixedEnvelope&& other) :
@@ -42,11 +42,11 @@ _probs(other._probs),
 _confs(other._confs),
 _confs_no(other._confs_no),
 allDim(other.allDim),
-allDimSizeofInt(other.allDimSizeofInt),
 sorted_by_mass(other.sorted_by_mass),
 sorted_by_prob(other.sorted_by_prob),
 total_prob(other.total_prob),
-current_size(other.current_size)
+current_size(other.current_size),
+allDimSizeofInt(other.allDimSizeofInt)
 {
 other._masses = nullptr;
 other._probs  = nullptr;
@@ -104,10 +104,10 @@ _probs(in_probs),
 _confs(nullptr),
 _confs_no(in_confs_no),
 allDim(0),
-allDimSizeofInt(0),
 sorted_by_mass(masses_sorted),
 sorted_by_prob(probs_sorted),
-total_prob(_total_prob)
+total_prob(_total_prob),
+allDimSizeofInt(0)
 {}
 
 FixedEnvelope::FixedEnvelope(double* in_masses, double* in_probs, int* in_confs, size_t in_confs_no, int _allDim, bool masses_sorted, bool probs_sorted, double _total_prob) :
@@ -116,10 +116,10 @@ _probs(in_probs),
 _confs(in_confs),
 _confs_no(in_confs_no),
 allDim(_allDim),
-allDimSizeofInt(_allDim * sizeof(int)),
 sorted_by_mass(masses_sorted),
 sorted_by_prob(probs_sorted),
-total_prob(_total_prob)
+total_prob(_total_prob),
+allDimSizeofInt(_allDim * sizeof(int))
 {}
 
 FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
