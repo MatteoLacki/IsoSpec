@@ -888,6 +888,10 @@ template<typename MarginalType>
 IsoOrderedGeneratorTemplate<MarginalType>::IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize, int _hashSize) :
 IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
+    // Reject empty Iso early; see comment in IsoThresholdGenerator's ctor.
+    if (dimNumber == 0)
+        throw std::invalid_argument("IsoOrderedGenerator requires a non-empty Iso");
+
     partialLProbs = &currentLProb;
     partialMasses = &currentMass;
     partialProbs = &currentProb;
