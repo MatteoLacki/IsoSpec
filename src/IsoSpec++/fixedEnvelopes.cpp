@@ -949,19 +949,76 @@ double FixedEnvelope::empiric_variance()
     return (sum_d2p - 2.0 * avg_d * sum_dp + avg_d * avg_d * sum_p) / total_prob;
 }
 
+// Map a mass to its bin index.  Multiplying by the precomputed reciprocal avoids
+// a per-configuration division on this hot path.  The idx_min bound in Binned()
+// MUST use this exact same expression: since the bin index is monotonic in mass
+// and every configuration mass is >= min_mass, that guarantees bin_idx >= idx_min
+// and keeps the scatter in bounds (acc is rebased by -idx_min).  (Reciprocal vs
+// true division can disagree by <=1 ULP, which at an exact bin boundary could
+// move a peak to an adjacent bin, but never out of the allocated range.)
+static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_index(double mass, double hwmm, double inv_bin_width)
+{
+    return static_cast<std::ptrdiff_t>(floor((mass + hwmm) * inv_bin_width));
+}
+
+// Drive a generator, scattering each configuration's probability into the dense
+// bin accumulator `acc`.  Returns false if the distribution is empty; otherwise
+// stores in `nonzero_idx` the bin of *some* populated bin, to seed the outward
+// compaction scan in Binned().  The scan walks both ways from the seed until it
+// hits >10 Da of empty bins, so *any* nonzero bin works equally well (it need not
+// be the smallest, leftmost, or the peak) -- we just take whichever configuration
+// the generator yields first, which is the cheapest choice and lands on the mode.
+// The one requirement is that the seed be nonzero: an empty seed lying >10 Da from
+// the support would let the scan stop before ever reaching it.  Hence the leading
+// zero-probability configurations are skipped below.  When use_target is false the
+// whole distribution is consumed (the accum_prob cutoff is compiled away).
+template<typename GenType, bool use_target>
+static bool fill_bin_accumulator(GenType& generator,
+                                 double* acc,
+                                 double hwmm,
+                                 double inv_bin_width,
+                                 double target_total_prob,
+                                 std::ptrdiff_t& nonzero_idx)
+{
+    bool non_empty;
+    while((non_empty = generator.advanceToNextConfiguration()) && generator.prob() == 0.0)
+    {}
+
+    if(!non_empty)
+        return false;
+
+    double accum_prob = generator.prob();
+    nonzero_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
+    acc[nonzero_idx] = accum_prob;
+
+    while(generator.advanceToNextConfiguration() && (!use_target || accum_prob < target_total_prob))
+    {
+        double prob = generator.prob();
+        accum_prob += prob;
+        std::ptrdiff_t bin_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
+        acc[bin_idx] += prob;
+    }
+
+    return true;
+}
+
 FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle)
 {
     FixedEnvelope ret;
+
+    if(target_total_prob <= 0.0)
+        return ret;
 
     double min_mass = iso.getLightestPeakMass();
     double range_len = iso.getHeaviestPeakMass() - min_mass;
     size_t no_bins = static_cast<size_t>(range_len / bin_width) + 2;
     double half_width = 0.5*bin_width;
     double hwmm = half_width-bin_middle;
+    double inv_bin_width = 1.0/bin_width;
     // Bin indices are signed: for masses below bin_middle - half_width they
     // are legitimately negative.  Using size_t here would UB on the floor()
     // cast and underflow the acc-=idx_min pointer arithmetic below.
-    std::ptrdiff_t idx_min = static_cast<std::ptrdiff_t>(floor((min_mass + hwmm) / bin_width));
+    std::ptrdiff_t idx_min = bin_index(min_mass, hwmm, inv_bin_width);
     std::ptrdiff_t idx_max = idx_min + static_cast<std::ptrdiff_t>(no_bins);
 
     double* acc;
@@ -976,26 +1033,32 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
     acc -= idx_min;
 
-    IsoLayeredGenerator ITG(std::move(iso));
-
-
+    std::ptrdiff_t nonzero_idx = 0;
     bool non_empty;
-    while((non_empty = ITG.advanceToNextConfiguration()) && ITG.prob() == 0.0)
-    {}
+
+    if(target_total_prob >= 1.0)
+    {
+        // The whole distribution is requested: a threshold generator with a zero
+        // cutoff enumerates everything and is cheaper than the layered generator
+        // descending layer-by-layer to the least-probable peak.  Mirrors the
+        // >= 1.0 fast path in total_prob_init.
+        IsoThresholdGenerator generator(std::move(iso), 0.0, true);
+        non_empty = fill_bin_accumulator<IsoThresholdGenerator, false>(
+                        generator, acc, hwmm, inv_bin_width, target_total_prob, nonzero_idx);
+    }
+    else
+    {
+        // Pass the requested probability as the layer-sizing hint (as
+        // total_prob_init does) so the marginal ordering is tuned to the amount
+        // of mass actually needed; the default 0.99 hint over- or under-shoots.
+        IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true,
+                                      std::min<double>(target_total_prob, 0.9999));
+        non_empty = fill_bin_accumulator<IsoLayeredGenerator, true>(
+                        generator, acc, hwmm, inv_bin_width, target_total_prob, nonzero_idx);
+    }
 
     if(non_empty)
     {
-        double accum_prob = ITG.prob();
-        std::ptrdiff_t nonzero_idx = static_cast<std::ptrdiff_t>(floor((ITG.mass() + hwmm)/bin_width));
-        acc[nonzero_idx] = accum_prob;
-
-        while(ITG.advanceToNextConfiguration() && accum_prob < target_total_prob)
-        {
-            double prob = ITG.prob();
-            accum_prob += prob;
-            std::ptrdiff_t bin_idx = static_cast<std::ptrdiff_t>(floor((ITG.mass() + hwmm)/bin_width));
-            acc[bin_idx] += prob;
-        }
 
         // Making the assumption that there won't be gaps of more than 10 Da in the spectrum. This is true for all
         // molecules made of natural elements.
