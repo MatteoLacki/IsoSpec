@@ -961,24 +961,23 @@ static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_index(double mass, double hwmm, d
     return static_cast<std::ptrdiff_t>(floor((mass + hwmm) * inv_bin_width));
 }
 
-// Drive a generator, scattering each configuration's probability into the dense
-// bin accumulator `acc`.  Returns false if the distribution is empty; otherwise
-// stores in `nonzero_idx` the bin of *some* populated bin, to seed the outward
-// compaction scan in Binned().  The scan walks both ways from the seed until it
-// hits >10 Da of empty bins, so *any* nonzero bin works equally well (it need not
-// be the smallest, leftmost, or the peak) -- we just take whichever configuration
-// the generator yields first, which is the cheapest choice and lands on the mode.
-// The one requirement is that the seed be nonzero: an empty seed lying >10 Da from
-// the support would let the scan stop before ever reaching it.  Hence the leading
-// zero-probability configurations are skipped below.  When use_target is false the
-// whole distribution is consumed (the accum_prob cutoff is compiled away).
-template<typename GenType, bool use_target>
-static bool fill_bin_accumulator(GenType& generator,
-                                 double* acc,
-                                 double hwmm,
-                                 double inv_bin_width,
-                                 double target_total_prob,
-                                 std::ptrdiff_t& nonzero_idx)
+// The seeding contract for both fillers below: nonzero_idx just needs to be the
+// bin of *some* populated bin, to seed the outward compaction scan in Binned().
+// The scan walks both ways from the seed until it hits >10 Da of empty bins, so
+// *any* nonzero bin works equally well (it need not be the smallest, leftmost, or
+// the peak) -- we take whichever configuration the generator yields first, which
+// is the cheapest choice and lands on the mode.  The one requirement is that the
+// seed be nonzero: an empty seed lying >10 Da from the support would let the scan
+// stop before ever reaching it.  Hence zero-probability configurations are skipped.
+
+// Scatter a generator's entire output into the dense bin accumulator `acc` (used
+// for the target>=1 full-enumeration path).  Returns false if empty.
+template<typename GenType>
+static bool fill_bins_full(GenType& generator,
+                           double* acc,
+                           double hwmm,
+                           double inv_bin_width,
+                           std::ptrdiff_t& nonzero_idx)
 {
     bool non_empty;
     while((non_empty = generator.advanceToNextConfiguration()) && generator.prob() == 0.0)
@@ -987,19 +986,68 @@ static bool fill_bin_accumulator(GenType& generator,
     if(!non_empty)
         return false;
 
-    double accum_prob = generator.prob();
     nonzero_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
-    acc[nonzero_idx] = accum_prob;
+    acc[nonzero_idx] = generator.prob();
 
-    while(generator.advanceToNextConfiguration() && (!use_target || accum_prob < target_total_prob))
-    {
-        double prob = generator.prob();
-        accum_prob += prob;
-        std::ptrdiff_t bin_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
-        acc[bin_idx] += prob;
-    }
+    while(generator.advanceToNextConfiguration())
+        acc[bin_index(generator.mass(), hwmm, inv_bin_width)] += generator.prob();
 
     return true;
+}
+
+// Scatter a layered generator's output into `acc`, stopping once target_total_prob
+// is reached.  Drives the layers with a step adaptively tuned to the remaining
+// probability (as total_prob_init does), rather than advanceToNextConfiguration()'s
+// fixed -2.0 nat step, to cut marginal over-expansion and layer-transition
+// (extend()) overhead.  Returns false if the distribution is empty.
+static bool fill_bins_to_prob(IsoLayeredGenerator& generator,
+                              double* acc,
+                              double hwmm,
+                              double inv_bin_width,
+                              double target_total_prob,
+                              std::ptrdiff_t& nonzero_idx)
+{
+    double prob_so_far = 0.0;
+    double layer_delta;
+    bool seeded = false;
+    const double sum_above = log1p(-target_total_prob) - 2.3025850929940455;  // log(0.1)
+
+    do
+    {
+        while(generator.advanceToNextConfigurationWithinLayer())
+        {
+            double prob = generator.prob();
+            if(prob == 0.0)
+                continue;
+
+            std::ptrdiff_t bin_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
+            acc[bin_idx] += prob;
+
+            if(!seeded)
+            {
+                nonzero_idx = bin_idx;
+                seeded = true;
+            }
+
+            prob_so_far += prob;
+            if(prob_so_far >= target_total_prob)
+                return true;
+        }
+
+        layer_delta = sum_above - log1p(-prob_so_far);
+        // Cap the widest step.  total_prob_init uses -5.0, but it trims afterwards
+        // so overshoot is harmless there; Binned keeps everything it generates, so
+        // a step that overshoots the target is pure waste.  -3.0 measured as a
+        // uniform ~16-22% win over the old fixed -2.0 step across small and large
+        // molecules with no overshoot, whereas -5.0 regressed on large ones.
+        // Overridable at build time for retuning.
+#ifndef ISOSPEC_BINNED_LAYER_MAXSTEP
+#  define ISOSPEC_BINNED_LAYER_MAXSTEP (-3.0)
+#endif
+        layer_delta = (std::max)((std::min)(layer_delta, -0.1), ISOSPEC_BINNED_LAYER_MAXSTEP);
+    } while(generator.nextLayer(layer_delta));
+
+    return seeded;
 }
 
 FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle)
@@ -1043,8 +1091,8 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         // descending layer-by-layer to the least-probable peak.  Mirrors the
         // >= 1.0 fast path in total_prob_init.
         IsoThresholdGenerator generator(std::move(iso), 0.0, true);
-        non_empty = fill_bin_accumulator<IsoThresholdGenerator, false>(
-                        generator, acc, hwmm, inv_bin_width, target_total_prob, nonzero_idx);
+        non_empty = fill_bins_full<IsoThresholdGenerator>(
+                        generator, acc, hwmm, inv_bin_width, nonzero_idx);
     }
     else
     {
@@ -1053,7 +1101,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         // of mass actually needed; the default 0.99 hint over- or under-shoots.
         IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true,
                                       std::min<double>(target_total_prob, 0.9999));
-        non_empty = fill_bin_accumulator<IsoLayeredGenerator, true>(
+        non_empty = fill_bins_to_prob(
                         generator, acc, hwmm, inv_bin_width, target_total_prob, nonzero_idx);
     }
 
