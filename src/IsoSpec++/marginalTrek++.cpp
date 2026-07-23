@@ -603,8 +603,8 @@ allocator(isotopeNo, tabSize)
             impose_order(order_arr.get(), no_confs, lProbs.data(), confs);
     }
 
-    probs = new double[no_confs];
-    masses = new double[no_confs];
+    probs.reset(no_confs);
+    masses.reset(no_confs);
 
 
     for(unsigned int ii = 0; ii < no_confs; ii++)
@@ -618,12 +618,7 @@ allocator(isotopeNo, tabSize)
 
 
 PrecalculatedMarginal::~PrecalculatedMarginal()
-{
-    if(masses != nullptr)
-        delete[] masses;
-    if(probs != nullptr)
-        delete[] probs;
-}
+{}
 
 
 

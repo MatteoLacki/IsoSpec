@@ -22,6 +22,8 @@
 #include <functional>
 #include <utility>
 #include <memory>
+#include "aligned_ptr.h"
+#include "platform.h"
 #include "conf.h"
 #include "allocator.h"
 #include "operators.h"
@@ -146,7 +148,7 @@ class Marginal
         \return The index of the heaviest isotope of the element.
     */
     size_t getHeaviestAtomIndex() const;
-    
+
     //! The the mass of the mode subisotopologue.
     /*!
         \return The mass of one of the most probable subisotopologues.
@@ -294,9 +296,9 @@ class PrecalculatedMarginal : public Marginal
     pod_vector<Conf> configurations;
     Conf* confs;
     unsigned int no_confs;
-    double* masses;
+    aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> masses;
     pod_vector<double> lProbs;
-    double* probs;
+    aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> probs;
     Allocator<int> allocator;
  public:
     //! The move constructor (disowns the Marginal).
@@ -358,8 +360,10 @@ class PrecalculatedMarginal : public Marginal
     /*!
         \return Pointer to the first element in the table storing masses of subisotopologues.
     */
-    inline const double* get_masses_ptr() const { return masses; }
+    inline const double* get_masses_ptr() const { return masses.get(); }
 
+    inline const aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT>& get_masses() const { return masses; }
+    inline const aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT>& get_probs() const { return probs; }
 
     //! Get the counts of isotopes that define the subisotopologue.
     /*!
