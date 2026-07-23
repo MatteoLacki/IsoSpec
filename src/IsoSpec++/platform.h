@@ -109,3 +109,28 @@
 #define constexpr_if if constexpr
 #define ISOSPEC_MAYBE_UNUSED [[maybe_unused]]
 #endif
+
+
+#ifdef __has_include
+    #if __has_include(<simd>)
+        #define ISOSPEC_HAS_SIMD 1
+        #include <simd>
+        namespace simd_ns = std;
+        using simd_double = simd_ns::native_simd<double>;
+    #elif __has_include(<experimental/simd>)
+        #define ISOSPEC_HAS_SIMD 1
+        #include <experimental/simd>
+        namespace simd_ns = std::experimental;
+        using simd_double = simd_ns::native_simd<double>;
+    #endif
+    constexpr std::size_t DOUBLE_SIMD_ALIGNMENT =
+            alignof(simd_ns::native_simd<double>);
+#endif
+
+#if !defined(ISOSPEC_HAS_SIMD)
+    #define ISOSPEC_HAS_SIMD 0
+
+    // Hopefully <simd> will be available everywhere before someone
+    // comes up with a CPU that has 256-byte SIMD registers.
+    constexpr std::size_t DOUBLE_SIMD_ALIGNMENT = 128;
+#endif
