@@ -406,12 +406,27 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         lProbs_ptr++;
 
         if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
-        {
             return true;
-        }
 
         // If we reached this point, a carry is needed
 
+        return carry();
+    }
+
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration_no_carry() final
+    {
+        lProbs_ptr++;
+
+        if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
+            return true;
+
+        // If we reached this point, a carry is needed
+
+        return false;
+    }
+
+    bool carry()
+    {
         int idx = 0;
         lProbs_ptr = lProbs_ptr_start;
 
@@ -436,6 +451,25 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         }
 
         terminate_search();
+        return false;
+    }
+
+    ISOSPEC_FORCE_INLINE bool simd_massprobs(simd_double& masses, simd_double& probs)
+    {
+        constexpr std::size_t W = simd_double::size();
+        // TODO: verify the -1
+        if(ISOSPEC_LIKELY(*(lProbs_ptr+W-1) >= lcfmsv))
+        {
+            size_t offset = lProbs_ptr - lProbs_ptr_start + 1;
+            probs.copy_from(marginalResults[0]->get_probs().get() + offset, std::experimental::vector_aligned);
+            simd_double pp = partialProbs[1];
+            probs *= pp;
+            masses.copy_from(marginalResults[0]->get_masses().get() + offset, std::experimental::vector_aligned);
+            simd_double mp = partialMasses[1];
+            masses += mp;
+            lProbs_ptr += W;
+            return true;
+        }
         return false;
     }
 

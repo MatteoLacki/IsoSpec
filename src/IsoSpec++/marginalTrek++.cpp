@@ -613,7 +613,13 @@ allocator(isotopeNo, tabSize)
         masses[ii] = calc_mass(confs[ii], atom_masses, isotopeNo);
     }
 
-    lProbs.push_back(-std::numeric_limits<double>::infinity());
+    #if ISOSPEC_HAS_SIMD
+        constexpr size_t no_guardians = simd_double::size();
+    #else
+        constexpr size_t no_guardians = 1;
+    #endif
+    for(unsigned int ii = 0; ii < no_guardians; ii++)
+        lProbs.push_back(-std::numeric_limits<double>::infinity());
 }
 
 

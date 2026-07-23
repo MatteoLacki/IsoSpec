@@ -1126,6 +1126,9 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
         // Making the assumption that there won't be gaps of more than 10 Da in the spectrum. This is true for all
         // molecules made of natural elements.
+        // FIXME: this has to be computed from the actual molecule, because
+        // there are also people that hijack IsoSpec for statistical calculations with arbitrary distributions
+        // transcribed onto artificial "elements".
         size_t distance_10da = static_cast<size_t>(10.0/bin_width) + 1;
 
         size_t empty_steps = 0;
