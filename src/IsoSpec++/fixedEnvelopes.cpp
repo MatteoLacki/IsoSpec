@@ -708,6 +708,44 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
     current_size = new_size;
 }
 
+template<bool tgetConfs> void FixedEnvelope::aligned_allocate_memory(size_t alignment, size_t new_size)
+{
+    // C11 aligned_alloc requires the requested size to be a multiple of alignment.
+    // alignment is a power of two, so round up with the usual bit trick, guarding
+    // against overflow on the round-up itself.
+    auto round_up = [alignment](size_t bytes) -> size_t {
+        if(bytes > SIZE_MAX - (alignment - 1))
+            throw std::bad_alloc();
+        return (bytes + (alignment - 1)) & ~(alignment - 1);
+    };
+
+    if(new_size > SIZE_MAX / sizeof(double))
+        throw std::bad_alloc();
+    double* tmp_masses = reinterpret_cast<double*>(aligned_alloc(alignment, round_up(new_size * sizeof(double))));
+    if(tmp_masses == nullptr)
+        throw std::bad_alloc();
+    _masses = tmp_masses;
+    tmasses = _masses + _confs_no;
+
+    double* tmp_probs = reinterpret_cast<double*>(aligned_alloc(alignment, round_up(new_size * sizeof(double))));
+    if(tmp_probs == nullptr)
+        throw std::bad_alloc();
+    _probs = tmp_probs;
+    tprobs  = _probs  + _confs_no;
+
+    constexpr_if(tgetConfs)
+    {
+        if(allDimSizeofInt > 0 && new_size > SIZE_MAX / static_cast<size_t>(allDimSizeofInt))
+            throw std::bad_alloc();
+        int* tmp_confs = reinterpret_cast<int*>(aligned_alloc(alignment, round_up(new_size * allDimSizeofInt)));
+        if(tmp_confs == nullptr)
+            throw std::bad_alloc();
+        _confs = tmp_confs;
+        tconfs = _confs + (allDim * _confs_no);
+    }
+    current_size = new_size;
+}
+
 void FixedEnvelope::slow_reallocate_memory(size_t new_size)
 {
     if(new_size > SIZE_MAX / sizeof(double))
@@ -745,7 +783,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
     this->allDim = generator.getAllDim();
     this->allDimSizeofInt = this->allDim * sizeof(int);
 
-    this->reallocate_memory<tgetConfs>(tab_size);
+    this->aligned_allocate_memory<tgetConfs>(DOUBLE_SIMD_ALIGNMENT, tab_size);
 
     double* ttmasses = this->_masses;
     double* ttprobs = this->_probs;
@@ -753,12 +791,55 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
     constexpr_if(tgetConfs)
         ttconfs = _confs;
 
-    while(generator.advanceToNextConfiguration())
-    {
-        *ttmasses = generator.mass(); ttmasses++;
-        *ttprobs = generator.prob(); ttprobs++;
-        constexpr_if(tgetConfs)  { generator.get_conf_signature(ttconfs); ttconfs += allDim; }
+    constexpr_if(tgetConfs) {
+        while(generator.advanceToNextConfiguration())
+        {
+            *ttmasses = generator.mass(); ttmasses++;
+            *ttprobs = generator.prob(); ttprobs++;
+            generator.get_conf_signature(ttconfs); ttconfs += allDim;
+        }
     }
+    else
+    {
+        // SIMD fill. Each marginal-0 run (one per higher-dimensional carry state) starts
+        // at index 0 and descends until it drops below the cutoff; we batch the bulk of a
+        // run W-wide and drain the < W tail scalar.
+        //
+        // Convention bridge: simd_massprobs()/advanceToNextConfiguration_no_carry() use
+        // "lProbs_ptr points at the last-emitted config" (advance, then emit), matching the
+        // generator's initial position of one-before-index-0. carry() instead leaves
+        // lProbs_ptr *at* the index-0 config to be emitted. So after each successful carry
+        // we emit that index-0 config scalar (it is always above the cutoff when carry()
+        // succeeds, exactly as the scalar path relies on), which restores the last-emitted
+        // convention and lets the next simd_massprobs resume cleanly from index 1.
+        simd_double simd_masses;
+        simd_double simd_probs;
+        do {
+            while(generator.simd_massprobs(simd_masses, simd_probs))
+            {
+                // Output is packed contiguously and the scalar tail advances the pointers
+                // by a non-multiple of W each run, so the store target is not W-aligned in
+                // general -> element_aligned (unaligned) store.
+                simd_masses.copy_to(ttmasses, std::experimental::element_aligned); ttmasses += simd_masses.size();
+                simd_probs.copy_to(ttprobs, std::experimental::element_aligned); ttprobs += simd_probs.size();
+            }
+            while(generator.advanceToNextConfiguration_no_carry())
+            {
+                *ttmasses = generator.mass(); ttmasses++;
+                *ttprobs = generator.prob(); ttprobs++;
+            }
+            if(!generator.carry())
+                break;
+            *ttmasses = generator.mass(); ttmasses++;
+            *ttprobs = generator.prob(); ttprobs++;
+        } while(true);
+    }
+
+    // The count_confs pre-pass fixes tab_size to the exact number of above-threshold
+    // configurations; the fill above must emit precisely that many. A mismatch means
+    // the fill and the pre-pass disagree (e.g. a carry-convention or off-by-one bug),
+    // which would leave _confs_no inconsistent with the buffer contents.
+    ISOSPEC_IMPOSSIBLE(static_cast<size_t>(ttmasses - this->_masses) != tab_size);
 
     this->_confs_no = tab_size;
 }

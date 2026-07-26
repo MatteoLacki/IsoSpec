@@ -11,7 +11,7 @@
 
 template<class T, std::size_t Alignment>
 class aligned_unique_ptr {
-    static_assert((Alignment & (Alignment - 1)) == 0);
+    static_assert((Alignment & (Alignment - 1)) == 0); // meaning: Alignment is a power of two
     static_assert(Alignment >= alignof(T));
 
     T* ptr_ = nullptr;
@@ -91,5 +91,10 @@ public:
         } else {
             ptr_ = nullptr;
         }
+    }
+
+    T* release() noexcept
+    {
+        return std::assume_aligned<Alignment>(std::exchange(ptr_, nullptr));
     }
 };

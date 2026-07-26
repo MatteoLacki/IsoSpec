@@ -5,8 +5,8 @@ TESTFLAGS=-fsanitize=leak,undefined
 TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
 TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
 LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
-CXXFLAGS=-std=c++20 -Wall -I../../IsoSpec++ -Wextra -pedantic
-SRCFILES=../../IsoSpec++/unity-build.cpp
+CXXFLAGS=-std=c++20 -Wall -I../../src/IsoSpec++ -Wextra -pedantic
+SRCFILES=../../src/IsoSpec++/unity-build.cpp
 
 all: main_test cmdlines
 

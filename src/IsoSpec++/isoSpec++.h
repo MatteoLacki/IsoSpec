@@ -413,7 +413,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         return carry();
     }
 
-    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration_no_carry() final
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfiguration_no_carry()
     {
         lProbs_ptr++;
 
@@ -457,14 +457,19 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     ISOSPEC_FORCE_INLINE bool simd_massprobs(simd_double& masses, simd_double& probs)
     {
         constexpr std::size_t W = simd_double::size();
-        // TODO: verify the -1
-        if(ISOSPEC_LIKELY(*(lProbs_ptr+W-1) >= lcfmsv))
+        // Lanes loaded below are indices cur+1 .. cur+W (cur = lProbs_ptr - start).
+        // lProbs is descending, so checking the highest index (cur+W) guards them all.
+        // The W trailing -inf guardians on lProbs make this read safe even at the run's end.
+        if(ISOSPEC_LIKELY(*(lProbs_ptr+W) >= lcfmsv))
         {
+            // offset is only W-aligned within the first run (which starts one-before
+            // index 0); runs entered via carry() start at index 1, so the source is not
+            // W-aligned in general -> element_aligned (unaligned) loads.
             size_t offset = lProbs_ptr - lProbs_ptr_start + 1;
-            probs.copy_from(marginalResults[0]->get_probs().get() + offset, std::experimental::vector_aligned);
+            probs.copy_from(marginalResults[0]->get_probs().get() + offset, std::experimental::element_aligned);
             simd_double pp = partialProbs[1];
             probs *= pp;
-            masses.copy_from(marginalResults[0]->get_masses().get() + offset, std::experimental::vector_aligned);
+            masses.copy_from(marginalResults[0]->get_masses().get() + offset, std::experimental::element_aligned);
             simd_double mp = partialMasses[1];
             masses += mp;
             lProbs_ptr += W;
