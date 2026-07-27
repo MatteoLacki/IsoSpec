@@ -74,4 +74,8 @@ jobs:
         working-directory: ./tests/C++
         run: |
           make -j"$(nproc)" test
+      - name: Build and run the C-ABI suite (cwrapper.h compiled as C11)
+        working-directory: ./tests/C
+        run: |
+          make test
 

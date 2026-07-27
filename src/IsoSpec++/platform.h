@@ -111,6 +111,10 @@
 #endif
 
 
+// C++-only from here on: cwrapper.h includes this header, and that one must
+// stay includable from a C translation unit (it is the C ABI's header).
+#ifdef __cplusplus
+
 #ifdef __has_include
     #if __has_include(<simd>)
         #define ISOSPEC_HAS_SIMD 1
@@ -134,3 +138,5 @@
     // comes up with a CPU that has 256-byte SIMD registers.
     constexpr std::size_t DOUBLE_SIMD_ALIGNMENT = 128;
 #endif
+
+#endif  /* __cplusplus */

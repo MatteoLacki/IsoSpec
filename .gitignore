@@ -43,3 +43,6 @@ dist/
 # Editor
 *.swp
 *~
+
+# C-ABI test build output (out-of-tree)
+tests/C/build/

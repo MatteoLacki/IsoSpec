@@ -218,7 +218,54 @@ TEST_CASE("AbyssalWassersteinDistance of a spectrum to itself is zero") {
     b.release_everything();
 }
 
-// Bug 10 (documentation only): the two-step init lists in Iso(int,...) and
+// Bug 10: WassersteinMatch's inner loop advanced idx_this and then, in the same
+// iteration, indexed _masses[idx_this] again without re-checking the bound —
+// reading one past the end whenever the first spectrum was exhausted inside the
+// loop.  Conclusive under ASan.
+TEST_CASE("WassersteinMatch does not read past the end of a spectrum") {
+    // Every peak of `a` lies more than flow_distance to the left of every peak
+    // of `b`, which drives idx_this to _confs_no inside the inner loop.
+    double m1[2] = {0.0, 1.0}, p1[2] = {0.5, 0.5};
+    double m2[2] = {2.0, 3.0}, p2[2] = {0.5, 0.5};
+    FixedEnvelope a(m1, p1, 2);
+    FixedEnvelope b(m2, p2, 2);
+
+    auto [unmatched_a, unmatched_b, flow] = a.WassersteinMatch(b, 0.5, 1.0);
+    CHECK(flow == doctest::Approx(0.0));
+    CHECK(unmatched_a == doctest::Approx(1.0));
+    CHECK(unmatched_b == doctest::Approx(1.0));
+
+    a.release_everything();
+    b.release_everything();
+}
+
+// Bug 11: memcpy() is declared __attribute__((nonnull)), so copying zero bytes
+// from a null pointer is UB even though it moves nothing.  Two public entry
+// points did exactly that: array_copy() for a zero-dimensional Iso, and
+// operator+ for an empty envelope.  Conclusive under UBSan.
+TEST_CASE("zero-length copies from empty objects are not UB") {
+    // A zero-dimensional Iso built through the C ABI with null arrays.
+    void* iso = setupIso(0, nullptr, nullptr, nullptr, nullptr);
+    CHECK(iso != nullptr);
+    deleteIso(iso);
+
+    // Concatenating an empty envelope.
+    double masses[2] = {1.0, 2.0};
+    double probs[2] = {0.5, 0.5};
+    FixedEnvelope a(masses, probs, 2);
+    FixedEnvelope empty;
+
+    FixedEnvelope right = a + empty;
+    CHECK(right.confs_no() == 2);
+    FixedEnvelope left = empty + a;
+    CHECK(left.confs_no() == 2);
+    FixedEnvelope both = empty + empty;
+    CHECK(both.confs_no() == 0);
+
+    a.release_everything();
+}
+
+// Bug 12 (documentation only): the two-step init lists in Iso(int,...) and
 // Marginal::Marginal(...) leak the first-allocated member if the second
 // allocation throws.  Catchable only by injecting an allocation failure at the
 // right point (custom operator new keyed on allocation count) under
