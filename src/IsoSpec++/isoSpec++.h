@@ -454,6 +454,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         return false;
     }
 
+#if ISOSPEC_HAS_SIMD
     ISOSPEC_FORCE_INLINE bool simd_massprobs(simd_double& masses, simd_double& probs)
     {
         constexpr std::size_t W = simd_double::size();
@@ -466,10 +467,10 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
             // index 0); runs entered via carry() start at index 1, so the source is not
             // W-aligned in general -> element_aligned (unaligned) loads.
             size_t offset = lProbs_ptr - lProbs_ptr_start + 1;
-            probs.copy_from(marginalResults[0]->get_probs().get() + offset, std::experimental::element_aligned);
+            probs.copy_from(marginalResults[0]->get_probs().get() + offset, simd_ns::element_aligned);
             simd_double pp = partialProbs[1];
             probs *= pp;
-            masses.copy_from(marginalResults[0]->get_masses().get() + offset, std::experimental::element_aligned);
+            masses.copy_from(marginalResults[0]->get_masses().get() + offset, simd_ns::element_aligned);
             simd_double mp = partialMasses[1];
             masses += mp;
             lProbs_ptr += W;
@@ -477,6 +478,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         }
         return false;
     }
+#endif
 
 
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); }

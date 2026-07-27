@@ -115,20 +115,24 @@
 // stay includable from a C translation unit (it is the C ABI's header).
 #ifdef __cplusplus
 
+#include <cstddef>  // std::size_t, used below whether or not SIMD is available
+
 #ifdef __has_include
-    #if __has_include(<simd>)
-        #define ISOSPEC_HAS_SIMD 1
-        #include <simd>
-        namespace simd_ns = std;
-        using simd_double = simd_ns::native_simd<double>;
-    #elif __has_include(<experimental/simd>)
+    // Deliberately NOT preferring <simd>: the standardized std::simd (P1928,
+    // landing piecemeal in libstdc++/libc++) does not expose the experimental
+    // TS's native_simd alias, so __has_include(<simd>) can be true while the
+    // header provides none of the API this codebase uses. GCC 16's <simd> is
+    // exactly this case (compiles under -std=c++2c, not under our -std=c++20)
+    // and silently broke the macOS build when given priority here. Revisit
+    // once std::simd's actual shipped API is verified against our usage.
+    #if __has_include(<experimental/simd>)
         #define ISOSPEC_HAS_SIMD 1
         #include <experimental/simd>
         namespace simd_ns = std::experimental;
         using simd_double = simd_ns::native_simd<double>;
+        constexpr std::size_t DOUBLE_SIMD_ALIGNMENT =
+                alignof(simd_ns::native_simd<double>);
     #endif
-    constexpr std::size_t DOUBLE_SIMD_ALIGNMENT =
-            alignof(simd_ns::native_simd<double>);
 #endif
 
 #if !defined(ISOSPEC_HAS_SIMD)

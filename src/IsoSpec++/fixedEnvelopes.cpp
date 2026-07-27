@@ -830,6 +830,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
     }
     else
     {
+#if ISOSPEC_HAS_SIMD
         // SIMD fill. Each marginal-0 run (one per higher-dimensional carry state) starts
         // at index 0 and descends until it drops below the cutoff; we batch the bulk of a
         // run W-wide and drain the < W tail scalar.
@@ -849,8 +850,8 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
                 // Output is packed contiguously and the scalar tail advances the pointers
                 // by a non-multiple of W each run, so the store target is not W-aligned in
                 // general -> element_aligned (unaligned) store.
-                simd_masses.copy_to(ttmasses, std::experimental::element_aligned); ttmasses += simd_masses.size();
-                simd_probs.copy_to(ttprobs, std::experimental::element_aligned); ttprobs += simd_probs.size();
+                simd_masses.copy_to(ttmasses, simd_ns::element_aligned); ttmasses += simd_masses.size();
+                simd_probs.copy_to(ttprobs, simd_ns::element_aligned); ttprobs += simd_probs.size();
             }
             while(generator.advanceToNextConfiguration_no_carry())
             {
@@ -862,6 +863,13 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
             *ttmasses = generator.mass(); ttmasses++;
             *ttprobs = generator.prob(); ttprobs++;
         } while(true);
+#else
+        while(generator.advanceToNextConfiguration())
+        {
+            *ttmasses = generator.mass(); ttmasses++;
+            *ttprobs = generator.prob(); ttprobs++;
+        }
+#endif
     }
 
     // The count_confs pre-pass fixes tab_size to the exact number of above-threshold
