@@ -194,7 +194,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
     inline static FixedEnvelope FromThreshold(const Iso& iso, double _threshold, bool _absolute, bool tgetConfs = false)
     {
-        return FromThreshold(Iso(iso, false), _threshold, _absolute, tgetConfs);
+        return FromThreshold(Iso(iso, true), _threshold, _absolute, tgetConfs);
     }
 
     static FixedEnvelope FromTotalProb(Iso&& iso, double target_total_prob, bool optimize, bool tgetConfs = false)
@@ -211,7 +211,7 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
     inline static FixedEnvelope FromTotalProb(const Iso& iso, double _target_total_prob, bool _optimize, bool tgetConfs = false)
     {
-        return FromTotalProb(Iso(iso, false), _target_total_prob, _optimize, tgetConfs);
+        return FromTotalProb(Iso(iso, true), _target_total_prob, _optimize, tgetConfs);
     }
 
     template<bool tgetConfs> void stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
@@ -230,13 +230,13 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
     static FixedEnvelope FromStochastic(const Iso& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false)
     {
-        return FromStochastic(Iso(iso, false), _no_molecules, _precision, _beta_bias, tgetConfs);
+        return FromStochastic(Iso(iso, true), _no_molecules, _precision, _beta_bias, tgetConfs);
     }
 
     static FixedEnvelope Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle = 0.0);
     static FixedEnvelope Binned(const Iso& iso, double target_total_prob, double bin_width, double bin_middle = 0.0)
     {
-        return Binned(Iso(iso, false), target_total_prob, bin_width, bin_middle);
+        return Binned(Iso(iso, true), target_total_prob, bin_width, bin_middle);
     }
 
 };

@@ -272,13 +272,13 @@ template<typename T> class unsafe_pod_vector
 
     void reserve(size_t n)
     {
-        if (n > backend_past_end - store)
+        if (n > static_cast<size_t>(backend_past_end - store))
             fast_reserve(n);
     }
 
     void resize(size_t new_size)
     {
-        ISOSPEC_IMPOSSIBLE(new_size < first_free - store);
+        ISOSPEC_IMPOSSIBLE(static_cast<std::ptrdiff_t>(new_size) < first_free - store);
         size_t cap = capacity();
         if(cap < new_size)
         {

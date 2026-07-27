@@ -134,11 +134,19 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
         throw std::bad_alloc();
     }
 
-    memcpy(nprobs,  _probs,  sizeof(double) * _confs_no);
-    memcpy(nmasses, _masses, sizeof(double) * _confs_no);
+    // An empty envelope has null arrays, and memcpy() is declared nonnull: a
+    // zero-length copy from it is undefined behaviour, so skip it entirely.
+    if(_confs_no > 0)
+    {
+        memcpy(nprobs,  _probs,  sizeof(double) * _confs_no);
+        memcpy(nmasses, _masses, sizeof(double) * _confs_no);
+    }
 
-    memcpy(nprobs+_confs_no,  other._probs,  sizeof(double) * other._confs_no);
-    memcpy(nmasses+_confs_no, other._masses, sizeof(double) * other._confs_no);
+    if(other._confs_no > 0)
+    {
+        memcpy(nprobs+_confs_no,  other._probs,  sizeof(double) * other._confs_no);
+        memcpy(nmasses+_confs_no, other._masses, sizeof(double) * other._confs_no);
+    }
 
     return FixedEnvelope(nmasses, nprobs, _confs_no + other._confs_no);
 }
@@ -287,6 +295,10 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
 {
     if(_confs_no == 0)
         throw std::logic_error("Resample called on an empty spectrum");
+
+    // The probabilities are about to be replaced by molecule counts, so any
+    // cached sum is stale; invalidate it and let get_total_prob() rescan.
+    total_prob = NAN;
 
     double pprob = 0.0;
     double cprob = 0.0;
@@ -458,10 +470,14 @@ double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
         }
     }
 
+    // acc_prob is the signed CDF difference (this minus other), so peaks of
+    // *this* add to it — in the main loop above and here in the tail alike.
+    // (The unsigned version folds the sign into abs() before its tails and so
+    // subtracts in both; this one must not.)
     while(idx_this < _confs_no)
     {
         ret += (_masses[idx_this] - last_point) * acc_prob;
-        acc_prob -= _probs[idx_this];
+        acc_prob += _probs[idx_this];
         last_point = _masses[idx_this];
         idx_this++;
     }
@@ -537,8 +553,17 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
             }
             else
             {
+                // The incoming peak is exhausted against part of the carried
+                // one; write the remainder back (cp is a copy of the carried
+                // amount, so updating it alone would lose the match and the
+                // matched mass would be counted a second time — as transport
+                // against a later peak, or as condemned mass at the end).
                 accd += fabs((m-cm)*p);
                 cp += p;
+                if(cp == 0.0)
+                    carried.pop_back();
+                else
+                    carried.back().second = cp;
                 p = 0.0;
                 break;
             }
@@ -584,7 +609,11 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
                 idx_this++;
                 moved = true;
             }
-            if(other._masses[idx_other] < _masses[idx_this] - flow_distance)
+            // The branch above may have just consumed the last peak of *this*;
+            // without the bound check the read below runs off the end of the
+            // masses array (the leftover peaks of `other` are accounted for by
+            // the tail loop after the outer while).
+            if(idx_this < _confs_no && other._masses[idx_other] < _masses[idx_this] - flow_distance)
             {
                 unmatched2 += other._probs[idx_other]*other_scale - used_prob_other;
                 used_prob_other = 0.0;

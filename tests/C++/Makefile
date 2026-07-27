@@ -14,6 +14,7 @@
 #   make            # build the default test configs + CLIs
 #   make test       # build the default configs and RUN them (fails on any error)
 #   make asan       # just the ASan/UBSan config
+#   make coverage   # gcov-instrumented run + line/branch coverage report
 #   make cli        # build the command-line investigation tools under cli/
 #   make clean
 #
@@ -34,18 +35,33 @@ ASANFLAGS  := -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all
 MSANFLAGS  := -O1 -g -fsanitize=memory,undefined -DISOSPEC_TESTS_MEMSAN
 
 # doctest suite: tests_main.cpp defines main(); the rest register TEST_CASEs.
+# Keep this list alphabetical after tests_main.cpp.
 TEST_SRCS := tests_main.cpp \
-             test_simd_equivalence.cpp \
-             test_cross_generator.cpp \
              test_analytic.cpp \
+             test_api_iso.cpp \
+             test_containers.cpp \
+             test_cross_generator.cpp \
+             test_cwrapper.cpp \
              test_edge_cases.cpp \
-             test_regression.cpp
-TEST_DEPS := $(TEST_SRCS) test_helpers.h doctest.h $(UNITY)
+             test_fasta.cpp \
+             test_fixed_envelope.cpp \
+             test_formula.cpp \
+             test_generators.cpp \
+             test_marginals.cpp \
+             test_math.cpp \
+             test_oracle.cpp \
+             test_regression.cpp \
+             test_simd_equivalence.cpp \
+             test_wasserstein.cpp
+# Rebuild whenever anything in the library changes, not just the test sources:
+# the unity build pulls in every .cpp, and the headers are full of inline code.
+LIB_SRCS  := $(wildcard ../../src/IsoSpec++/*.cpp ../../src/IsoSpec++/*.h)
+TEST_DEPS := $(TEST_SRCS) test_helpers.h doctest.h $(UNITY) $(LIB_SRCS)
 
 CLI_SRCS := $(wildcard cli/*.cpp)
 CLI_BINS := $(patsubst cli/%.cpp,$(BUILD)/cli/%,$(CLI_SRCS))
 
-.PHONY: all tests test asan memsan cli fasta_header_isolation clean
+.PHONY: all tests test asan memsan coverage cli fasta_header_isolation clean
 
 all: tests cli
 
@@ -77,6 +93,25 @@ test: $(DEFAULT_TEST_BINS) fasta_header_isolation
 	done; \
 	echo "ALL C++ TESTS PASSED"
 
+# --- coverage ---------------------------------------------------------------
+# Line/branch coverage of src/IsoSpec++ under the doctest suite.  Built at -O0
+# with gcov instrumentation into its own directory, so it never collides with
+# the ordinary build.  Needs gcovr (pip install gcovr); without it the raw
+# .gcda files are still produced and any gcov front-end can read them.
+COVFLAGS := -O0 -g --coverage -fprofile-abs-path
+COVDIR   := $(BUILD)/coverage
+
+$(COVDIR)/run_tests_cov: $(TEST_DEPS) | $(COVDIR)
+	$(CXX_GCC) $(STD) $(WARN) $(INC) $(COVFLAGS) $(TEST_SRCS) $(UNITY) -o $@
+
+coverage: $(COVDIR)/run_tests_cov
+	@rm -f $(COVDIR)/*.gcda
+	$(COVDIR)/run_tests_cov
+	@echo
+	gcovr -r ../../src/IsoSpec++ --exclude-unreachable-branches \
+	      --html-details $(COVDIR)/coverage.html $(COVDIR)
+	@echo "HTML report: $(COVDIR)/coverage.html"
+
 # --- compile-only header-isolation check ------------------------------------
 # fasta.h must be self-contained (it uses memset/size_t); compiling it in a TU
 # that includes nothing else must succeed.
@@ -89,7 +124,7 @@ cli: $(CLI_BINS)
 $(BUILD)/cli/%: cli/%.cpp $(UNITY) | $(BUILD)/cli
 	$(CXX_CLANG) $(STD) $(WARN) $(INC) $(OPTFLAGS) $(UNITY) $< -o $@
 
-$(BUILD) $(BUILD)/cli:
+$(BUILD) $(BUILD)/cli $(COVDIR):
 	mkdir -p $@
 
 clean:

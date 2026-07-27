@@ -4,6 +4,7 @@
 // configuration in the Makefile) — they exercise latent UB that a plain build
 // rolls over.
 
+#include <cmath>
 #include <cstddef>
 #include <limits>
 #include <stdexcept>
@@ -132,7 +133,92 @@ TEST_CASE("zero-capacity pod_vector accepts push_back and resize") {
     CHECK(v2.size() == 16);
 }
 
-// Bug 7 (documentation only): the two-step init lists in Iso(int,...) and
+// Bug 7: the const-Iso& overloads of FixedEnvelope's named constructors used to
+// take a *shallow* copy (Iso(iso, false)), which shares the marginals with the
+// caller's Iso.  The generator built from that copy move-constructs its own
+// marginals out of them and frees the underlying arrays when it finishes,
+// leaving the caller holding dangling pointers: every subsequent accessor was a
+// use-after-free.  Conclusive under ASan.
+TEST_CASE("named constructors taking const Iso& leave the Iso usable") {
+    Iso iso("C10H20O2");
+    const double avg = iso.getTheoreticalAverageMass();
+    const double var = iso.variance();
+    const double mode = iso.getModeLProb();
+
+    {
+        FixedEnvelope a = FixedEnvelope::FromThreshold(iso, 1e-6, true, false);
+        CHECK(a.confs_no() > 0);
+    }
+    CHECK(iso.getTheoreticalAverageMass() == avg);
+
+    {
+        FixedEnvelope b = FixedEnvelope::FromTotalProb(iso, 0.99, true, false);
+        CHECK(b.confs_no() > 0);
+    }
+    CHECK(iso.variance() == var);
+
+    {
+        FixedEnvelope c = FixedEnvelope::FromStochastic(iso, 1000);
+        CHECK(c.confs_no() > 0);
+    }
+    CHECK(iso.getModeLProb() == mode);
+
+    {
+        FixedEnvelope d = FixedEnvelope::Binned(iso, 0.99, 1.0);
+        CHECK(d.confs_no() > 0);
+    }
+    CHECK(iso.getTheoreticalAverageMass() == avg);
+    CHECK(iso.variance() == var);
+
+    // ... and the Iso can still be consumed by a generator afterwards.
+    IsoThresholdGenerator gen(std::move(iso), 1e-6, true);
+    std::size_t n = 0;
+    while (gen.advanceToNextConfiguration()) ++n;
+    CHECK(n > 0);
+}
+
+// Bug 8: OrientedWassersteinDistance accumulated the signed CDF difference, but
+// its "this"-tail loop *subtracted* the remaining peaks (a copy-paste from the
+// unsigned version, which folds the sign into abs() first).  The result was
+// wrong — and not even antisymmetric — whenever the other spectrum ran out
+// first.
+TEST_CASE("OrientedWassersteinDistance is antisymmetric") {
+    double m1[2] = {0.0, 1.0}, p1[2] = {0.5, 0.5};
+    double m2[2] = {2.0, 3.0}, p2[2] = {0.5, 0.5};
+    FixedEnvelope a(m1, p1, 2);
+    FixedEnvelope b(m2, p2, 2);
+
+    const double ab = a.OrientedWassersteinDistance(b);
+    const double ba = b.OrientedWassersteinDistance(a);
+    CHECK(ab == doctest::Approx(-ba));
+    // Everything moves one way, so the magnitude is the plain distance.
+    CHECK(std::fabs(ab) == doctest::Approx(a.WassersteinDistance(b)));
+
+    a.release_everything();
+    b.release_everything();
+}
+
+// Bug 9: AbyssalWassersteinDistance updated a *copy* of the carried peak's
+// remaining mass when an incoming peak was only partially matched, so the
+// matched mass stayed on the carried list and was counted twice — once as
+// transport, once as condemned mass.  Identical spectra came out at
+// total_prob * abyss_depth / 2 instead of 0.
+TEST_CASE("AbyssalWassersteinDistance of a spectrum to itself is zero") {
+    double m1[2] = {0.0, 1.0}, p1[2] = {0.5, 0.5};
+    double m2[2] = {0.0, 1.0}, p2[2] = {0.5, 0.5};
+    FixedEnvelope a(m1, p1, 2);
+    FixedEnvelope b(m2, p2, 2);
+
+    for (double depth : {0.1, 1.0, 10.0}) {
+        CAPTURE(depth);
+        CHECK(a.AbyssalWassersteinDistance(b, depth) == doctest::Approx(0.0).epsilon(1e-12));
+    }
+
+    a.release_everything();
+    b.release_everything();
+}
+
+// Bug 10 (documentation only): the two-step init lists in Iso(int,...) and
 // Marginal::Marginal(...) leak the first-allocated member if the second
 // allocation throws.  Catchable only by injecting an allocation failure at the
 // right point (custom operator new keyed on allocation count) under

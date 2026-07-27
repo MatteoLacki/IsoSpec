@@ -124,7 +124,11 @@ void* quickselect(void** array, size_t n, size_t start, size_t end);
 template <typename T> inline static T* array_copy(const T* A, size_t size)
 {
     T* ret = new T[size];
-    memcpy(ret, A, size*sizeof(T));
+    // memcpy() is declared with __attribute__((nonnull)), so a zero-length copy
+    // from a null source is undefined behaviour even though it moves no bytes.
+    // A zero-dimensional Iso (e.g. setupIso(0, NULL, ...)) reaches exactly that.
+    if(size > 0)
+        memcpy(ret, A, size*sizeof(T));
     return ret;
 }
 

@@ -34,6 +34,15 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+      - name: Install GCC (macOS only — Apple Clang/libc++ lacks <experimental/simd>)
+        if: runner.os == 'macOS'
+        run: |
+          brew install gcc
+          GCC_PREFIX="$(brew --prefix gcc)"
+          CC="$(ls "$GCC_PREFIX"/bin/gcc-* | sort -V | tail -1)"
+          CXX="$(ls "$GCC_PREFIX"/bin/g++-* | sort -V | tail -1)"
+          echo "CC=$CC" >> "$GITHUB_ENV"
+          echo "CXX=$CXX" >> "$GITHUB_ENV"
       - name: Install package
         env:
           VERBOSE: '1'

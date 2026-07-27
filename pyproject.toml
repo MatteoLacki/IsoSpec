@@ -43,6 +43,11 @@ test-command = "python -m pytest {project}/tests/Python"
 #test-sources = ["tests/Python"]
 test-extras = ["testing"]
 
+# Apple Clang's libc++ has no <experimental/simd>; build with Homebrew GCC instead.
+[tool.cibuildwheel.macos]
+before-all = "brew install gcc"
+environment = { CC = "$(ls $(brew --prefix gcc)/bin/gcc-* | sort -V | tail -1)", CXX = "$(ls $(brew --prefix gcc)/bin/g++-* | sort -V | tail -1)" }
+
 [tool.scikit-build.sdist]
 exclude = ["**/*"]
 include = [

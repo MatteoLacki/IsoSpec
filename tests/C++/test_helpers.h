@@ -9,12 +9,16 @@
 #define ISOSPEC_TEST_HELPERS_H
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstddef>
+#include <cstring>
+#include <string>
 #include <vector>
 
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
+#include "element_tables.h"
 
 namespace test_helpers {
 
@@ -105,6 +109,112 @@ inline const std::vector<const char*>& big_formulas() {
         "C378H629N105O118S1", "H1000O500", "C1000"
     };
     return f;
+}
+
+// ---------------------------------------------------------------------------
+// Independent access to the built-in isotope tables.
+//
+// The library reaches the same data through parse_formula(); the helpers below
+// go straight to element_tables.h instead, so a test that compares one against
+// the other is checking the parser, not restating it.
+// ---------------------------------------------------------------------------
+
+struct Isotope {
+    double mass;
+    double prob;
+};
+
+//! All stable isotopes of the element with the given symbol, in table order.
+//! Returns an empty vector for an unknown symbol.
+inline std::vector<Isotope> element_isotopes(const char* symbol) {
+    std::vector<Isotope> out;
+    for (int i = 0; i < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; ++i) {
+        if (std::strcmp(elem_table_symbol[i], symbol) != 0) continue;
+        const int id = elem_table_ID[i];
+        for (int j = i; j < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_ID[j] == id; ++j)
+            out.push_back({elem_table_mass[j], elem_table_probability[j]});
+        break;
+    }
+    return out;
+}
+
+//! One element of a molecule: how many atoms, and of which isotopes.
+struct ElementSpec {
+    int count;
+    std::vector<Isotope> isotopes;
+};
+
+//! Parse a simple "Symbol<count>..." formula into per-element specs using the
+//! raw tables (no parse_formula involved).
+inline std::vector<ElementSpec> elements_of(const std::string& formula) {
+    std::vector<ElementSpec> out;
+    std::size_t i = 0;
+    while (i < formula.size()) {
+        std::size_t s = i;
+        while (i < formula.size() && std::isalpha(static_cast<unsigned char>(formula[i]))) ++i;
+        const std::string sym = formula.substr(s, i - s);
+        std::size_t d = i;
+        while (i < formula.size() && std::isdigit(static_cast<unsigned char>(formula[i]))) ++i;
+        const int cnt = std::stoi(formula.substr(d, i - d));
+        out.push_back({cnt, element_isotopes(sym.c_str())});
+    }
+    return out;
+}
+
+// ---------------------------------------------------------------------------
+// Brute-force distribution oracle.
+//
+// Builds the isotopic distribution by explicit convolution: start from a single
+// zero-mass, unit-probability peak and, for every atom in turn, convolve with
+// that atom's isotope distribution.  This shares no code with IsoSpec beyond
+// the isotope tables — it is an independent computation of the same quantity,
+// exponential in the number of atoms, so keep the molecules tiny.
+// ---------------------------------------------------------------------------
+
+inline std::vector<Peak> brute_force_distribution(const std::vector<ElementSpec>& elems) {
+    std::vector<Peak> dist = {{0.0, 1.0}};
+    for (const ElementSpec& e : elems)
+        for (int a = 0; a < e.count; ++a) {
+            std::vector<Peak> next;
+            next.reserve(dist.size() * e.isotopes.size());
+            for (const Peak& p : dist)
+                for (const Isotope& iso : e.isotopes)
+                    next.push_back({p.mass + iso.mass, p.prob * iso.prob});
+            dist.swap(next);
+        }
+    return dist;
+}
+
+//! Same, but merging peaks of exactly equal mass (the enumeration of a
+//! molecule yields one peak per *configuration*, whereas the brute force above
+//! yields one per atom-labelling; equal-mass merging is not what we want there,
+//! so this is provided separately for mass-domain comparisons).
+inline std::vector<Peak> merge_equal_masses(std::vector<Peak> v, double tol = 1e-9) {
+    sort_peaks(v);
+    std::vector<Peak> out;
+    for (const Peak& p : v) {
+        if (!out.empty() && std::fabs(out.back().mass - p.mass) <= tol)
+            out.back().prob += p.prob;
+        else
+            out.push_back(p);
+    }
+    return out;
+}
+
+//! Envelope contents as a peak vector.
+inline std::vector<Peak> envelope_peaks(const FixedEnvelope& env) {
+    std::vector<Peak> out;
+    out.reserve(env.confs_no());
+    for (std::size_t i = 0; i < env.confs_no(); ++i)
+        out.push_back({env.masses()[i], env.probs()[i]});
+    return out;
+}
+
+//! Probability-weighted mean mass of a peak set.
+inline double mean_mass(const std::vector<Peak>& v) {
+    double m = 0.0, p = 0.0;
+    for (const Peak& q : v) { m += q.mass * q.prob; p += q.prob; }
+    return m / p;
 }
 
 }  // namespace test_helpers
