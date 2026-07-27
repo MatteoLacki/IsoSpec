@@ -1,0 +1,45 @@
+# Build artifacts
+*.o
+*.so
+*.a
+*.dylib
+*.dSYM/
+__pycache__/
+*.pyc
+
+# C++ test build output (out-of-tree)
+tests/C++/build/
+
+# Legacy in-tree test binaries (pre out-of-tree build; kept ignored so a stale
+# checkout doesn't clutter git status).  Built variants are: plain, _gcc, _clang,
+# _dbg, _dbg_fast, _asan, _memsan, _cfi, _ss.
+tests/C++/main_test
+tests/C++/main_test_*
+tests/C++/from_formula_*_gcc
+tests/C++/from_formula_*_clang
+tests/C++/from_formula_*_dbg
+tests/C++/from_formula_*_asan
+tests/C++/from_formula_*_memsan
+tests/C++/from_formula_*_gprof_*
+tests/C++/from_formula_*_profile_*
+tests/C++/mass_range_*
+tests/C++/bug_regression_tests
+tests/C++/bug_regression_tests_asan
+tests/C++/fasta_header_isolation
+tests/C++/run_tests_*
+tests/C++/IsoThresholdGenerator
+tests/C++/layered
+tests/C++/marginal
+tests/C++/nr_conf
+tests/C++/tabulator
+tests/C++/titin
+
+# Python build
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+
+# Editor
+*.swp
+*~

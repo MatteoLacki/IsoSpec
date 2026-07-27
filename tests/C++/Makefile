@@ -1,124 +1,96 @@
-CXX=clang++
-OPTFLAGS=-O3 -march=native -mtune=native -g
-DEBUGFLAGS=-O0 -g -DISOSPEC_DEBUG -DDEBUG -D_GLIBCXX_DEBUG
-TESTFLAGS=-fsanitize=leak,undefined
-TESTMEMFLAGS= $(TESTFLAGS) -fsanitize=memory
-TESTADDRFLAGS= $(TESTFLAGS) -fsanitize=address
-LLVMTESTFLAGS= -fsanitize=dataflow,cfi,safe-stack
-CXXFLAGS=-std=c++20 -Wall -I../../src/IsoSpec++ -Wextra -pedantic
-SRCFILES=../../src/IsoSpec++/unity-build.cpp
+# IsoSpec C++ test suite.
+#
+# The tests are doctest-based (doctest.h vendored here).  All test_*.cpp plus
+# tests_main.cpp and unity-build.cpp link into one binary per configuration:
+#
+#   run_tests_gcc    release, g++
+#   run_tests_clang  release, clang++
+#   run_tests_dbg    -O0 -g, _GLIBCXX_DEBUG
+#   run_tests_asan   AddressSanitizer + UBSan (clang)
+#   run_tests_memsan MemorySanitizer + UBSan (opt-in; needs an MSan-instrumented
+#                    libc++, so it is NOT part of `make test`)
+#
+# Usage:
+#   make            # build the default test configs + CLIs
+#   make test       # build the default configs and RUN them (fails on any error)
+#   make asan       # just the ASan/UBSan config
+#   make cli        # build the command-line investigation tools under cli/
+#   make clean
+#
+# Everything is written under build/ (out of tree; git-ignored).
 
-all: main_test cmdlines
+CXX_GCC   ?= g++
+CXX_CLANG ?= clang++
 
-main_test:
-	clang++ $(CXXFLAGS) $(OPTFLAGS) main_test.cpp -o main_test_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) main_test.cpp -o main_test_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -o main_test_dbg
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_SKIP_SLOW_TESTS -o main_test_dbg_fast
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_SKIP_SLOW_TESTS -fsanitize=address,undefined -o main_test_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=cfi -flto -fvisibility=hidden -o main_test_cfi
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -fsanitize=safe-stack -o main_test_ss
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) main_test.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o main_test_memsan
+STD  := -std=c++20
+WARN := -Wall -Wextra -pedantic
+INC  := -I../../src/IsoSpec++
+UNITY := ../../src/IsoSpec++/unity-build.cpp
+BUILD := build
 
-cmdlines: formula_layered formula_layered_generator formula_ordered formula_threshold formula_threshold_simple formula_threshold_profile mass_range formula_stochastic
+OPTFLAGS   := -O3 -march=native -mtune=native -g
+DEBUGFLAGS := -O0 -g -DISOSPEC_DEBUG -DDEBUG -D_GLIBCXX_DEBUG
+ASANFLAGS  := -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all
+MSANFLAGS  := -O1 -g -fsanitize=memory,undefined -DISOSPEC_TESTS_MEMSAN
 
-formula_ordered:
-	clang++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_ordered.cpp -o ./from_formula_ordered_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_ordered.cpp -fsanitize=address,undefined -o ./from_formula_ordered_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_ordered.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_ordered_memsan
+# doctest suite: tests_main.cpp defines main(); the rest register TEST_CASEs.
+TEST_SRCS := tests_main.cpp \
+             test_simd_equivalence.cpp \
+             test_cross_generator.cpp \
+             test_analytic.cpp \
+             test_edge_cases.cpp \
+             test_regression.cpp
+TEST_DEPS := $(TEST_SRCS) test_helpers.h doctest.h $(UNITY)
 
-formula_threshold_simple:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_simple.cpp -o ./from_formula_threshold_simple_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_simple.cpp -o ./from_formula_threshold_simple_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold_simple.cpp -o ./from_formula_threshold_simple_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold_simple.cpp -fsanitize=address,undefined -o ./from_formula_threshold_simple_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold_simple.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_threshold_simple_memsan
+CLI_SRCS := $(wildcard cli/*.cpp)
+CLI_BINS := $(patsubst cli/%.cpp,$(BUILD)/cli/%,$(CLI_SRCS))
 
-formula_threshold:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -o ./from_formula_threshold_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -fsanitize=address,undefined -o ./from_formula_threshold_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_threshold.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_threshold_memsan
+.PHONY: all tests test asan memsan cli fasta_header_isolation clean
 
-formula_threshold_profile:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_gprof_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -pg -o ./from_formula_threshold_gprof_gcc
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -o ./from_formula_threshold_profile_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_threshold_profile.cpp -g -o ./from_formula_threshold_profile_gcc
+all: tests cli
 
-formula_stochastic:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_stochastic.cpp -o ./from_formula_stochastic_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_stochastic.cpp -o ./from_formula_stochastic_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_stochastic.cpp -o ./from_formula_stochastic_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_stochastic.cpp -fsanitize=address,undefined -o ./from_formula_stochastic_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_stochastic.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_stochastic_memsan
+# --- test-binary matrix -----------------------------------------------------
+# $(1)=config name  $(2)=compiler  $(3)=extra flags
+define TEST_rule
+$(BUILD)/run_tests_$(1): $(TEST_DEPS) | $(BUILD)
+	$(2) $(STD) $(WARN) $(INC) $(3) $(TEST_SRCS) $(UNITY) -o $$@
+endef
 
-formula_layered:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -o ./from_formula_layered_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -fsanitize=address,undefined -o ./from_formula_layered_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_memsan
+$(eval $(call TEST_rule,gcc,$(CXX_GCC),$(OPTFLAGS)))
+$(eval $(call TEST_rule,clang,$(CXX_CLANG),$(OPTFLAGS)))
+$(eval $(call TEST_rule,dbg,$(CXX_GCC),$(DEBUGFLAGS)))
+$(eval $(call TEST_rule,asan,$(CXX_CLANG),$(ASANFLAGS)))
+$(eval $(call TEST_rule,memsan,$(CXX_CLANG),$(MSANFLAGS)))
 
-formula_layered_generator:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -o ./from_formula_layered_generator_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -fsanitize=address,undefined -o ./from_formula_layered_generator_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) from_formula_layered_generator.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./from_formula_layered_generator_memsan
+DEFAULT_TEST_BINS := $(BUILD)/run_tests_gcc $(BUILD)/run_tests_clang \
+                     $(BUILD)/run_tests_dbg $(BUILD)/run_tests_asan
 
-mass_range:
-	clang++  $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) mass_range.cpp -o ./mass_range_clang
-	g++ $(CXXFLAGS) $(OPTFLAGS) $(SRCFILES) mass_range.cpp -o ./mass_range_gcc
-	g++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) mass_range.cpp -o ./mass_range_dbg
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) mass_range.cpp -fsanitize=address,undefined -o ./mass_range_asan
-	clang++ $(CXXFLAGS) $(DEBUGFLAGS) $(SRCFILES) mass_range.cpp -DISOSPEC_TESTS_MEMSAN -fsanitize=memory,undefined -o ./mass_range_memsan
+tests: $(DEFAULT_TEST_BINS)
+asan: $(BUILD)/run_tests_asan
+memsan: $(BUILD)/run_tests_memsan
 
+# Build every default config and run it; stop at the first failure.
+test: $(DEFAULT_TEST_BINS) fasta_header_isolation
+	@set -e; for b in $(DEFAULT_TEST_BINS); do \
+		echo "=================== running $$b ==================="; \
+		$$b; \
+	done; \
+	echo "ALL C++ TESTS PASSED"
 
-ti:
-	$(CXX) $(CXXFLAGS) $(OPTFLAGS) ../../IsoSpec++/unity-build.cpp titin-test.cpp -o ./titin
+# --- compile-only header-isolation check ------------------------------------
+# fasta.h must be self-contained (it uses memset/size_t); compiling it in a TU
+# that includes nothing else must succeed.
+fasta_header_isolation: fasta_header_isolation.cpp | $(BUILD)
+	$(CXX_CLANG) $(STD) $(INC) -c fasta_header_isolation.cpp -o $(BUILD)/fasta_header_isolation.o
 
-mr:
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) marginal-test.cpp -o marginal -g
+# --- command-line investigation tools ---------------------------------------
+cli: $(CLI_BINS)
 
-tabulator:
-	clang++ -std=c++11 tabulator_test.cpp -o tabulator
+$(BUILD)/cli/%: cli/%.cpp $(UNITY) | $(BUILD)/cli
+	$(CXX_CLANG) $(STD) $(WARN) $(INC) $(OPTFLAGS) $(UNITY) $< -o $@
 
-la:
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) ../../IsoSpec++/unity-build.cpp layered-test.cpp -o layered
-
-IsoThresholdGenerator:
-	clang++ -std=c++11 IsoThresholdGenerator.cpp -o IsoThresholdGenerator -lpthread
-
-nr_conf:
-	clang++ -std=c++11 nr_conf.cpp -o nr_conf -lpthread
-
-# Regression tests for bugs identified during code review.  See the comment
-# block at the top of bug_regression_tests.cpp for what each test pins down.
-# - bug_regression_tests       : plain build; runs unit-style asserts.
-# - bug_regression_tests_asan  : built with ASan+UBSan; catches the latent UB
-#                                bugs that the plain build silently rolls over.
-# - fasta_header_isolation     : compile-only; must compile cleanly because
-#                                fasta.h includes <cstring> and <cstddef>.
-bug_regression: bug_regression_tests bug_regression_tests_asan fasta_header_isolation
-
-bug_regression_tests:
-	clang++ -std=c++20 -O0 -g -I../../src/IsoSpec++ \
-	    ../../src/IsoSpec++/unity-build.cpp \
-	    bug_regression_tests.cpp -o bug_regression_tests
-
-bug_regression_tests_asan:
-	clang++ -std=c++20 -O0 -g -fsanitize=address,undefined \
-	    -I../../src/IsoSpec++ \
-	    ../../src/IsoSpec++/unity-build.cpp \
-	    bug_regression_tests.cpp -o bug_regression_tests_asan
-
-fasta_header_isolation:
-	clang++ -std=c++20 -I../../src/IsoSpec++ \
-	    -c fasta_header_isolation.cpp -o fasta_header_isolation.o
+$(BUILD) $(BUILD)/cli:
+	mkdir -p $@
 
 clean:
-	rm -rf *_gcc *_clang *_dbg *_memsan *_asan IsoThresholdGenerator layered main_test_cfi main_test_ss marginal nr_conf tabulator titin *.dSYM a.out from_formula_layered_clang_more main_test_dbg_fast bug_regression_tests bug_regression_tests_asan fasta_header_isolation.o
+	rm -rf $(BUILD)

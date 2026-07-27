@@ -44,3 +44,25 @@ jobs:
         run: |
           python -m pytest .
 
+  run_cpp_tests:
+    name: Run C++ tests on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # x86-64 (AVX2 via -march=native) and ARM64 (NEON) — covers the two SIMD
+        # widths available on GitHub-hosted runners.  AVX-512 / the fake-AVX
+        # Opteron are validated locally, never in CI.
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ clang make
+      - name: Build and run the doctest suite (release, debug, ASan+UBSan)
+        # `make test` also runs the compile-only fasta.h header-isolation check.
+        working-directory: ./tests/C++
+        run: |
+          make -j"$(nproc)" test
+
