@@ -2,7 +2,7 @@
 
 #include <cstddef>      // std::size_t, std::nullptr_t
 #include <cstdint>      // std::uintptr_t (only if doing runtime alignment checks)
-#include <cstdlib>      // std::aligned_alloc, std::free
+#include <cstdlib>      // std::aligned_alloc, std::malloc, std::free
 #include <cstring>      // std::memcpy
 #include <algorithm>    // std::min
 #include <limits>       // std::numeric_limits
@@ -39,8 +39,29 @@
 #define ISOSPEC_ALIGNED_PTR_HAVE_VM_REALLOC 0
 #endif
 
+// The small-allocation backend needs an aligned allocator that can also be
+// deallocated with a plain std::free() (release() promises exactly that).
+// glibc/libc++'s std::aligned_alloc satisfies both at once. MSVC's CRT has
+// no C11 aligned_alloc at all, only _aligned_malloc/_aligned_free -- and
+// memory from those two is NOT free()-compatible (the CRT stores its own
+// offset bookkeeping ahead of the returned pointer, which plain free() does
+// not know how to unwind). So on MSVC the small backend uses
+// _aligned_malloc/_aligned_free for its own storage (still genuinely
+// Alignment-aligned, as marginalTrek++.h's use of this class relies on),
+// and release() falls back to materialising a fresh plain-malloc()'d copy
+// to keep its free()-compatibility promise -- the same thing it already
+// does to escape a VM-backed region.
+#if defined(_MSC_VER)
+#define ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE 0
+#else
+#define ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE 1
+#endif
+
 #if ISOSPEC_WE_ARE_ON_WINDOWS
     #include <windows.h>
+    #if defined(_MSC_VER)
+        #include <malloc.h>   // _aligned_malloc / _aligned_free
+    #endif
 #elif ISOSPEC_WE_ARE_ON_UNIX_YAY
     #include <sys/mman.h>   // real system mmap/munmap (+ mremap on Linux)
     #include <unistd.h>     // sysconf
@@ -295,10 +316,24 @@ class aligned_unique_ptr {
     {
         if (n == 0)
             return nullptr;
-        void* p = std::aligned_alloc(Alignment, round_up_to_alignment(bytes_for(n)));
+        const std::size_t bytes = bytes_for(n);
+#if ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE
+        void* p = std::aligned_alloc(Alignment, round_up_to_alignment(bytes));
+#else
+        void* p = ::_aligned_malloc(bytes, Alignment);
+#endif
         if (!p)
             throw std::bad_alloc();
         return static_cast<T*>(p);
+    }
+
+    static void free_small(void* p) noexcept
+    {
+#if ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE
+        std::free(p);
+#else
+        ::_aligned_free(p);
+#endif
     }
 
     void free_current() noexcept
@@ -311,12 +346,17 @@ class aligned_unique_ptr {
             return;
         }
 #endif
-        std::free(ptr_);
+        free_small(ptr_);
     }
 
     static void deleter_free(void* p, std::size_t) noexcept
     {
         std::free(p);
+    }
+
+    static void deleter_small(void* p, std::size_t) noexcept
+    {
+        free_small(p);
     }
 
 public:
@@ -453,7 +493,7 @@ public:
             aligned_ptr_detail::vm_region r = aligned_ptr_detail::vm_create(new_bytes);
             if (ptr_) {
                 std::memcpy(r.base, ptr_, std::min(capacity_bytes_, new_bytes));
-                std::free(ptr_);
+                free_small(ptr_);
             }
             region_ = r;
             ptr_ = static_cast<T*>(region_.base);
@@ -466,18 +506,19 @@ public:
         T* new_ptr = allocate_small(n);
         if (ptr_) {
             std::memcpy(new_ptr, ptr_, std::min(capacity_bytes_, new_bytes));
-            std::free(ptr_);
+            free_small(ptr_);
         }
         ptr_ = new_ptr;
         capacity_bytes_ = new_bytes;
     }
 
     // Hands back ownership as a plain T* that the caller can free with a
-    // bare std::free() / C free(), regardless of which backend produced it:
-    // the small-allocation backend already satisfies that (aligned_alloc is
-    // free()-compatible by construction), but a VM-backed region does not,
-    // so this materialises one into a fresh aligned_alloc'd copy first. That
-    // copy is the whole cost of calling this on a large, VM-backed instance;
+    // bare std::free() / C free(), regardless of which backend produced it.
+    // Whenever the current backend isn't already free()-compatible on its
+    // own -- a VM-backed region always needs this, and so does the small
+    // backend on MSVC (see ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE
+    // above) -- this materialises a fresh plain-malloc()'d copy instead.
+    // That copy is the whole cost of calling this in those cases;
     // release_with_deleter() below avoids it when the caller can accept a
     // deleter instead of assuming free().
     T* release()
@@ -486,18 +527,26 @@ public:
             capacity_bytes_ = 0;
             return nullptr;
         }
+
+        bool needs_materialize = !ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE;
 #if ISOSPEC_ALIGNED_PTR_HAVE_VM_REALLOC
-        if (is_mapped_) {
-            const std::size_t n = capacity_bytes_ / sizeof(T);
-            T* copy = allocate_small(n);
-            std::memcpy(copy, ptr_, capacity_bytes_);
-            aligned_ptr_detail::vm_destroy(region_);
-            ptr_ = nullptr;
-            is_mapped_ = false;
-            capacity_bytes_ = 0;
-            return std::assume_aligned<Alignment>(copy);
-        }
+        needs_materialize = needs_materialize || is_mapped_;
 #endif
+        if (needs_materialize) {
+            void* copy = std::malloc(capacity_bytes_);
+            if (!copy)
+                throw std::bad_alloc();
+            std::memcpy(copy, ptr_, capacity_bytes_);
+            free_current();
+            ptr_ = nullptr;
+#if ISOSPEC_ALIGNED_PTR_HAVE_VM_REALLOC
+            is_mapped_ = false;
+            region_ = aligned_ptr_detail::vm_region{};
+#endif
+            capacity_bytes_ = 0;
+            return static_cast<T*>(copy);
+        }
+
         capacity_bytes_ = 0;
         return std::assume_aligned<Alignment>(std::exchange(ptr_, nullptr));
     }
@@ -523,6 +572,10 @@ public:
             return release_result{p, region_bytes, &aligned_ptr_detail::vm_release_raw};
         }
 #endif
+#if ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE
         return release_result{p, bytes, &deleter_free};
+#else
+        return release_result{p, bytes, &deleter_small};
+#endif
     }
 };
