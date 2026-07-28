@@ -125,7 +125,16 @@
     // exactly this case (compiles under -std=c++2c, not under our -std=c++20)
     // and silently broke the macOS build when given priority here. Revisit
     // once std::simd's actual shipped API is verified against our usage.
-    #if __has_include(<experimental/simd>)
+    //
+    // Also exclude libc++ (_LIBCPP_VERSION) explicitly: on Apple Clang,
+    // __has_include(<experimental/simd>) is true -- the header exists -- but
+    // it doesn't define std::experimental::native_simd, so the include below
+    // compiles yet fails at the alias/constexpr lines just past it. Measured
+    // on spot (Apple clang 21 / macOS 26): the same TU builds fine with
+    // Homebrew g++-16 (real libstdc++), so this is specifically a libc++
+    // limitation, not a general Apple/arm64 one -- use Homebrew GCC there
+    // instead if the SIMD path matters.
+    #if __has_include(<experimental/simd>) && !defined(_LIBCPP_VERSION)
         #define ISOSPEC_HAS_SIMD 1
         #include <experimental/simd>
         namespace simd_ns = std::experimental;

@@ -164,7 +164,15 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     }
 
     template<bool tgetConfs> void reallocate_memory(size_t new_size);
-    template<bool tgetConfs> void aligned_allocate_memory(size_t alignment, size_t new_size);
+    // SIMD-aligned one-shot allocation for threshold_init()'s fill buffer:
+    // always DOUBLE_SIMD_ALIGNMENT-aligned, allocated once for the exact
+    // final size (count_confs() is known upfront), never grown afterwards.
+    // Routed through aligned_unique_ptr purely to reuse its overflow-checked
+    // aligned_alloc logic; _masses/_probs/_confs stay plain malloc/realloc/free
+    // pointers everywhere else (in particular the Python-adopted-buffer
+    // constructors below need that: they take ownership of a cffi-owned
+    // pointer with no SIMD alignment guarantee at all, zero-copy).
+    template<bool tgetConfs> void aligned_allocate_memory(size_t new_size);
     void slow_reallocate_memory(size_t new_size);
 
  public:

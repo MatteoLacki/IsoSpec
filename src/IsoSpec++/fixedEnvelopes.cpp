@@ -19,6 +19,7 @@
 #include <memory>
 #include <cassert>
 #include "isoMath.h"
+#include "aligned_ptr.h"
 
 namespace IsoSpec
 {
@@ -737,39 +738,27 @@ template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)
     current_size = new_size;
 }
 
-template<bool tgetConfs> void FixedEnvelope::aligned_allocate_memory(size_t alignment, size_t new_size)
+template<bool tgetConfs> void FixedEnvelope::aligned_allocate_memory(size_t new_size)
 {
-    // C11 aligned_alloc requires the requested size to be a multiple of alignment.
-    // alignment is a power of two, so round up with the usual bit trick, guarding
-    // against overflow on the round-up itself.
-    auto round_up = [alignment](size_t bytes) -> size_t {
-        if(bytes > SIZE_MAX - (alignment - 1))
-            throw std::bad_alloc();
-        return (bytes + (alignment - 1)) & ~(alignment - 1);
-    };
-
-    if(new_size > SIZE_MAX / sizeof(double))
-        throw std::bad_alloc();
-    double* tmp_masses = reinterpret_cast<double*>(aligned_alloc(alignment, round_up(new_size * sizeof(double))));
-    if(tmp_masses == nullptr)
-        throw std::bad_alloc();
-    _masses = tmp_masses;
+    // aligned_unique_ptr's small-allocation backend is aligned_alloc-based
+    // (overflow-checked) and release() hands back a plain, free()-compatible
+    // T* -- exactly what aligned_alloc()+free() already gave this function,
+    // just without duplicating the overflow-safe rounding logic here. This
+    // never grows afterwards (see the declaration in fixedEnvelopes.h), so
+    // there's nothing to gain from keeping the aligned_unique_ptr itself
+    // around past this one allocation.
+    aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> masses_buf(new_size);
+    _masses = masses_buf.release();
     tmasses = _masses + _confs_no;
 
-    double* tmp_probs = reinterpret_cast<double*>(aligned_alloc(alignment, round_up(new_size * sizeof(double))));
-    if(tmp_probs == nullptr)
-        throw std::bad_alloc();
-    _probs = tmp_probs;
+    aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> probs_buf(new_size);
+    _probs = probs_buf.release();
     tprobs  = _probs  + _confs_no;
 
     constexpr_if(tgetConfs)
     {
-        if(allDimSizeofInt > 0 && new_size > SIZE_MAX / static_cast<size_t>(allDimSizeofInt))
-            throw std::bad_alloc();
-        int* tmp_confs = reinterpret_cast<int*>(aligned_alloc(alignment, round_up(new_size * allDimSizeofInt)));
-        if(tmp_confs == nullptr)
-            throw std::bad_alloc();
-        _confs = tmp_confs;
+        aligned_unique_ptr<int, DOUBLE_SIMD_ALIGNMENT> confs_buf(new_size * static_cast<size_t>(allDim));
+        _confs = confs_buf.release();
         tconfs = _confs + (allDim * _confs_no);
     }
     current_size = new_size;
@@ -812,7 +801,7 @@ template<bool tgetConfs> void FixedEnvelope::threshold_init(Iso&& iso, double th
     this->allDim = generator.getAllDim();
     this->allDimSizeofInt = this->allDim * sizeof(int);
 
-    this->aligned_allocate_memory<tgetConfs>(DOUBLE_SIMD_ALIGNMENT, tab_size);
+    this->aligned_allocate_memory<tgetConfs>(tab_size);
 
     double* ttmasses = this->_masses;
     double* ttprobs = this->_probs;

@@ -37,6 +37,7 @@ MSANFLAGS  := -O1 -g -fsanitize=memory,undefined -DISOSPEC_TESTS_MEMSAN
 # doctest suite: tests_main.cpp defines main(); the rest register TEST_CASEs.
 # Keep this list alphabetical after tests_main.cpp.
 TEST_SRCS := tests_main.cpp \
+             test_aligned_ptr.cpp \
              test_analytic.cpp \
              test_api_iso.cpp \
              test_containers.cpp \
