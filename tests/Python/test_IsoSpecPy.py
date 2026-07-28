@@ -132,9 +132,16 @@ def test_new_consistency(molecule, parameter):
 @pytest.mark.parametrize("parameter", parameters)
 def test_vs_old_isospec(molecule, parameter):
     """Current IsoSpec matches IsoSpec 1.0.7 (OldIsoSpecPy), if installed."""
-    OldIsoSpecPy = pytest.importorskip(
-        "OldIsoSpecPy",
-        reason="install with: pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
+    try:
+        OldIsoSpecPy = pytest.importorskip(
+            "OldIsoSpecPy",
+            reason="install with: pip install OldIsoSpecPy --index-url https://test.pypi.org/simple/")
+    except Exception as e:
+        # OldIsoSpecPy only bundles prebuilt x32/x64 Windows DLLs, so on
+        # platforms like win-arm64 the import succeeds but the module raises
+        # while trying to load its C++ part instead of failing with
+        # ImportError, which importorskip wouldn't catch.
+        pytest.skip(f"OldIsoSpecPy present but unusable on this platform: {e}")
 
     new_ordered = confs_from_ordered_generator(molecule, parameter)
     old_ordered = OldIsoSpecPy.IsoSpecPy.IsoSpec.IsoFromFormula(
