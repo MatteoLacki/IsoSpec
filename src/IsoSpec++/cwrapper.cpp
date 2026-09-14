@@ -611,15 +611,21 @@ void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path)
 {
     return c_guard([&]() -> void*
     {
-        // Reused across calls on this thread (parse_fasta_with_mods_into only
-        // clears it, never releases capacity) -- avoids reallocating the
-        // scratch ElementComposition on every single call from Python/R,
-        // which is the real hot path this matters for (millions of peptides).
-        // Nothing below retains a pointer into `scratch` itself: `counts` is
-        // copied out by value, and `symbols` is built from elem_table_symbol's
+        // Reused across calls (parse_fasta_with_mods_into only clears it,
+        // never releases capacity) -- avoids reallocating the scratch
+        // ElementComposition on every single call from Python/R, which is
+        // the real hot path this matters for (millions of peptides). Plain
+        // `static`, not `thread_local`: IsoSpec is single-threaded by design
+        // (this repo's CLAUDE.md) so they'd behave identically here, and
+        // thread_local's extra TLS teardown machinery is a real, observed
+        // crash risk for a dynamically-loaded Python/R extension module
+        // (segfault during interpreter shutdown, seen in CI on macOS) that
+        // buys nothing in a library that never has a second thread. Nothing
+        // below retains a pointer into `scratch` itself: `counts` is copied
+        // out by value, and `symbols` is built from elem_table_symbol's
         // static string-literal pointers, not from `scratch`'s own storage --
         // safe to overwrite `scratch` on the next call.
-        thread_local ElementComposition scratch;
+        static ElementComposition scratch;
         parse_fasta_with_mods_into(sequence, scratch, resolve_unimod_table(unimod_db_path));
         std::unique_ptr<ElementCompositionHandle> handle(new ElementCompositionHandle());
         handle->counts = scratch.count;
