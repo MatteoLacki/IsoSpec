@@ -112,7 +112,15 @@ UnimodTable parse_unimod_csv(const std::string& csv_text) {
 }
 
 const UnimodTable& embedded_unimod_table() {
-    static const UnimodTable instance = parse_unimod_csv(kEmbeddedUnimodCsv);
+    // kEmbeddedUnimodCsvChunks is split into pieces small enough for MSVC's
+    // string-literal size limit (see unimod_table_data.h's header comment);
+    // reassemble into one string once, here, before parsing.
+    static const UnimodTable instance = [] {
+        std::string csv;
+        for (std::size_t i = 0; i < kEmbeddedUnimodCsvChunkCount; i++)
+            csv += kEmbeddedUnimodCsvChunks[i];
+        return parse_unimod_csv(csv);
+    }();
     return instance;
 }
 
