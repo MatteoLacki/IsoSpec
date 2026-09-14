@@ -120,6 +120,29 @@ ElementComposition accumulator_to_composition(const int accumulator[kAccumulator
 }  // namespace
 
 ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods) {
+    if (strchr(sequence, '[') == nullptr) {
+        // '[' is the only character this parser ever treats specially (it's
+        // never a valid FASTA/amino-acid character on its own), so its
+        // absence means the sequence cannot contain a [UNIMOD:<id>]
+        // reference -- skip the general per-element accumulator below
+        // entirely and go through the plain, fixed-CHNOSSe parse_fasta in
+        // one pass over the whole string, matching Iso::FromFASTA's cost
+        // for this (the common, unmodified) case instead of paying for
+        // per-residue re-parsing plus general-element bookkeeping nothing
+        // here actually needs.
+        int counts[6] = {0, 0, 0, 0, 0, 0};
+        parse_fasta(sequence, counts);
+        const AminoAcidElementIndex& idx = amino_acid_element_index();
+        ElementComposition result;
+        for (int i = 0; i < 6; i++) {
+            if (counts[i] != 0) {
+                result.element_first_index.push_back(idx.first_index[i]);
+                result.count.push_back(counts[i]);
+            }
+        }
+        return result;
+    }
+
     int accumulator[kAccumulatorSize] = {0};
 
     const char* p = sequence;
@@ -199,12 +222,26 @@ Iso build_iso_from_composition(const ElementComposition& composition, bool use_n
 }
 
 Iso Iso::FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool use_nominal_masses, bool add_water) {
+    if (strchr(sequence, '[') == nullptr)
+        // Nothing for `mods` to resolve -- go straight through the plain
+        // path instead of building a composition via the general
+        // dimNumber-vector Iso constructor build_iso_from_composition uses
+        // (heap-allocated mass/probability vectors, per-element isotope-
+        // count lookups) when Iso::FromFASTA's own fixed static tables
+        // already do this cheaper for the unmodified case.
+        return Iso::FromFASTA(sequence, use_nominal_masses, add_water);
+
     ElementComposition composition =
         add_water ? parse_fasta_with_mods_full(sequence, mods) : parse_fasta_with_mods(sequence, mods);
     return build_iso_from_composition(composition, use_nominal_masses);
 }
 
 Iso Iso::FromFASTAWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path) {
+    if (strchr(sequence, '[') == nullptr)
+        // As above, and also skips resolving/loading unimod_db_path's table
+        // (embedded or override) entirely when there's nothing to look up.
+        return Iso::FromFASTA(sequence, use_nominal_masses, add_water);
+
     const UnimodTable& mods = (unimod_db_path == nullptr || unimod_db_path[0] == '\0')
                                    ? embedded_unimod_table()
                                    : unimod_table_for_path(unimod_db_path);
