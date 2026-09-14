@@ -9,3 +9,7 @@ RParsePeptideSequence <- function(sequence, unimod_db_path = "") {
     .Call('_IsoSpecR_RParsePeptideSequence', PACKAGE = 'IsoSpecR', sequence, unimod_db_path)
 }
 
+RIsotopicTable <- function() {
+    .Call('_IsoSpecR_RIsotopicTable', PACKAGE = 'IsoSpecR')
+}
+
