@@ -93,6 +93,27 @@ int main() {
 }
 ```
 
+From a peptide sequence, optionally carrying `[UNIMOD:<id>]` modification tags (`fasta_mods.h`; same notation as the Python/R examples above):
+
+```cpp
+#include "IsoSpec++/isoSpec++.h"
+#include "IsoSpec++/fasta_mods.h"
+#include "IsoSpec++/fixedEnvelopes.h"
+
+using namespace IsoSpec;
+
+int main() {
+    FixedEnvelope iso = FixedEnvelope::FromTotalProb(
+        Iso::FromFASTAWithMods("PEPTC[UNIMOD:4]DEK"), 0.999, true, true);
+
+    for (size_t i = 0; i < iso.confs_no(); ++i) {
+        std::cout << iso.mass(i) << '\t' << iso.prob(i) << '\n';
+    }
+}
+```
+
+`Iso::FromFASTAWithMods` takes an optional trailing `unimod_db_path` argument to resolve against a different Unimod table instead of the one embedded at compile time. For just the composition, no envelope, call `parse_fasta_with_mods`/`parse_fasta_with_mods_full` directly (or the allocation-free `_into` forms, for a hot loop over many sequences) — see `fasta_mods.h`.
+
 Quickest way to build:
 
 ```bash
