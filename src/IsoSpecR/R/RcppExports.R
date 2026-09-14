@@ -5,3 +5,7 @@ Rinterface <- function(molecule, isotopes, stopCondition, algo = 0L, tabSize = 1
     .Call('_IsoSpecR_Rinterface', PACKAGE = 'IsoSpecR', molecule, isotopes, stopCondition, algo, tabSize, hashSize, step, showCounts, trim, charge)
 }
 
+RParsePeptideSequence <- function(sequence, unimod_db_path = "") {
+    .Call('_IsoSpecR_RParsePeptideSequence', PACKAGE = 'IsoSpecR', sequence, unimod_db_path)
+}
+

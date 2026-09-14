@@ -20,7 +20,11 @@
 #include "misc.h"
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
+#include "fasta_mods.h"
+#include "unimod.h"
+#include "element_tables.h"
 #include <vector>
+#include <string>
 #include <iostream>
 
 using namespace Rcpp;
@@ -204,6 +208,36 @@ NumericMatrix Rinterface(
     }
 
     colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
+
+    return(res);
+}
+
+// Unimod-modification-aware peptide sequence parsing -- see
+// docs/ai/unimod.md. Unlike Rinterface above (which takes a raw atom-count
+// vector), this binds straight to the C++ classes the same way Rinterface
+// itself does, not through cwrapper.h -- R had no FASTA/sequence entry point
+// at all before this, so there is nothing here to stay compatible with.
+//
+// [[Rcpp::export]]
+IntegerVector RParsePeptideSequence(
+    const std::string&      sequence,
+    std::string             unimod_db_path = ""
+){
+    const UnimodTable& mods = unimod_db_path.empty() ? embedded_unimod_table()
+                                                       : unimod_table_for_path(unimod_db_path);
+    // Rcpp translates an escaped C++ exception (std::invalid_argument on a
+    // malformed bracket or an unknown/excluded id) into an R error
+    // automatically -- no manual try/catch needed here.
+    ElementComposition composition = parse_fasta_with_mods(sequence.c_str(), mods);
+
+    IntegerVector res(composition.count.size());
+    CharacterVector symbols(composition.count.size());
+    for (size_t i = 0; i < composition.count.size(); i++)
+    {
+        res[i] = composition.count[i];
+        symbols[i] = elem_table_symbol[composition.element_first_index[i]];
+    }
+    res.names() = symbols;
 
     return(res);
 }

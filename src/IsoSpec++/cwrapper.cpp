@@ -22,12 +22,16 @@
 #include <type_traits>
 #include <limits>
 #include <cmath>
+#include <memory>
+#include <vector>
 #include "cwrapper.h"
 #include "misc.h"
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
 #include "fasta.h"
+#include "fasta_mods.h"
+#include "element_tables.h"
 
 using namespace IsoSpec;  // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
 
@@ -573,6 +577,77 @@ void parse_fasta_c(const char* fasta, int atomCounts[6])
 {
     // Same thing, only this time with C linkage
     parse_fasta(fasta, atomCounts);
+}
+
+namespace
+{
+// Owns a parsed composition's storage across the C ABI: the symbol pointers
+// point into element_tables.cpp's static elem_table_symbol strings (program
+// lifetime, never freed here), only the counts and the pointer array itself
+// are this handle's own allocation.
+struct ElementCompositionHandle
+{
+    std::vector<const char*> symbols;
+    std::vector<int> counts;
+};
+
+const UnimodTable& resolve_unimod_table(const char* unimod_db_path)
+{
+    if(unimod_db_path == nullptr || unimod_db_path[0] == '\0')
+        return embedded_unimod_table();
+    return unimod_table_for_path(unimod_db_path);
+}
+}  // anonymous namespace
+
+void* isoFromFastaWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path)
+{
+    return c_guard([&]() -> void*
+    {
+        return new Iso(Iso::FromFASTAWithMods(sequence, use_nominal_masses, add_water, unimod_db_path));
+    });
+}
+
+void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path)
+{
+    return c_guard([&]() -> void*
+    {
+        ElementComposition composition = parse_fasta_with_mods(sequence, resolve_unimod_table(unimod_db_path));
+        std::unique_ptr<ElementCompositionHandle> handle(new ElementCompositionHandle());
+        handle->counts = composition.count;
+        handle->symbols.reserve(composition.element_first_index.size());
+        for(int idx : composition.element_first_index)
+            handle->symbols.push_back(elem_table_symbol[idx]);
+        return handle.release();
+    });
+}
+
+size_t compositionSizeC(void* composition)
+{
+    return c_guard([&]() -> size_t
+    {
+        return reinterpret_cast<ElementCompositionHandle*>(composition)->counts.size();
+    });
+}
+
+const char* const* compositionSymbolsC(void* composition)
+{
+    return c_guard([&]() -> const char* const*
+    {
+        return reinterpret_cast<ElementCompositionHandle*>(composition)->symbols.data();
+    });
+}
+
+const int* compositionCountsC(void* composition)
+{
+    return c_guard([&]() -> const int*
+    {
+        return reinterpret_cast<ElementCompositionHandle*>(composition)->counts.data();
+    });
+}
+
+void deleteCompositionC(void* composition)
+{
+    delete reinterpret_cast<ElementCompositionHandle*>(composition);
 }
 
 const char* activeSimdLevel()

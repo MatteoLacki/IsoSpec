@@ -62,18 +62,78 @@ def ParseFormula(formula):
 
     return ret
 
-def ParseFASTA(fasta):
-    if isinstance(fasta, str):
-        fasta = fasta.encode("ascii")
-    fasta_parsing_space = isoFFI.ffi.new("int[6]")
-    isoFFI.clib.parse_fasta_c(fasta, fasta_parsing_space)
-    elements = list("CHNOS")
-    if fasta_parsing_space[5] > 0:
-        elements.append("Se")
-    od = OrderedDict()
-    for i in range(len(elements)):
-        od[elements[i]] = fasta_parsing_space[i]
-    return od
+def ParsePeptideSequence(sequence, unimod_db_path=None):
+    """Parse a peptide sequence, recognizing SAGE-style [UNIMOD:<id>]
+    modification brackets: `[UNIMOD:<id>]-SEQUENCE` for an N-terminal mod,
+    `X[UNIMOD:<id>]` for an internal one (immediately after the modified
+    residue), `SEQUENCE-[UNIMOD:<id>]` for a C-terminal one -- exactly the
+    notation/placement this monorepo's SAGE fork writes
+    (crates/sage/src/peptide.rs). Everything parse_fasta_c already tolerated
+    (spacers, whitespace, indeterminate-formula codes) is still silently
+    ignored; only '[' is now meaningful, and must open a well-formed bracket.
+
+    Despite this function's name being the honest one -- unlike ParseFASTA
+    below (kept only for backward compatibility), this has never parsed an
+    actual FASTA file (no '>' header, no multi-record support); it has only
+    ever accepted a bare peptide sequence string. Co-author Michał Startek
+    has completely no idea how things are supposed to be called; see
+    docs/ai/unimod.md.
+
+    Args:
+        sequence (str): a peptide sequence, optionally annotated with
+            [UNIMOD:<id>] modification brackets.
+        unimod_db_path (str, optional): path to an override Unimod
+            composition-delta table (same CSV shape as data/unimod.csv).
+            None (default) uses the table embedded at compile time.
+
+    Returns:
+        An OrderedDict of element symbol -> atom count, e.g. {"C": 42, "H":
+        66, "N": 10, "O": 17, "S": 2} for a Carbamidomethyl-modified
+        sequence -- general over whatever elements the sequence's
+        modifications touch (not just CHNOSSe, unlike the plain
+        amino-acid-only path this supersedes).
+
+    Raises:
+        ValueError: the sequence contains a malformed [UNIMOD:<id>] bracket,
+            or references an id not present in the active table (covers both
+            a genuinely unknown id and one this fork's shipped table
+            deliberately excludes -- isotope-labeled or glycan/
+            derivatization "brick" modifications, see docs/ai/unimod.md --
+            alike; both are simply not resolvable to an atom-count delta).
+    """
+    if isinstance(sequence, str):
+        sequence = sequence.encode("ascii")
+    db_path = isoFFI.ffi.NULL if unimod_db_path is None else str(unimod_db_path).encode("ascii")
+
+    composition = isoFFI.clib.parseFastaWithModsC(sequence, db_path)
+    if composition == isoFFI.ffi.NULL:
+        raise ValueError(
+            "Invalid peptide sequence or unresolvable [UNIMOD:<id>] reference: {}".format(sequence)
+        )
+    try:
+        size = isoFFI.clib.compositionSizeC(composition)
+        symbols = isoFFI.clib.compositionSymbolsC(composition)
+        counts = isoFFI.clib.compositionCountsC(composition)
+        od = OrderedDict()
+        for i in range(size):
+            symbol = isoFFI.ffi.string(symbols[i]).decode("ascii")
+            od[symbol] = counts[i]
+        return od
+    finally:
+        isoFFI.clib.deleteCompositionC(composition)
+
+
+def ParseFASTA(fasta, unimod_db_path=None):
+    """Compatibility alias for ParsePeptideSequence -- see its docstring for
+    the naming note. Prior to this version, this function ignored '[',
+    digits, and ':' in its input entirely, silently mis-parsing any
+    UNIMOD-bracket-containing string as extra phantom amino acids (every
+    letter in "UNIMOD" happens to be a valid 1-letter amino-acid code); that
+    was a bug, not a feature, and is now fixed by routing through the same
+    mods-aware parser as ParsePeptideSequence. A sequence with no brackets at
+    all parses byte-for-byte as before.
+    """
+    return ParsePeptideSequence(fasta, unimod_db_path=unimod_db_path)
 
 
 def IsoParamsFromDict(formula, use_nominal_masses = False):
@@ -127,6 +187,8 @@ class Iso(object):
                  isotopeProbabilities=None,
                  use_nominal_masses = False,
                  fasta = "",
+                 peptide_sequence = "",
+                 unimod_db_path = None,
                  charge = 1.0):
         """Initialize Iso.
 
@@ -137,13 +199,28 @@ class Iso(object):
             isotopeMasses (list): a list of lists of masses of elements with counts in 'atomCounts'.
             isotopeProbabilities (list): a list of lists of probabilities of elements with counts in 'atomCounts'.
             use_nominal_masses (boolean): should the masses be rounded to the closest integer values.
+            fasta (str): a peptide sequence, optionally with [UNIMOD:<id>] modification
+                brackets -- see ParsePeptideSequence's docstring (this is the same argument
+                as peptide_sequence, kept under its original name for backward compatibility;
+                despite the name, this has never accepted an actual FASTA file).
+            peptide_sequence (str): the honestly-named alias of 'fasta' -- pass one or the
+                other, not both.
+            unimod_db_path (str, optional): override Unimod composition-delta table for
+                resolving [UNIMOD:<id>] references in 'fasta'/'peptide_sequence' (same CSV
+                shape as data/unimod.csv). None (default) uses the compile-time embedded table.
             charge (float): charge state of the molecule: all masses will be divided by this value to obtain the m/z values.
         """
 
         self.iso = None
 
-        if len(fasta) > 0:
-            molecule = ParseFASTA(fasta)
+        if len(fasta) > 0 and len(peptide_sequence) > 0:
+            raise ValueError(
+                "'fasta' and 'peptide_sequence' are the same argument under two names -- pass only one"
+            )
+        sequence = peptide_sequence if len(peptide_sequence) > 0 else fasta
+
+        if len(sequence) > 0:
+            molecule = ParsePeptideSequence(sequence, unimod_db_path=unimod_db_path)
         else:
             molecule = OrderedDict()
 

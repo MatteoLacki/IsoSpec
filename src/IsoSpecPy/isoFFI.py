@@ -164,6 +164,13 @@ class IsoFFI:
 
         void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
+        void* isoFromFastaWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path);
+        void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path);
+        size_t compositionSizeC(void* composition);
+        const char* const* compositionSymbolsC(void* composition);
+        const int* compositionCountsC(void* composition);
+        void deleteCompositionC(void* composition);
+
         const char* activeSimdLevel(void);
 
         #define NUMBER_OF_ISOTOPIC_ENTRIES 292
