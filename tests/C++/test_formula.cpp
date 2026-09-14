@@ -211,6 +211,21 @@ TEST_CASE("the pseudo-elements behave as documented") {
     CHECK(enumerate_threshold_full("C2E1").size() == enumerate_threshold_full("C2").size());
 }
 
+TEST_CASE("D (deuterium) is a pure, monoisotopic pseudo-element") {
+    // github.com/MatteoLacki/IsoSpec/issues/51: D didn't exist as its own
+    // symbol before -- only as H's second (natural-abundance-mixed) isotope.
+    // Same idiom as E/Me/Pn: its own elem_table_ID, single isotope, prob 1.0.
+    Iso water("H2O1");
+    Iso heavy_water("D2O1");
+    CHECK(heavy_water.getMonoisotopicPeakMass() - water.getMonoisotopicPeakMass() ==
+          doctest::Approx(2 * (2.01410177819 - 1.00782503227)).epsilon(1e-6));
+
+    // Pure D: exactly one configuration, probability 1 (no natural-abundance
+    // mixing the way plain H would give).
+    CHECK(enumerate_threshold_full("D2O1").size() ==
+          enumerate_threshold_full("O1").size());
+}
+
 TEST_CASE("every tabulated element parses and yields a sane distribution") {
     // Walk the whole table: each element must be usable in a formula.
     int i = 0;

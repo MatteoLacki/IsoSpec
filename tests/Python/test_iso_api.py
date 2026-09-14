@@ -240,3 +240,18 @@ def test_zero_atom_counts_are_allowed():
     water_free = IsoSpecPy.Iso("H2")
     assert math.isclose(iso.getMonoisotopicPeakMass(),
                         water_free.getMonoisotopicPeakMass())
+
+
+def test_deuterium_is_its_own_pure_monoisotopic_symbol():
+    # github.com/MatteoLacki/IsoSpec/issues/51
+    assert "D" in PeriodicTbl.symbol_to_masses
+    assert PeriodicTbl.symbol_to_masses["D"] == (2.01410177819,)
+    assert PeriodicTbl.symbol_to_probs["D"] == (1.0,)
+
+    heavy_water = IsoSpecPy.Iso("D2O1")
+    water = IsoSpecPy.Iso("H2O1")
+    h_mass, d_mass = PeriodicTbl.symbol_to_masses["H"][0], PeriodicTbl.symbol_to_masses["D"][0]
+    assert math.isclose(
+        heavy_water.getMonoisotopicPeakMass() - water.getMonoisotopicPeakMass(),
+        2 * (d_mass - h_mass),
+    )

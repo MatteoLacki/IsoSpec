@@ -318,6 +318,7 @@ const int elem_table_ID [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 1001,  // Missing electron
 1002,  // Protonation
 1002,  // Protonation (Deuterium)
+1003,  // Deuterium
 };
 
 
@@ -615,6 +616,7 @@ const int elem_table_atomicNo [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 0,
 1,
 1,
+1,  // Deuterium
 };
 
 
@@ -911,6 +913,7 @@ const double elem_table_mass [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 -0.000548579909065,  // Missing electron
 1.007276466879,      // Protonation
 2.013553212745,      // Protonation (deuterium)
+2.01410177819,      // Deuterium
 };
 
 
@@ -1207,6 +1210,7 @@ const double elem_table_massNo [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 0.0,
 1.0,
 2.0,
+2.0,      // Deuterium
 };
 
 
@@ -1503,6 +1507,7 @@ const int elem_table_extraNeutrons [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 0,
 0,
 1,
+1,  // Deuterium
 };
 
 
@@ -1799,6 +1804,7 @@ const char* elem_table_element [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 "missing electron",
 "protonation",
 "protonation",  // with deuteron
+"deuterium",
 };
 
 
@@ -2095,6 +2101,7 @@ const char* elem_table_symbol [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 "Me",
 "Pn",
 "Pn",
+"D",
 };
 
 
@@ -2391,6 +2398,7 @@ false,
 false,
 false,
 false,
+false,  // Deuterium
 };
 
 
@@ -2687,6 +2695,7 @@ const double elem_table_probability [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 1.0,
 0.999884290164307909520857720053754746913909912109375000000000,
 0.000115709835692033314582735648023970043141162022948265075684,
+1.0,  // Deuterium
 };
 
 
@@ -2983,6 +2992,7 @@ const double elem_table_log_probability [ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES] = {
 0.0,
 -0.000115716530591520062594239337538937206772970966994762420654,
 -9.064424917075021070900220365729182958602905273437500000000000,
+0.000000000000000000000000000000000000000000000000000000000000000,  // Deuterium
 };
 
 #ifdef __cplusplus
