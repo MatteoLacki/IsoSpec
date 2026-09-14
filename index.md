@@ -378,6 +378,47 @@ MZI_opt2 = IsoTotalProb(.999,
 list(MZI_opt2.masses)
 ```
 
+The `formula=`/`fasta=` trick above works for any arbitrary elemental offset, but for a *named* post-translational modification you have to know its formula and get the sign right by hand. If your sequence carries [Unimod](https://www.unimod.org/) accession tags instead — `[UNIMOD:<id>]`, the same notation this monorepo's SAGE search-engine fork writes into its own peptide output (`[UNIMOD:1]-MPEPTC[UNIMOD:4]DEK`-style: an id in brackets right after the modified residue for an internal modification, prefixed with a trailing `-` for an N-terminal one, suffixed with a leading `-` for a C-terminal one) — IsoSpec resolves those directly, against a table of ~980 Unimod entries (isotope-labelled and glycan/derivatization "brick" modifications are excluded — they can't be expressed as a pure elemental delta) embedded in the library.
+
+### Peptide sequences with `[UNIMOD:<id>]` modifications
+
+#### Python
+
+```{python}
+import IsoSpecPy
+
+# Composition alone (element -> atom count), no envelope:
+composition = IsoSpecPy.ParsePeptideSequence("AB[UNIMOD:42]C")
+print(dict(composition))
+# {'H': 22, 'C': 14, 'N': 2, 'O': 3, 'S': 3}
+
+# Full isotopic envelope, same as any other IsoTotalProb/IsoThreshold call --
+# peptide_sequence= is just another way to build the underlying composition:
+env = IsoSpecPy.IsoTotalProb(prob_to_cover=0.999, peptide_sequence="AB[UNIMOD:42]C")
+print(env.np_masses())
+print(env.np_probs())
+```
+
+`fasta=` still works exactly as before and is now itself `[UNIMOD:<id>]`-aware (it's the same parser under an older name kept for backward compatibility) -- `peptide_sequence=` is the recommended spelling going forward, since `fasta=` never actually accepted a FASTA-*file* (no `>` header, no multi-record support), only ever a bare sequence string. Pass `unimod_db_path="/path/to/table.csv"` to either one to resolve against a different Unimod table (same `id,name,mono_mass,composition` CSV shape as the one shipped in the library) instead of the embedded default.
+
+#### R
+
+`IsoSpecify` itself still only takes a raw named-integer-vector `molecule` (it never grew a sequence-string parameter) -- so getting from a `[UNIMOD:<id>]`-annotated sequence to an envelope is two calls instead of one:
+
+```{R}
+library(IsoSpecR)
+
+composition <- RParsePeptideSequence("AB[UNIMOD:42]C")
+print(composition)
+#  H  C  N  O  S
+# 22 14  2  3  3
+
+res <- IsoSpecify(molecule = composition, stopCondition = 0.999)
+print(res)
+```
+
+`IsoSpecify`'s default `algo = 0` is the same total-probability algorithm Python's `IsoTotalProb` wraps, so `stopCondition` here means the same thing `prob_to_cover` does there -- the two snippets above compute the same envelope.
+
 ## Interested in IsoSpec?
 
 Contact us! Mail to:
