@@ -25,6 +25,7 @@
 #include "element_tables.h"
 #include <vector>
 #include <string>
+#include <stdexcept>
 #include <iostream>
 
 using namespace Rcpp;
@@ -86,6 +87,26 @@ NumericMatrix Rinterface(
                 if( showCounts )
                     stdIsotopeTags.push_back( isotope[j] );
             }
+        // A molecule element with zero matching rows in `isotopes` previously
+        // went through silently as a zero-isotope dimension -- Iso's
+        // constructor then had no known mass/probability data for it at all,
+        // so that atom's contribution was just dropped from the output
+        // (wrong mass, no error) rather than erroring, and in at least one
+        // reported case (github.com/MatteoLacki/IsoSpec/issues/49) corrupted
+        // memory badly enough to crash the R session outright on repeated
+        // calls. Fail loudly and name the symbol instead: either it's a typo,
+        // or (e.g. an element with no stable natural isotopes, like Tc or Ac)
+        // it genuinely isn't in this table and the caller needs to supply its
+        // own isotope data via the `isotopes=` parameter -- see the
+        // radiolabelling example for that pattern. Rcpp turns an escaped C++
+        // exception into an R error automatically, no manual try/catch here.
+        if( counter == 0 )
+            throw std::invalid_argument(
+                "No isotope data for element '" + Rcpp::as<std::string>(molecule_names[i]) +
+                "' in the supplied `isotopes` table -- check for a typo, or supply this "
+                "element's isotope data yourself via the `isotopes` parameter (see the "
+                "radiolabelling example) if it genuinely has none in the default table "
+                "(e.g. an element with no stable natural isotopes).");
         stdIsotopeNumbers.push_back(counter);
     }
 
