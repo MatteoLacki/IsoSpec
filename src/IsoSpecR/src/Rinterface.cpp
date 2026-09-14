@@ -27,6 +27,7 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <map>
 
 using namespace Rcpp;
 using namespace IsoSpec;
@@ -261,4 +262,83 @@ IntegerVector RParsePeptideSequence(
     res.names() = symbols;
 
     return(res);
+}
+
+// Reads the core element/isotope table directly out of element_tables.cpp --
+// the single authoritative source every other binding (Python's PeriodicTbl,
+// built the same way via cffi) already resolves against -- instead of R
+// carrying its own hand-maintained copy. That duplication is exactly what
+// caused the #51 (deuterium) fix to require four separate edits, two of
+// which (data/isotopicData.rda and R/sysdata.rda) had already silently
+// drifted from each other before this function existed. See IsoSpecR.R's
+// IsoSpecify(), which now builds its default `isotopes` table from this.
+//
+// Excludes the synthetic charge-state pseudo-elements E/Me/Pn (elem_table_ID
+// 1000-1002) by symbol, not by "ID >= 1000", because D (deuterium, ID 1003)
+// is exactly as synthetic by that measure and must NOT be excluded -- it's
+// the whole point. isotopicData$IsoSpec has always had 0 rows for E/Me/Pn
+// (verified against data/isotopicData.rda at commit ada5ae5); this preserves
+// that.
+//
+// Isotope labels follow this table's own existing convention (element
+// symbol + mass number, e.g. "H1", "H2", "C12") -- but for a synthetic
+// pseudo-element like D, the label uses its *parent* element's symbol (the
+// real, non-synthetic entry sharing its atomic number: D's atomicNo is 1,
+// hydrogen's), not its own ("H2", not "D2"). This matches the existing "D"
+// row already present in both data/isotopicData.rda and the external
+// enviPat package's own data (enviPat's D row predates this session and was
+// left untouched) -- confirmed byte-for-byte against both this session.
+//
+// [[Rcpp::export]]
+DataFrame RIsotopicTable()
+{
+    static const std::string kExcludedSymbols[] = {"E", "Me", "Pn"};
+    auto is_excluded = [](const std::string& sym) {
+        for (const std::string& excl : kExcludedSymbols)
+            if (sym == excl)
+                return true;
+        return false;
+    };
+
+    // atomicNo -> the real (non-synthetic) element symbol sharing it, used
+    // to label a synthetic pseudo-element's isotope by its parent's symbol.
+    std::map<int, std::string> parent_symbol_by_atomic_no;
+    for (int i = 0; i < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; i++)
+    {
+        std::string sym = elem_table_symbol[i];
+        if (is_excluded(sym) || elem_table_ID[i] >= 1000)
+            continue;
+        parent_symbol_by_atomic_no.emplace(elem_table_atomicNo[i], sym);
+    }
+
+    std::vector<std::string> element, isotope;
+    std::vector<double> mass, abundance;
+
+    for (int i = 0; i < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; i++)
+    {
+        std::string sym = elem_table_symbol[i];
+        if (is_excluded(sym))
+            continue;
+
+        std::string label_symbol = sym;
+        if (elem_table_ID[i] >= 1000)
+        {
+            auto it = parent_symbol_by_atomic_no.find(elem_table_atomicNo[i]);
+            if (it != parent_symbol_by_atomic_no.end())
+                label_symbol = it->second;
+        }
+
+        element.push_back(sym);
+        isotope.push_back(label_symbol + std::to_string(static_cast<int>(elem_table_massNo[i])));
+        mass.push_back(elem_table_mass[i]);
+        abundance.push_back(elem_table_probability[i]);
+    }
+
+    return DataFrame::create(
+        Named("element") = element,
+        Named("isotope") = isotope,
+        Named("mass") = mass,
+        Named("abundance") = abundance,
+        Named("stringsAsFactors") = false
+    );
 }

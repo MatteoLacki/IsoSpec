@@ -173,6 +173,13 @@ class IsoFFI:
 
         const char* activeSimdLevel(void);
 
+        // Must be kept in sync by hand with ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES
+        // in element_tables.h -- see PeriodicTbl.py's comment on why this
+        // can't be read from isospec_number_of_isotopic_entries (the real
+        // compiled variable, right below) instead: cffi's dlopen ABI mode
+        // can't access plain extern const globals, only #define constants
+        // like this one. A stale value here silently drops table entries in
+        // Python without erroring (already happened once, #51/deuterium).
         #define NUMBER_OF_ISOTOPIC_ENTRIES 293
         extern const size_t isospec_number_of_isotopic_entries;
         extern const int elem_table_atomicNo[NUMBER_OF_ISOTOPIC_ENTRIES];

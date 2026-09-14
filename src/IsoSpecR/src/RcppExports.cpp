@@ -42,3 +42,13 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RIsotopicTable
+DataFrame RIsotopicTable();
+RcppExport SEXP _IsoSpecR_RIsotopicTable() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(RIsotopicTable());
+    return rcpp_result_gen;
+END_RCPP
+}
