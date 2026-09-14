@@ -106,20 +106,21 @@ void consume_unimod_bracket(const char*& p, const UnimodTable& mods, int accumul
     p = q + 1;  // past ']'
 }
 
-ElementComposition accumulator_to_composition(const int accumulator[kAccumulatorSize]) {
-    ElementComposition result;
+void accumulator_to_composition_into(const int accumulator[kAccumulatorSize], ElementComposition& out) {
+    out.clear();
     for (int i = 0; i < kAccumulatorSize; i++) {
         if (accumulator[i] != 0) {
-            result.element_first_index.push_back(i);
-            result.count.push_back(accumulator[i]);
+            out.element_first_index.push_back(i);
+            out.count.push_back(accumulator[i]);
         }
     }
-    return result;
 }
 
 }  // namespace
 
-ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods) {
+void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out, const UnimodTable& mods) {
+    out.clear();
+
     if (strchr(sequence, '[') == nullptr) {
         // '[' is the only character this parser ever treats specially (it's
         // never a valid FASTA/amino-acid character on its own), so its
@@ -133,14 +134,13 @@ ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable
         int counts[6] = {0, 0, 0, 0, 0, 0};
         parse_fasta(sequence, counts);
         const AminoAcidElementIndex& idx = amino_acid_element_index();
-        ElementComposition result;
         for (int i = 0; i < 6; i++) {
             if (counts[i] != 0) {
-                result.element_first_index.push_back(idx.first_index[i]);
-                result.count.push_back(counts[i]);
+                out.element_first_index.push_back(idx.first_index[i]);
+                out.count.push_back(counts[i]);
             }
         }
-        return result;
+        return;
     }
 
     int accumulator[kAccumulatorSize] = {0};
@@ -160,36 +160,46 @@ ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable
         }
     }
 
-    return accumulator_to_composition(accumulator);
+    accumulator_to_composition_into(accumulator, out);
 }
 
-ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods) {
-    ElementComposition composition = parse_fasta_with_mods(sequence, mods);
+void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& out, const UnimodTable& mods) {
+    parse_fasta_with_mods_into(sequence, out, mods);
 
     const AminoAcidElementIndex& idx = amino_acid_element_index();
     const int h_index = idx.first_index[1];
     const int o_index = idx.first_index[3];
 
     bool has_h = false, has_o = false;
-    for (size_t i = 0; i < composition.element_first_index.size(); i++) {
-        if (composition.element_first_index[i] == h_index) {
-            composition.count[i] += 2;
+    for (size_t i = 0; i < out.element_first_index.size(); i++) {
+        if (out.element_first_index[i] == h_index) {
+            out.count[i] += 2;
             has_h = true;
-        } else if (composition.element_first_index[i] == o_index) {
-            composition.count[i] += 1;
+        } else if (out.element_first_index[i] == o_index) {
+            out.count[i] += 1;
             has_o = true;
         }
     }
     if (!has_h) {
-        composition.element_first_index.push_back(h_index);
-        composition.count.push_back(2);
+        out.element_first_index.push_back(h_index);
+        out.count.push_back(2);
     }
     if (!has_o) {
-        composition.element_first_index.push_back(o_index);
-        composition.count.push_back(1);
+        out.element_first_index.push_back(o_index);
+        out.count.push_back(1);
     }
+}
 
-    return composition;
+ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods) {
+    ElementComposition result;
+    parse_fasta_with_mods_into(sequence, result, mods);
+    return result;
+}
+
+ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods) {
+    ElementComposition result;
+    parse_fasta_with_mods_full_into(sequence, result, mods);
+    return result;
 }
 
 Iso build_iso_from_composition(const ElementComposition& composition, bool use_nominal_masses) {

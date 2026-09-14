@@ -31,6 +31,17 @@ namespace IsoSpec {
 struct ElementComposition {
     std::vector<int> element_first_index;
     std::vector<int> count;
+
+    //! Empties both vectors without releasing their capacity -- a caller
+    //! that reuses one ElementComposition across many parse_fasta_with_mods_into
+    //! calls (e.g. building a cache over millions of peptides) pays for the
+    //! underlying heap allocation at most a handful of times total (until
+    //! capacity reaches this feature's real ceiling, ~30 elements), not once
+    //! per call the way the value-returning parse_fasta_with_mods does.
+    void clear() {
+        element_first_index.clear();
+        count.clear();
+    }
 };
 
 //! Parses `sequence` for [UNIMOD:<id>] modification brackets in exactly the
@@ -62,6 +73,19 @@ ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable
 //! As above, plus terminal H2O -- mirrors parse_fasta_full's role for the
 //! mods-unaware path.
 ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods = embedded_unimod_table());
+
+//! Same as parse_fasta_with_mods, but fills a caller-owned `out` in place
+//! (cleared first) instead of returning a fresh ElementComposition -- the
+//! allocation-free form for a hot loop over many sequences (a single `out`
+//! reused across the whole loop reallocates at most a handful of times, not
+//! once per call). parse_fasta_with_mods/_full are thin convenience wrappers
+//! around this pair for one-off callers.
+void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out,
+                                 const UnimodTable& mods = embedded_unimod_table());
+
+//! As above, plus terminal H2O.
+void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& out,
+                                      const UnimodTable& mods = embedded_unimod_table());
 
 //! Resolves a composition (as returned by parse_fasta_with_mods[_full]) into
 //! an Iso via the same generic Iso(dimNumber, isotopeNumbers, atomCounts,

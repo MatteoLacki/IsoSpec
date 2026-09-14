@@ -611,11 +611,20 @@ void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path)
 {
     return c_guard([&]() -> void*
     {
-        ElementComposition composition = parse_fasta_with_mods(sequence, resolve_unimod_table(unimod_db_path));
+        // Reused across calls on this thread (parse_fasta_with_mods_into only
+        // clears it, never releases capacity) -- avoids reallocating the
+        // scratch ElementComposition on every single call from Python/R,
+        // which is the real hot path this matters for (millions of peptides).
+        // Nothing below retains a pointer into `scratch` itself: `counts` is
+        // copied out by value, and `symbols` is built from elem_table_symbol's
+        // static string-literal pointers, not from `scratch`'s own storage --
+        // safe to overwrite `scratch` on the next call.
+        thread_local ElementComposition scratch;
+        parse_fasta_with_mods_into(sequence, scratch, resolve_unimod_table(unimod_db_path));
         std::unique_ptr<ElementCompositionHandle> handle(new ElementCompositionHandle());
-        handle->counts = composition.count;
-        handle->symbols.reserve(composition.element_first_index.size());
-        for(int idx : composition.element_first_index)
+        handle->counts = scratch.count;
+        handle->symbols.reserve(scratch.element_first_index.size());
+        for(int idx : scratch.element_first_index)
             handle->symbols.push_back(elem_table_symbol[idx]);
         return handle.release();
     });
