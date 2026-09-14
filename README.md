@@ -56,18 +56,14 @@ iso = IsoSpecPy.IsoTotalProb(formula="H2O1", prob_to_cover=0.999)
 for mass, prob in zip(iso.masses, iso.probs):
     print(mass, prob)
 
-# From an amino-acid FASTA sequence:
-iso = IsoSpecPy.IsoTotalProb(fasta="AAAPPGQAAC", prob_to_cover=0.999)
+# From an amino-acid sequence:
+iso = IsoSpecPy.IsoTotalProb(peptide_sequence="AAAPPGQAAC", prob_to_cover=0.999)
 print(list(zip(iso.masses, iso.probs)))
 
-# From a peptide sequence carrying [UNIMOD:<id>] modification tags (the
-# notation this monorepo's SAGE search-engine fork writes: [UNIMOD:<id>]-
-# prefix for an N-terminal mod, X[UNIMOD:<id>] inline for an internal one,
-# -[UNIMOD:<id>] suffix for a C-terminal one). peptide_sequence= is the
-# recommended spelling going forward -- fasta= is now just an alias of it,
-# kept for backward compatibility, since it never actually accepted a
-# FASTA *file* (no `>` header, no multi-record support), only a bare
-# sequence string:
+# ...optionally carrying [UNIMOD:<id>] modification tags (the notation this
+# monorepo's SAGE search-engine fork writes: [UNIMOD:<id>]-SEQUENCE prefix
+# for an N-terminal mod, X[UNIMOD:<id>] inline for an internal one,
+# SEQUENCE-[UNIMOD:<id>] suffix for a C-terminal one):
 iso = IsoSpecPy.IsoTotalProb(peptide_sequence="PEPTC[UNIMOD:4]DEK", prob_to_cover=0.999)
 print(list(zip(iso.masses, iso.probs)))
 
