@@ -46,15 +46,19 @@ RIsotopicTable <- function() {
 # from our own core table), and stay exactly as sysdata.rda already has them
 # (lazy-loaded automatically, same as before this change).
 #
-# Note this does NOT make `data(isotopicData)` (the public, documented
-# dataset accessor) dynamic -- that reads data/isotopicData.rda straight off
-# disk, a mechanism this package doesn't control the internals of. That
-# static file has been regenerated once, at the time of this change, to
-# match; if the core table changes again later, data/isotopicData.rda needs
-# a manual re-export (see this file's history for the one-off script used)
-# while R/sysdata.rda's IsoSpec* entries no longer matter at all, since this
-# hook overwrites them in the namespace on every load regardless of what's
-# on disk there.
+# data/isotopicData.rda (the old data()-accessible static copy) is gone --
+# deleted, not just superseded -- so there is now exactly one isotopicData,
+# this one, exported directly from the package namespace (see
+# data_description.R's `@rawNamespace export(isotopicData)`; a bare string
+# there is roxygen's doc-only convention, it creates no binding itself).
+# `data(isotopicData)` no longer works and nothing should call it; plain
+# `isotopicData` after library(IsoSpecR) is the only access path now, and it
+# can no longer silently drift from what IsoSpecify() uses -- they're the
+# same object. R/sysdata.rda still supplies the *initial* binding this
+# function reads below (that's where enviPat/enviPatShort still live,
+# lazy-loaded same as always) -- only its IsoSpec* fields are now always
+# stale-on-disk-but-irrelevant, since this hook overwrites them in the
+# namespace on every load regardless of what's on disk there.
 .onLoad <- function(libname, pkgname) {
     ns <- asNamespace(pkgname)
     current <- get("isotopicData", envir = ns)
