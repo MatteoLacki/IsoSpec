@@ -17,6 +17,7 @@ import time
 
 import IsoSpecPy
 from IsoSpecPy.isoFFI import isoFFI
+from IsoSpecPy.IsoSpecPy import _UNIMOD_CSV_PATH
 
 HERE = os.path.dirname(__file__)
 FIXTURE_PATH = os.path.join(HERE, "data", "sample_peptide_sequences.txt")
@@ -30,7 +31,7 @@ def _load_sequences():
 
 def _load_unimod_ids():
     with open(UNIMOD_CSV_PATH) as f:
-        return [int(row["id"]) for row in csv.DictReader(f)]
+        return [int(row["id"]) for row in csv.DictReader(f) if row["composition"]]
 
 
 def _decorate(seq, mod_id, rng):
@@ -90,7 +91,7 @@ def _old_atom_counts(seq):
 
 
 def _new_atom_counts(seq):
-    handle = isoFFI.clib.parseFastaWithModsC(seq.encode("ascii"), isoFFI.ffi.NULL)
+    handle = isoFFI.clib.parseFastaWithModsC(seq.encode("ascii"), os.fsencode(_UNIMOD_CSV_PATH))
     assert handle != isoFFI.ffi.NULL, "parseFastaWithModsC failed on plain sequence: " + seq
     try:
         n = isoFFI.clib.compositionSizeC(handle)

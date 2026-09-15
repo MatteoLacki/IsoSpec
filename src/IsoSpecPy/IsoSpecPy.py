@@ -22,6 +22,10 @@ from . import PeriodicTbl
 from .confs_passthrough import ConfsPassthrough
 from collections import namedtuple, OrderedDict
 import math
+import os
+from pathlib import Path
+
+_UNIMOD_CSV_PATH = Path(__file__).resolve().parent / "data" / "unimod.csv"
 
 regex_pattern = re.compile('([A-Z][a-z]?)(-?[0-9]*)')
 ParsedFormula = namedtuple('ParsedFormula', 'atomCounts masses probs elems')
@@ -84,7 +88,7 @@ def ParsePeptideSequence(sequence, unimod_db_path=None):
             [UNIMOD:<id>] modification brackets.
         unimod_db_path (str, optional): path to an override Unimod
             composition-delta table (same CSV shape as data/unimod.csv).
-            None (default) uses the table embedded at compile time.
+            None (default) uses the packaged CSV.
 
     Returns:
         An OrderedDict of element symbol -> atom count, e.g. {"C": 42, "H":
@@ -103,7 +107,7 @@ def ParsePeptideSequence(sequence, unimod_db_path=None):
     """
     if isinstance(sequence, str):
         sequence = sequence.encode("ascii")
-    db_path = isoFFI.ffi.NULL if unimod_db_path is None else str(unimod_db_path).encode("ascii")
+    db_path = os.fsencode(_UNIMOD_CSV_PATH if unimod_db_path is None or str(unimod_db_path) == "" else unimod_db_path)
 
     composition = isoFFI.clib.parseFastaWithModsC(sequence, db_path)
     if composition == isoFFI.ffi.NULL:
@@ -207,7 +211,7 @@ class Iso(object):
                 other, not both.
             unimod_db_path (str, optional): override Unimod composition-delta table for
                 resolving [UNIMOD:<id>] references in 'fasta'/'peptide_sequence' (same CSV
-                shape as data/unimod.csv). None (default) uses the compile-time embedded table.
+                shape as data/unimod.csv). None (default) uses the packaged CSV.
             charge (float): charge state of the molecule: all masses will be divided by this value to obtain the m/z values.
         """
 

@@ -15,7 +15,7 @@ print("Masses and probabilities in AAAPPGQAAC with thioglycine modification:")
 print([(m, p) for (m, p) in zip(MZI_opt2.masses, MZI_opt2.probs)])
 
 # For a *named* modification, [UNIMOD:<id>] notation is resolved directly
-# against a table of ~980 Unimod entries embedded in the library, no manual
+# against a table of ~980 Unimod entries in the packaged CSV, no manual
 # formula arithmetic needed. peptide_sequence= is the recommended spelling
 # (fasta= is now just an alias of it, kept for backward compatibility).
 # Placement matches this monorepo's SAGE search-engine fork's own peptide

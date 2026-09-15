@@ -135,16 +135,19 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //! better name if backward compatibility with FromFASTA's name were not
     //! a concern; see docs/ai/unimod.md.
     //! \param mods The Unimod composition-delta table to resolve bracket ids
-    //!             against -- embedded_unimod_table() (the compile-time
-    //!             default) unless the caller has a specific override table
-    //!             (e.g. from unimod_table_for_path()).
+    //!             against. There is no compile-time default table: the caller
+    //!             owns one (parse_unimod_csv) or borrows the cached one
+    //!             (unimod_table_for_path). Python and R resolve their own
+    //!             packaged data/unimod.csv and pass it down.
     static Iso FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool use_nominal_masses = false, bool add_water = true);
 
-    //! Convenience overload: unimod_db_path == nullptr or "" uses the
-    //! compile-time embedded default table; otherwise resolves and caches
-    //! the table at that path (unimod_table_for_path -- a single cached
-    //! (path, table) pair, not a map, since a process realistically uses 0
-    //! or 1 distinct override paths in its lifetime).
+    //! Convenience overload taking a path instead of a table: resolves and
+    //! caches the CSV at unimod_db_path (unimod_table_for_path -- a single
+    //! cached (path, table) pair, not a map, since a process realistically
+    //! uses 0 or 1 distinct paths in its lifetime). A sequence containing no
+    //! '[' resolves nothing, so it needs no table and accepts nullptr/"";
+    //! an annotated sequence with no path throws. cwrapper.cpp's
+    //! resolve_unimod_table mirrors this rule exactly.
     static Iso FromFASTAWithMods(const char* sequence, bool use_nominal_masses = false, bool add_water = true, const char* unimod_db_path = nullptr);
 
     //! The move constructor.

@@ -26,7 +26,7 @@
 #' @param sequence A peptide sequence string, e.g. \code{"PEPTC[UNIMOD:4]DEK"}.
 #' @param unimod_db_path Optional path to an override Unimod composition-delta
 #'   CSV (same \code{id,name,mono_mass,composition} shape as the table
-#'   embedded in the package). Empty string (the default) uses the embedded
+#'   shipped in the package). Empty string (the default) uses the packaged
 #'   table.
 #' @return A named integer vector of element symbol -> atom count, e.g.
 #'   \code{c(C=44, H=69, N=11, O=17, S=2)}.

@@ -55,3 +55,5 @@ install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     PATTERN "*.h"
     PATTERN "*.hpp"
 )
+
+install(FILES ../../data/unimod.csv DESTINATION ${CMAKE_INSTALL_DATADIR}/IsoSpec)

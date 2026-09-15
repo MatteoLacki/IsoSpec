@@ -245,8 +245,12 @@ IntegerVector RParsePeptideSequence(
     const std::string&      sequence,
     std::string             unimod_db_path = ""
 ){
-    const UnimodTable& mods = unimod_db_path.empty() ? embedded_unimod_table()
-                                                       : unimod_table_for_path(unimod_db_path);
+    if (unimod_db_path.empty()) {
+        Function system_file = Environment::base_env()["system.file"];
+        unimod_db_path = as<std::string>(system_file("extdata", "unimod.csv",
+            Named("package") = "IsoSpecR", Named("mustWork") = true));
+    }
+    const UnimodTable& mods = unimod_table_for_path(unimod_db_path);
     // Rcpp translates an escaped C++ exception (std::invalid_argument on a
     // malformed bracket or an unknown/excluded id) into an R error
     // automatically -- no manual try/catch needed here.

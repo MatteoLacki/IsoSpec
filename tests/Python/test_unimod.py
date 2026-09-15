@@ -86,6 +86,25 @@ def test_unimod_db_path_override(tmp_path):
     expected["H"] = expected.get("H", 0) + 1
     assert dict(overridden) == expected
 
-    # The embedded default is untouched by having loaded an override.
+    # The packaged default is untouched by having loaded an override.
     still_default = ParsePeptideSequence("PEPTC[UNIMOD:4]DEK")
     assert still_default["C"] - base["C"] == 2  # Carbamidomethyl's real C delta, not the override's 0
+
+
+def test_packaged_csv_exists_and_keeps_exclusion_reasons():
+    import csv
+    from IsoSpecPy.IsoSpecPy import _UNIMOD_CSV_PATH
+    with _UNIMOD_CSV_PATH.open() as source:
+        entries = {int(row["id"]): row for row in csv.DictReader(source)}
+    assert entries[4]["composition"] == "H3C2N1O1"
+    assert not entries[9]["composition"]
+    assert "isotope" in entries[9]["reason"]
+    assert all(row["composition"] or row["reason"] for row in entries.values())
+
+
+def test_csv_override_path_accepts_non_ascii(tmp_path):
+    override = tmp_path / "módifications.csv"
+    override.write_text("id,name,mono_mass,composition\n4,Override,1.0,H1\n")
+    result = ParsePeptideSequence("A[UNIMOD:4]", unimod_db_path=override)
+    base = ParsePeptideSequence("A")
+    assert result["H"] == base["H"] + 1

@@ -69,6 +69,12 @@ include = [
     # skbuild/CMakeLists.txt include()s IsaDispatch.cmake; without this the
     # sdist configures no further than that line.
     "/src/IsoSpec++/*.cmake",
+    # The one canonical copy. src/IsoSpecPy/data/unimod.csv is a symlink to
+    # it, for running straight from a checkout; the wheel gets its own copy
+    # from skbuild/CMakeLists.txt's install(FILES ../data/unimod.csv), so
+    # listing the symlink here too would only put a dereferenced 124KB
+    # duplicate in the sdist.
+    "/data/unimod.csv",
     "/VERSION",
     "/LICENCE",
     "/README.md",

@@ -1,3 +1,5 @@
+> Historical implementation plan. Current runtime CSV storage and packaging: see `docs/ai/unimod.md`.
+
 # Unimod-aware peptide sequence parsing for IsoSpec
 
 ## Context

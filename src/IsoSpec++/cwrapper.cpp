@@ -591,11 +591,21 @@ struct ElementCompositionHandle
     std::vector<int> counts;
 };
 
-const UnimodTable& resolve_unimod_table(const char* unimod_db_path)
+// Mirrors Iso::FromFASTAWithMods(sequence, ..., unimod_db_path)'s resolution
+// rule exactly, so the two entry points cannot disagree about what a null or
+// empty path means: a sequence with no '[' resolves nothing and therefore
+// needs no table at all, while an annotated one demands a real path and gets
+// unimod_table_for_path's own "a path is required" diagnostic rather than a
+// misleading "unknown id" from the bracket that could never have resolved.
+const UnimodTable& resolve_unimod_table(const char* sequence, const char* unimod_db_path)
 {
-    if(unimod_db_path == nullptr || unimod_db_path[0] == '\0')
-        return embedded_unimod_table();
-    return unimod_table_for_path(unimod_db_path);
+    const char* path = (unimod_db_path == nullptr) ? "" : unimod_db_path;
+    if(path[0] == '\0' && strchr(sequence, '[') == nullptr)
+    {
+        static const UnimodTable empty;
+        return empty;
+    }
+    return unimod_table_for_path(path);
 }
 }  // anonymous namespace
 
@@ -626,7 +636,7 @@ void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path)
         // static string-literal pointers, not from `scratch`'s own storage --
         // safe to overwrite `scratch` on the next call.
         static ElementComposition scratch;
-        parse_fasta_with_mods_into(sequence, scratch, resolve_unimod_table(unimod_db_path));
+        parse_fasta_with_mods_into(sequence, scratch, resolve_unimod_table(sequence, unimod_db_path));
         std::unique_ptr<ElementCompositionHandle> handle(new ElementCompositionHandle());
         handle->counts = scratch.count;
         handle->symbols.reserve(scratch.element_first_index.size());

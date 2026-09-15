@@ -96,7 +96,7 @@ void consume_unimod_bracket(const char*& p, const UnimodTable& mods, int accumul
         throw std::invalid_argument(std::string("Malformed modification bracket (id out of range): ") + p);
     }
 
-    const UnimodEntry* entry = mods.lookup(static_cast<unsigned int>(id));
+    const UnimodEntry* entry = mods.lookup(id);
     if (entry == nullptr)
         throw std::invalid_argument("Unknown or unsupported UNIMOD id in sequence: UNIMOD:" + std::to_string(id));
 
@@ -249,12 +249,10 @@ Iso Iso::FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool u
 Iso Iso::FromFASTAWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path) {
     if (strchr(sequence, '[') == nullptr)
         // As above, and also skips resolving/loading unimod_db_path's table
-        // (embedded or override) entirely when there's nothing to look up.
+        // entirely when there's nothing to look up.
         return Iso::FromFASTA(sequence, use_nominal_masses, add_water);
 
-    const UnimodTable& mods = (unimod_db_path == nullptr || unimod_db_path[0] == '\0')
-                                   ? embedded_unimod_table()
-                                   : unimod_table_for_path(unimod_db_path);
+    const UnimodTable& mods = unimod_table_for_path(unimod_db_path == nullptr ? "" : unimod_db_path);
     return FromFASTAWithMods(sequence, mods, use_nominal_masses, add_water);
 }
 

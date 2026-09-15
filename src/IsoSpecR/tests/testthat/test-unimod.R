@@ -42,7 +42,25 @@ test_that("a malformed modification bracket errors", {
   expect_error(RParsePeptideSequence("PEPTC[UNIMOD:]DEK"))     # missing numeric id
 })
 
-test_that("an empty unimod_db_path uses the embedded default table", {
+test_that("an empty unimod_db_path uses the packaged default table", {
   res <- RParsePeptideSequence("PEPTC[UNIMOD:4]DEK", unimod_db_path = "")
   expect_true("C" %in% names(res))
+})
+
+
+test_that("the installed CSV includes support and exclusion reasons", {
+  path <- system.file("extdata", "unimod.csv", package = "IsoSpecR", mustWork = TRUE)
+  table <- read.csv(path, stringsAsFactors = FALSE)
+  expect_equal(table$composition[table$id == 4], "H3C2N1O1")
+  expect_equal(table$composition[table$id == 9], "")
+  expect_match(table$reason[table$id == 9], "isotope")
+})
+
+test_that("four-column CSV overrides remain supported", {
+  path <- tempfile(fileext = ".csv")
+  on.exit(unlink(path))
+  writeLines(c("id,name,mono_mass,composition", "4,Override,1.0,H1"), path)
+  plain <- RParsePeptideSequence("A")
+  modified <- RParsePeptideSequence("A[UNIMOD:4]", path)
+  expect_equal(unname(modified["H"] - plain["H"]), 1L)
 })

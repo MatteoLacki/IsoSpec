@@ -72,7 +72,7 @@ composition = IsoSpecPy.ParsePeptideSequence("PEPTC[UNIMOD:4]DEK")
 print(dict(composition))  # {'H': 60, 'C': 39, 'N': 10, 'O': 16, 'S': 1}
 ```
 
-Resolves against a table of ~980 Unimod entries embedded in the library (isotope-labelled and glycan/derivatization "brick" modifications are excluded -- they aren't representable as a pure elemental delta). Pass `unimod_db_path="/path/to/table.csv"` to either function to resolve against a different table instead (same `id,name,mono_mass,composition` CSV shape as the embedded default).
+Resolves against a packaged CSV containing ~980 supported Unimod entries (isotope-labelled and glycan/derivatization "brick" modifications are excluded -- they aren't representable as a pure elemental delta). Pass `unimod_db_path="/path/to/table.csv"` to either function to resolve against a different table instead (CSV columns `id,name,mono_mass,composition`, optionally followed by `reason`).
 
 See `Examples/Python/` for radiolabelling, custom elements, binned spectra, and FASTA/Unimod modifications.
 
@@ -103,8 +103,9 @@ From a peptide sequence, optionally carrying `[UNIMOD:<id>]` modification tags (
 using namespace IsoSpec;
 
 int main() {
+    const auto& mods = unimod_table_for_path("/path/to/unimod.csv");
     FixedEnvelope iso = FixedEnvelope::FromTotalProb(
-        Iso::FromFASTAWithMods("PEPTC[UNIMOD:4]DEK"), 0.999, true, true);
+        Iso::FromFASTAWithMods("PEPTC[UNIMOD:4]DEK", mods), 0.999, true, true);
 
     for (size_t i = 0; i < iso.confs_no(); ++i) {
         std::cout << iso.mass(i) << '\t' << iso.prob(i) << '\n';
@@ -112,7 +113,7 @@ int main() {
 }
 ```
 
-`Iso::FromFASTAWithMods` takes an optional trailing `unimod_db_path` argument to resolve against a different Unimod table instead of the one embedded at compile time. For just the composition, no envelope, call `parse_fasta_with_mods`/`parse_fasta_with_mods_full` directly (or the allocation-free `_into` forms, for a hot loop over many sequences) — see `fasta_mods.h`.
+`Iso::FromFASTAWithMods` requires a table or CSV path for annotated sequences. CMake installs the CSV under `share/IsoSpec`; Python and R locate their packaged copy automatically. Tables are parsed once and cached. `mods.supports(id)` checks usability; empty-composition CSV rows explain exclusions in the `reason` column. For just the composition, no envelope, call `parse_fasta_with_mods`/`parse_fasta_with_mods_full` directly (or the allocation-free `_into` forms, for a hot loop over many sequences) — see `fasta_mods.h`.
 
 Quickest way to build:
 

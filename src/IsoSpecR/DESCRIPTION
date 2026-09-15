@@ -28,12 +28,13 @@ Description: IsoSpec is a fine structure calculator used for obtaining the most
 License: BSD_2_clause + file LICENCE
 URL: http://matteolacki.github.io/IsoSpec/
 Depends:
-    R (>= 3.0.0)
+    R (>= 4.0.0)
 Imports:
     Rcpp (>= 0.12.0)
 Suggests:
     testthat
 LazyData: no
 LinkingTo: Rcpp
+SystemRequirements: C++20
 NeedsCompilation: yes
 RoxygenNote: 7.1.1

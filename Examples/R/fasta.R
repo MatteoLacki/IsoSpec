@@ -17,7 +17,7 @@ cat("Masses and probabilities in AAAPPGQAAC with thioglycine modification:\n")
 print(res)
 
 # For a *named* modification, [UNIMOD:<id>] notation is resolved directly
-# against a table of ~980 Unimod entries embedded in the library -- no
+# against a table of ~980 Unimod entries in the packaged CSV -- no
 # manual formula arithmetic needed. Placement matches this monorepo's SAGE
 # search-engine fork's own peptide output: "[UNIMOD:<id>]-SEQUENCE" for an
 # N-terminal mod, "X[UNIMOD:<id>]" for an internal one,

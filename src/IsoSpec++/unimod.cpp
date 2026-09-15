@@ -16,44 +16,43 @@
 
 #include "unimod.h"
 
+#include <charconv>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
 #include "isoSpec++.h"  // parse_formula_tokens -- reused for reading a composition column
-#include "unimod_table_data.h"
 
 namespace IsoSpec {
 
 namespace {
 
-// Splits a CSV line into exactly 4 fields (id, name, mono_mass, composition).
-// Unimod names never contain a comma in the shipped table, but this stays
-// defensive for a hand-edited override CSV: if splitting on ',' yields more
-// than 4 pieces, the extra commas are assumed to belong to the name field
-// (the only free-text one) and are rejoined into it.
+// CSV metadata can contain quoted commas and escaped quotes. Rows occupy one
+// line, as emitted by the generator; composition is the fourth column.
 std::vector<std::string> split_csv_line(const std::string& line) {
     std::vector<std::string> fields;
-    std::stringstream ss(line);
     std::string field;
-    while (std::getline(ss, field, ','))
-        fields.push_back(field);
-    if (fields.size() < 4)
-        throw std::invalid_argument("Invalid unimod CSV row (expected 4 fields): " + line);
-    if (fields.size() > 4) {
-        std::string composition = fields.back();
-        fields.pop_back();
-        std::string mono_mass = fields.back();
-        fields.pop_back();
-        std::string id = fields.front();
-        std::string name;
-        for (size_t i = 1; i < fields.size(); i++) {
-            if (i > 1)
-                name += ",";
-            name += fields[i];
+    bool quoted = false;
+    for (size_t i = 0; i < line.size(); ++i) {
+        char ch = line[i];
+        if (ch == '"') {
+            if (quoted && i + 1 < line.size() && line[i + 1] == '"') {
+                field += '"';
+                ++i;
+            } else {
+                quoted = !quoted;
+            }
+        } else if (ch == ',' && !quoted) {
+            fields.push_back(field);
+            field.clear();
+        } else {
+            field += ch;
         }
-        fields = {id, name, mono_mass, composition};
     }
+    fields.push_back(field);
+    if (quoted || (fields.size() != 4 && fields.size() != 5))
+        throw std::invalid_argument("Invalid unimod CSV row: " + line);
     return fields;
 }
 
@@ -71,18 +70,31 @@ UnimodTable parse_unimod_csv(const std::string& csv_text) {
         if (line.empty())
             continue;
         if (first_line) {
-            // header row ("id,name,mono_mass,composition")
+            // header row ("id,name,mono_mass,composition[,reason]")
             first_line = false;
             continue;
         }
 
         std::vector<std::string> fields = split_csv_line(line);
 
-        unsigned long id;
-        try {
-            id = std::stoul(fields[0]);
-        } catch (const std::exception&) {
+        unsigned int id;
+        const auto parsed = std::from_chars(fields[0].data(), fields[0].data() + fields[0].size(), id);
+        if (parsed.ec != std::errc() || parsed.ptr != fields[0].data() + fields[0].size())
             throw std::invalid_argument("Invalid unimod CSV row (bad id): " + line);
+        // vector::max_size() is ~2^57 here, so checking against it would let
+        // a typo'd or hostile id (say 4000000000, which fits in unsigned int)
+        // through to a resize() of ~400GB -- std::bad_alloc, not the clean
+        // std::invalid_argument every other malformed row produces. Cap at a
+        // bound comfortably above any real Unimod id instead: the 2026-09
+        // snapshot's largest is 2147.
+        constexpr unsigned int kMaxUnimodId = 1000000;
+        if (id > kMaxUnimodId)
+            throw std::invalid_argument("Invalid unimod CSV row (id out of range): " + line);
+        if (id >= table.entries_.size())
+            table.entries_.resize(static_cast<size_t>(id) + 1);
+        if (fields[3].empty()) {
+            table.entries_[id] = UnimodEntry();
+            continue;
         }
 
         double mono_mass;
@@ -103,25 +115,10 @@ UnimodTable parse_unimod_csv(const std::string& csv_text) {
         // Unimod's own "H(3) C(2) N O" notation.
         parse_formula_tokens(fields[3].c_str(), entry.element_first_index, entry.element_delta_count);
 
-        if (id >= table.entries_.size())
-            table.entries_.resize(id + 1);
         table.entries_[id] = std::move(entry);
     }
 
     return table;
-}
-
-const UnimodTable& embedded_unimod_table() {
-    // kEmbeddedUnimodCsvChunks is split into pieces small enough for MSVC's
-    // string-literal size limit (see unimod_table_data.h's header comment);
-    // reassemble into one string once, here, before parsing.
-    static const UnimodTable instance = [] {
-        std::string csv;
-        for (std::size_t i = 0; i < kEmbeddedUnimodCsvChunkCount; i++)
-            csv += kEmbeddedUnimodCsvChunks[i];
-        return parse_unimod_csv(csv);
-    }();
-    return instance;
 }
 
 const UnimodTable& unimod_table_for_path(const std::string& path) {
@@ -130,6 +127,8 @@ const UnimodTable& unimod_table_for_path(const std::string& path) {
     // once at startup), so a full path-keyed cache would buy nothing. Not
     // synchronized -- IsoSpec is single-threaded by design (see this repo's
     // CLAUDE.md); do not call this from more than one thread.
+    if (path.empty())
+        throw std::invalid_argument("A Unimod CSV path is required");
     static std::string cached_path;
     static UnimodTable cached_table;
     static bool cached_valid = false;
@@ -137,7 +136,14 @@ const UnimodTable& unimod_table_for_path(const std::string& path) {
     if (cached_valid && cached_path == path)
         return cached_table;
 
-    std::ifstream file(path);
+    // The path is interpreted as UTF-8, not the platform's narrow encoding:
+    // on Windows, std::filesystem::path(std::string) decodes via the active
+    // code page, which mangles a non-ASCII path before the file is ever
+    // opened. std::filesystem::u8path would say this more directly but is
+    // deprecated in C++20 (a hard error under this repo's -Werror debug
+    // build), so construct from char8_t* instead -- same result, no
+    // deprecation.
+    std::ifstream file(std::filesystem::path(reinterpret_cast<const char8_t*>(path.c_str())));
     if (!file)
         throw std::invalid_argument("Failed to open unimod db: " + path);
     std::stringstream buffer;

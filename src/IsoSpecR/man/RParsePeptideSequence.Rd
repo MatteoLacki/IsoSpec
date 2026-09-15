@@ -11,7 +11,7 @@ RParsePeptideSequence(sequence, unimod_db_path = "")
 
 \item{unimod_db_path}{Optional path to an override Unimod composition-delta
 CSV (same \code{id,name,mono_mass,composition} shape as the table
-embedded in the package). Empty string (the default) uses the embedded
+shipped in the package). Empty string (the default) uses the packaged
 table.}
 }
 \value{

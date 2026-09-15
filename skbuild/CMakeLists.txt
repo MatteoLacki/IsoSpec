@@ -69,3 +69,5 @@ install(TARGETS IsoSpecCppPy LIBRARY DESTINATION IsoSpecPy)
 install(DIRECTORY ../src/IsoSpec++/ DESTINATION IsoSpecPy/IsoSpec++
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.hxx"
 )
+
+install(FILES ../data/unimod.csv DESTINATION IsoSpecPy/data)

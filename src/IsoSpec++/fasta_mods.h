@@ -68,11 +68,14 @@ struct ElementComposition {
 //! in `mods` -- covers both a genuinely-unknown id and one of the ids
 //! data/unimod.csv deliberately excludes (isotope-labeled, glycan/
 //! derivatization "brick" entries) alike, same error, no special-casing.
-ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods = embedded_unimod_table());
+//! `mods` has no default: there is no compile-time embedded table any more,
+//! so every caller names the table it means (unimod_table_for_path, or an
+//! owned parse_unimod_csv result) -- see docs/ai/unimod.md.
+ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods);
 
 //! As above, plus terminal H2O -- mirrors parse_fasta_full's role for the
 //! mods-unaware path.
-ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods = embedded_unimod_table());
+ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods);
 
 //! Same as parse_fasta_with_mods, but fills a caller-owned `out` in place
 //! (cleared first) instead of returning a fresh ElementComposition -- the
@@ -81,11 +84,11 @@ ElementComposition parse_fasta_with_mods_full(const char* sequence, const Unimod
 //! once per call). parse_fasta_with_mods/_full are thin convenience wrappers
 //! around this pair for one-off callers.
 void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out,
-                                 const UnimodTable& mods = embedded_unimod_table());
+                                 const UnimodTable& mods);
 
 //! As above, plus terminal H2O.
 void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& out,
-                                      const UnimodTable& mods = embedded_unimod_table());
+                                      const UnimodTable& mods);
 
 //! Resolves a composition (as returned by parse_fasta_with_mods[_full]) into
 //! an Iso via the same generic Iso(dimNumber, isotopeNumbers, atomCounts,

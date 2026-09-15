@@ -214,14 +214,17 @@ ISOSPEC_C_API void parse_fasta_c(const char* fasta, int atomCounts[6]);
 /* Unimod-modification-aware peptide sequence parsing (fasta_mods.h/unimod.h):
    recognizes [UNIMOD:<id>] brackets in N-terminal ("[id]-SEQ"), internal
    ("X[id]"), and C-terminal ("SEQ-[id]") placement -- see docs/ai/unimod.md.
-   unimod_db_path == NULL or "" selects the compile-time embedded default
-   table; any other path is loaded and cached (see unimod_table_for_path).
-   NULL on error (malformed bracket, unknown/excluded id) -- callers must
-   NULL-check like every other handle-returning function here. */
+   unimod_db_path names the CSV to resolve ids against; there is no
+   compile-time embedded table, so an annotated sequence with NULL or "" is an
+   error. A sequence with no bracket resolves nothing and accepts either.
+   NULL on error (malformed bracket, unknown/excluded id, missing path) --
+   callers must NULL-check like every other handle-returning function here. */
 ISOSPEC_C_API void* isoFromFastaWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path);
 
-/* Opaque parsed-composition handle: NULL_UNIMOD_db_path selects the embedded
-   default table, same as above. NULL return on error. */
+/* Opaque parsed-composition handle: same unimod_db_path rule as above, and
+   deliberately the same rule the C++ Iso::FromFASTAWithMods overload applies,
+   so the two entry points cannot disagree. Python/R resolve their own
+   packaged data/unimod.csv path before calling. NULL return on error. */
 ISOSPEC_C_API void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path);
 ISOSPEC_C_API size_t compositionSizeC(void* composition);
 /* Element symbols, e.g. "C", "H", "Se" -- static strings (elem_table_symbol),
