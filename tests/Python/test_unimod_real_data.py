@@ -178,9 +178,29 @@ def test_old_and_new_iso_masses_match_exactly_on_plain_sequences():
     )
 
 
+# The two sides of this comparison do very different amounts of work, so the
+# bound has to leave room for that rather than pretend they are comparable:
+# _old_iso_masses is one C call, while _new_iso_masses builds a whole Python
+# Iso object. Measured breakdown of the new side, linux x86-64 / CPython 3.12,
+# 790 sequences x 3 reps: 12.59us per call total, of which the bare
+# parseFastaWithModsC call is 0.82us -- roughly 93% is interpreter overhead,
+# so this ratio mostly measures how fast the interpreter is relative to a C
+# call. That varies enormously across the matrix: 5.44x here, 12.65x on
+# macos-15-intel with CPython 3.9 (the slowest runner and the slowest Python
+# in the matrix), which tripped an earlier 10x bound with nothing actually
+# wrong.
+#
+# 30x still catches what this test exists to catch. The gross regression it
+# guards against is the Unimod table being re-parsed per call instead of
+# resolved from unimod_table_for_path's cache; one full parse_unimod_csv of
+# the shipped 2148-row table costs 1446us, so losing the cache would put the
+# ratio near 600x, not near 13x.
+MAX_NEW_OVER_OLD_RATIO = 30.0
+
+
 def test_old_vs_new_runtime_on_plain_sequences():
     """Not a strict perf gate (machine-dependent) -- reports real numbers and
-    only fails on a gross regression (>10x slower per call on average)."""
+    only fails on a gross regression (see MAX_NEW_OVER_OLD_RATIO above)."""
     plain, _ = _build_mixed_fixture()
     reps = 3
 
@@ -208,4 +228,6 @@ def test_old_vs_new_runtime_on_plain_sequences():
         )
     )
     print(summary)
-    assert ratio < 10.0, "new path is >10x slower than old: " + summary
+    assert ratio < MAX_NEW_OVER_OLD_RATIO, "new path is >{}x slower than old: {}".format(
+        MAX_NEW_OVER_OLD_RATIO, summary
+    )
