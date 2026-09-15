@@ -30,7 +30,8 @@ def _load_sequences():
 
 
 def _load_unimod_ids():
-    with open(UNIMOD_CSV_PATH) as f:
+    # Explicit encoding for the same reason as test_unimod.py's reader.
+    with open(UNIMOD_CSV_PATH, encoding="utf-8", newline="") as f:
         return [int(row["id"]) for row in csv.DictReader(f) if row["composition"]]
 
 

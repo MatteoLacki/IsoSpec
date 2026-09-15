@@ -94,7 +94,11 @@ def test_unimod_db_path_override(tmp_path):
 def test_packaged_csv_exists_and_keeps_exclusion_reasons():
     import csv
     from IsoSpecPy.IsoSpecPy import _UNIMOD_CSV_PATH
-    with _UNIMOD_CSV_PATH.open() as source:
+    # encoding= is explicit, not decorative: a bare open() decodes with the
+    # locale default, which is cp1252 on the Windows runners -- so a future
+    # Unimod refresh introducing a non-ASCII modification name would fail
+    # there and nowhere else. The 2026-09 snapshot happens to be pure ASCII.
+    with _UNIMOD_CSV_PATH.open(encoding="utf-8", newline="") as source:
         entries = {int(row["id"]): row for row in csv.DictReader(source)}
     assert entries[4]["composition"] == "H3C2N1O1"
     assert not entries[9]["composition"]

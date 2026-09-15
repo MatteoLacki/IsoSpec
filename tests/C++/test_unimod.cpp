@@ -46,6 +46,11 @@ TEST_CASE("Unimod CSV is the support ledger with original IDs") {
     size_t supported = 0;
     for (size_t id = 0; id < table.size(); ++id)
         supported += table.supports(id);
+    // 979 of the 1560 entries carrying a delta_composition in the 2026-09
+    // Unimod snapshot; the rest are isotope-labeled or use Unimod's glycan/
+    // derivatization "brick" shorthand (docs/ai/unimod.md). Regenerating
+    // data/unimod.csv against a newer release is expected to move this
+    // number -- update it here deliberately rather than loosening the check.
     CHECK(supported == 979);
 }
 

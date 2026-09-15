@@ -91,7 +91,9 @@ def parse_obo(text: str, known_symbols: set[str]) -> list[tuple]:
 
 def write_csv(rows: list[tuple]) -> None:
     CSV_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with CSV_OUTPUT_PATH.open("w", newline="") as f:
+    # UTF-8 regardless of the platform regenerating this, so the checked-in
+    # bytes never depend on whose locale ran the script.
+    with CSV_OUTPUT_PATH.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, lineterminator="\n")
         writer.writerow(["id", "name", "mono_mass", "composition", "reason"])
         writer.writerows(rows)
@@ -114,7 +116,7 @@ def main() -> None:
 
     if args.input is not None:
         print(f"reading {args.input}", file=sys.stderr)
-        text = args.input.read_text()
+        text = args.input.read_text(encoding="utf-8")
     else:
         print(f"fetching {UNIMOD_OBO_URL}", file=sys.stderr)
         with urllib.request.urlopen(UNIMOD_OBO_URL) as response:
