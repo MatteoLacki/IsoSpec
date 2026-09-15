@@ -79,6 +79,26 @@ snapshot this was built against:
 Referencing an excluded or genuinely-unknown id is the same error either way — a loud
 `std::invalid_argument`/`ValueError`, never a silent misresolution.
 
+### C++ support ledger
+
+`unimod_support.h` provides a compiled boolean array, `IsoSpec::unimod_supported`,
+indexed by original Unimod ID. Use the bounds-checked query for external IDs:
+
+```cpp
+#include "IsoSpec++/unimod_support.h"
+
+static_assert(IsoSpec::is_unimod_supported(4));   // Carbamidomethyl
+static_assert(!IsoSpec::is_unimod_supported(9));  // unsupported isotope label
+```
+
+The query returns false for unsupported or unknown IDs, including IDs beyond the
+array. It performs no allocation or CSV parsing. The generator derives the ledger
+from `data/unimod.csv` alongside the embedded table. Each false entry has a comment
+explaining its exclusion, derived from the same Unimod OBO source (or noting that
+the ID is absent from that snapshot). The ledger describes shipped support,
+independent of override CSVs. It does not validate modification sites or whether a
+particular peptide has enough atoms for a negative composition delta.
+
 ## Composition storage: reusing `parse_formula`, not a second tokenizer
 
 Each shipped entry's `delta_composition` is converted, once, at table-generation time, from
