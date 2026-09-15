@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -14,9 +15,27 @@
 #include "isoSpec++.h"
 #include "test_helpers.h"
 #include "unimod.h"
+#include "unimod_support.h"
 
 using namespace IsoSpec;
 using namespace test_helpers;
+
+TEST_CASE("Unimod support ledger preserves IDs and rejects out-of-range IDs") {
+    static_assert(is_unimod_supported(4), "Carbamidomethyl must be supported");
+    static_assert(!is_unimod_supported(9), "Isotope-labeled ICAT-G is unsupported");
+    CHECK_FALSE(is_unimod_supported(0));
+    CHECK_FALSE(is_unimod_supported(4294967300ULL));  // must not wrap to ID 4
+    CHECK_FALSE(is_unimod_supported(std::numeric_limits<std::uint64_t>::max()));
+
+    const UnimodTable& table = embedded_unimod_table();
+    const size_t ledger_size = sizeof(unimod_supported) / sizeof(unimod_supported[0]);
+    REQUIRE(ledger_size == table.size());
+    for (size_t id = 0; id < ledger_size; ++id) {
+        INFO("id=" << id);
+        CHECK(is_unimod_supported(id) == (table.lookup(static_cast<unsigned int>(id)) != nullptr));
+    }
+    CHECK_FALSE(is_unimod_supported(ledger_size));
+}
 
 TEST_CASE("FromFASTAWithMods matches FromFASTA for a plain, unmodified sequence") {
     for (const char* seq : {"PEPTIDE", "MKWVTFISLLLLFSSAYSRGV", ""}) {

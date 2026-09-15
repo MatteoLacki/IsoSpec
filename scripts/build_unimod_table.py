@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch unimod.obo and build data/unimod.csv + src/IsoSpec++/unimod_table_data.h.
+"""Fetch unimod.obo and build the CSV, embedded data, and C++ support ledger.
 
 Same source/approach as necromerge2's git/sage/scripts/build_unimod_table.py
 (https://www.unimod.org/obo/unimod.obo), extended to also capture each term's
@@ -25,7 +25,7 @@ Verified against a 2026-09 snapshot: 1560 terms have a delta_composition,
 979 survive this filter (~63%), including every practically-important common
 PTM (Carbamidomethyl, Oxidation, Phospho, Acetyl, Methyl, GG, Deamidated).
 
-Re-run this script to refresh both output files against a newer Unimod
+Re-run this script to refresh all output files against a newer Unimod
 release; they are checked in, not fetched/generated at build time.
 """
 from __future__ import annotations
@@ -40,6 +40,7 @@ UNIMOD_OBO_URL = "https://www.unimod.org/obo/unimod.obo"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CSV_OUTPUT_PATH = REPO_ROOT / "data" / "unimod.csv"
 HEADER_OUTPUT_PATH = REPO_ROOT / "src" / "IsoSpec++" / "unimod_table_data.h"
+SUPPORT_OUTPUT_PATH = REPO_ROOT / "src" / "IsoSpec++" / "unimod_support.h"
 
 ID_RE = re.compile(r"^id: UNIMOD:(\d+)$", re.MULTILINE)
 NAME_RE = re.compile(r"^name: (.+)$", re.MULTILINE)
@@ -64,46 +65,53 @@ def known_element_symbols() -> set[str]:
     return set(PeriodicTbl.symbol_to_masses.keys())
 
 
-def convert_composition(raw: str, known_symbols: set[str]) -> str | None:
+def convert_composition(raw: str, known_symbols: set[str]) -> str:
     """Convert a Unimod delta_composition string into IsoSpec's native
-    concatenated formula grammar, or return None if any token is an isotope
-    label or not a symbol IsoSpec knows (glycan/derivatization "bricks" like
-    Hex/HexNAc/dHex/NeuAc/Sulf/Ac, or anything else IsoSpec can't represent)."""
+    concatenated formula grammar. Raise ValueError with the exclusion reason
+    if a token cannot be represented."""
     out_parts = []
     for raw_token in raw.split():
         if ISOTOPE_TOKEN_RE.match(raw_token):
-            return None
+            raise ValueError(f"isotope-labeled token {raw_token}; pinned-isotope conversion not supported")
         m = TOKEN_RE.match(raw_token)
         if not m:
-            return None
+            raise ValueError(f"non-element token {raw_token}; group-to-formula expansion not supported")
         symbol, count = m.group(1), m.group(2)
         if symbol not in known_symbols:
-            return None
+            raise ValueError(f"token {raw_token} has no supported element symbol or group expansion")
         count = int(count) if count is not None else 1
         out_parts.append(f"{symbol}{count}")
     if not out_parts:
-        return None
+        raise ValueError("empty delta_composition")
     return "".join(out_parts)
 
 
-def parse_obo(text: str, known_symbols: set[str]) -> list[tuple[int, str, float, str]]:
+def parse_obo(text: str, known_symbols: set[str]) -> tuple[list[tuple[int, str, float, str]], dict[int, str]]:
     term_list = text.split("[Term]")
     term_list.pop(0)  # header/version block, not a term
 
     rows = []
+    exclusions = {}
     skipped_no_composition = 0
     skipped_unsupported = 0
     for term in term_list:
         id_match = ID_RE.search(term)
         mass_match = MASS_RE.search(term)
         composition_match = COMPOSITION_RE.search(term)
-        if not id_match or not mass_match:
-            continue  # e.g. UNIMOD:0 root node has no delta_mono_mass
+        if not id_match:
+            continue
+        id = int(id_match.group(1))
+        if not mass_match:
+            exclusions[id] = "ontology root, not a modification" if id == 0 else "missing delta_mono_mass"
+            continue
         if not composition_match:
+            exclusions[id] = "missing delta_composition"
             skipped_no_composition += 1
             continue
-        composition = convert_composition(composition_match.group(1), known_symbols)
-        if composition is None:
+        try:
+            composition = convert_composition(composition_match.group(1), known_symbols)
+        except ValueError as error:
+            exclusions[id] = str(error)
             skipped_unsupported += 1
             continue
         name_match = NAME_RE.search(term)
@@ -116,7 +124,7 @@ def parse_obo(text: str, known_symbols: set[str]) -> list[tuple[int, str, float,
         f"kept: {len(rows)}",
         file=sys.stderr,
     )
-    return rows
+    return rows, exclusions
 
 
 def write_csv(rows: list[tuple[int, str, float, str]]) -> None:
@@ -195,6 +203,47 @@ static const std::size_t kEmbeddedUnimodCsvChunkCount =
     print(f"wrote {HEADER_OUTPUT_PATH} ({len(chunks)} chunks)", file=sys.stderr)
 
 
+def write_support_header(exclusions: dict[int, str]) -> None:
+    """Generate the ledger from the embedded CSV, with reasons from its OBO source."""
+    with CSV_OUTPUT_PATH.open(newline="") as f:
+        supported_ids = {int(row["id"]) for row in csv.DictReader(f)}
+    size = max(supported_ids, default=0) + 1
+    lines = []
+    for id in range(size):
+        if id in supported_ids:
+            lines.append(f"    true,   // UNIMOD:{id}")
+        else:
+            reason = exclusions.get(id, "not present in source Unimod snapshot")
+            lines.append(f"    false,  // UNIMOD:{id}: {reason}")
+    values_text = "\n".join(lines)
+    header = f"""// Generated from data/unimod.csv and its Unimod OBO source by scripts/build_unimod_table.py.
+// Index = original Unimod ID; true = supported by the embedded IsoSpec table.
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+
+namespace IsoSpec {{
+
+inline constexpr bool unimod_supported[] = {{
+{values_text}
+}};
+
+//! Tests support in the shipped table without loading or parsing it.
+//! Unsupported and unknown IDs return false. Override CSVs do not affect this
+//! ledger. A supported modification still needs a compatible base composition.
+inline constexpr bool is_unimod_supported(std::uint64_t id) noexcept {{
+    return id < sizeof(unimod_supported) / sizeof(unimod_supported[0])
+        && unimod_supported[static_cast<std::size_t>(id)];
+}}
+
+}}  // namespace IsoSpec
+"""
+    SUPPORT_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SUPPORT_OUTPUT_PATH.write_text(header)
+    print(f"wrote {SUPPORT_OUTPUT_PATH} ({size} slots)", file=sys.stderr)
+
+
 def main() -> None:
     import argparse
 
@@ -217,11 +266,12 @@ def main() -> None:
             text = response.read().decode("utf-8")
 
     known_symbols = known_element_symbols()
-    rows = parse_obo(text, known_symbols)
+    rows, exclusions = parse_obo(text, known_symbols)
     rows.sort(key=lambda r: r[0])
 
     write_csv(rows)
     write_header()
+    write_support_header(exclusions)
 
 
 if __name__ == "__main__":
