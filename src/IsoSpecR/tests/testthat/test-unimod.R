@@ -46,3 +46,24 @@ test_that("an empty unimod_db_path uses the embedded default table", {
   res <- RParsePeptideSequence("PEPTC[UNIMOD:4]DEK", unimod_db_path = "")
   expect_true("C" %in% names(res))
 })
+
+# A modification's delta can remove more atoms of an element than the bare
+# sequence provides -- Met->Hsl (UNIMOD:11) is H-4 C-1 S-1, and a lone
+# glycine cannot pay for it. RParsePeptideSequence reports the negative net
+# (the arithmetic is correct and a further modification could bring it back
+# up); IsoSpecify must refuse it rather than silently dropping those elements
+# from every peak, which is what it did before.
+
+test_that("a net-negative composition is reported by the parser", {
+  composition <- RParsePeptideSequence("G[UNIMOD:11]")
+  expect_true(any(composition < 0))
+})
+
+test_that("IsoSpecify refuses a negative atom count instead of ignoring it", {
+  composition <- RParsePeptideSequence("G[UNIMOD:11]")
+  expect_error(IsoSpecR::IsoSpecify(composition, 0.99), "[Nn]egative")
+})
+
+test_that("an id past 32 bits is unknown, not silently truncated to a real one", {
+  expect_error(RParsePeptideSequence("PEPTC[UNIMOD:4294967300]DEK"))
+})

@@ -60,6 +60,25 @@ IsoSpecify <- function(
         isotopes <- isotopicData$IsoSpec
     }
 
+    # molecule[molecule > 0] below drops zero counts, which is right (an
+    # element with no atoms contributes nothing), but it used to drop
+    # negative ones just as quietly -- and a negative count is not an absence,
+    # it is an error. RParsePeptideSequence returns a signed composition (a
+    # modification's delta can remove more atoms of an element than the bare
+    # sequence provides: "G[UNIMOD:11]" nets H -1, S -1), and the documented
+    # two-call pattern feeds its result straight back in here, so this is
+    # reachable from ordinary use. Silently filtering those elements out
+    # produced a plausible-looking distribution for a molecule nobody asked
+    # about; say so instead.
+    if(isTRUE(any(molecule < 0))){  # isTRUE: an NA count is not this check's business
+        stop(paste0(
+            "Negative atom count for element(s): ",
+            paste(names(molecule)[molecule < 0], collapse = ", "),
+            " -- a molecule can't contain a negative number of atoms. If this vector came ",
+            "from RParsePeptideSequence, the sequence's modifications remove more of those ",
+            "elements than the bare sequence provides."))
+    }
+
     Rinterface(
         molecule        = molecule[ molecule > 0 ],
         isotopes        = isotopes,
