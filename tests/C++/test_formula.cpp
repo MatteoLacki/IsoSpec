@@ -124,8 +124,10 @@ TEST_CASE("malformed formulas are rejected with invalid_argument") {
         "H",          // ditto, single element
         "2H2",        // leading digit: element name parses as empty
         "H2 O1",      // space is neither digit nor alpha
-        "H2-O1",      // ditto
-        "H2O1!",      // ditto
+        "H2-O1",      // '-' is a count's sign, and here signs nothing
+        "H2O1-",      // ditto, at the end
+        "H--2O1",     // ditto, doubled
+        "H2O1!",      // '!' is neither digit nor alpha
         "Xx2",        // unknown element
         "Q1",         // unknown element, single letter
         "h2o1",       // symbols are case-sensitive
@@ -134,6 +136,35 @@ TEST_CASE("malformed formulas are rejected with invalid_argument") {
         INFO("formula='" << f << "'");
         CHECK_THROWS_AS(Iso{f}, std::invalid_argument);
     }
+}
+
+TEST_CASE("negative atom counts are rejected, not turned into a molecule") {
+    // parse_formula_tokens accepts a signed count because the Unimod
+    // composition-delta loader needs one ("H-2O-1" is a real modification
+    // delta). parse_formula must not: a negative atom count reaching Iso is
+    // undefined behaviour, not a wrong answer -- Marginal::computeModeConf()
+    // sizes its configuration buffer from the count and
+    // writeInitialConfiguration then runs off the end of it, which ASan
+    // reports as a heap-buffer-overflow. This used to be unreachable ('-'
+    // was rejected outright as a character) and must stay unreachable.
+    const char* const negative[] = {
+        "H-2O1",
+        "C-10H2O1",
+        "O-1",
+        "H2O-1",
+    };
+    for (const char* f : negative) {
+        INFO("formula='" << f << "'");
+        CHECK_THROWS_AS(Iso{f}, std::invalid_argument);
+    }
+
+    // ...while the tokenizer underneath still reads exactly those strings,
+    // which is what unimod.cpp depends on.
+    std::vector<int> indexes, counts;
+    parse_formula_tokens("H-2O-1", indexes, counts);
+    REQUIRE(counts.size() == 2);
+    CHECK(counts[0] == -2);
+    CHECK(counts[1] == -1);
 }
 
 TEST_CASE("a failed parse does not leave a half-built Iso behind") {

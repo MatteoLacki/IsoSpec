@@ -487,6 +487,20 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     std::vector<int> numbers;
     parse_formula_tokens(formula, element_indexes, numbers);
 
+    // parse_formula_tokens accepts signed counts because the Unimod
+    // composition-delta loader needs them ("H-2O-1" is a perfectly good
+    // modification delta). A molecule is not a delta: a negative atom count
+    // reaching Iso's constructor is not merely a wrong answer, it is
+    // undefined behaviour -- Marginal::computeModeConf() sizes its
+    // configuration buffer from the atom count and writeInitialConfiguration
+    // then walks off the end of it (caught as a heap-buffer-overflow by
+    // ASan). Before signed counts were introduced this was unreachable: '-'
+    // was rejected outright by the character check above. Keep it
+    // unreachable, here, where the tokens become a molecule.
+    for(size_t i = 0; i < numbers.size(); i++)
+        if(numbers[i] < 0)
+            throw std::invalid_argument("Invalid formula: negative atom count (a molecule can't contain a negative number of atoms; signed counts are only meaningful for a modification's composition delta)");
+
     std::vector<int> _isotope_numbers;
     const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
 
