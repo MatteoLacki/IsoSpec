@@ -93,6 +93,28 @@ def ParsePeptideSequence(sequence, unimod_db_path=None):
         modifications touch (not just CHNOSSe, unlike the plain
         amino-acid-only path this supersedes).
 
+        Two properties of that dict are worth knowing before you rely on
+        them. Only elements with a non-zero net count appear: a sequence with
+        no sulphur has no "S" key at all, rather than "S": 0. And key order
+        differs between the two internal paths -- a bracket-free sequence
+        comes back in CHNOSSe order, one carrying a [UNIMOD:<id>] bracket in
+        element-table (atomic number) order, since the general path
+        accumulates over the whole periodic table. Treat the result as a
+        mapping, not as a sequence of pairs in a promised order.
+
+        Like parse_fasta_c before it, this returns the *residue* composition:
+        the terminal H2O of a free peptide is NOT included, so the masses of
+        an Iso built from it are 18.0106 Da lighter than the neutral peptide.
+        Add water explicitly if you want the real molecule -- e.g.
+        IsoSpecPy.IsoTotalProb(0.99, peptide_sequence=seq, formula="H2O1").
+        (The C++ Iso::FromFASTAWithMods takes an add_water argument and
+        defaults it to True, so the two differ by a water unless you say so.)
+
+        Counts are signed: a modification whose delta removes more atoms of
+        an element than the bare sequence provides gives a negative count
+        (ParsePeptideSequence("G[UNIMOD:11]") -> H: -1, S: -1). That is
+        rejected later, when a composition is turned into an Iso, not here.
+
     Raises:
         ValueError: the sequence contains a malformed [UNIMOD:<id>] bracket,
             or references an id not present in the active table (covers both
@@ -130,8 +152,13 @@ def ParseFASTA(fasta, unimod_db_path=None):
     UNIMOD-bracket-containing string as extra phantom amino acids (every
     letter in "UNIMOD" happens to be a valid 1-letter amino-acid code); that
     was a bug, not a feature, and is now fixed by routing through the same
-    mods-aware parser as ParsePeptideSequence. A sequence with no brackets at
-    all parses byte-for-byte as before.
+    mods-aware parser as ParsePeptideSequence.
+
+    A bracket-free sequence yields the same counts, in the same CHNOSSe
+    order, as it always did -- with one difference: elements whose count is
+    zero are no longer emitted. This function used to return "C", "H", "N",
+    "O" and "S" keys unconditionally (plus "Se" when non-zero), so
+    ParseFASTA("A")["S"] was 0 and is now a KeyError. Use .get(sym, 0).
     """
     return ParsePeptideSequence(fasta, unimod_db_path=unimod_db_path)
 
@@ -187,9 +214,13 @@ class Iso(object):
                  isotopeProbabilities=None,
                  use_nominal_masses = False,
                  fasta = "",
+                 charge = 1.0,
+                 # New arguments go after charge, never between fasta and it:
+                 # this signature's positional order is public, and inserting
+                 # here would silently shift charge for anyone passing it
+                 # positionally.
                  peptide_sequence = "",
-                 unimod_db_path = None,
-                 charge = 1.0):
+                 unimod_db_path = None):
         """Initialize Iso.
 
         Args:
@@ -203,12 +234,16 @@ class Iso(object):
                 brackets -- see ParsePeptideSequence's docstring (this is the same argument
                 as peptide_sequence, kept under its original name for backward compatibility;
                 despite the name, this has never accepted an actual FASTA file).
+            charge (float): charge state of the molecule: all masses will be divided by this value to obtain the m/z values.
             peptide_sequence (str): the honestly-named alias of 'fasta' -- pass one or the
                 other, not both.
             unimod_db_path (str, optional): override Unimod composition-delta table for
                 resolving [UNIMOD:<id>] references in 'fasta'/'peptide_sequence' (same CSV
                 shape as data/unimod.csv). None (default) uses the compile-time embedded table.
-            charge (float): charge state of the molecule: all masses will be divided by this value to obtain the m/z values.
+
+        Note that neither 'fasta' nor 'peptide_sequence' adds the terminal H2O of a free
+        peptide -- see ParsePeptideSequence's docstring. Pass formula="H2O1" alongside the
+        sequence for the neutral molecule's masses.
         """
 
         self.iso = None

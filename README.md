@@ -67,6 +67,14 @@ print(list(zip(iso.masses, iso.probs)))
 iso = IsoSpecPy.IsoTotalProb(peptide_sequence="PEPTC[UNIMOD:4]DEK", prob_to_cover=0.999)
 print(list(zip(iso.masses, iso.probs)))
 
+# Mind the water: peptide_sequence= yields the *residue* composition, without
+# the terminal H2O of a free peptide, so the masses above are 18.0106 Da
+# lighter than the neutral molecule. Add it explicitly for the real peptide
+# (the C++ Iso::FromFASTAWithMods below adds it by default -- the two APIs
+# differ here, and this is the older Python behaviour kept for compatibility):
+iso = IsoSpecPy.IsoTotalProb(peptide_sequence="PEPTC[UNIMOD:4]DEK", formula="H2O1",
+                             prob_to_cover=0.999)
+
 # Or get just the composition (element -> atom count), no envelope:
 composition = IsoSpecPy.ParsePeptideSequence("PEPTC[UNIMOD:4]DEK")
 print(dict(composition))  # {'H': 60, 'C': 39, 'N': 10, 'O': 16, 'S': 1}
@@ -138,6 +146,8 @@ print(composition)  #  H  C  N  O  S
                      # 60 39 10 16  1
 IsoSpecify(molecule = composition, stopCondition = 0.999)
 ```
+
+Like the Python `ParsePeptideSequence`, this returns the residue composition without a free peptide's terminal H2O -- add `c(H = 2, O = 1)` to it for the neutral molecule. A modification whose delta removes more atoms of an element than the bare sequence provides gives a negative count (`"G[UNIMOD:11]"` nets `H -1`, `S -1`); `IsoSpecify` rejects such a vector rather than quietly dropping those elements.
 
 See `Examples/R/` for radiolabelling, full-spectrum extraction, and Unimod-annotated sequences.
 
