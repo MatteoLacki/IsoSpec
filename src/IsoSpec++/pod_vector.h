@@ -224,7 +224,6 @@ template<typename T> class pod_vector
 
 template<typename T> class unsafe_pod_vector
 {
-
     T* backend_past_end;
     T* first_free;
     T* store;
@@ -255,7 +254,7 @@ template<typename T> class unsafe_pod_vector
 
     unsafe_pod_vector(const pod_vector<T>& other) = delete;  // NOLINT(runtime/explicit) - seriously? Deleted constructors have to be marked explicit?
     unsafe_pod_vector& operator=(const pod_vector<T>& other) = delete;
-    //unsafe_pod_vector(unsafe_pod_vector<T>&& other) = default;
+    // unsafe_pod_vector(unsafe_pod_vector<T>&& other) = default;
 
     ~unsafe_pod_vector() = default;
 

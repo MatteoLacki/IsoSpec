@@ -492,7 +492,6 @@ bool MarginalTrek::add_next_conf()
                         pq.push({new_prob, acceptedCandidate});
                     else
                         fringe[bucket_nr].push_back({new_prob, acceptedCandidate});
-
                 }
 
                 if( topConf[i] > mode_conf[i] )
@@ -801,7 +800,7 @@ SingleAtomMarginal<add_guards>::SingleAtomMarginal(Marginal&& m, int, int)
     }
 
     if constexpr (add_guards)
-   {
+    {
         for(size_t ii = 0; ii < ISOSPEC_LPROB_GUARDIANS; ii++)
             lProbs.push_back(-std::numeric_limits<double>::infinity());
         guarded_lProbs = lProbs.data()+1;

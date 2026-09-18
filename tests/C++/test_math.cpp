@@ -257,9 +257,9 @@ TEST_CASE("rdvariate_binom samples Binomial(n, p)") {
 }
 
 TEST_CASE("the thread-local generators are usable directly") {
-    // random_gen / stdunif back the default arguments of the variate helpers.
+    // random_gen backs the default arguments of the variate helpers.
     for (int i = 0; i < 1000; ++i) {
-        const double u = stdunif(random_gen);
+        const double u = rdvariate_unif01(random_gen);
         REQUIRE(u >= 0.0);
         REQUIRE(u < 1.0);
     }

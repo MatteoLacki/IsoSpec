@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <vector>
 #include <utility>
+#include <tuple>
 
 #include "aligned_ptr.h"
 #include "isoSpec++.h"
@@ -412,7 +413,6 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     {
         return Binned(Iso(iso, true), target_total_prob, bin_width, bin_middle);
     }
-
 };
 
 }  // namespace IsoSpec

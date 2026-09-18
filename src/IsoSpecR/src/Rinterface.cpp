@@ -77,6 +77,22 @@ NumericMatrix Rinterface(
 
     for (unsigned int i=0; i<dimNumber; i++)
     {
+        // The sibling of the counter == 0 check below, and reachable the same
+        // way: RParsePeptideSequence returns a *signed* composition (a
+        // modification's delta can remove more atoms of an element than the
+        // bare sequence provides -- "G[UNIMOD:11]" nets H-1 S-1), and the
+        // documented two-call pattern feeds its result straight back in here.
+        // A negative atom count reaching Iso is undefined behaviour in
+        // exactly the same way a zero-isotope dimension is; observed on this
+        // build as a silently wrong answer (the negative elements' mass just
+        // missing from every peak), and as a heap-buffer-overflow under ASan
+        // on the equivalent C++ path.
+        if( molecule[i] < 0 )
+            throw std::invalid_argument(
+                "Negative atom count for element '" + Rcpp::as<std::string>(molecule_names[i]) +
+                "' -- a molecule can't contain a negative number of atoms. If this vector came "
+                "from RParsePeptideSequence, the sequence's modifications remove more of this "
+                "element than the bare sequence provides.");
         unsigned int counter = 0;
         for (int j=0; j<element.size(); j++)
             if( element[j] == molecule_names[i] )

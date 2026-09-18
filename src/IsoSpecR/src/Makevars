@@ -1,0 +1,7 @@
+## The IsoSpec++ core this package compiles requires C++20: isoMath.h uses
+## std::atomic_ref and aligned_ptr.h uses std::assume_aligned, neither of
+## which exists in C++17. R's own default is still gnu++17 (R 4.5), so
+## without this the package fails to compile with
+##   'std::atomic_ref' is only available from C++20 onwards
+## on a stock R installation, no matter how new the compiler is.
+CXX_STD = CXX20

@@ -1,7 +1,7 @@
 OPTFLAGS=-O3 -march=native -mtune=native
 DEBUGFLAGS=-O0 -g -Werror -DISOSPEC_DEBUG -DDEBUG -D_GLIBCXX_DEBUG
 CXXFLAGS=-std=c++20 -Wall -pedantic -Wextra -Wshadow -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wmissing-include-dirs -Wno-old-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wno-sign-conversion -Wsign-promo -Wswitch-default -Wundef
-SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp mman.cpp fixedEnvelopes.cpp fasta.cpp
+SRCFILES=cwrapper.cpp allocator.cpp  dirtyAllocator.cpp  isoSpec++.cpp  isoMath.cpp  marginalTrek++.cpp  operators.cpp element_tables.cpp misc.cpp mman.cpp fixedEnvelopes.cpp fasta.cpp element_lookup.cpp unimod.cpp fasta_mods.cpp
 
 # ---------------------------------------------------------------------------
 # Runtime ISA dispatch

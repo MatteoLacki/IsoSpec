@@ -73,11 +73,27 @@ TEST_CASE("a real shipped composition mixing a 2-letter and adjacent 1-letter el
     Iso base = Iso::FromFASTA("PEPTCDEK");
     Iso expected_delta("H20C15N1O6Cl1");
     double observed = modified.getMonoisotopicPeakMass() - base.getMonoisotopicPeakMass();
-    // expected_delta is itself a hydrated molecule (has its own implicit
-    // terminal water via the generic formula constructor's defaults -- no,
-    // Iso(formula) has no water), so compare against its raw monoisotopic
-    // mass directly.
+    // Iso(formula) adds no water of its own, so the modification's delta
+    // compares directly against expected_delta's raw monoisotopic mass.
     CHECK(observed == doctest::Approx(expected_delta.getMonoisotopicPeakMass()).epsilon(1e-5));
+}
+
+TEST_CASE("a net-negative element count is returned by the parser, refused by Iso") {
+    // Met->Hsl (UNIMOD:11) is H-4C-1S-1; a lone glycine has neither the
+    // hydrogens nor the sulphur to pay for it. The parser's job is
+    // arithmetic, so it reports the negative net (a further modification
+    // could still bring it back up); the refusal belongs where a composition
+    // becomes a molecule. Both halves are contract -- fasta_mods.h says so,
+    // and the C ABI and R bindings rely on the first half being true.
+    ElementComposition composition = parse_fasta_with_mods("G[UNIMOD:11]");
+    bool saw_negative = false;
+    for (size_t i = 0; i < composition.count.size(); i++)
+        if (composition.count[i] < 0)
+            saw_negative = true;
+    CHECK(saw_negative);
+
+    CHECK_THROWS_AS(build_iso_from_composition(composition), std::invalid_argument);
+    CHECK_THROWS_AS(Iso::FromFASTAWithMods("G[UNIMOD:11]", false, false), std::invalid_argument);
 }
 
 TEST_CASE("unknown UNIMOD id throws") {
@@ -88,6 +104,32 @@ TEST_CASE("deliberately excluded UNIMOD id (isotope-labeled) throws, same as unk
     // UNIMOD:9, ICAT-G:2H(8) -- isotope-labeled, excluded from the shipped
     // table by scripts/build_unimod_table.py (see docs/ai/unimod.md).
     CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[UNIMOD:9]DEK"), std::invalid_argument);
+}
+
+TEST_CASE("an id past 32 bits is unknown, not silently truncated") {
+    // The id is parsed as a 64-bit value but UnimodTable::lookup takes an
+    // unsigned int, so without an explicit range check 2^32 + 4 would wrap to
+    // 4 and quietly apply Carbamidomethyl -- a wrong answer with no
+    // diagnostic, which is the worst possible outcome for a parser whose
+    // whole job is resolving ids.
+    CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[UNIMOD:4294967300]DEK"), std::invalid_argument);
+    CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[UNIMOD:8589934596]DEK"), std::invalid_argument);
+
+    // And the id it would have wrapped onto still resolves normally.
+    Iso modified = Iso::FromFASTAWithMods("PEPTC[UNIMOD:4]DEK");
+    Iso base = Iso::FromFASTA("PEPTCDEK");
+    CHECK(modified.getMonoisotopicPeakMass() - base.getMonoisotopicPeakMass() ==
+          doctest::Approx(57.021464).epsilon(1e-5));
+}
+
+TEST_CASE("an implausibly large id in a CSV is rejected, not allocated") {
+    // entries_ is indexed straight by id, so an unchecked id here is a
+    // request for id * sizeof(UnimodEntry) bytes.
+    CHECK_THROWS_AS(parse_unimod_csv("id,name,mono_mass,composition\n"
+                                     "4000000000,Typo,1.0,H1\n"),
+                    std::invalid_argument);
+    // The largest id the shipped table actually uses still loads.
+    CHECK(embedded_unimod_table().lookup(2147) != nullptr);
 }
 
 TEST_CASE("malformed UNIMOD brackets throw") {

@@ -17,9 +17,12 @@
 #include "fasta_mods.h"
 
 #include <cctype>
+#include <cstdint>
 #include <cstring>
+#include <limits>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "element_lookup.h"
 #include "element_tables.h"
@@ -89,14 +92,22 @@ void consume_unimod_bracket(const char*& p, const UnimodTable& mods, int accumul
     if (*q != ']')
         throw std::invalid_argument(std::string("Malformed modification bracket (missing closing ']'): ") + p);
 
-    unsigned long id;
+    uint64_t id;
     try {
-        id = std::stoul(std::string(digits_start, static_cast<size_t>(q - digits_start)));
+        id = std::stoull(std::string(digits_start, static_cast<size_t>(q - digits_start)));
     } catch (const std::exception&) {
         throw std::invalid_argument(std::string("Malformed modification bracket (id out of range): ") + p);
     }
 
-    const UnimodEntry* entry = mods.lookup(static_cast<unsigned int>(id));
+    // UnimodTable::lookup takes an unsigned int, so an id past UINT_MAX would
+    // wrap on the way in and silently resolve to a completely different,
+    // existing modification ("[UNIMOD:4294967300]" -> id 4 -> Carbamidomethyl)
+    // instead of being rejected. An id that large is unknown to any table by
+    // construction (Unimod's own id space is four digits); say so, rather
+    // than quietly applying the wrong composition delta.
+    const UnimodEntry* entry = (id > std::numeric_limits<unsigned int>::max())
+                                   ? nullptr
+                                   : mods.lookup(static_cast<unsigned int>(id));
     if (entry == nullptr)
         throw std::invalid_argument("Unknown or unsupported UNIMOD id in sequence: UNIMOD:" + std::to_string(id));
 

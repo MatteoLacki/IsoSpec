@@ -89,3 +89,41 @@ def test_unimod_db_path_override(tmp_path):
     # The embedded default is untouched by having loaded an override.
     still_default = ParsePeptideSequence("PEPTC[UNIMOD:4]DEK")
     assert still_default["C"] - base["C"] == 2  # Carbamidomethyl's real C delta, not the override's 0
+
+
+def test_id_past_32_bits_is_unknown_not_truncated():
+    # The id is parsed as 64-bit but looked up as unsigned int; without a
+    # range check 2**32 + 4 wraps to 4 and silently applies Carbamidomethyl.
+    for bad_id in (2**32 + 4, 2**33 + 4):
+        with pytest.raises(ValueError):
+            ParsePeptideSequence("PEPTC[UNIMOD:{}]DEK".format(bad_id))
+    # ...and the id it would have wrapped onto is unaffected.
+    assert ParsePeptideSequence("PEPTC[UNIMOD:4]DEK")["C"] - ParseFASTA("PEPTCDEK")["C"] == 2
+
+
+def test_zero_count_elements_are_omitted():
+    # Documented behaviour change from the pre-Unimod ParseFASTA, which
+    # always emitted C/H/N/O/S keys: only non-zero counts appear now.
+    composition = ParseFASTA("A")
+    assert "S" not in composition
+    assert composition["C"] == 3
+
+
+def test_negative_net_count_is_reported_by_the_parser_and_refused_by_Iso():
+    # Met->Hsl (UNIMOD:11) removes H4 C1 S1; a lone glycine cannot pay for it.
+    composition = ParsePeptideSequence("G[UNIMOD:11]")
+    assert composition["H"] < 0
+    with pytest.raises(Exception):
+        IsoSpecPy.Iso(peptide_sequence="G[UNIMOD:11]")
+
+
+def test_charge_keeps_its_positional_slot():
+    # peptide_sequence/unimod_db_path were added after charge precisely so
+    # this keeps working: formula, get_confs, atomCounts, isotopeMasses,
+    # isotopeProbabilities, use_nominal_masses, fasta, charge.
+    positional = IsoSpecPy.Iso("H2O1", False, None, None, None, False, "", 2.0)
+    keyword = IsoSpecPy.Iso(formula="H2O1", charge=2.0)
+    assert math.isclose(positional.getMonoisotopicPeakMass(),
+                        keyword.getMonoisotopicPeakMass())
+    assert math.isclose(keyword.getMonoisotopicPeakMass(),
+                        IsoSpecPy.Iso(formula="H2O1").getMonoisotopicPeakMass() / 2.0)

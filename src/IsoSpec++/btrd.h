@@ -93,7 +93,7 @@ IntType btrd(IntType _t, RealType p, IntType m, std::mt19937& urng = random_gen)
 
     while(true) {
         RealType u;
-        RealType v = stdunif(urng);
+        RealType v = rdvariate_unif01(urng);
         if(v <= btrd_u_rv_r) {
             u = v/btrd_v_r - 0.43;
             return static_cast<IntType>(floor(
@@ -101,11 +101,11 @@ IntType btrd(IntType _t, RealType p, IntType m, std::mt19937& urng = random_gen)
         }
 
         if(v >= btrd_v_r) {
-            u = stdunif(urng) - 0.5;
+            u = rdvariate_unif01(urng) - 0.5;
         } else {
             u = v/btrd_v_r - 0.93;
             u = ((u < 0)? -0.5 : 0.5) - u;
-            v = stdunif(urng) * btrd_v_r;
+            v = rdvariate_unif01(urng) * btrd_v_r;
         }
 
         RealType us = 0.5 - abs(u);
@@ -163,7 +163,7 @@ IntType invert(IntType t, RealType p, std::mt19937& urng = random_gen)
     RealType s = p / q;
     RealType a = (t + 1) * s;
     RealType r = pow((1 - p), static_cast<RealType>(t));
-    RealType u = stdunif(urng);
+    RealType u = rdvariate_unif01(urng);
     IntType x = 0;
     while(u > r) {
         u = u - r;

@@ -167,7 +167,6 @@ double InverseLowerIncompleteGamma2(int a, double x)
 }
 
 thread_local std::mt19937 random_gen(std::random_device{}());
-thread_local std::uniform_real_distribution<double> stdunif(0.0, 1.0);
 
 size_t rdvariate_binom(size_t tries, double succ_prob, std::mt19937& rgen)
 {

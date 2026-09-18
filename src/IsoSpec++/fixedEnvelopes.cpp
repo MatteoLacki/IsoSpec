@@ -18,6 +18,10 @@
 #include <limits>
 #include <memory>
 #include <cassert>
+#include <algorithm>
+#include <tuple>
+#include <utility>
+#include <vector>
 #include "isoMath.h"
 #include "aligned_ptr.h"
 
@@ -352,7 +356,7 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
 
     double pprob = 0.0;
     double cprob = 0.0;
-    size_t pidx = -1; // Overflows - but it doesn't matter.
+    size_t pidx = -1;  // Overflows - but it doesn't matter.
 
     // Sentinel: prevents the inner while(pprob < cprob) from walking off the end
     // if floating-point rounding leaves the accumulated probability sum slightly
@@ -549,8 +553,6 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     size_t idx_this = 0;
     size_t idx_other = 0;
 
-    //std::cout << "AAA" << std::endl;
-
     auto finished = [&]() -> bool { return idx_this >= _confs_no && idx_other >= other._confs_no; };
     auto next = [&]() -> std::pair<double, double> {
                             if(idx_this >= _confs_no || (idx_other < other._confs_no && _masses[idx_this] > other._masses[idx_other]))
@@ -616,7 +618,6 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
         }
         if(p != 0.0)
             carried.emplace_back(m, p);
-        //std::cout << m << " " << p << std::endl;
     }
 
     for(auto it = carried.cbegin(); it != carried.cend(); it++)
@@ -717,7 +718,7 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
     {
         double curr_mass = _masses[0];
         double accd_prob = _probs[0];
-        for(size_t ii = 1; ii<_confs_no; ii++)
+        for(size_t ii = 1; ii < _confs_no; ii++)
         {
             if(curr_mass != _masses[ii])
             {
@@ -1295,7 +1296,6 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
     if(non_empty)
     {
-
         // Making the assumption that there won't be gaps of more than 10 Da in the spectrum. This is true for all
         // molecules made of natural elements.
         // FIXME: this has to be computed from the actual molecule, because

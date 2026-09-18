@@ -1,3 +1,19 @@
+/*
+ *   Copyright (C) 2026 Mateusz Łącki and Michał Startek.
+ *
+ *   This file is part of IsoSpec.
+ *
+ *   IsoSpec is free software: you can redistribute it and/or modify
+ *   it under the terms of the Simplified ("2-clause") BSD licence.
+ *
+ *   IsoSpec is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *   You should have received a copy of the Simplified BSD Licence
+ *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
+ */
+
 #pragma once
 
 #include <cstddef>      // std::size_t, std::nullptr_t
@@ -311,7 +327,7 @@ inline void vm_resize(vm_region& r, std::size_t new_bytes)
 
 template<class T, std::size_t Alignment>
 class aligned_unique_ptr {
-    static_assert((Alignment & (Alignment - 1)) == 0); // meaning: Alignment is a power of two
+    static_assert((Alignment & (Alignment - 1)) == 0);  // meaning: Alignment is a power of two
     static_assert(Alignment >= alignof(T));
     static_assert(Alignment <= 4096, "Alignment must not exceed the smallest page size assumed across supported platforms");
     // Storage is acquired/released as raw bytes (aligned_alloc/free, or
@@ -396,7 +412,7 @@ class aligned_unique_ptr {
         free_small(p);
     }
 
-public:
+ public:
     static constexpr std::size_t alignment = Alignment;
 
     // Returned by release_with_deleter(): the raw pointer plus everything

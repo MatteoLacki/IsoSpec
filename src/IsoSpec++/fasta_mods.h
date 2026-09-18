@@ -25,9 +25,18 @@ namespace IsoSpec {
 
 //! A resolved elemental composition: parallel arrays of
 //! (element_table_first_index, count) pairs, one per element actually
-//! present (non-zero net count). Never contains a negative count on
-//! successful return from parse_fasta_with_mods/_full -- see
-//! build_iso_from_composition.
+//! present (non-zero net count).
+//!
+//! Counts are *signed*, and parse_fasta_with_mods/_full really can return a
+//! negative one: a modification's composition delta may remove more atoms of
+//! some element than the bare sequence provides ("G[UNIMOD:11]" nets H-1
+//! S-1). That is a legitimate intermediate -- adding a second modification
+//! could bring it back up -- so the parser does not reject it. The
+//! non-negativity check belongs at the point a composition becomes a
+//! molecule, and lives in build_iso_from_composition; anything else
+//! consuming an ElementComposition directly (the C ABI's
+//! parseFastaWithModsC, R's RParsePeptideSequence) must do its own check
+//! before handing the counts to an Iso.
 struct ElementComposition {
     std::vector<int> element_first_index;
     std::vector<int> count;

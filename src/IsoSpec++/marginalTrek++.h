@@ -18,6 +18,7 @@
 
 #include <queue>
 #include <algorithm>
+#include <iostream>
 #include <vector>
 #include <functional>
 #include <utility>
@@ -430,7 +431,7 @@ class LayeredMarginal : public Marginal
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
     inline double get_mass(int idx) const { return masses[idx]; }
 
-    //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
+    //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of +inf (trailing guardians of -inf follow the data). Warning: The pointer gets invalidated on calls to extend()
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
@@ -452,7 +453,6 @@ class LayeredMarginal : public Marginal
     inline double getModeLProb() const { return mode_lprob; }
     const pod_vector<double>& conf_lprobs() const { return lProbs; }
     const pod_vector<double>& conf_masses() const { return masses; }
-
 };
 
 
@@ -498,7 +498,7 @@ class SingleAtomMarginal : public Marginal
             extended = true;
         }
         return extended || (guarded_lProbs[extended_to_idx] != -std::numeric_limits<double>::infinity());
-    };
+    }
 
     //! get the log-probability of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_lProb.
     inline double get_lProb(int idx) const { return guarded_lProbs[idx]; }  // access to idx == -1 is valid and gives a guardian of +inf
@@ -509,7 +509,7 @@ class SingleAtomMarginal : public Marginal
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
     inline double get_mass(int idx) const { return masses[idx]; }
 
-    //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of -inf. Warning: The pointer gets invalidated on calls to extend()
+    //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of +inf (trailing guardians of -inf follow the data). Warning: The pointer gets invalidated on calls to extend()
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
     //! get the counts of isotopes that define the subisotopologue, see details in @ref PrecalculatedMarginal::get_conf.
@@ -523,10 +523,10 @@ class SingleAtomMarginal : public Marginal
             return static_cast<unsigned int>(original_indexes.size());}
 
     //! Get the minimal mass in current layer
-    inline double get_min_mass() const { throw std::logic_error("SingleAtomMarginal.get_min_mass: not implemented"); };
+    inline double get_min_mass() const { throw std::logic_error("SingleAtomMarginal.get_min_mass: not implemented"); }
 
     //! Get the maximal mass in current layer
-    double get_max_mass() const { throw std::logic_error("SingleAtomMarginal.get_max_mass: not implemented"); };
+    double get_max_mass() const { throw std::logic_error("SingleAtomMarginal.get_max_mass: not implemented"); }
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
@@ -560,12 +560,10 @@ class LoggingMarginal : public Marginal
  private:
     std::unique_ptr<T> real_marginal;
  public:
-
-
     // The cast moves the Marginal base only: T itself is not move-constructible
     // (a bare std::move(m) would select T's deleted copy constructor), but every
     // marginal specialization constructs from a Marginal&&.
-    LoggingMarginal(T&& m) : Marginal(m), real_marginal(std::make_unique<T>(static_cast<Marginal&&>(m))) {}
+    explicit LoggingMarginal(T&& m) : Marginal(m), real_marginal(std::make_unique<T>(static_cast<Marginal&&>(m))) {}
     LoggingMarginal(T&& m, int tabSize, int hashSize)
         : Marginal(m), real_marginal(std::make_unique<T>(std::move(m), tabSize, hashSize)) {}
 

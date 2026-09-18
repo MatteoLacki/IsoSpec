@@ -16,9 +16,13 @@
 
 #include "unimod.h"
 
+#include <cstdint>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "isoSpec++.h"  // parse_formula_tokens -- reused for reading a composition column
 #include "unimod_table_data.h"
@@ -26,6 +30,13 @@
 namespace IsoSpec {
 
 namespace {
+
+// Upper bound on an id this dense, id-indexed table will accept from a CSV.
+// Generous by three orders of magnitude against Unimod's real id space (the
+// shipped table's largest id is 2147) precisely so it never has to be
+// revisited when Unimod grows; tight enough that a typo can't turn into a
+// gigabyte-scale vector.
+constexpr uint64_t kMaxUnimodId = 1000000;
 
 // Splits a CSV line into exactly 4 fields (id, name, mono_mass, composition).
 // Unimod names never contain a comma in the shipped table, but this stays
@@ -78,12 +89,20 @@ UnimodTable parse_unimod_csv(const std::string& csv_text) {
 
         std::vector<std::string> fields = split_csv_line(line);
 
-        unsigned long id;
+        uint64_t id;
         try {
-            id = std::stoul(fields[0]);
+            id = std::stoull(fields[0]);
         } catch (const std::exception&) {
             throw std::invalid_argument("Invalid unimod CSV row (bad id): " + line);
         }
+        // entries_ is dense, indexed straight by id, so a single mistyped id
+        // in a hand-edited override CSV would ask the allocator for
+        // id * sizeof(UnimodEntry) bytes and mean it. Unimod's real id space
+        // is four digits (the shipped table tops out at 2147); anything past
+        // this cap is a typo, not a modification, and saying so beats
+        // discovering it as a multi-gigabyte allocation.
+        if (id > kMaxUnimodId)
+            throw std::invalid_argument("Invalid unimod CSV row (id implausibly large): " + line);
 
         double mono_mass;
         try {
