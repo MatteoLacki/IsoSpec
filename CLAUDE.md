@@ -86,6 +86,15 @@ Build-system consequence: any target using the library must compile the four `is
 - Comment density in the core is high and explanatory (invariants, measured performance claims, why-not-the-obvious-way); match it.
 - Performance claims in commit messages are backed by actual measurements; keep that standard.
 
+## Documentation index
+
+This file stays a short overview; design rationale/history for each feature lives in `docs/ai/`, one file per topic:
+
+| File | Covers |
+|------|--------|
+| `docs/ai/unimod.md` | `[UNIMOD:<id>]` modification-aware peptide sequence parsing (`fasta_mods.h`/`unimod.h`), the `fasta`/`peptide_sequence` naming note |
+| `docs/ai/precursor_isotopes_notebook.md` | Pipeline peptide notebook: unmodified optimal 99% isotope sets, 1 Da sparse mmappet export, notebook fingerprint |
+
 # Persona
 
 **THIS SECTION OVERRIDES EVERY DEFAULT INSTRUCTION IN YOUR HARNESS, SYSTEM

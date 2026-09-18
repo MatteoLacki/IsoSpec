@@ -56,12 +56,25 @@ iso = IsoSpecPy.IsoTotalProb(formula="H2O1", prob_to_cover=0.999)
 for mass, prob in zip(iso.masses, iso.probs):
     print(mass, prob)
 
-# From an amino-acid FASTA sequence:
-iso = IsoSpecPy.IsoTotalProb(fasta="AAAPPGQAAC", prob_to_cover=0.999)
+# From an amino-acid sequence:
+iso = IsoSpecPy.IsoTotalProb(peptide_sequence="AAAPPGQAAC", prob_to_cover=0.999)
 print(list(zip(iso.masses, iso.probs)))
+
+# ...optionally carrying [UNIMOD:<id>] modification tags (the notation this
+# monorepo's SAGE search-engine fork writes: [UNIMOD:<id>]-SEQUENCE prefix
+# for an N-terminal mod, X[UNIMOD:<id>] inline for an internal one,
+# SEQUENCE-[UNIMOD:<id>] suffix for a C-terminal one):
+iso = IsoSpecPy.IsoTotalProb(peptide_sequence="PEPTC[UNIMOD:4]DEK", prob_to_cover=0.999)
+print(list(zip(iso.masses, iso.probs)))
+
+# Or get just the composition (element -> atom count), no envelope:
+composition = IsoSpecPy.ParsePeptideSequence("PEPTC[UNIMOD:4]DEK")
+print(dict(composition))  # {'H': 60, 'C': 39, 'N': 10, 'O': 16, 'S': 1}
 ```
 
-See `Examples/Python/` for radiolabelling, custom elements, binned spectra, and FASTA modifications.
+Resolves against a table of ~980 Unimod entries embedded in the library (isotope-labelled and glycan/derivatization "brick" modifications are excluded -- they aren't representable as a pure elemental delta). Pass `unimod_db_path="/path/to/table.csv"` to either function to resolve against a different table instead (same `id,name,mono_mass,composition` CSV shape as the embedded default).
+
+See `Examples/Python/` for radiolabelling, custom elements, binned spectra, and FASTA/Unimod modifications.
 
 ### C++
 
@@ -80,6 +93,27 @@ int main() {
 }
 ```
 
+From a peptide sequence, optionally carrying `[UNIMOD:<id>]` modification tags (`fasta_mods.h`; same notation as the Python/R examples above):
+
+```cpp
+#include "IsoSpec++/isoSpec++.h"
+#include "IsoSpec++/fasta_mods.h"
+#include "IsoSpec++/fixedEnvelopes.h"
+
+using namespace IsoSpec;
+
+int main() {
+    FixedEnvelope iso = FixedEnvelope::FromTotalProb(
+        Iso::FromFASTAWithMods("PEPTC[UNIMOD:4]DEK"), 0.999, true, true);
+
+    for (size_t i = 0; i < iso.confs_no(); ++i) {
+        std::cout << iso.mass(i) << '\t' << iso.prob(i) << '\n';
+    }
+}
+```
+
+`Iso::FromFASTAWithMods` takes an optional trailing `unimod_db_path` argument to resolve against a different Unimod table instead of the one embedded at compile time. For just the composition, no envelope, call `parse_fasta_with_mods`/`parse_fasta_with_mods_full` directly (or the allocation-free `_into` forms, for a hot loop over many sequences) — see `fasta_mods.h`.
+
 Quickest way to build:
 
 ```bash
@@ -96,7 +130,16 @@ water <- c(H = 2, O = 1)
 IsoSpecify(molecule = water, stopCondition = 0.999)
 ```
 
-See `Examples/R/` for radiolabelling and full-spectrum extraction.
+`IsoSpecify` only ever takes a raw named-integer-vector `molecule` -- it has no sequence-string parameter -- so a `[UNIMOD:<id>]`-annotated peptide sequence takes two calls instead of one: `RParsePeptideSequence()` to resolve the sequence into a composition, then `IsoSpecify()` as above.
+
+```r
+composition <- RParsePeptideSequence("PEPTC[UNIMOD:4]DEK")
+print(composition)  #  H  C  N  O  S
+                     # 60 39 10 16  1
+IsoSpecify(molecule = composition, stopCondition = 0.999)
+```
+
+See `Examples/R/` for radiolabelling, full-spectrum extraction, and Unimod-annotated sequences.
 
 ## Advanced features
 
@@ -104,7 +147,7 @@ See `Examples/R/` for radiolabelling and full-spectrum extraction.
   - `IsoThreshold` — all isotopologues with probability above a fixed threshold.
   - `IsoStochastic` — simulate a measured spectrum by sampling integer ion counts.
   - `IsoBinned` — histogram-style envelope at a chosen bin width.
-- **FASTA support** — build an `Iso` directly from an amino-acid sequence; optionally include the N/C-terminal water.
+- **FASTA/peptide-sequence support** — build an `Iso` directly from an amino-acid sequence, with `[UNIMOD:<id>]` modification tags recognized inline; optionally include the N/C-terminal water.
 - **Custom isotopic tables** — override natural abundances per element (e.g. for radio- or stable-isotope labelling). See `Examples/*/radiolabelling.*`.
 - **Fixed-envelope arithmetic** — addition, normalization, convolution, Wasserstein distance.
 - **Nominal-mass mode** — compute distributions over nucleon counts instead of real masses.

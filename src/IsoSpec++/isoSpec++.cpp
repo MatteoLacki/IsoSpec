@@ -40,6 +40,7 @@
 #include "marginalTrek++.h"
 #include "misc.h"
 #include "element_tables.h"
+#include "element_lookup.h"
 #include "fasta.h"
 
 
@@ -421,7 +422,15 @@ void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_p
         priorities[ii] = marginals[ii]->getLogSizeEstimate(log_R2);
 }
 
-unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
+// Shared core of parse_formula: tokenizes `formula` (IsoSpec's native
+// concatenated grammar, e.g. "H3C2N1O1", signed counts allowed, e.g.
+// "H-2O-1") into (element_table_first_index, signed_count) pairs -- one pair
+// per element occurrence, in the order it appears in the string. Same
+// grammar, same validation, same element resolution parse_formula has always
+// used; also reused as-is by the Unimod composition-delta loader
+// (unimod.cpp), so both read a formula string through one code path instead
+// of two.
+void parse_formula_tokens(const char* formula, std::vector<int>& element_first_indexes, std::vector<int>& counts)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
@@ -429,7 +438,6 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     // means we can run the whole thing through Clang's memory sanitizer without the need for instrumented libc++/libstdc++. That's worth messing with char pointers a
     // little bit.
     std::vector<std::pair<const char*, size_t> > elements;
-    std::vector<int> numbers;
 
     if(slen == 0)
         throw std::invalid_argument("Invalid formula: can't be empty");
@@ -438,8 +446,8 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
         throw std::invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
 
     for(size_t ii = 0; ii < slen; ii++)
-        if(!isdigit(static_cast<unsigned char>(formula[ii])) && !isalpha(static_cast<unsigned char>(formula[ii])))
-            throw std::invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha) character");
+        if(!isdigit(static_cast<unsigned char>(formula[ii])) && !isalpha(static_cast<unsigned char>(formula[ii])) && formula[ii] != '-')
+            throw std::invalid_argument("Invalid formula: contains invalid (non-digit, non-alpha, non-'-') character");
 
     size_t position = 0;
 
@@ -448,51 +456,53 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
         size_t elem_end = position;
         while(isalpha(static_cast<unsigned char>(formula[elem_end])))
             elem_end++;
+        // An element's count may carry a leading '-' (a signed delta, e.g. a
+        // Unimod modification's atom-count change) -- consumed here so the
+        // digit run below still starts exactly at the first digit.
         size_t digit_end = elem_end;
+        if(formula[digit_end] == '-')
+            digit_end++;
+        size_t digits_start = digit_end;
         while(isdigit(static_cast<unsigned char>(formula[digit_end])))
             digit_end++;
+        if(digit_end == digits_start)
+            throw std::invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
         elements.emplace_back(&formula[position], elem_end-position);
-        numbers.push_back(std::stoi(&formula[elem_end]));
+        counts.push_back(std::stoi(&formula[elem_end]));
         position = digit_end;
     }
 
-    std::vector<int> element_indexes;
-
     for (unsigned int i = 0; i < elements.size(); i++)
     {
-        int idx = -1;
-        for(int j = 0; j < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
-        {
-            if ((strlen(elem_table_symbol[j]) == elements[i].second) && (strncmp(elements[i].first, elem_table_symbol[j], elements[i].second) == 0))
-            {
-                idx = j;
-                break;
-            }
-        }
+        int idx = find_element_table_first_index(elements[i].first, elements[i].second);
         if(idx < 0)
             throw std::invalid_argument("Invalid formula");
-        element_indexes.push_back(idx);
+        element_first_indexes.push_back(idx);
     }
+}
+
+unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
+{
+    std::vector<int> element_indexes;
+    std::vector<int> numbers;
+    parse_formula_tokens(formula, element_indexes, numbers);
 
     std::vector<int> _isotope_numbers;
     const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
 
     for(std::vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
     {
-        int num = 0;
         int at_idx = *it;
-        int elem_ID = elem_table_ID[at_idx];
-        while(at_idx < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_ID[at_idx] == elem_ID)
+        int num = element_isotope_count(at_idx);
+        for(int k = 0; k < num; k++)
         {
-            isotope_masses.push_back(masses[at_idx]);
-            isotope_probabilities.push_back(elem_table_probability[at_idx]);
-            at_idx++;
-            num++;
+            isotope_masses.push_back(masses[at_idx + k]);
+            isotope_probabilities.push_back(elem_table_probability[at_idx + k]);
         }
         _isotope_numbers.push_back(num);
     }
 
-    const unsigned int dimNumber = elements.size();
+    const unsigned int dimNumber = element_indexes.size();
 
     *isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
     *atomCounts = array_copy<int>(numbers.data(), dimNumber);

@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // Rinterface
 NumericMatrix Rinterface(const IntegerVector& molecule, const DataFrame& isotopes, double stopCondition, int algo, int tabSize, int hashSize, double step, bool showCounts, bool trim, double charge);
 RcppExport SEXP _IsoSpecR_Rinterface(SEXP moleculeSEXP, SEXP isotopesSEXP, SEXP stopConditionSEXP, SEXP algoSEXP, SEXP tabSizeSEXP, SEXP hashSizeSEXP, SEXP stepSEXP, SEXP showCountsSEXP, SEXP trimSEXP, SEXP chargeSEXP) {
@@ -22,6 +27,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type trim(trimSEXP);
     Rcpp::traits::input_parameter< double >::type charge(chargeSEXP);
     rcpp_result_gen = Rcpp::wrap(Rinterface(molecule, isotopes, stopCondition, algo, tabSize, hashSize, step, showCounts, trim, charge));
+    return rcpp_result_gen;
+END_RCPP
+}
+// RParsePeptideSequence
+IntegerVector RParsePeptideSequence(const std::string& sequence, std::string unimod_db_path);
+RcppExport SEXP _IsoSpecR_RParsePeptideSequence(SEXP sequenceSEXP, SEXP unimod_db_pathSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::string& >::type sequence(sequenceSEXP);
+    Rcpp::traits::input_parameter< std::string >::type unimod_db_path(unimod_db_pathSEXP);
+    rcpp_result_gen = Rcpp::wrap(RParsePeptideSequence(sequence, unimod_db_path));
     return rcpp_result_gen;
 END_RCPP
 }

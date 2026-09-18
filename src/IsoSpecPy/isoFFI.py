@@ -164,6 +164,13 @@ class IsoFFI:
 
         void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
+        void* isoFromFastaWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path);
+        void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path);
+        size_t compositionSizeC(void* composition);
+        const char* const* compositionSymbolsC(void* composition);
+        const int* compositionCountsC(void* composition);
+        void deleteCompositionC(void* composition);
+
         const char* activeSimdLevel(void);
 
         #define NUMBER_OF_ISOTOPIC_ENTRIES 292
@@ -211,12 +218,30 @@ sure you want to do that, edit the source and disable this check."""
         paths_to_check = cprod(prebuilt, cprod(libprefix, cprod(libnames, extension)))
         dpc = []
 
-        for dirpath in [
+        search_dirs = [
             mod_dir,
             mod_dir.parent,
             mod_dir.parent / "bin",
             mod_dir.parent / "lib",
-        ]:
+        ]
+
+        # Editable installs (scikit-build-core) redirect this module's
+        # __file__ to the source tree, but build the compiled extension
+        # straight into the installed package's own site-packages
+        # directory instead -- mod_dir above never sees it. Search that
+        # directory too, when it isn't already mod_dir.
+        try:
+            import importlib.util
+
+            installed_pkg = importlib.util.find_spec("IsoSpecPy")
+            for loc in installed_pkg.submodule_search_locations or []:
+                loc = Path(loc)
+                if loc not in search_dirs:
+                    search_dirs.append(loc)
+        except (ImportError, AttributeError, ValueError):
+            pass
+
+        for dirpath in search_dirs:
             dpc.extend([dirpath / p for p in paths_to_check])
 
         paths_to_check = dpc

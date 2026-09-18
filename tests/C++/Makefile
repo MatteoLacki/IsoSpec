@@ -77,6 +77,7 @@ TEST_SRCS := tests_main.cpp \
              test_regression.cpp \
              test_simd_equivalence.cpp \
              test_single_atom.cpp \
+             test_unimod.cpp \
              test_wasserstein.cpp
 # Rebuild whenever anything in the library changes, not just the test sources:
 # the unity build pulls in every .cpp, and the headers are full of inline code.

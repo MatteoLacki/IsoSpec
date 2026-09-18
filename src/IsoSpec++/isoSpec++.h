@@ -29,6 +29,7 @@
 #include "summator.h"
 #include "operators.h"
 #include "marginalTrek++.h"
+#include "unimod.h"
 
 
 
@@ -43,6 +44,14 @@ unsigned int parse_formula(const char* formula,
                            int** atomCounts,
                            unsigned int* confSize,
                            bool use_nominal_masses = false);
+
+// Shared tokenizing/element-resolution core of parse_formula -- see its doc
+// comment in isoSpec++.cpp. Reused by the Unimod composition-delta loader
+// (unimod.cpp) so a modification's atomic composition is read through the
+// same formula-string parser as everything else, not a second one.
+void parse_formula_tokens(const char* formula,
+                           std::vector<int>& element_first_indexes,
+                           std::vector<int>& counts);
 
 
 //! The Iso class for the calculation of the isotopic distribution.
@@ -117,6 +126,26 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
 
     //! Constructor (named) from aminoacid FASTA sequence as C++ std::string. See above for details.
     static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); }
+
+    //! Constructor (named) from a peptide sequence recognizing [UNIMOD:<id>]
+    //! modification brackets (see fasta_mods.h's parse_fasta_with_mods for
+    //! the exact notation/placement). Despite this constructor's own name
+    //! being consistent with FromFASTA above, "peptide_sequence" -- IsoSpecPy's
+    //! own honest name for what this parameter actually is -- would be the
+    //! better name if backward compatibility with FromFASTA's name were not
+    //! a concern; see docs/ai/unimod.md.
+    //! \param mods The Unimod composition-delta table to resolve bracket ids
+    //!             against -- embedded_unimod_table() (the compile-time
+    //!             default) unless the caller has a specific override table
+    //!             (e.g. from unimod_table_for_path()).
+    static Iso FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool use_nominal_masses = false, bool add_water = true);
+
+    //! Convenience overload: unimod_db_path == nullptr or "" uses the
+    //! compile-time embedded default table; otherwise resolves and caches
+    //! the table at that path (unimod_table_for_path -- a single cached
+    //! (path, table) pair, not a map, since a process realistically uses 0
+    //! or 1 distinct override paths in its lifetime).
+    static Iso FromFASTAWithMods(const char* sequence, bool use_nominal_masses = false, bool add_water = true, const char* unimod_db_path = nullptr);
 
     //! The move constructor.
     Iso(Iso&& other);

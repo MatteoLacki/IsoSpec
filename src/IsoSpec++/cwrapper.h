@@ -211,6 +211,26 @@ ISOSPEC_C_API void sortEnvelopeByProb(void* envelope);
 
 ISOSPEC_C_API void parse_fasta_c(const char* fasta, int atomCounts[6]);
 
+/* Unimod-modification-aware peptide sequence parsing (fasta_mods.h/unimod.h):
+   recognizes [UNIMOD:<id>] brackets in N-terminal ("[id]-SEQ"), internal
+   ("X[id]"), and C-terminal ("SEQ-[id]") placement -- see docs/ai/unimod.md.
+   unimod_db_path == NULL or "" selects the compile-time embedded default
+   table; any other path is loaded and cached (see unimod_table_for_path).
+   NULL on error (malformed bracket, unknown/excluded id) -- callers must
+   NULL-check like every other handle-returning function here. */
+ISOSPEC_C_API void* isoFromFastaWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path);
+
+/* Opaque parsed-composition handle: NULL_UNIMOD_db_path selects the embedded
+   default table, same as above. NULL return on error. */
+ISOSPEC_C_API void* parseFastaWithModsC(const char* sequence, const char* unimod_db_path);
+ISOSPEC_C_API size_t compositionSizeC(void* composition);
+/* Element symbols, e.g. "C", "H", "Se" -- static strings (elem_table_symbol),
+   must NOT be freed individually; only the returned array belongs to the
+   handle, freed by deleteCompositionC. */
+ISOSPEC_C_API const char* const* compositionSymbolsC(void* composition);
+ISOSPEC_C_API const int* compositionCountsC(void* composition);
+ISOSPEC_C_API void deleteCompositionC(void* composition);
+
 /* What the library's batched kernels are vectorised to on this machine, as a
    stable lowercase token: "scalar", "sse2", "avx", "avx2", "avx512", "neon", or
    "simd" for a vector unit with no name here. Never NULL; a static string, so

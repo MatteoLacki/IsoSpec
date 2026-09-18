@@ -20,7 +20,12 @@
 #include "misc.h"
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
+#include "fasta_mods.h"
+#include "unimod.h"
+#include "element_tables.h"
 #include <vector>
+#include <string>
+#include <stdexcept>
 #include <iostream>
 
 using namespace Rcpp;
@@ -82,6 +87,26 @@ NumericMatrix Rinterface(
                 if( showCounts )
                     stdIsotopeTags.push_back( isotope[j] );
             }
+        // A molecule element with zero matching rows in `isotopes` previously
+        // went through silently as a zero-isotope dimension -- Iso's
+        // constructor then had no known mass/probability data for it at all,
+        // so that atom's contribution was just dropped from the output
+        // (wrong mass, no error) rather than erroring, and in at least one
+        // reported case (github.com/MatteoLacki/IsoSpec/issues/49) corrupted
+        // memory badly enough to crash the R session outright on repeated
+        // calls. Fail loudly and name the symbol instead: either it's a typo,
+        // or (e.g. an element with no stable natural isotopes, like Tc or Ac)
+        // it genuinely isn't in this table and the caller needs to supply its
+        // own isotope data via the `isotopes=` parameter -- see the
+        // radiolabelling example for that pattern. Rcpp turns an escaped C++
+        // exception into an R error automatically, no manual try/catch here.
+        if( counter == 0 )
+            throw std::invalid_argument(
+                "No isotope data for element '" + Rcpp::as<std::string>(molecule_names[i]) +
+                "' in the supplied `isotopes` table -- check for a typo, or supply this "
+                "element's isotope data yourself via the `isotopes` parameter (see the "
+                "radiolabelling example) if it genuinely has none in the default table "
+                "(e.g. an element with no stable natural isotopes).");
         stdIsotopeNumbers.push_back(counter);
     }
 
@@ -204,6 +229,36 @@ NumericMatrix Rinterface(
     }
 
     colnames(res) = stdIsotopeTags; //This is RCPP sugar. It sucks.
+
+    return(res);
+}
+
+// Unimod-modification-aware peptide sequence parsing -- see
+// docs/ai/unimod.md. Unlike Rinterface above (which takes a raw atom-count
+// vector), this binds straight to the C++ classes the same way Rinterface
+// itself does, not through cwrapper.h -- R had no FASTA/sequence entry point
+// at all before this, so there is nothing here to stay compatible with.
+//
+// [[Rcpp::export]]
+IntegerVector RParsePeptideSequence(
+    const std::string&      sequence,
+    std::string             unimod_db_path = ""
+){
+    const UnimodTable& mods = unimod_db_path.empty() ? embedded_unimod_table()
+                                                       : unimod_table_for_path(unimod_db_path);
+    // Rcpp translates an escaped C++ exception (std::invalid_argument on a
+    // malformed bracket or an unknown/excluded id) into an R error
+    // automatically -- no manual try/catch needed here.
+    ElementComposition composition = parse_fasta_with_mods(sequence.c_str(), mods);
+
+    IntegerVector res(composition.count.size());
+    CharacterVector symbols(composition.count.size());
+    for (size_t i = 0; i < composition.count.size(); i++)
+    {
+        res[i] = composition.count[i];
+        symbols[i] = elem_table_symbol[composition.element_first_index[i]];
+    }
+    res.names() = symbols;
 
     return(res);
 }
