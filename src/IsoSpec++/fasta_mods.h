@@ -96,6 +96,49 @@ void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out,
 void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& out,
                                       const UnimodTable& mods = embedded_unimod_table());
 
+//! A composition expanded to the flat, per-isotope form the generic
+//! Iso(dimNumber, isotopeNumbers, atomCounts, masses, probs) constructor
+//! takes: one isotopeNumbers/atomCounts entry per element of the
+//! composition, and one isotope_masses/isotope_probabilities entry per
+//! isotope, element-major, in the composition's own order. Exactly the
+//! layout the C ABI's setupIso expects, since that constructor is what it
+//! forwards to.
+struct ExpandedComposition {
+    std::vector<int> isotopeNumbers;
+    std::vector<int> atomCounts;
+    std::vector<double> isotope_masses;
+    std::vector<double> isotope_probabilities;
+
+    //! Empties all four vectors without releasing their capacity -- same
+    //! reuse contract, for the same reason, as ElementComposition::clear
+    //! above.
+    void clear() {
+        isotopeNumbers.clear();
+        atomCounts.clear();
+        isotope_masses.clear();
+        isotope_probabilities.clear();
+    }
+};
+
+//! Resolves each element of `composition` to its isotopes' masses and
+//! probabilities from element_tables.h, filling a caller-owned `out`
+//! (cleared first).
+//!
+//! This is the one implementation of that resolution a binding language is
+//! meant to reach: before it existed, IsoSpecPy carried its own copy
+//! (IsoParamsFromDict, walking PeriodicTbl's symbol->isotopes dicts) purely
+//! because the C ABI offered nothing between setupIso -- which demands that
+//! the caller already know every isotope mass -- and the sequence-only
+//! isoFromFasta. cwrapper.h's expandCompositionC exposes this, and that
+//! copy is gone.
+//!
+//! Counts are copied through unchanged, negatives included: expanding a
+//! composition is not the same as making a molecule out of one, and the
+//! non-negativity check belongs at the latter -- see ElementComposition's
+//! note above, and build_iso_from_composition, which does check.
+void expand_composition_into(const ElementComposition& composition, ExpandedComposition& out,
+                             bool use_nominal_masses = false);
+
 //! Resolves a composition (as returned by parse_fasta_with_mods[_full]) into
 //! an Iso via the same generic Iso(dimNumber, isotopeNumbers, atomCounts,
 //! masses, probs) constructor parse_formula already uses. Throws
