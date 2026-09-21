@@ -171,6 +171,13 @@ class IsoFFI:
         const int* compositionCountsC(void* composition);
         void deleteCompositionC(void* composition);
 
+        void* expandCompositionC(const char* const* symbols, const int* counts, size_t size, bool use_nominal_masses);
+        const int* expandedIsotopeNumbersC(void* expanded);
+        const int* expandedAtomCountsC(void* expanded);
+        const double* expandedIsotopeMassesC(void* expanded);
+        const double* expandedIsotopeProbabilitiesC(void* expanded);
+        void deleteExpandedCompositionC(void* expanded);
+
         const char* activeSimdLevel(void);
 
         #define NUMBER_OF_ISOTOPIC_ENTRIES 292

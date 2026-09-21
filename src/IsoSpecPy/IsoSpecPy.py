@@ -166,12 +166,24 @@ def ParseFASTA(fasta, unimod_db_path=None):
 def IsoParamsFromDict(formula, use_nominal_masses = False):
     """Produces a set of IsoSpec parameters from a chemical formula.
 
+    The symbol-to-isotopes resolution happens in C++ (cwrapper.h's
+    expandCompositionC -> fasta_mods.h's expand_composition_into), not here.
+    This function used to walk PeriodicTbl's dicts itself, which made it a
+    second implementation of a rule the C++ core already owned -- and it
+    existed only because the C ABI had no entry point between setupIso (which
+    demands the caller already know every isotope mass) and the
+    sequence-only isoFromFasta. It has one now.
+
     Args:
         formula (dict): a parsed chemical formula, e.g. {"C": 2, "H": 6, "O": 1}
         use_nominal_masses (boolean): use masses of elements rounded to integer numbers (nominal masses)
 
     Returns:
         ParsedFormula: a tuple containing atomCounts, masses and marginal probabilities of elements in the parsed formula.
+        Element order follows the dict's own iteration order, as it always did.
+
+    Raises:
+        ValueError: an element symbol the library's tables don't know.
     """
 
     symbols, atomCounts = [], []
@@ -179,14 +191,42 @@ def IsoParamsFromDict(formula, use_nominal_masses = False):
         symbols.append(symbol)
         atomCounts.append(atomCount)
 
+    if len(symbols) == 0:
+        return ParsedFormula(atomCounts, [], [], symbols)
+
+    ffi = isoFFI.ffi
+
     try:
-        if use_nominal_masses:
-            masses = [PeriodicTbl.symbol_to_massNo[s] for s in symbols]
-        else:
-            masses = [PeriodicTbl.symbol_to_masses[s] for s in symbols]
-        probs  = [PeriodicTbl.symbol_to_probs[s]  for s in symbols]
-    except KeyError:
+        # Each "char[]" belongs to cffi and must outlive the call: the
+        # "char*[]" below holds borrowed pointers into them, so the list has
+        # to stay referenced until expandCompositionC returns.
+        symbol_bufs = [ffi.new("char[]", s.encode("ascii")) for s in symbols]
+    except (UnicodeEncodeError, AttributeError):
+        raise ValueError("Invalid formula (element symbols must be ASCII strings)")
+    symbol_ptrs = ffi.new("char*[]", symbol_bufs)
+    count_buf = ffi.new("int[]", atomCounts)
+
+    expanded = isoFFI.clib.expandCompositionC(symbol_ptrs, count_buf, len(symbols), use_nominal_masses)
+    if expanded == ffi.NULL:
         raise ValueError("Invalid formula")
+    try:
+        # ffi.unpack, not ffi.cast("double[N]", ...): N varies with the
+        # formula and cffi's type cache is keyed on the exact type string, so
+        # embedding a runtime size in one defeats that cache on every call.
+        isotopeNumbers = ffi.unpack(isoFFI.clib.expandedIsotopeNumbersC(expanded), len(symbols))
+        total_isotopes = sum(isotopeNumbers)
+        flat_masses = ffi.unpack(isoFFI.clib.expandedIsotopeMassesC(expanded), total_isotopes)
+        flat_probs = ffi.unpack(isoFFI.clib.expandedIsotopeProbabilitiesC(expanded), total_isotopes)
+    finally:
+        isoFFI.clib.deleteExpandedCompositionC(expanded)
+
+    # Back into the per-element tuples this function has always returned:
+    # Advanced.py and approximations.py both index masses/probs by element.
+    masses, probs, offset = [], [], 0
+    for n in isotopeNumbers:
+        masses.append(tuple(flat_masses[offset:offset + n]))
+        probs.append(tuple(flat_probs[offset:offset + n]))
+        offset += n
 
     return ParsedFormula(atomCounts, masses, probs, symbols)
 
