@@ -231,6 +231,34 @@ ISOSPEC_C_API const char* const* compositionSymbolsC(void* composition);
 ISOSPEC_C_API const int* compositionCountsC(void* composition);
 ISOSPEC_C_API void deleteCompositionC(void* composition);
 
+/* Composition -> the flat per-isotope arrays setupIso takes, with the
+   isotopes resolved from the library's own element tables (see
+   fasta_mods.h's expand_composition_into, the single implementation).
+
+   This is the rung between setupIso -- which requires the caller to already
+   know every isotope mass and probability, i.e. to carry its own copy of the
+   periodic table -- and isoFromFasta/isoFromFastaWithMods, which accept
+   nothing but a sequence. A binding holding a composition (symbol, count)
+   has one of those, not the other, and this is what it should call.
+
+   `symbols` are element symbols spelled as in elem_table_symbol ("C", "H",
+   "Se"), `size` entries, paired positionally with `counts`. Element order is
+   preserved throughout, so a caller can match the outputs back up by index.
+
+   Counts may be negative: a composition is not yet a molecule, and rejecting
+   that is the caller's job at the point it builds one (see fasta_mods.h).
+   NULL on an unknown element symbol or OOM. */
+ISOSPEC_C_API void* expandCompositionC(const char* const* symbols, const int* counts, size_t size, bool use_nominal_masses);
+/* `size` entries each, in the input's element order. */
+ISOSPEC_C_API const int* expandedIsotopeNumbersC(void* expanded);
+ISOSPEC_C_API const int* expandedAtomCountsC(void* expanded);
+/* sum(expandedIsotopeNumbersC) entries each, element-major. Exactly what
+   setupIso's isotopeMasses/isotopeProbabilities arguments want. */
+ISOSPEC_C_API const double* expandedIsotopeMassesC(void* expanded);
+ISOSPEC_C_API const double* expandedIsotopeProbabilitiesC(void* expanded);
+/* All four arrays above belong to the handle and die with it. */
+ISOSPEC_C_API void deleteExpandedCompositionC(void* expanded);
+
 /* What the library's batched kernels are vectorised to on this machine, as a
    stable lowercase token: "scalar", "sse2", "avx", "avx2", "avx512", "neon", or
    "simd" for a vector unit with no name here. Never NULL; a static string, so

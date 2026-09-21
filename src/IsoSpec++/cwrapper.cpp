@@ -16,6 +16,7 @@
 
 
 #include <cstring>
+#include <string>
 #include <algorithm>
 #include <utility>
 #include <stdexcept>
@@ -32,6 +33,7 @@
 #include "fasta.h"
 #include "fasta_mods.h"
 #include "element_tables.h"
+#include "element_lookup.h"
 
 using namespace IsoSpec;  // NOLINT(build/namespaces) - all of this really should be in a namespace IsoSpec, but C doesn't have them...
 
@@ -663,6 +665,70 @@ const int* compositionCountsC(void* composition)
 void deleteCompositionC(void* composition)
 {
     delete reinterpret_cast<ElementCompositionHandle*>(composition);
+}
+
+void* expandCompositionC(const char* const* symbols, const int* counts, size_t size, bool use_nominal_masses)
+{
+    return c_guard([&]() -> void*
+    {
+        ElementComposition composition;
+        composition.element_first_index.reserve(size);
+        composition.count.reserve(size);
+
+        for(size_t i = 0; i < size; i++)
+        {
+            // find_element_table_first_index rejects anything that isn't a
+            // 1- or 2-character [A-Z][a-z]? symbol by returning -1, so an
+            // over-long or malformed symbol lands here rather than indexing
+            // out of its table -- no separate length check needed.
+            const int idx = find_element_table_first_index(symbols[i], strlen(symbols[i]));
+            if(idx < 0)
+                throw std::invalid_argument(std::string("Unknown element symbol: ") + symbols[i]);
+            composition.element_first_index.push_back(idx);
+            composition.count.push_back(counts[i]);
+        }
+
+        std::unique_ptr<ExpandedComposition> handle(new ExpandedComposition());
+        expand_composition_into(composition, *handle, use_nominal_masses);
+        return handle.release();
+    });
+}
+
+const int* expandedIsotopeNumbersC(void* expanded)
+{
+    return c_guard([&]() -> const int*
+    {
+        return reinterpret_cast<ExpandedComposition*>(expanded)->isotopeNumbers.data();
+    });
+}
+
+const int* expandedAtomCountsC(void* expanded)
+{
+    return c_guard([&]() -> const int*
+    {
+        return reinterpret_cast<ExpandedComposition*>(expanded)->atomCounts.data();
+    });
+}
+
+const double* expandedIsotopeMassesC(void* expanded)
+{
+    return c_guard([&]() -> const double*
+    {
+        return reinterpret_cast<ExpandedComposition*>(expanded)->isotope_masses.data();
+    });
+}
+
+const double* expandedIsotopeProbabilitiesC(void* expanded)
+{
+    return c_guard([&]() -> const double*
+    {
+        return reinterpret_cast<ExpandedComposition*>(expanded)->isotope_probabilities.data();
+    });
+}
+
+void deleteExpandedCompositionC(void* expanded)
+{
+    delete reinterpret_cast<ExpandedComposition*>(expanded);
 }
 
 const char* activeSimdLevel()
