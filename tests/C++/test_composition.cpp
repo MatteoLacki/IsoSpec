@@ -1,16 +1,18 @@
 // Composition expansion: turning (element, count) pairs into the flat
 // per-isotope arrays Iso's general constructor takes.
 //
-// expand_composition_into (fasta_mods.h) is the single implementation of that
-// resolution, reached from three directions: build_iso_from_composition, the
-// C ABI's expandCompositionC, and — through the latter — IsoSpecPy's
-// IsoParamsFromDict, which used to carry its own copy walking PeriodicTbl.
-// The tests here pin the contract all three depend on.
+// expand_composition_into (composition.h) is the single implementation of that
+// resolution, reached from four directions: parse_formula (the formula-string
+// path), build_iso_from_composition (the peptide-sequence path), the C ABI's
+// expandCompositionC, and — through the latter — IsoSpecPy's IsoParamsFromDict,
+// which used to carry its own copy walking PeriodicTbl. The tests here pin the
+// contract all four depend on.
 
 #include <cstring>
 #include <string>
 #include <vector>
 
+#include "composition.h"
 #include "cwrapper.h"
 #include "doctest.h"
 #include "element_lookup.h"
@@ -293,4 +295,72 @@ TEST_CASE("the mods-aware parser's output feeds expandCompositionC unchanged") {
     deleteIso(iso);
 
     deleteCompositionC(composition);
+}
+
+TEST_CASE("reject_negative_counts names the offending elements") {
+    // Shared by build_iso_from_composition and parse_formula, so the same
+    // molecule rejected from either direction reports the same thing.
+    ElementComposition ok = make_composition({"C", "H"}, {6, 12});
+    CHECK_NOTHROW(reject_negative_counts(ok));
+
+    ElementComposition bad = make_composition({"C", "H", "S"}, {6, -1, -2});
+    try {
+        reject_negative_counts(bad);
+        FAIL("expected std::invalid_argument");
+    } catch (const std::invalid_argument& e) {
+        const std::string msg = e.what();
+        // Both offenders named, the innocent one not.
+        CHECK(msg.find("H") != std::string::npos);
+        CHECK(msg.find("S") != std::string::npos);
+        CHECK(msg.find("C,") == std::string::npos);
+    }
+}
+
+TEST_CASE("the formula path and the composition path share one expansion") {
+    // parse_formula routes through expand_composition_into too, so a formula
+    // string and the equivalent composition must agree isotope for isotope,
+    // not merely in the masses they eventually produce.
+    std::vector<double> masses, probs;
+    int* isotopeNumbers = nullptr;
+    int* atomCounts = nullptr;
+    unsigned int confSize = 0;
+    const unsigned int dim =
+        parse_formula("C6H12N2O1S1", masses, probs, &isotopeNumbers, &atomCounts, &confSize, false);
+
+    ExpandedComposition expanded;
+    expand_composition_into(make_composition({"C", "H", "N", "O", "S"}, {6, 12, 2, 1, 1}), expanded);
+
+    REQUIRE(dim == expanded.atomCounts.size());
+    REQUIRE(masses.size() == expanded.isotope_masses.size());
+    for (unsigned int i = 0; i < dim; i++) {
+        CHECK(isotopeNumbers[i] == expanded.isotopeNumbers[i]);
+        CHECK(atomCounts[i] == expanded.atomCounts[i]);
+    }
+    for (size_t k = 0; k < masses.size(); k++) {
+        CHECK(masses[k] == expanded.isotope_masses[k]);
+        CHECK(probs[k] == expanded.isotope_probabilities[k]);
+    }
+
+    delete[] isotopeNumbers;
+    delete[] atomCounts;
+}
+
+TEST_CASE("parse_formula still appends to its output vectors") {
+    // Its mass/probability parameters are out-parameters of a public function
+    // and have always added to whatever the caller passed in; routing the body
+    // through the shared expansion must not have quietly turned that into an
+    // assignment.
+    std::vector<double> masses{-1.0}, probs{-1.0};
+    int* isotopeNumbers = nullptr;
+    int* atomCounts = nullptr;
+    unsigned int confSize = 0;
+    parse_formula("H2O1", masses, probs, &isotopeNumbers, &atomCounts, &confSize, false);
+
+    CHECK(masses.front() == -1.0);
+    CHECK(probs.front() == -1.0);
+    CHECK(masses.size() == 1u + 5u);  // H's 2 isotopes + O's 3
+    CHECK(probs.size() == 1u + 5u);
+
+    delete[] isotopeNumbers;
+    delete[] atomCounts;
 }

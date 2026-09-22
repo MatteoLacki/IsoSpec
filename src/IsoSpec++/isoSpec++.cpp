@@ -41,6 +41,7 @@
 #include "misc.h"
 #include "element_tables.h"
 #include "element_lookup.h"
+#include "composition.h"
 #include "fasta.h"
 
 
@@ -483,43 +484,36 @@ void parse_formula_tokens(const char* formula, std::vector<int>& element_first_i
 
 unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
-    std::vector<int> element_indexes;
-    std::vector<int> numbers;
-    parse_formula_tokens(formula, element_indexes, numbers);
+    // parse_formula_tokens' two output vectors are exactly an
+    // ElementComposition's two members, so the formula path joins the
+    // peptide-sequence path here and shares everything downstream of it.
+    ElementComposition composition;
+    parse_formula_tokens(formula, composition.element_first_index, composition.count);
 
     // parse_formula_tokens accepts signed counts because the Unimod
     // composition-delta loader needs them ("H-2O-1" is a perfectly good
-    // modification delta). A molecule is not a delta: a negative atom count
-    // reaching Iso's constructor is not merely a wrong answer, it is
-    // undefined behaviour -- Marginal::computeModeConf() sizes its
-    // configuration buffer from the atom count and writeInitialConfiguration
-    // then walks off the end of it (caught as a heap-buffer-overflow by
-    // ASan). Before signed counts were introduced this was unreachable: '-'
-    // was rejected outright by the character check above. Keep it
-    // unreachable, here, where the tokens become a molecule.
-    for(size_t i = 0; i < numbers.size(); i++)
-        if(numbers[i] < 0)
-            throw std::invalid_argument("Invalid formula: negative atom count (a molecule can't contain a negative number of atoms; signed counts are only meaningful for a modification's composition delta)");
+    // modification delta). A molecule is not a delta, and this is the point
+    // where these tokens become one -- see composition.h for why a negative
+    // count reaching Iso's constructor is undefined behaviour rather than
+    // merely a wrong answer. Before signed counts were introduced this was
+    // unreachable: '-' was rejected outright by the character check in the
+    // tokenizer. Keep it unreachable.
+    reject_negative_counts(composition);
 
-    std::vector<int> _isotope_numbers;
-    const double* masses = use_nominal_masses ? elem_table_massNo : elem_table_mass;
+    ExpandedComposition expanded;
+    expand_composition_into(composition, expanded, use_nominal_masses);
 
-    for(std::vector<int>::iterator it = element_indexes.begin(); it != element_indexes.end(); ++it)
-    {
-        int at_idx = *it;
-        int num = element_isotope_count(at_idx);
-        for(int k = 0; k < num; k++)
-        {
-            isotope_masses.push_back(masses[at_idx + k]);
-            isotope_probabilities.push_back(elem_table_probability[at_idx + k]);
-        }
-        _isotope_numbers.push_back(num);
-    }
+    const unsigned int dimNumber = static_cast<unsigned int>(expanded.atomCounts.size());
 
-    const unsigned int dimNumber = element_indexes.size();
+    // Appended, not assigned: these are out-parameters of a public function
+    // and have always added to whatever the caller passed in.
+    isotope_masses.insert(isotope_masses.end(),
+                          expanded.isotope_masses.begin(), expanded.isotope_masses.end());
+    isotope_probabilities.insert(isotope_probabilities.end(),
+                                 expanded.isotope_probabilities.begin(), expanded.isotope_probabilities.end());
 
-    *isotopeNumbers = array_copy<int>(_isotope_numbers.data(), dimNumber);
-    *atomCounts = array_copy<int>(numbers.data(), dimNumber);
+    *isotopeNumbers = array_copy<int>(expanded.isotopeNumbers.data(), dimNumber);
+    *atomCounts = array_copy<int>(expanded.atomCounts.data(), dimNumber);
     *confSize = dimNumber * sizeof(int);
 
     return dimNumber;
