@@ -233,7 +233,7 @@ ISOSPEC_C_API void deleteCompositionC(void* composition);
 
 /* Composition -> the flat per-isotope arrays setupIso takes, with the
    isotopes resolved from the library's own element tables (see
-   fasta_mods.h's expand_composition_into, the single implementation).
+   composition.h's expand_composition_into, the single implementation).
 
    This is the rung between setupIso -- which requires the caller to already
    know every isotope mass and probability, i.e. to carry its own copy of the
@@ -246,7 +246,7 @@ ISOSPEC_C_API void deleteCompositionC(void* composition);
    preserved throughout, so a caller can match the outputs back up by index.
 
    Counts may be negative: a composition is not yet a molecule, and rejecting
-   that is the caller's job at the point it builds one (see fasta_mods.h).
+   that is the caller's job at the point it builds one (see composition.h).
    NULL on an unknown element symbol or OOM. */
 ISOSPEC_C_API void* expandCompositionC(const char* const* symbols, const int* counts, size_t size, bool use_nominal_masses);
 /* `size` entries each, in the input's element order. */

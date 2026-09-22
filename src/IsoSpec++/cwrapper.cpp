@@ -30,6 +30,7 @@
 #include "marginalTrek++.h"
 #include "isoSpec++.h"
 #include "fixedEnvelopes.h"
+#include "composition.h"
 #include "fasta.h"
 #include "fasta_mods.h"
 #include "element_tables.h"

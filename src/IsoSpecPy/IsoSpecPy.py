@@ -167,7 +167,7 @@ def IsoParamsFromDict(formula, use_nominal_masses = False):
     """Produces a set of IsoSpec parameters from a chemical formula.
 
     The symbol-to-isotopes resolution happens in C++ (cwrapper.h's
-    expandCompositionC -> fasta_mods.h's expand_composition_into), not here.
+    expandCompositionC -> composition.h's expand_composition_into), not here.
     This function used to walk PeriodicTbl's dicts itself, which made it a
     second implementation of a rule the C++ core already owned -- and it
     existed only because the C ABI had no entry point between setupIso (which

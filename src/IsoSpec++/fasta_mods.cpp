@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "composition.h"
 #include "element_lookup.h"
 #include "element_tables.h"
 #include "fasta.h"
@@ -211,50 +212,6 @@ ElementComposition parse_fasta_with_mods_full(const char* sequence, const Unimod
     ElementComposition result;
     parse_fasta_with_mods_full_into(sequence, result, mods);
     return result;
-}
-
-void expand_composition_into(const ElementComposition& composition, ExpandedComposition& out,
-                             bool use_nominal_masses) {
-    out.clear();
-
-    const size_t dimNumber = composition.element_first_index.size();
-    const double* masses_table = use_nominal_masses ? elem_table_massNo : elem_table_mass;
-
-    out.isotopeNumbers.reserve(dimNumber);
-    out.atomCounts.reserve(dimNumber);
-
-    for (size_t i = 0; i < dimNumber; i++) {
-        const int first_idx = composition.element_first_index[i];
-        const int num_isotopes = element_isotope_count(first_idx);
-        out.isotopeNumbers.push_back(num_isotopes);
-        out.atomCounts.push_back(composition.count[i]);
-        for (int k = 0; k < num_isotopes; k++) {
-            out.isotope_masses.push_back(masses_table[first_idx + k]);
-            out.isotope_probabilities.push_back(elem_table_probability[first_idx + k]);
-        }
-    }
-}
-
-Iso build_iso_from_composition(const ElementComposition& composition, bool use_nominal_masses) {
-    // Checked here rather than in expand_composition_into: a negative count is
-    // a perfectly good intermediate in a composition (a modification's delta
-    // can outweigh the bare sequence), and only becomes an error where the
-    // composition becomes a molecule -- which is here. It is not merely a
-    // wrong answer either: a negative atom count reaching Iso's constructor is
-    // undefined behaviour, for the reasons parse_formula's own copy of this
-    // check spells out.
-    for (size_t i = 0; i < composition.count.size(); i++)
-        if (composition.count[i] < 0)
-            throw std::invalid_argument(
-                "Modification set removes more atoms of some element than the base sequence "
-                "plus other modifications provide");
-
-    ExpandedComposition expanded;
-    expand_composition_into(composition, expanded, use_nominal_masses);
-
-    return Iso(static_cast<int>(expanded.atomCounts.size()), expanded.isotopeNumbers.data(),
-               expanded.atomCounts.data(), expanded.isotope_masses.data(),
-               expanded.isotope_probabilities.data());
 }
 
 Iso Iso::FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool use_nominal_masses, bool add_water) {

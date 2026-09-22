@@ -1,5 +1,5 @@
 """IsoParamsFromDict now resolves element symbols to isotopes in C++
-(cwrapper.h's expandCompositionC -> fasta_mods.h's expand_composition_into)
+(cwrapper.h's expandCompositionC -> composition.h's expand_composition_into)
 rather than walking PeriodicTbl itself.
 
 These tests pin two separate things: that the values are unchanged from the

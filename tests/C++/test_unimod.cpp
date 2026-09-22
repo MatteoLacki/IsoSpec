@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include "composition.h"
 #include "doctest.h"
 #include "element_lookup.h"
 #include "fasta.h"

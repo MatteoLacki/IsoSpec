@@ -33,6 +33,7 @@
 #include "operators.cpp"        // NOLINT(build/include)
 #include "element_tables.cpp"   // NOLINT(build/include)
 #include "element_lookup.cpp"   // NOLINT(build/include)
+#include "composition.cpp"      // NOLINT(build/include)
 #include "fasta.cpp"            // NOLINT(build/include)
 #include "unimod.cpp"           // NOLINT(build/include)
 #include "fasta_mods.cpp"       // NOLINT(build/include)
