@@ -68,7 +68,8 @@ The pipeline is: **Iso → per-element Marginals → a generator that combines t
 - **Generators** (`isoSpec++.h`) — combine marginal configurations into isotopologues, streaming one per `advanceToNextConfiguration()` call: `IsoThresholdGenerator` (all confs above a probability cutoff), `IsoLayeredGenerator` (probability layers, used for total-prob coverage), `IsoOrderedGenerator` (strict decreasing-probability order, priority queue, slower), `IsoStochasticGenerator` (sampled ion counts).
 - **`FixedEnvelope`** (`fixedEnvelopes.h`) — materializes a generator into flat mass/prob arrays: `FromTotalProb` (smallest set covering p, via layered + quickselect trim), `FromThreshold`, `FromStochastic`, binned variant; plus envelope arithmetic (add, convolve, normalize, Wasserstein).
 - **`cwrapper.h/.cpp`** — the C ABI. The Python binding (`src/IsoSpecPy/isoFFI.py` cffi cdefs) calls *only* this layer; its cdef block must be kept in sync with the header by hand. R binds the C++ classes directly via Rcpp instead.
-  A binding should never carry its own copy of the periodic table: `expandCompositionC` turns (symbol, count) pairs into the flat isotope arrays `setupIso` wants, so symbol→isotopes resolution lives only in C++ (`docs/ai/composition_expansion.md`).
+  A binding should never carry its own copy of the periodic table: `expandCompositionC` turns (symbol, count) pairs into the flat isotope arrays `setupIso` wants.
+- **`composition.h/.cpp`** — `ElementComposition` (element counts) and `expand_composition_into` (counts → isotope masses/probs). The single symbol→isotopes resolution: the formula parser, the sequence parsers and the C ABI all route through it, and nothing else may reimplement it (`docs/ai/composition_expansion.md`).
 
 ### Runtime ISA dispatch (the unusual part)
 
@@ -95,7 +96,7 @@ This file stays a short overview; design rationale/history for each feature live
 |------|--------|
 | `docs/ai/unimod.md` | `[UNIMOD:<id>]` modification-aware peptide sequence parsing (`fasta_mods.h`/`unimod.h`), the `fasta`/`peptide_sequence` naming note |
 | `docs/ai/precursor_isotopes_notebook.md` | Pipeline peptide notebook: unmodified optimal 99% isotope sets, 1 Da sparse mmappet export, notebook fingerprint |
-| `docs/ai/composition_expansion.md` | `expand_composition_into`/`expandCompositionC`: the one symbol→isotopes resolution the bindings forward to, and the copies that remain |
+| `docs/ai/composition_expansion.md` | `composition.h`: `ElementComposition`/`expand_composition_into`/`expandCompositionC` — the one symbol→isotopes resolution every path and binding forwards to, and the copy that remains |
 
 # Persona
 
