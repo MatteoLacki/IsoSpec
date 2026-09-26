@@ -5,13 +5,27 @@ rather than walking PeriodicTbl itself.
 These tests pin two separate things: that the values are unchanged from the
 PeriodicTbl oracle they used to come from, and that the Python-side copy is
 genuinely gone rather than merely unused on the happy path.
+
+The per-symbol memo (_isotopes_by_symbol) is emptied before every test here, so
+each one sees values freshly resolved by C++ rather than whatever an earlier
+test left behind.
 """
+
+import sys
 
 import pytest
 
 import IsoSpecPy
 from IsoSpecPy import PeriodicTbl
 from IsoSpecPy.IsoSpecPy import IsoParamsFromDict, IsoParamsFromFormula
+
+# The module, not the Iso-compat attribute IsoSpecPy.IsoSpecPy resolves to.
+isospecpy_module = sys.modules["IsoSpecPy.IsoSpecPy"]
+
+
+@pytest.fixture(autouse=True)
+def cold_symbol_cache(monkeypatch):
+    monkeypatch.setattr(isospecpy_module, "_isotopes_by_symbol", {})
 
 
 def test_matches_the_periodic_table_oracle():
@@ -129,10 +143,35 @@ def test_peptide_sequence_plus_formula_still_composes():
 
 
 def test_repeated_calls_do_not_accumulate():
-    # The C handle is freed on every call (finally: deleteExpandedCompositionC).
-    # Nothing here can see a leak directly; what it can see is a wrong answer
-    # from a handle reused or a buffer appended to across calls.
+    # The first call resolves through C++, the rest are served from the memo;
+    # what this can see is a wrong answer from a memo entry mutated or
+    # appended to across calls.
     first = IsoParamsFromDict({"C": 1})
     for _ in range(1000):
         again = IsoParamsFromDict({"C": 1})
         assert again == first
+
+
+def test_symbols_are_resolved_once_and_memoized():
+    cache = isospecpy_module._isotopes_by_symbol
+    first = IsoParamsFromDict({"C": 2, "H": 6, "O": 1})
+    assert set(cache) == {("C", False), ("H", False), ("O", False)}
+    # A warm call must give exactly what the cold one did.
+    assert IsoParamsFromDict({"C": 2, "H": 6, "O": 1}) == first
+
+
+def test_memo_keeps_exact_and_nominal_masses_apart():
+    exact = IsoParamsFromDict({"C": 1})
+    nominal = IsoParamsFromDict({"C": 1}, use_nominal_masses=True)
+    assert exact.masses == [PeriodicTbl.symbol_to_masses["C"]]
+    assert nominal.masses == [PeriodicTbl.symbol_to_massNo["C"]]
+    # Truthy non-bool flags share the bool's entry rather than making new ones.
+    IsoParamsFromDict({"C": 1}, use_nominal_masses=1)
+    assert set(isospecpy_module._isotopes_by_symbol) == {("C", False), ("C", True)}
+
+
+def test_unknown_symbol_is_never_memoized():
+    for _ in range(2):
+        with pytest.raises(ValueError):
+            IsoParamsFromDict({"H": 2, "Xx": 1})
+    assert ("Xx", False) not in isospecpy_module._isotopes_by_symbol

@@ -41,6 +41,16 @@ so it carried its own resolution loop in `IsoParamsFromDict`, walking `PeriodicT
 `PeriodicTbl` is no longer consulted for isotope resolution at all — only `ParseFormula` still
 reads it, for its unknown-symbol check on a formula *string*.
 
+It forwards once per symbol, not once per call. The first version made the full cffi round trip
+(per-symbol `ffi.new`, four accessor calls, three `ffi.unpack`) on every `IsoParamsFromDict`,
+which took it from 3.3 µs to 24.7 µs for a 5-element formula — the C++ expansion itself being
+only 2.6 µs of that — and pushed `Iso(peptide_sequence=...)` from ~38 to ~62 µs. CI caught it:
+`test_old_vs_new_runtime_on_plain_sequences` crossed its 10x bound on ubuntu legs. Now each
+`(symbol, use_nominal_masses)` is resolved through `expandCompositionC` the first time it is seen
+and memoized in `_isotopes_by_symbol`; the counts never enter it (`expand_composition_into`
+copies them through untouched), and unknown symbols raise without being stored. Every value in
+the memo came from C++, so it is a cache of the one resolution, not a second copy of it.
+
 ## Why it needed its own header
 
 `ElementComposition` and the expansion originally lived in `fasta_mods.h`. That worked for the
@@ -142,4 +152,7 @@ CMake builds go through `unity-build.cpp`; `pyproject.toml`'s sdist globs `*.cpp
   element the library knows, the returned per-element tuple shape, and
   `test_resolution_no_longer_reads_periodic_tbl`, which empties `PeriodicTbl`'s dicts under
   `monkeypatch` and asserts everything still works. That last one is the guard: if a
-  Python-side copy of the lookup ever returns, it is the only test that will notice.
+  Python-side copy of the lookup ever returns, it is the only test that will notice. An autouse
+  fixture empties the memo before each test, so every assertion sees a fresh C++ resolution; the
+  memo's own behaviour (warm == cold, exact/nominal kept apart, unknown symbols never stored) has
+  tests of its own.
