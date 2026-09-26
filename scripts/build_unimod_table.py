@@ -129,7 +129,11 @@ def parse_obo(text: str, known_symbols: set[str]) -> tuple[list[tuple[int, str, 
 
 def write_csv(rows: list[tuple[int, str, float, str]]) -> None:
     CSV_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with CSV_OUTPUT_PATH.open("w", newline="") as f:
+    # UTF-8 regardless of the platform regenerating this, so the checked-in
+    # bytes never depend on whose locale ran the script. Same for every other
+    # read/write below: the generated headers carry a non-ASCII licence line,
+    # which cp1252 (the Windows default) cannot even encode.
+    with CSV_OUTPUT_PATH.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["id", "name", "mono_mass", "composition"])
         writer.writerows(rows)
@@ -169,7 +173,7 @@ def write_header() -> None:
     element_tables.cpp already uses for the periodic table, no build-time
     codegen step needed, just split into pieces small enough for every
     compiler this library targets."""
-    csv_text = CSV_OUTPUT_PATH.read_text()
+    csv_text = CSV_OUTPUT_PATH.read_text(encoding="utf-8")
     if ")UNIMODCSV\"" in csv_text:
         raise ValueError("data/unimod.csv unexpectedly contains the raw-string delimiter")
 
@@ -217,13 +221,13 @@ static const std::size_t kEmbeddedUnimodCsvChunkCount = sizeof(kEmbeddedUnimodCs
 }}  // namespace IsoSpec
 """
     HEADER_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    HEADER_OUTPUT_PATH.write_text(header)
+    HEADER_OUTPUT_PATH.write_text(header, encoding="utf-8")
     print(f"wrote {HEADER_OUTPUT_PATH} ({len(chunks)} chunks)", file=sys.stderr)
 
 
 def write_support_header(exclusions: dict[int, str]) -> None:
     """Generate the ledger from the embedded CSV, with reasons from its OBO source."""
-    with CSV_OUTPUT_PATH.open(newline="") as f:
+    with CSV_OUTPUT_PATH.open(newline="", encoding="utf-8") as f:
         supported_ids = {int(row["id"]) for row in csv.DictReader(f)}
     size = max(supported_ids, default=0) + 1
     lines = []
@@ -258,7 +262,7 @@ inline constexpr bool is_unimod_supported(std::uint64_t id) noexcept {{
 }}  // namespace IsoSpec
 """
     SUPPORT_OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SUPPORT_OUTPUT_PATH.write_text(header)
+    SUPPORT_OUTPUT_PATH.write_text(header, encoding="utf-8")
     print(f"wrote {SUPPORT_OUTPUT_PATH} ({size} slots)", file=sys.stderr)
 
 
@@ -277,7 +281,7 @@ def main() -> None:
 
     if args.input is not None:
         print(f"reading {args.input}", file=sys.stderr)
-        text = args.input.read_text()
+        text = args.input.read_text(encoding="utf-8")
     else:
         print(f"fetching {UNIMOD_OBO_URL}", file=sys.stderr)
         with urllib.request.urlopen(UNIMOD_OBO_URL) as response:

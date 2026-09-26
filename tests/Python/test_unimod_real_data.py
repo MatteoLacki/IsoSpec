@@ -29,7 +29,11 @@ def _load_sequences():
 
 
 def _load_unimod_ids():
-    with open(UNIMOD_CSV_PATH) as f:
+    # encoding= is explicit, not decorative: a bare open() decodes with the
+    # locale default, which is cp1252 on the Windows runners -- so a future
+    # Unimod refresh introducing a non-ASCII modification name would fail
+    # there and nowhere else. The 2026-09 snapshot happens to be pure ASCII.
+    with open(UNIMOD_CSV_PATH, encoding="utf-8", newline="") as f:
         return [int(row["id"]) for row in csv.DictReader(f)]
 
 
