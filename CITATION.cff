@@ -1,0 +1,63 @@
+# No version/date-released here on purpose: VERSION at the repo root is the
+# single source of truth for the version, and a second copy would drift.
+cff-version: 1.2.0
+message: "If IsoSpec is useful in your research, please cite it as below."
+type: software
+title: IsoSpec
+abstract: >-
+  A fine-structure isotopic distribution calculator for chemical formulas,
+  with a C++ core and bindings for Python (IsoSpecPy) and R (IsoSpecR).
+authors:
+  - family-names: Łącki
+    given-names: Mateusz Krzysztof
+    orcid: "https://orcid.org/0000-0001-7415-4748"
+  - family-names: Startek
+    given-names: Michał Piotr
+    orcid: "https://orcid.org/0000-0001-5227-3447"
+license: BSD-2-Clause
+repository-code: "https://github.com/MatteoLacki/IsoSpec"
+keywords:
+  - isotopic distribution
+  - mass spectrometry
+  - fine structure
+  - isotopologues
+preferred-citation:
+  type: article
+  title: "IsoSpec2: Ultrafast Fine Structure Calculator"
+  authors:
+    - family-names: Łącki
+      given-names: Mateusz Krzysztof
+      orcid: "https://orcid.org/0000-0001-7415-4748"
+    - family-names: Valkenborg
+      given-names: Dirk
+    - family-names: Startek
+      given-names: Michał Piotr
+      orcid: "https://orcid.org/0000-0001-5227-3447"
+  journal: Analytical Chemistry
+  year: 2020
+  volume: 92
+  issue: 14
+  start: 9472
+  end: 9475
+  doi: 10.1021/acs.analchem.0c00959
+references:
+  - type: article
+    title: "IsoSpec: Hyperfast Fine Structure Calculator"
+    authors:
+      - family-names: Łącki
+        given-names: Mateusz Krzysztof
+        orcid: "https://orcid.org/0000-0001-7415-4748"
+      - family-names: Startek
+        given-names: Michał Piotr
+        orcid: "https://orcid.org/0000-0001-5227-3447"
+      - family-names: Valkenborg
+        given-names: Dirk
+      - family-names: Gambin
+        given-names: Anna
+    journal: Analytical Chemistry
+    year: 2017
+    volume: 89
+    issue: 6
+    start: 3272
+    end: 3277
+    doi: 10.1021/acs.analchem.6b01459
