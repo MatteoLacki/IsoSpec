@@ -26,7 +26,7 @@ def test_log_multinomial_confs_cnt():
 
 
 def log_V_simplex(n, i):
-	"""Get the natural logarithm of the volume of a simplex {(x_1,..,x_{i-1}): \sum_{j=1}^i = n}.
+	r"""Get the natural logarithm of the volume of a simplex {(x_1,..,x_{i-1}): \sum_{j=1}^i = n}.
 
 	Args:
 		n (int): The number of atoms of the element.
@@ -41,7 +41,7 @@ def test_log_V_simplex():
 
 
 def V_simplex(n, i):
-	"""Get the volume of a simplex {(x_1,..,x_{i-1}): \sum_{j=1}^i = n}.
+	r"""Get the volume of a simplex {(x_1,..,x_{i-1}): \sum_{j=1}^i = n}.
 
 	Args:
 		n (int): The number of atoms of the element.
