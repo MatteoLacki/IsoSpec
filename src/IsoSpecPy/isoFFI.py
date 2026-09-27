@@ -1,11 +1,6 @@
 import cffi
 import platform
-import sys
-import glob
 from pathlib import Path
-
-if False:
-    import IsoSpecCppPy
 
 
 class IsoFFI:
@@ -201,13 +196,6 @@ class IsoFFI:
         )
 
         mod_dir = Path(__file__).resolve().parent
-
-        if (mod_dir.parent / "setup.py").exists():
-            raise ImportError(
-                """Attempted to load IsoSpecPy module from its build directory. This usually
-won't work and is generally a Bad Idea. Please cd somewhere else, or, if you're really
-sure you want to do that, edit the source and disable this check."""
-            )
 
         libnames = ["IsoSpecCppPy*", "IsoSpec++*"]
         libprefix = ["", "lib", "Lib"]
