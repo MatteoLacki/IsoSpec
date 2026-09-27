@@ -2,7 +2,7 @@
 Building and installing the C/C++ library
 
 Requirements:
-   A C++17 compiler
+   A C++20 compiler
    Make (GNU make is OK)
 
 
@@ -35,8 +35,8 @@ If, instead, you wish to install the package manually, follow these
 instructions:
 
 Requirements:
-    Python (obviously)
-    C++17 compiler
+    Python >= 3.9
+    C++20 compiler
 
 Execute the following commands:
 pip install .
@@ -53,7 +53,7 @@ in your R session. However it is possible to install the package manually,
 from source, by following these instructions:
 
 Requirements:
-	R (>= 3.2.1)
+	R (>= 4.0.0)
 	Rcpp package from CRAN
 	C++11 compiler, clang++ (v3.3 or later) or g++ (v4.7 or later)
 
