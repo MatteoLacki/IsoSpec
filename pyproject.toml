@@ -13,6 +13,15 @@ regex = "^\\s*(?P<value>[0-9]+(?:\\.[0-9]+)*)"
 
 [tool.scikit-build]
 cmake.source-dir = "skbuild"
+# The compiled part is not a Python extension module: it is a plain C-ABI
+# shared library that isoFFI.py dlopen()s through cffi's ABI mode, and it never
+# includes Python.h or links libpython. So the wheel is tagged py3-none-<plat>
+# rather than per-interpreter (cp3XX) or Stable ABI (abi3): one binary per
+# platform serves every CPython -- free-threaded builds included, which abi3
+# does not cover -- and PyPy too. cibuildwheel builds it once per platform and
+# only *tests* it under each remaining interpreter. Should the library ever
+# start using the CPython API, this must go back to per-interpreter tags.
+wheel.py-api = "py3"
 
 [project]
 name = "IsoSpecPy"
@@ -23,10 +32,18 @@ license = "BSD-2-Clause"
 license-files = ["LICENCE"]
 authors = [{name = "Michał Startek"}, {name = "Mateusz Łącki"}]
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",

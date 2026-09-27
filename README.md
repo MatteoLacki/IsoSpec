@@ -12,7 +12,7 @@ IsoSpec is primarily used as a library by mass spectrometry software. It is impl
 pip install IsoSpecPy
 ```
 
-The wheel bundles the C++ library — no separate native install required. Compatible with CPython and PyPy on Linux, macOS, Windows, and Cygwin/MinGW. Python ≥ 3.6.
+The wheel bundles the C++ library — no separate native install required. Compatible with CPython and PyPy on Linux, macOS, Windows, and Cygwin/MinGW. Python ≥ 3.9.
 
 To build from source: `pip install .` from a checkout. A C++20 compiler is required.
 

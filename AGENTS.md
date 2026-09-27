@@ -79,6 +79,7 @@ Build-system consequence: any target using the library must compile the four `is
 
 ### Platform notes
 
+- The PyPI wheel is tagged `py3-none-<platform>` (`wheel.py-api = "py3"` in pyproject.toml), not per-interpreter or abi3: the compiled part is a plain C-ABI shared library that cffi `dlopen`s, with no Python.h and no libpython. cibuildwheel builds it once per platform and only tests it under each remaining CPython/PyPy/free-threaded interpreter. Using the CPython API from C++ would invalidate this.
 - macOS builds require **Homebrew GCC** — Apple Clang's libc++ has no `<experimental/simd>`. The wheel links libstdc++ statically with hidden symbols (`-load_hidden`); see the long comment in `skbuild/CMakeLists.txt` before touching that.
 - CI (`.github/workflows/`) runs the pytest matrix on 6 OSes and the C++ suite on ubuntu x86-64 + ARM only. AVX-512 and fake-AVX (Opteron) behavior is validated locally, never in CI — do not add non-GitHub machines to CI or committed scripts.
 
