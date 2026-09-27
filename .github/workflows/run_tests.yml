@@ -14,6 +14,9 @@ jobs:
     name: Run pytest on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      # One failing cell must not cancel the other ~40 and hide whether the
+      # failure is specific to one OS or Python.
+      fail-fast: false
       matrix:
         # macos-15-intel is an Intel runner, macos-latest is Apple silicon
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-latest, windows-11-arm]
