@@ -129,6 +129,23 @@ def _new_iso_masses(seq):
     return iso.getMonoisotopicPeakMass(), iso.getTheoreticalAverageMass()
 
 
+def _new_iso_masses_c(seq):
+    # The C-level counterpart of _old_iso_masses: the same parse + Iso build +
+    # getters + delete, through isoFromFastaWithMods instead of isoFromFasta.
+    # _new_iso_masses goes through the Python Iso constructor, which alone
+    # costs ~30us against ~3us for the whole C side, so timing it against
+    # _old_iso_masses would measure the wrapper, not the parser.
+    handle = isoFFI.clib.isoFromFastaWithMods(seq.encode("ascii"), False, False, isoFFI.ffi.NULL)
+    assert handle != isoFFI.ffi.NULL, "isoFromFastaWithMods failed on plain sequence: " + seq
+    try:
+        return (
+            isoFFI.clib.getMonoisotopicPeakMassIso(handle),
+            isoFFI.clib.getTheoreticalAverageMassIso(handle),
+        )
+    finally:
+        isoFFI.clib.deleteIso(handle)
+
+
 CHNOSSE = ("C", "H", "N", "O", "S", "Se")
 
 
@@ -182,9 +199,16 @@ def test_old_and_new_iso_masses_match_exactly_on_plain_sequences():
 
 def test_old_vs_new_runtime_on_plain_sequences():
     """Not a strict perf gate (machine-dependent) -- reports real numbers and
-    only fails on a gross regression (>10x slower per call on average)."""
+    only fails on a gross regression (>10x slower per call on average).
+
+    Both sides are raw C ABI calls (isoFromFasta vs isoFromFastaWithMods), so
+    the ratio is the parsers' and nothing else's."""
     plain, _ = _build_mixed_fixture()
     reps = 3
+
+    # The two paths must agree before their timings mean anything.
+    for seq in plain:
+        assert _new_iso_masses_c(seq) == _old_iso_masses(seq), seq
 
     t0 = time.perf_counter()
     for _ in range(reps):
@@ -195,7 +219,7 @@ def test_old_vs_new_runtime_on_plain_sequences():
     t0 = time.perf_counter()
     for _ in range(reps):
         for seq in plain:
-            _new_iso_masses(seq)
+            _new_iso_masses_c(seq)
     new_elapsed = time.perf_counter() - t0
 
     calls = reps * len(plain)
