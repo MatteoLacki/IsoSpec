@@ -52,11 +52,11 @@ namespace IsoSpec
 Iso::Iso() :
 disowned(false),
 dimNumber(0),
-isotopeNumbers(new int[0]),
-atomCounts(new int[0]),
+isotopeNumbers(nullptr),
+atomCounts(nullptr),
 confSize(0),
 allDim(0),
-marginals(new Marginal*[0])
+marginals(nullptr)
 {}
 
 

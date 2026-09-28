@@ -169,7 +169,10 @@ template<typename T> void dealloc_table(T* tbl, int dim)
 template<typename T> void realloc_append(T** array, T what, size_t old_array_size)
 {
     T* newT = new T[old_array_size+1];
-    memcpy(newT, *array, old_array_size*sizeof(T));
+    // *array may be nullptr when old_array_size == 0 (a default-constructed
+    // Iso), and memcpy from a null pointer is undefined even for zero bytes.
+    if(old_array_size > 0)
+        memcpy(newT, *array, old_array_size*sizeof(T));
     newT[old_array_size] = what;
     delete[] *array;
     *array = newT;
