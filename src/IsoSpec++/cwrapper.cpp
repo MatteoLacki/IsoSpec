@@ -71,6 +71,26 @@ static inline auto c_guard(F&& f) noexcept -> decltype(f())
             return c_fallback<R>::value();
     }
 }
+
+// Helpers for the wrappers below live here, outside the extern "C" block: an
+// anonymous namespace nested inside it still gives its functions C language
+// linkage, which a function returning a C++ reference must not have.
+// Owns a parsed composition's storage across the C ABI: the symbol pointers
+// point into element_tables.cpp's static elem_table_symbol strings (program
+// lifetime, never freed here), only the counts and the pointer array itself
+// are this handle's own allocation.
+struct ElementCompositionHandle
+{
+    std::vector<const char*> symbols;
+    std::vector<int> counts;
+};
+
+const UnimodTable& resolve_unimod_table(const char* unimod_db_path)
+{
+    if(unimod_db_path == nullptr || unimod_db_path[0] == '\0')
+        return embedded_unimod_table();
+    return unimod_table_for_path(unimod_db_path);
+}
 }  // anonymous namespace
 
 
@@ -581,26 +601,6 @@ void parse_fasta_c(const char* fasta, int atomCounts[6])
     // Same thing, only this time with C linkage
     parse_fasta(fasta, atomCounts);
 }
-
-namespace
-{
-// Owns a parsed composition's storage across the C ABI: the symbol pointers
-// point into element_tables.cpp's static elem_table_symbol strings (program
-// lifetime, never freed here), only the counts and the pointer array itself
-// are this handle's own allocation.
-struct ElementCompositionHandle
-{
-    std::vector<const char*> symbols;
-    std::vector<int> counts;
-};
-
-const UnimodTable& resolve_unimod_table(const char* unimod_db_path)
-{
-    if(unimod_db_path == nullptr || unimod_db_path[0] == '\0')
-        return embedded_unimod_table();
-    return unimod_table_for_path(unimod_db_path);
-}
-}  // anonymous namespace
 
 void* isoFromFastaWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path)
 {
