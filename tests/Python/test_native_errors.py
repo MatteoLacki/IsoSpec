@@ -101,3 +101,35 @@ def test_empty_envelopes_still_allow_null_data_buffers():
     d = I.IsoTotalProb(0., "C2", get_confs=True)
     assert list(d) == []
     assert list(d.copy()) == []
+
+
+@pytest.mark.parametrize("width", [-1., float("nan"), float("inf"), -float("inf")])
+def test_invalid_bin_widths_raise(width):
+    d = I.IsoDistribution(masses=[1.], probs=[1.])
+    with pytest.raises(ValueError):
+        d.binned(width)
+    with pytest.raises(ValueError):
+        I.IsoBinned(width, "C2")
+
+
+def test_direct_binning_rejects_zero_width_but_coalescing_preserves_it():
+    with pytest.raises(ValueError):
+        I.IsoBinned(0., "C2")
+    d = I.IsoDistribution(masses=[1., 1.], probs=[.25, .75])
+    assert list(d.binned(0.)) == [(1., 1.)]
+
+
+@pytest.mark.skipif(sys.platform != "linux", reason="uses Linux RLIMIT_AS to force mmap failure")
+def test_binning_allocation_failure_raises_in_subprocess():
+    proc = subprocess.run([sys.executable, "-c", """
+import resource
+import IsoSpecPy as I
+resource.setrlimit(resource.RLIMIT_AS, (512 * 1024**2, 512 * 1024**2))
+try:
+    I.IsoBinned(1e-9, formula='C2')
+except ValueError:
+    pass
+else:
+    raise AssertionError('expected an allocation error')
+"""], capture_output=True, text=True, timeout=30)
+    assert proc.returncode == 0, proc.stderr

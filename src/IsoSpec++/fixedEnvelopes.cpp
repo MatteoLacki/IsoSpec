@@ -707,6 +707,10 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
 
 FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 {
+    // Zero width has a separate, useful meaning here: coalesce exact masses.
+    // Negative/NaN widths can leave the loop below unable to consume a peak.
+    if(!std::isfinite(bin_width) || bin_width < 0.0 || !std::isfinite(middle))
+        throw std::invalid_argument("Bin width must be finite and nonnegative, and middle finite");
     sort_by_mass();
 
     FixedEnvelope ret;
@@ -1227,6 +1231,11 @@ static bool fill_bins_to_prob(IsoLayeredGenerator& generator,
 
 FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle)
 {
+    // Unlike bin(), direct binning requires a genuine grid, so zero width is
+    // invalid too. Validate even an empty requested distribution consistently.
+    if(!std::isfinite(bin_width) || bin_width <= 0.0 || !std::isfinite(bin_middle))
+        throw std::invalid_argument("Bin width must be finite and positive, and middle finite");
+
     FixedEnvelope ret;
 
     if(target_total_prob <= 0.0)
@@ -1234,25 +1243,57 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
     double min_mass = iso.getLightestPeakMass();
     double range_len = iso.getHeaviestPeakMass() - min_mass;
-    size_t no_bins = static_cast<size_t>(range_len / bin_width) + 2;
+    const double bin_count = range_len / bin_width;
+    // Check before converting or multiplying: tiny positive widths can exceed
+    // both the byte allocation limit and the signed index range. Leave room
+    // for the two boundary bins, using a strict bound to allow for rounding
+    // when the integer limit is converted to double.
+    const size_t max_bins = (std::min)(SIZE_MAX / sizeof(double),
+        static_cast<size_t>((std::numeric_limits<std::ptrdiff_t>::max)()));
+    if(!std::isfinite(bin_count) || bin_count < 0.0 ||
+       bin_count >= static_cast<double>(max_bins - 2))
+        throw std::length_error("Binned spectrum is too large");
+    size_t no_bins = static_cast<size_t>(bin_count) + 2;
     double half_width = 0.5*bin_width;
     double hwmm = half_width-bin_middle;
     double inv_bin_width = 1.0/bin_width;
     // Bin indices are signed: for masses below bin_middle - half_width they
     // are legitimately negative.  Using size_t here would UB on the floor()
     // cast and underflow the acc-=idx_min pointer arithmetic below.
-    std::ptrdiff_t idx_min = bin_index(min_mass, hwmm, inv_bin_width);
+    const double first_index = floor((min_mass + hwmm) * inv_bin_width);
+    const auto index_max = (std::numeric_limits<std::ptrdiff_t>::max)();
+    const auto index_min = (std::numeric_limits<std::ptrdiff_t>::min)();
+    if(!std::isfinite(first_index) ||
+       first_index < static_cast<double>(index_min) ||
+       first_index >= static_cast<double>(index_max))
+        throw std::length_error("Bin index is outside the supported range");
+    std::ptrdiff_t idx_min = static_cast<std::ptrdiff_t>(first_index);
+    if(idx_min > index_max - static_cast<std::ptrdiff_t>(no_bins))
+        throw std::length_error("Bin index is outside the supported range");
     std::ptrdiff_t idx_max = idx_min + static_cast<std::ptrdiff_t>(no_bins);
 
     double* acc;
 # if ISOSPEC_GOT_MMAN
     acc = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*no_bins, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
-#else
-    // This will probably crash for large molecules and high resolutions...
-    acc = reinterpret_cast<double*>(calloc(no_bins, sizeof(double)));
-#endif
-    if(acc == NULL)
+    if(acc == MAP_FAILED)
         throw std::bad_alloc();
+#else
+    // Platforms without mmap use a zero-initialized heap accumulator.
+    acc = reinterpret_cast<double*>(calloc(no_bins, sizeof(double)));
+    if(acc == nullptr)
+        throw std::bad_alloc();
+#endif
+    // Keep the original mapping alive through generator construction and output
+    // growth, both of which can throw. acc is offset below for absolute indexing;
+    // the owner must always retain the actual base address for cleanup.
+    const auto release_acc = [no_bins](double* base) noexcept {
+#if ISOSPEC_GOT_MMAN
+        munmap(base, sizeof(double)*no_bins);
+#else
+        free(base);
+#endif
+    };
+    std::unique_ptr<double, decltype(release_acc)> acc_owner(acc, release_acc);
 
 #if ISOSPEC_GOT_MMAN && defined(MADV_HUGEPAGE)
     // For a large accumulator the scatter (acc[bin_idx] += prob, at essentially
@@ -1334,14 +1375,6 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
                 empty_steps++;
         }
     }
-
-    acc += idx_min;
-
-# if ISOSPEC_GOT_MMAN
-    munmap(acc, sizeof(double)*no_bins);
-#else
-    free(acc);
-#endif
 
     return ret;
 }

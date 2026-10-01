@@ -595,3 +595,27 @@ TEST_CASE("LinearCombination rejects unequal vector lengths") {
             {std::vector<double>{}, {1.0}, {1.0, 2.0, 3.0}})
         CHECK_THROWS_AS(FixedEnvelope::LinearCombination(spectra, intensities), std::invalid_argument);
 }
+
+TEST_CASE("binning validates grid parameters before processing peaks") {
+    auto env = make_envelope({1.0, 1.0, 2.0}, {0.2, 0.3, 0.5});
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    for(double width : {-1.0, nan, inf, -inf}) {
+        CHECK_THROWS_AS(env.bin(width), std::invalid_argument);
+        CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, width), std::invalid_argument);
+        CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.0, width), std::invalid_argument);
+    }
+    for(double middle : {nan, inf, -inf}) {
+        CHECK_THROWS_AS(env.bin(1.0, middle), std::invalid_argument);
+        CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, middle), std::invalid_argument);
+    }
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 0.0), std::invalid_argument);
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 1e-300), std::length_error);
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, 1e300), std::length_error);
+    auto exact = env.bin(0.0);
+    REQUIRE(exact.confs_no() == 2);
+    CHECK(exact.mass(0) == 1.0);
+    CHECK(exact.prob(0) == doctest::Approx(0.5));
+    CHECK(exact.mass(1) == 2.0);
+    CHECK(exact.prob(1) == doctest::Approx(0.5));
+}
