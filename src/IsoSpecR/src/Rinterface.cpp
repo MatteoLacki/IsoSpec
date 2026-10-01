@@ -211,10 +211,11 @@ NumericMatrix Rinterface(
 
         if(showCounts)
         {
-            unsigned int confs_idx;
+            size_t confs_idx;
             for(size_t i = 0; i < confs_no; i++)
             {
-                confs_idx = ordering[i];
+                // Configurations are flat rows of isotopesNo counts.
+                confs_idx = ordering[i] * static_cast<size_t>(isotopesNo);
                 for(size_t j = 2; j < isotopesNoplus2; j++)
                 {
                     res(i,j) = confs[confs_idx];
