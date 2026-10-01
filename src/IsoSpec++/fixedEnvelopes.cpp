@@ -397,6 +397,8 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
 
 FixedEnvelope FixedEnvelope::LinearCombination(const std::vector<const FixedEnvelope*>& spectra, const std::vector<double>& intensities)
 {
+    if(spectra.size() != intensities.size())
+        throw std::invalid_argument("Spectra and intensities must have the same length");
     return LinearCombination(spectra.data(), intensities.data(), spectra.size());
 }
 

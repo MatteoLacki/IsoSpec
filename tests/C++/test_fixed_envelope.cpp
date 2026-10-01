@@ -587,3 +587,11 @@ TEST_CASE("FromThreshold const-Iso overloads do not consume the Iso") {
     // The Iso is still usable afterwards.
     CHECK(iso.getMonoisotopicPeakMass() == doctest::Approx(Iso("C6H12O6").getMonoisotopicPeakMass()));
 }
+
+TEST_CASE("LinearCombination rejects unequal vector lengths") {
+    auto env = make_envelope({1.0}, {1.0});
+    const std::vector<const FixedEnvelope*> spectra{&env, &env};
+    for(const std::vector<double>& intensities :
+            {std::vector<double>{}, {1.0}, {1.0, 2.0, 3.0}})
+        CHECK_THROWS_AS(FixedEnvelope::LinearCombination(spectra, intensities), std::invalid_argument);
+}

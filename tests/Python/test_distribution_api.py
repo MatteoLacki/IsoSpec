@@ -269,3 +269,18 @@ def test_numpy_views_share_the_data():
     assert len(probs) == len(d)
     assert np.isclose(probs.sum(), d.total_prob())
     assert np.allclose(masses, list(d.masses))
+
+
+@pytest.mark.parametrize("weights", [[], [1.], [1., 2., 3.]])
+def test_linear_combination_rejects_mismatched_lengths(weights):
+    a = IsoDistribution(masses=[1.], probs=[1.])
+    with pytest.raises(ValueError, match="same length"):
+        IsoDistribution.LinearCombination((d for d in [a, a]), iter(weights))
+    assert list(a) == [(1., 1.)]
+
+
+def test_linear_combination_accepts_matching_iterators_and_empty_inputs():
+    a = IsoDistribution(masses=[1.], probs=[1.])
+    mix = IsoDistribution.LinearCombination(iter([a, a]), iter([2., 3.]))
+    assert list(mix) == [(1., 2.), (1., 3.)]
+    assert list(IsoDistribution.LinearCombination([], [])) == []

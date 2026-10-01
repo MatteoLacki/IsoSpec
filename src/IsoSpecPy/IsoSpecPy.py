@@ -29,6 +29,31 @@ ParsedFormula = namedtuple('ParsedFormula', 'atomCounts masses probs elems')
 
 
 
+def _check_pointer(pointer, operation):
+    """Translate the C ABI's NULL error sentinel before dereferencing it.
+
+    The ABI does not expose the underlying C++ exception, so both invalid
+    arguments and allocation failures have to share this diagnostic.
+    """
+    if pointer == isoFFI.ffi.NULL:
+        raise ValueError(operation + " failed (invalid arguments or allocation failure)")
+    return pointer
+
+
+def _get_cobjects(envelopes):
+    # Wrappers borrow their arrays from Python. If a later allocation fails,
+    # release earlier wrappers without freeing the Python-owned buffers.
+    handles = []
+    try:
+        for envelope in envelopes:
+            handles.append(envelope._get_cobject())
+        return handles
+    except BaseException:
+        for handle in handles:
+            isoFFI.clib.deleteFixedEnvelope(handle, True)
+        raise
+
+
 def ParseFormula(formula):
     """Parse a chemical formula.
 
@@ -374,10 +399,10 @@ class Iso(object):
         # the exact string, so embedding N in it defeats that cache entirely.
         self.conf_space = isoFFI.ffi.new("int[]", sum(self.isotopeNumbers))
 
-        self.iso = self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
+        self.iso = _check_pointer(self.ffi.setupIso(self.dimNumber, self.isotopeNumbers,
                                      self.atomCounts,
                                      [i/charge for s in self.isotopeMasses for i in s],
-                                     [i for s in self.isotopeProbabilities for i in s])
+                                     [i for s in self.isotopeProbabilities for i in s]), "setupIso")
 
     def __del__(self):
         try:
@@ -446,7 +471,8 @@ class Iso(object):
         return self.ffi.getIsoStddev(self.iso)
 
     def getMarginalLogSizeEstimates(self, prob):
-        cbuf = isoFFI.clib.getMarginalLogSizeEstimates(self.iso, prob)
+        cbuf = _check_pointer(isoFFI.clib.getMarginalLogSizeEstimates(self.iso, prob),
+                              "getMarginalLogSizeEstimates")
         # cbuf is already "double *" (cdef'd below): index it directly rather
         # than casting through a fresh "double[N]" string, which would need a
         # full, uncached cffi/pycparser parse for every distinct dimNumber.
@@ -513,6 +539,7 @@ class IsoDistribution(object):
         self._total_prob = float('nan')
 
         if cobject is not None:
+            _check_pointer(cobject, "Envelope construction")
             self.size = isoFFI.clib.confs_noFixedEnvelope(cobject)
 
             # The *WithDeleter getters hand the array over without copying it:
@@ -534,6 +561,8 @@ class IsoDistribution(object):
                 # both fixed strings, parsed (and cached) once for the life of
                 # the process, no matter how many distinct N show up here.
                 n = self.size * mult
+                if n:
+                    _check_pointer(what, "Envelope " + attrname + " transfer")
                 ptr = isoFFI.ffi.cast(typename + ' *', what)
                 if what != isoFFI.ffi.NULL:
                     # An empty envelope owns nothing, and has nothing to release.
@@ -579,9 +608,11 @@ class IsoDistribution(object):
 
     def _get_cobject(self):
         if hasattr(self, 'raw_confs') and self.raw_confs is not None:
-            return isoFFI.clib.setupFixedEnvelopeWithConfs(self.masses, self.probs, self.raw_confs, len(self.masses), self.sum_isotope_numbers, self.mass_sorted, self.prob_sorted, self._total_prob)
+            handle = isoFFI.clib.setupFixedEnvelopeWithConfs(self.masses, self.probs, self.raw_confs, len(self.masses), self.sum_isotope_numbers, self.mass_sorted, self.prob_sorted, self._total_prob)
         else:
-            return isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
+            handle = isoFFI.clib.setupFixedEnvelope(self.masses, self.probs, len(self.masses), self.mass_sorted, self.prob_sorted, self._total_prob)
+
+        return _check_pointer(handle, "Envelope wrapper construction")
 
     def copy(self):
         x = self._get_cobject()
@@ -595,8 +626,7 @@ class IsoDistribution(object):
         return ret
 
     def __add__(self, other):
-        x = self._get_cobject()
-        y = other._get_cobject()
+        x, y = _get_cobjects((self, other))
         cobject = isoFFI.clib.addEnvelopes(x, y)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
@@ -605,8 +635,7 @@ class IsoDistribution(object):
         return ret
 
     def __mul__(self, other):
-        x = self._get_cobject()
-        y = other._get_cobject()
+        x, y = _get_cobjects((self, other))
         cobject = isoFFI.clib.convolveEnvelopes(x, y)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
@@ -704,8 +733,7 @@ class IsoDistribution(object):
         return ret
 
     def wassersteinDistance(self, other):
-        x = self._get_cobject()
-        y = other._get_cobject()
+        x, y = _get_cobjects((self, other))
         ret = isoFFI.clib.wassersteinDistance(x, y)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
@@ -718,8 +746,7 @@ class IsoDistribution(object):
         return ret
 
     def orientedWassersteinDistance(self, other):
-        x = self._get_cobject()
-        y = other._get_cobject()
+        x, y = _get_cobjects((self, other))
         ret = isoFFI.clib.orientedWassersteinDistance(x, y)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
@@ -732,8 +759,7 @@ class IsoDistribution(object):
         return ret
 
     def abyssalWassersteinDistance(self, other, abyss_depth, other_scale = 1.0):
-        x = self._get_cobject()
-        y = other._get_cobject()
+        x, y = _get_cobjects((self, other))
         ret = isoFFI.clib.abyssalWassersteinDistance(x, y, abyss_depth, other_scale)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
@@ -745,8 +771,7 @@ class IsoDistribution(object):
 
     def abyssalWassersteinDistanceGrad(self, others, scales, grad, abyss_depth_exp, abyss_depth_the):
         assert len(others) + 1 == len(scales) == len(grad)
-        cobjs = [self._get_cobject()]
-        cobjs.extend(other._get_cobject() for other in others)
+        cobjs = _get_cobjects([self, *others])
         ret = isoFFI.clib.abyssalWassersteinDistanceGrad(cobjs, scales, grad, len(others), abyss_depth_exp, abyss_depth_the)
         for cobj in cobjs:
             isoFFI.clib.deleteFixedEnvelope(cobj, True)
@@ -758,8 +783,7 @@ class IsoDistribution(object):
         return ret
 
     def wassersteinMatch(self, other, flow_dist, other_scale = 1.0):
-        x = self._get_cobject()
-        y = other._get_cobject()
+        x, y = _get_cobjects((self, other))
         ret = isoFFI.clib.wassersteinMatch(x, y, flow_dist, other_scale)
         isoFFI.clib.deleteFixedEnvelope(x, True)
         isoFFI.clib.deleteFixedEnvelope(y, True)
@@ -784,9 +808,11 @@ class IsoDistribution(object):
 
     @staticmethod
     def LinearCombination(envelopes, intensities):
-        envelope_objs = [x._get_cobject() for x in envelopes]
-        if type(intensities) != list:
-            intensities = list(intensities)
+        envelopes = list(envelopes)
+        intensities = list(intensities)
+        if len(envelopes) != len(intensities):
+            raise ValueError("envelopes and intensities must have the same length")
+        envelope_objs = _get_cobjects(envelopes)
         cobject = isoFFI.clib.linearCombination(envelope_objs, intensities, len(envelope_objs))
         for x in envelope_objs:
             isoFFI.clib.deleteFixedEnvelope(x, True)
@@ -960,12 +986,12 @@ class IsoThresholdGenerator(IsoGenerator):
         super(IsoThresholdGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.threshold = threshold
         self.absolute = absolute
-        self.cgen = self.ffi.setupIsoThresholdGenerator(self.iso,
+        self.cgen = _check_pointer(self.ffi.setupIsoThresholdGenerator(self.iso,
                                                         threshold,
                                                         absolute,
                                                         1000,
                                                         1000,
-                                                        reorder_marginals)
+                                                        reorder_marginals), "setupIsoThresholdGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
         self.xprob_getter = self.ffi.probIsoThresholdGenerator
         self.mass_getter = self.ffi.massIsoThresholdGenerator
@@ -995,7 +1021,7 @@ class IsoLayeredGenerator(IsoGenerator):
             **kwargs: named arguments to the superclass.
         """
         super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
-        self.cgen = self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000, reorder_marginals, t_prob_hint)
+        self.cgen = _check_pointer(self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000, reorder_marginals, t_prob_hint), "setupIsoLayeredGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.xprob_getter = self.ffi.probIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator
@@ -1028,7 +1054,7 @@ class IsoOrderedGenerator(IsoGenerator):
             **kwargs: named arguments to the superclass.
         """
         super(IsoOrderedGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
-        self.cgen = self.ffi.setupIsoOrderedGenerator(self.iso, 1000, 1000)
+        self.cgen = _check_pointer(self.ffi.setupIsoOrderedGenerator(self.iso, 1000, 1000), "setupIsoOrderedGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
         self.xprob_getter = self.ffi.probIsoOrderedGenerator
         self.mass_getter = self.ffi.massIsoOrderedGenerator
@@ -1049,10 +1075,10 @@ class IsoStochasticGenerator(IsoGenerator):
         super(IsoStochasticGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.threshold = precision
         self.no_molecules = no_molecules
-        self.cgen = self.ffi.setupIsoStochasticGenerator(self.iso,
+        self.cgen = _check_pointer(self.ffi.setupIsoStochasticGenerator(self.iso,
                                                         no_molecules,
                                                         precision,
-                                                        beta_bias)
+                                                        beta_bias), "setupIsoStochasticGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoStochasticGenerator
         self.xprob_getter = self.ffi.probIsoStochasticGenerator
         self.mass_getter = self.ffi.massIsoStochasticGenerator
