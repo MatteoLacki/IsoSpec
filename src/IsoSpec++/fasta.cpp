@@ -54,7 +54,7 @@ const double aa_elem_probabilities[19] = {
 };
 
 
-const int aa_symbol_to_elem_counts[256*6] = {
+constexpr int aa_symbol_to_elem_counts[256*6] = {
 /* Code:   0  unprintable   */       0, 0, 0, 0, 0, 0,
 /* Code:   1  unprintable   */       0, 0, 0, 0, 0, 0,
 /* Code:   2  unprintable   */       0, 0, 0, 0, 0, 0,
@@ -311,5 +311,32 @@ const int aa_symbol_to_elem_counts[256*6] = {
 /* Code: 253  unprintable   */       0, 0, 0, 0, 0, 0,
 /* Code: 254  unprintable   */       0, 0, 0, 0, 0, 0
 };
+
+namespace {
+
+constexpr PackedElemCounts pack_elem_counts()
+{
+    PackedElemCounts ret{};
+    for(int c = 0; c < 256; c++)
+        for(int ii = 0; ii < 6; ii++)
+            ret.row[c] |= static_cast<std::uint64_t>(aa_symbol_to_elem_counts[c*6 + ii]) << (AA_PACKED_FIELD_BITS * ii);
+    return ret;
+}
+
+constexpr bool packed_counts_cannot_overflow()
+{
+    for(int ii = 0; ii < 256*6; ii++)
+        if(aa_symbol_to_elem_counts[ii] < 0 ||
+           aa_symbol_to_elem_counts[ii] * AA_PACKED_FLUSH_EVERY >= (1 << AA_PACKED_FIELD_BITS))
+            return false;
+    return 6 * AA_PACKED_FIELD_BITS <= 64;
+}
+
+static_assert(packed_counts_cannot_overflow(),
+              "AA_PACKED_FLUSH_EVERY residues of the largest count must fit an AA_PACKED_FIELD_BITS field");
+
+}  // namespace
+
+constexpr PackedElemCounts aa_symbol_to_packed_elem_counts = pack_elem_counts();
 
 }  // namespace IsoSpec

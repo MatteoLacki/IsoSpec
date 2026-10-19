@@ -93,6 +93,37 @@ TEST_CASE("residue counts are additive over a sequence") {
     for (int i = 0; i < 6; ++i) CHECK(counts[i] == expected[i]);
 }
 
+TEST_CASE("packed residue counting matches a plain per-residue sum") {
+    // parse_fasta sums packed table rows and unpacks every
+    // AA_PACKED_FLUSH_EVERY residues; check it against summing the unpacked
+    // table directly, at lengths around the flush boundary and on runs of the
+    // residue with the largest counts, where a field would overflow first.
+    int max_code = 0, max_count = -1;
+    for (int c = 1; c < 256; ++c)
+        for (int i = 0; i < 6; ++i)
+            if (aa_symbol_to_elem_counts[c * 6 + i] > max_count) {
+                max_count = aa_symbol_to_elem_counts[c * 6 + i];
+                max_code = c;
+            }
+    REQUIRE(max_count * AA_PACKED_FLUSH_EVERY < (1 << AA_PACKED_FIELD_BITS));
+
+    const std::string mixed = "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYUOJX*";
+    for (int len : {1, AA_PACKED_FLUSH_EVERY - 1, AA_PACKED_FLUSH_EVERY, AA_PACKED_FLUSH_EVERY + 1,
+                    2 * AA_PACKED_FLUSH_EVERY, 2 * AA_PACKED_FLUSH_EVERY + 1, 5000}) {
+        for (const std::string& seq : {std::string(len, static_cast<char>(max_code)),
+                                       [&] { std::string s; while (static_cast<int>(s.size()) < len) s += mixed; return s.substr(0, len); }()}) {
+            INFO("len=" << len << " first='" << seq[0] << "'");
+            int expected[6] = {0, 0, 0, 0, 0, 0};
+            for (char c : seq)
+                for (int i = 0; i < 6; ++i)
+                    expected[i] += aa_symbol_to_elem_counts[static_cast<unsigned char>(c) * 6 + i];
+            int counts[6];
+            parse_fasta(seq.c_str(), counts);
+            for (int i = 0; i < 6; ++i) CHECK(counts[i] == expected[i]);
+        }
+    }
+}
+
 TEST_CASE("parse_fasta_full adds the terminating water") {
     int residues[6], full[6];
     parse_fasta("PEPTIDE", residues);

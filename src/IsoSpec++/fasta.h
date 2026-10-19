@@ -18,6 +18,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 
 namespace IsoSpec{
@@ -33,6 +34,17 @@ extern const double aa_elem_probabilities[19];
 
 extern const int aa_symbol_to_elem_counts[256*6];
 
+//! aa_symbol_to_elem_counts again, each row packed into one integer: count ii
+//! in bits [10*ii, 10*ii+10). Summing packed rows sums all six counts at once,
+//! as long as no field passes 1023 -- see parse_fasta().
+struct PackedElemCounts { std::uint64_t row[256]; };
+extern const PackedElemCounts aa_symbol_to_packed_elem_counts;
+
+constexpr int AA_PACKED_FIELD_BITS = 10;
+//! Residues summed in packed form before unpacking; fasta.cpp checks that the
+//! largest count in the table times this still fits a field.
+constexpr int AA_PACKED_FLUSH_EVERY = 48;
+
 //! Count elemental composition of an unmodificed sequence of amino acids, resulting in CHNOSSe counts.
 /*!
     WARNING!!! This function does not add the terminating H and OH groups, resulting in a residue backbone skeleton formula.
@@ -42,11 +54,18 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
 {
     memset(atomCounts, 0, sizeof(decltype(atomCounts[0]))*6);
 
-    for(size_t idx = 0; fasta[idx] != '\0'; ++idx)
+    // One load and one add per residue, using the packed table, instead of
+    // six of each: the six-count row add vectorised under clang but not under
+    // gcc, which made this loop -- most of the cost of reading a protein --
+    // markedly slower there. Packed, both compilers emit the same short loop.
+    const unsigned char* p = reinterpret_cast<const unsigned char*>(fasta);
+    while(*p != '\0')
     {
-        const int* counts = &aa_symbol_to_elem_counts[static_cast<unsigned char>(fasta[idx])*6];
+        std::uint64_t packed = 0;
+        for(int ii = 0; ii < AA_PACKED_FLUSH_EVERY && *p != '\0'; ++ii, ++p)
+            packed += aa_symbol_to_packed_elem_counts.row[*p];
         for(int ii = 0; ii < 6; ++ii)
-            atomCounts[ii] += counts[ii];
+            atomCounts[ii] += static_cast<int>((packed >> (AA_PACKED_FIELD_BITS * ii)) & ((1u << AA_PACKED_FIELD_BITS) - 1));
     }
 }
 
