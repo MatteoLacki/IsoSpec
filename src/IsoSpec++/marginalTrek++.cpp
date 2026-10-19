@@ -119,6 +119,42 @@ void writeInitialConfiguration(const int atomCnt, const int isotopeNo, const dou
 }
 
 
+namespace {
+
+//! The element table's rows sorted by probability, so that getMLogProbs()
+//! finds a probability's row by binary search rather than by scanning.
+struct ProbabilityIndex {
+    double prob[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+    int row[ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES];
+
+    ProbabilityIndex()
+    {
+        for(int ii = 0; ii < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; ii++)
+            row[ii] = ii;
+        std::sort(row, row + ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES,
+                  [](int a, int b) { return elem_table_probability[a] < elem_table_probability[b]; });
+        for(int ii = 0; ii < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; ii++)
+            prob[ii] = elem_table_probability[row[ii]];
+    }
+
+    //! Some row holding exactly this probability, or -1.
+    int find(double p) const
+    {
+        const double* it = std::lower_bound(prob, prob + ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES, p);
+        if(it != prob + ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && *it == p)
+            return row[it - prob];
+        return -1;
+    }
+};
+
+const ProbabilityIndex& probability_index()
+{
+    static const ProbabilityIndex instance;
+    return instance;
+}
+
+}  // namespace
+
 double* getMLogProbs(const double* probs, int isoNo)
 {
     /*!
@@ -132,16 +168,29 @@ double* getMLogProbs(const double* probs, int isoNo)
 
     double* ret = new double[isoNo];
 
-    // here we change the table of probabilities and log it.
+    // A probability found in the element table takes the table's log (more
+    // precise than libm's in about a third of the rows), anything else gets
+    // log(). Rows of equal probability all carry the same log, so which
+    // matching row is found does not matter. Isotopes coming from a formula
+    // are consecutive table rows, so the row after the previous isotope's is
+    // tried first, and only a miss there goes to the binary search.
+    //
+    // This used to be a linear scan of the whole table per isotope, with log()
+    // computed up front whether needed or not, and it was the largest single
+    // cost of parsing a formula -- and compiler-dependent: clang vectorised the
+    // early-exit scan, gcc did not, which left gcc's formula parsing 1.5x
+    // slower than clang's.
+    const ProbabilityIndex& index = probability_index();
+    int next_row = -1;
     for(int i = 0; i < isoNo; i++)
     {
-        ret[i] = log(probs[i]);
-        for(int j = 0; j < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
-            if(elem_table_probability[j] == probs[i])
-            {
-                ret[i] = elem_table_log_probability[j];
-                break;
-            }
+        int found;
+        if(next_row >= 0 && next_row < ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES && elem_table_probability[next_row] == probs[i])
+            found = next_row;
+        else
+            found = index.find(probs[i]);
+        ret[i] = found >= 0 ? elem_table_log_probability[found] : log(probs[i]);
+        next_row = found >= 0 ? found + 1 : -1;
     }
     return ret;
 }
