@@ -456,7 +456,14 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         return false;
     }
 
-    bool carry()
+    // Forced inline, and with no out-of-line call left on any of its paths
+    // (see terminate_search_inline()): this is what makes the caller's
+    // while(advanceToNextConfiguration()) loop call-free. With a call anywhere
+    // in that loop -- even on the exhaustion exit -- clang kept the caller's
+    // own accumulators in stack slots across the whole loop, a store-forwarding
+    // round trip per configuration: measured 1.7-2.1x slower than gcc, which
+    // inlined carry() unasked.
+    ISOSPEC_FORCE_INLINE bool carry()
     {
         int idx = 0;
         lProbs_ptr = lProbs_ptr_start;
@@ -481,7 +488,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
             }
         }
 
-        terminate_search();
+        terminate_search_inline();
         return false;
     }
 
@@ -548,6 +555,19 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         partialLProbs_second_val = second_val;
         partialLProbs[0] = second_val + marginalResults[0]->get_lProb(counter[0]);
         lcfmsv = Lcutoff - second_val;
+    }
+
+    //! terminate_search(), inlinable, for carry(); terminate_search() itself
+    //! stays out of line so that the exported symbol does not go away.
+    ISOSPEC_FORCE_INLINE void terminate_search_inline()
+    {
+        for(int ii = 0; ii < dimNumber; ii++)
+        {
+            counter[ii] = marginalResults[ii]->get_no_confs()-1;
+            partialLProbs[ii] = -std::numeric_limits<double>::infinity();
+        }
+        partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
+        lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
     }
 
     ISOSPEC_FORCE_INLINE void short_recalc(int idx)

@@ -647,13 +647,7 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
 
 void IsoThresholdGenerator::terminate_search()
 {
-    for(int ii = 0; ii < dimNumber; ii++)
-    {
-        counter[ii] = marginalResults[ii]->get_no_confs()-1;
-        partialLProbs[ii] = -std::numeric_limits<double>::infinity();
-    }
-    partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
-    lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
+    terminate_search_inline();
 }
 
 // Find, scanning downward (towards lProbs_ptr_start) from p, the last position
