@@ -57,13 +57,16 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
     // One load and one add per residue, using the packed table, instead of
     // six of each: the six-count row add vectorised under clang but not under
     // gcc, which made this loop -- most of the cost of reading a protein --
-    // markedly slower there. Packed, both compilers emit the same short loop.
+    // markedly slower there. The length is taken up front so that the inner
+    // loop is a counted one, with no per-residue test for the terminator.
     const unsigned char* p = reinterpret_cast<const unsigned char*>(fasta);
-    while(*p != '\0')
+    const size_t len = strlen(fasta);
+    for(size_t block = 0; block < len; block += AA_PACKED_FLUSH_EVERY)
     {
+        const size_t block_end = len - block < static_cast<size_t>(AA_PACKED_FLUSH_EVERY) ? len : block + AA_PACKED_FLUSH_EVERY;
         std::uint64_t packed = 0;
-        for(int ii = 0; ii < AA_PACKED_FLUSH_EVERY && *p != '\0'; ++ii, ++p)
-            packed += aa_symbol_to_packed_elem_counts.row[*p];
+        for(size_t idx = block; idx < block_end; ++idx)
+            packed += aa_symbol_to_packed_elem_counts.row[p[idx]];
         for(int ii = 0; ii < 6; ++ii)
             atomCounts[ii] += static_cast<int>((packed >> (AA_PACKED_FIELD_BITS * ii)) & ((1u << AA_PACKED_FIELD_BITS) - 1));
     }
