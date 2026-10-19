@@ -72,6 +72,20 @@
 #define ISOSPEC_FORCE_INLINE inline
 #endif
 
+// A condition the branch predictor cannot learn (a binary search's direction,
+// say), which should therefore become a cmov rather than a branch. clang needs
+// telling: its x86 cmov-conversion pass otherwise turns a loop-carried cmov
+// back into a branch, and it did exactly that to count_confs()'s binary
+// search. gcc already emits the cmov and has no such builtin.
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_unpredictable)
+#define ISOSPEC_UNPREDICTABLE(condition) __builtin_unpredictable(static_cast<bool>(condition))
+#endif
+#endif
+#ifndef ISOSPEC_UNPREDICTABLE
+#define ISOSPEC_UNPREDICTABLE(condition) (condition)
+#endif
+
 #ifdef ISOSPEC_DEBUG
 #undef ISOSPEC_IMPOSSIBLE
 #include <cassert>

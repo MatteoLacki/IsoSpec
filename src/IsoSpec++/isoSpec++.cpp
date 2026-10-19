@@ -674,15 +674,18 @@ static inline const double* boundary_scan_down(const double* p, const double* st
         const double* q = (static_cast<size_t>(hi - start) >= step) ? hi - step : start;
         if(*q >= lcfmsv)
         {
-            // Boundary within [q, hi): plain binary search.
+            // Boundary within [q, hi): binary search, kept branchless. Its
+            // direction is a data-dependent coin flip, so a branch here
+            // mispredicts about half the time; gcc made a cmov of it unasked,
+            // clang only with ISOSPEC_UNPREDICTABLE. The window [lo, lo+n)
+            // keeps *lo >= lcfmsv, and everything from lo+n on is < lcfmsv.
             const double* lo = q;
-            while(hi - lo > 1)
+            size_t n = static_cast<size_t>(hi - lo);
+            while(n > 1)
             {
-                const double* mid = lo + (hi - lo) / 2;
-                if(*mid >= lcfmsv)
-                    lo = mid;
-                else
-                    hi = mid;
+                const size_t half = n / 2;
+                lo = ISOSPEC_UNPREDICTABLE(lo[half] >= lcfmsv) ? lo + half : lo;
+                n -= half;
             }
             return lo;
         }
