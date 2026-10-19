@@ -541,18 +541,26 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
         }
-        partialLProbs_second_val = *partialLProbs_second;
-        partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
-        lcfmsv = Lcutoff - partialLProbs_second_val;
+        // Through a local: partialLProbs[0] is a double store that may alias the
+        // member, so using the member after it forces a reload of what was just
+        // stored -- a store-forwarding round trip on the carry path.
+        const double second_val = *partialLProbs_second;
+        partialLProbs_second_val = second_val;
+        partialLProbs[0] = second_val + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = Lcutoff - second_val;
     }
 
     ISOSPEC_FORCE_INLINE void short_recalc(int idx)
     {
         for(; idx > 0; idx--)
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-        partialLProbs_second_val = *partialLProbs_second;
-        partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);
-        lcfmsv = Lcutoff - partialLProbs_second_val;
+        // Through a local: partialLProbs[0] is a double store that may alias the
+        // member, so using the member after it forces a reload of what was just
+        // stored -- a store-forwarding round trip on the carry path.
+        const double second_val = *partialLProbs_second;
+        partialLProbs_second_val = second_val;
+        partialLProbs[0] = second_val + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = Lcutoff - second_val;
     }
 };
 
@@ -654,10 +662,17 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
         }
-        partialLProbs_second_val = *partialLProbs_second;
-        partialLProbs[0] = partialLProbs_second_val + marginalResults[0]->get_lProb(counter[0]);
-        lcfmsv = currentLThreshold - partialLProbs_second_val;
-        last_lcfmsv = lastLThreshold - partialLProbs_second_val;
+        // Through a local, as in IsoThresholdGenerator::recalc(). Here the reload
+        // was worse than a round trip: clang paired the two subtractions below
+        // into one subpd and fed it with a 16-byte load straddling the 8-byte
+        // store of the member just made, which cannot be store-forwarded and
+        // stalls until the store retires -- measured as the single hottest
+        // instruction of carry().
+        const double second_val = *partialLProbs_second;
+        partialLProbs_second_val = second_val;
+        partialLProbs[0] = second_val + marginalResults[0]->get_lProb(counter[0]);
+        lcfmsv = currentLThreshold - second_val;
+        last_lcfmsv = lastLThreshold - second_val;
     }
 
     bool nextLayer(double offset);
