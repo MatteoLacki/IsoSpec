@@ -438,6 +438,16 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
     sort_by_mass();
     other.sort_by_mass();
 
+    // The merge reads both envelopes through locals rather than members:
+    // gcc reloaded other's array pointers from the object on every step of
+    // it, where clang hoisted them out of the loop.
+    const double* const masses1 = _masses;
+    const double* const probs1 = _probs;
+    const size_t n1 = _confs_no;
+    const double* const masses2 = other._masses;
+    const double* const probs2 = other._probs;
+    const size_t n2 = other._confs_no;
+
     size_t idx_this = 0;
     size_t idx_other = 0;
 
@@ -445,39 +455,39 @@ double FixedEnvelope::WassersteinDistance(FixedEnvelope& other)
     double last_point = 0.0;
 
 
-    while(idx_this < _confs_no && idx_other < other._confs_no)
+    while(idx_this < n1 && idx_other < n2)
     {
-        if(_masses[idx_this] < other._masses[idx_other])
+        if(masses1[idx_this] < masses2[idx_other])
         {
-            ret += (_masses[idx_this] - last_point) * std::abs(acc_prob);
-            acc_prob += _probs[idx_this];
-            last_point = _masses[idx_this];
+            ret += (masses1[idx_this] - last_point) * std::abs(acc_prob);
+            acc_prob += probs1[idx_this];
+            last_point = masses1[idx_this];
             idx_this++;
         }
         else
         {
-            ret += (other._masses[idx_other] - last_point) * std::abs(acc_prob);
-            acc_prob -= other._probs[idx_other];
-            last_point = other._masses[idx_other];
+            ret += (masses2[idx_other] - last_point) * std::abs(acc_prob);
+            acc_prob -= probs2[idx_other];
+            last_point = masses2[idx_other];
             idx_other++;
         }
     }
 
     acc_prob = std::abs(acc_prob);
 
-    while(idx_this < _confs_no)
+    while(idx_this < n1)
     {
-        ret += (_masses[idx_this] - last_point) * acc_prob;
-        acc_prob -= _probs[idx_this];
-        last_point = _masses[idx_this];
+        ret += (masses1[idx_this] - last_point) * acc_prob;
+        acc_prob -= probs1[idx_this];
+        last_point = masses1[idx_this];
         idx_this++;
     }
 
-    while(idx_other < other._confs_no)
+    while(idx_other < n2)
     {
-        ret += (other._masses[idx_other] - last_point) * acc_prob;
-        acc_prob -= other._probs[idx_other];
-        last_point = other._masses[idx_other];
+        ret += (masses2[idx_other] - last_point) * acc_prob;
+        acc_prob -= probs2[idx_other];
+        last_point = masses2[idx_other];
         idx_other++;
     }
 
@@ -497,6 +507,14 @@ double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
     sort_by_mass();
     other.sort_by_mass();
 
+    // Locals rather than members, as in WassersteinDistance().
+    const double* const masses1 = _masses;
+    const double* const probs1 = _probs;
+    const size_t n1 = _confs_no;
+    const double* const masses2 = other._masses;
+    const double* const probs2 = other._probs;
+    const size_t n2 = other._confs_no;
+
     size_t idx_this = 0;
     size_t idx_other = 0;
 
@@ -504,20 +522,20 @@ double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
     double last_point = 0.0;
 
 
-    while(idx_this < _confs_no && idx_other < other._confs_no)
+    while(idx_this < n1 && idx_other < n2)
     {
-        if(_masses[idx_this] < other._masses[idx_other])
+        if(masses1[idx_this] < masses2[idx_other])
         {
-            ret += (_masses[idx_this] - last_point) * acc_prob;
-            acc_prob += _probs[idx_this];
-            last_point = _masses[idx_this];
+            ret += (masses1[idx_this] - last_point) * acc_prob;
+            acc_prob += probs1[idx_this];
+            last_point = masses1[idx_this];
             idx_this++;
         }
         else
         {
-            ret += (other._masses[idx_other] - last_point) * acc_prob;
-            acc_prob -= other._probs[idx_other];
-            last_point = other._masses[idx_other];
+            ret += (masses2[idx_other] - last_point) * acc_prob;
+            acc_prob -= probs2[idx_other];
+            last_point = masses2[idx_other];
             idx_other++;
         }
     }
@@ -526,19 +544,19 @@ double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
     // *this* add to it — in the main loop above and here in the tail alike.
     // (The unsigned version folds the sign into abs() before its tails and so
     // subtracts in both; this one must not.)
-    while(idx_this < _confs_no)
+    while(idx_this < n1)
     {
-        ret += (_masses[idx_this] - last_point) * acc_prob;
-        acc_prob += _probs[idx_this];
-        last_point = _masses[idx_this];
+        ret += (masses1[idx_this] - last_point) * acc_prob;
+        acc_prob += probs1[idx_this];
+        last_point = masses1[idx_this];
         idx_this++;
     }
 
-    while(idx_other < other._confs_no)
+    while(idx_other < n2)
     {
-        ret += (other._masses[idx_other] - last_point) * acc_prob;
-        acc_prob -= other._probs[idx_other];
-        last_point = other._masses[idx_other];
+        ret += (masses2[idx_other] - last_point) * acc_prob;
+        acc_prob -= probs2[idx_other];
+        last_point = masses2[idx_other];
         idx_other++;
     }
 
@@ -550,22 +568,30 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     sort_by_mass();
     other.sort_by_mass();
 
+    // Locals rather than members, as in WassersteinDistance().
+    const double* const masses1 = _masses;
+    const double* const probs1 = _probs;
+    const size_t n1 = _confs_no;
+    const double* const masses2 = other._masses;
+    const double* const probs2 = other._probs;
+    const size_t n2 = other._confs_no;
+
     std::vector<std::pair<double, double>> carried;
 
     size_t idx_this = 0;
     size_t idx_other = 0;
 
-    auto finished = [&]() -> bool { return idx_this >= _confs_no && idx_other >= other._confs_no; };
+    auto finished = [&]() -> bool { return idx_this >= n1 && idx_other >= n2; };
     auto next = [&]() -> std::pair<double, double> {
-                            if(idx_this >= _confs_no || (idx_other < other._confs_no && _masses[idx_this] > other._masses[idx_other]))
+                            if(idx_this >= n1 || (idx_other < n2 && masses1[idx_this] > masses2[idx_other]))
                             {
-                                std::pair<double, double> res = std::pair<double, double>(other._masses[idx_other], other._probs[idx_other]*other_scale);
+                                std::pair<double, double> res = std::pair<double, double>(masses2[idx_other], probs2[idx_other]*other_scale);
                                 idx_other++;
                                 return res;
                             }
                             else
                             {
-                                std::pair<double, double> res = std::pair<double, double>(_masses[idx_this], -_probs[idx_this]);
+                                std::pair<double, double> res = std::pair<double, double>(masses1[idx_this], -probs1[idx_this]);
                                 idx_this++;
                                 return res;
                             }
@@ -640,20 +666,28 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
     sort_by_mass();
     other.sort_by_mass();
 
+    // Locals rather than members, as in WassersteinDistance().
+    const double* const masses1 = _masses;
+    const double* const probs1 = _probs;
+    const size_t n1 = _confs_no;
+    const double* const masses2 = other._masses;
+    const double* const probs2 = other._probs;
+    const size_t n2 = other._confs_no;
+
     size_t idx_this = 0;
     size_t idx_other = 0;
     double used_prob_this = 0.0;
     double used_prob_other = 0.0;
 
-    while(idx_this < _confs_no && idx_other < other._confs_no)
+    while(idx_this < n1 && idx_other < n2)
     {
         bool moved = true;
-        while(moved && idx_this < _confs_no && idx_other < other._confs_no)
+        while(moved && idx_this < n1 && idx_other < n2)
         {
             moved = false;
-            if(_masses[idx_this] < other._masses[idx_other] - flow_distance)
+            if(masses1[idx_this] < masses2[idx_other] - flow_distance)
             {
-                unmatched1 += _probs[idx_this] - used_prob_this;
+                unmatched1 += probs1[idx_this] - used_prob_this;
                 used_prob_this = 0.0;
                 idx_this++;
                 moved = true;
@@ -662,31 +696,31 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
             // without the bound check the read below runs off the end of the
             // masses array (the leftover peaks of `other` are accounted for by
             // the tail loop after the outer while).
-            if(idx_this < _confs_no && other._masses[idx_other] < _masses[idx_this] - flow_distance)
+            if(idx_this < n1 && masses2[idx_other] < masses1[idx_this] - flow_distance)
             {
-                unmatched2 += other._probs[idx_other]*other_scale - used_prob_other;
+                unmatched2 += probs2[idx_other]*other_scale - used_prob_other;
                 used_prob_other = 0.0;
                 idx_other++;
                 moved = true;
             }
         }
-        if(idx_this < _confs_no && idx_other < other._confs_no)
+        if(idx_this < n1 && idx_other < n2)
         {
-            assert(_probs[idx_this] - used_prob_this >= 0.0);
-            assert(other._probs[idx_other]*other_scale - used_prob_other >= 0.0);
+            assert(probs1[idx_this] - used_prob_this >= 0.0);
+            assert(probs2[idx_other]*other_scale - used_prob_other >= 0.0);
 
-            if(_probs[idx_this] - used_prob_this < other._probs[idx_other]*other_scale - used_prob_other)
+            if(probs1[idx_this] - used_prob_this < probs2[idx_other]*other_scale - used_prob_other)
             {
-                massflow += _probs[idx_this] - used_prob_this;
-                used_prob_other += _probs[idx_this] - used_prob_this;
+                massflow += probs1[idx_this] - used_prob_this;
+                used_prob_other += probs1[idx_this] - used_prob_this;
                 assert(used_prob_other >= 0.0);
                 used_prob_this = 0.0;
                 idx_this++;
             }
             else
             {
-                massflow += other._probs[idx_other]*other_scale - used_prob_other;
-                used_prob_this += other._probs[idx_other]*other_scale - used_prob_other;
+                massflow += probs2[idx_other]*other_scale - used_prob_other;
+                used_prob_this += probs2[idx_other]*other_scale - used_prob_other;
                 assert(used_prob_this >= 0.0);
                 used_prob_other = 0.0;
                 idx_other++;
@@ -697,10 +731,10 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
     unmatched1 -= used_prob_this;
     unmatched2 -= used_prob_other;
 
-    for(; idx_this < _confs_no; idx_this++)
-        unmatched1 += _probs[idx_this];
-    for(; idx_other < other._confs_no; idx_other++)
-        unmatched2 += other._probs[idx_other]*other_scale;
+    for(; idx_this < n1; idx_this++)
+        unmatched1 += probs1[idx_this];
+    for(; idx_other < n2; idx_other++)
+        unmatched2 += probs2[idx_other]*other_scale;
 
     return {unmatched1, unmatched2, massflow};
 }
