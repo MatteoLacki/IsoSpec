@@ -10,6 +10,7 @@
 #include <cmath>
 #include <random>
 #include <set>
+#include <stdexcept>
 #include <vector>
 
 #include "doctest.h"
@@ -181,4 +182,65 @@ TEST_CASE("single-atom layered generator against the general one") {
 
     CHECK(special.size() == general.size());
     CHECK(peaks_close(merge_equal_masses(special), merge_equal_masses(general), 1e-12));
+}
+
+TEST_CASE("single-atom specializations with three elements, against the product distribution") {
+    // With two or more elements the ordered generator pushes one child per
+    // element it can advance, and the layered one keeps a running sum of the
+    // modes over the marginals between the first and the last; one element
+    // reaches neither, and two reach only part of the layered one.
+    std::vector<Peak> expected = {{0.0, 1.0}};
+    for (int e = 0; e < 3; ++e) {
+        std::vector<Peak> next;
+        for (const Peak& p : expected)
+            for (int i = 0; i < 5; ++i) next.push_back({p.mass + kMasses[i], p.prob * kProbs[i]});
+        expected = next;
+    }
+    expected = merge_equal_masses(expected);
+
+    SUBCASE("ordered") {
+        IsoOrderedGeneratorTemplate<SingleAtomMarginal<false>> g(single_atom_iso(3));
+        std::vector<Peak> got;
+        double last = 2.0;
+        while (g.advanceToNextConfiguration()) {
+            REQUIRE(g.prob() <= last + 1e-15);
+            last = g.prob();
+            got.push_back({g.mass(), g.prob()});
+        }
+        CHECK(got.size() == 125);
+        CHECK(peaks_close(merge_equal_masses(got), expected, 1e-12));
+    }
+
+    SUBCASE("layered") {
+        IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>> g(single_atom_iso(3));
+        std::vector<Peak> got;
+        while (g.advanceToNextConfiguration()) got.push_back({g.mass(), g.prob()});
+        CHECK(got.size() == 125);
+        CHECK(peaks_close(merge_equal_masses(got), expected, 1e-12));
+    }
+}
+
+TEST_CASE("ordered single-atom generator with two elements") {
+    IsoOrderedGeneratorTemplate<SingleAtomMarginal<false>> g(single_atom_iso(2));
+    std::vector<Peak> got;
+    double last = 2.0;
+    while (g.advanceToNextConfiguration()) {
+        REQUIRE(g.prob() <= last + 1e-15);
+        last = g.prob();
+        got.push_back({g.mass(), g.prob()});
+    }
+    CHECK(got.size() == 25);
+
+    std::vector<Peak> expected;
+    for (int i = 0; i < 5; ++i)
+        for (int j = 0; j < 5; ++j)
+            expected.push_back({kMasses[i] + kMasses[j], kProbs[i] * kProbs[j]});
+    CHECK(peaks_close(merge_equal_masses(got), merge_equal_masses(expected), 1e-12));
+}
+
+TEST_CASE("single-atom generators reject an empty Iso") {
+    // The LayeredMarginal and MarginalTrek instantiations are checked in
+    // test_regression.cpp; the guard is per instantiation.
+    CHECK_THROWS_AS((IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>>(Iso())), std::invalid_argument);
+    CHECK_THROWS_AS((IsoOrderedGeneratorTemplate<SingleAtomMarginal<false>>(Iso())), std::invalid_argument);
 }
