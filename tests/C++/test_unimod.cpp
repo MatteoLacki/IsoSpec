@@ -3,8 +3,10 @@
 // exclusions.
 
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -157,6 +159,8 @@ TEST_CASE("malformed UNIMOD brackets throw") {
     CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[UNIMOD:]DEK"), std::invalid_argument);          // missing id
     CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[FOO:4]DEK"), std::invalid_argument);            // wrong prefix
     CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[UNIMODX4]DEK"), std::invalid_argument);         // no colon
+    CHECK_THROWS_AS(Iso::FromFASTAWithMods("PEPTC[UNIMOD:99999999999999999999999]DEK"),
+                    std::invalid_argument);                                                      // id past 64 bits
 }
 
 TEST_CASE("non-bracket characters keep the old lenient (silently-ignored) behavior") {
@@ -232,4 +236,87 @@ TEST_CASE("embedded table agrees with data/unimod.csv on disk") {
         CHECK(embedded_entry->element_first_index == disk_entry->element_first_index);
         CHECK(embedded_entry->element_delta_count == disk_entry->element_delta_count);
     }
+}
+
+namespace {
+
+// Composition keyed by element, independent of the order a parser emits them.
+std::map<int, int> by_element(const ElementComposition& c) {
+    std::map<int, int> m;
+    for (size_t i = 0; i < c.element_first_index.size(); ++i) m[c.element_first_index[i]] += c.count[i];
+    return m;
+}
+
+int element(const char* symbol) {
+    return find_element_table_first_index(symbol, strlen(symbol));
+}
+
+}  // namespace
+
+TEST_CASE("override CSV: commas in a name are rejoined into the name") {
+    UnimodTable table = parse_unimod_csv("id,name,mono_mass,composition\n"
+                                         "7,Oxidation, or something, else,15.994915,O1\n");
+    const UnimodEntry* entry = table.lookup(7);
+    REQUIRE(entry != nullptr);
+    CHECK(entry->name == "Oxidation, or something, else");
+    CHECK(entry->mono_mass == doctest::Approx(15.994915));
+    REQUIRE(entry->element_first_index.size() == 1);
+    CHECK(entry->element_first_index[0] == element("O"));
+    CHECK(entry->element_delta_count[0] == 1);
+}
+
+TEST_CASE("override CSV: malformed rows are rejected") {
+    const std::string header = "id,name,mono_mass,composition\n";
+    for (const char* row : {"7,Short,1.0\n",          // three fields
+                            "x7,BadId,1.0,H1\n",      // id is not a number
+                            "7,BadMass,heavy,H1\n",   // mass is not a number
+                            "1000001,PastCap,1.0,H1\n"}) {  // one past the id cap
+        INFO("row=" << row);
+        CHECK_THROWS_AS(parse_unimod_csv(header + row), std::invalid_argument);
+    }
+    // The cap itself still loads.
+    CHECK(parse_unimod_csv(header + "1000000,AtCap,1.0,H1\n").lookup(1000000) != nullptr);
+}
+
+TEST_CASE("unimod_table_for_path: a missing file is an error") {
+    const std::string path("build/no_such_unimod_override.csv");
+    std::remove(path.c_str());
+    CHECK_THROWS_AS(unimod_table_for_path(path), std::invalid_argument);
+}
+
+TEST_CASE("the bracket-free fast path agrees with the general per-element parse") {
+    // Without a '[' the parser counts residues with parse_fasta; with one it
+    // accumulates per element. Adding a C-terminal Carbamidomethyl must change
+    // the result by exactly that modification's delta.
+    const UnimodEntry* carbamidomethyl = embedded_unimod_table().lookup(4);
+    REQUIRE(carbamidomethyl != nullptr);
+    ElementComposition reused;
+    for (const char* seq : {"PEPTIDE", "MKWVTFISLLLLFSSAYSRGV", "U", "ACDEFGHIKLMNPQRSTVWY"}) {
+        INFO("sequence=" << seq);
+        std::map<int, int> expected = by_element(parse_fasta_with_mods(seq));
+        for (size_t i = 0; i < carbamidomethyl->element_first_index.size(); ++i)
+            expected[carbamidomethyl->element_first_index[i]] += carbamidomethyl->element_delta_count[i];
+
+        parse_fasta_with_mods_into((std::string(seq) + "-[UNIMOD:4]").c_str(), reused);
+        CHECK(by_element(reused) == expected);
+
+        // And the table overload of FromFASTAWithMods short-circuits to FromFASTA.
+        CHECK(Iso::FromFASTAWithMods(seq, embedded_unimod_table()).getMonoisotopicPeakMass() ==
+              doctest::Approx(Iso::FromFASTA(seq).getMonoisotopicPeakMass()));
+    }
+}
+
+TEST_CASE("adding water creates H and O when the modified composition has none") {
+    // A modification can cancel every hydrogen (or oxygen) the residues
+    // brought; the terminal water must then appear as a new H2 / O1 entry
+    // rather than be added to an element that is no longer listed.
+    UnimodTable table = parse_unimod_csv("id,name,mono_mass,composition\n"
+                                         "1,StripH,-3.0,H-3\n"
+                                         "2,Sulfur,31.972071,S1\n");
+    // Glycine residue is C2H3N1O1.
+    std::map<int, int> g = by_element(parse_fasta_with_mods_full("G[UNIMOD:1]", table));
+    CHECK(g == std::map<int, int>{{element("C"), 2}, {element("H"), 2}, {element("N"), 1}, {element("O"), 2}});
+
+    std::map<int, int> s = by_element(parse_fasta_with_mods_full("[UNIMOD:2]", table));
+    CHECK(s == std::map<int, int>{{element("S"), 1}, {element("H"), 2}, {element("O"), 1}});
 }
