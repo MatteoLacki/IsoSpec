@@ -1,5 +1,9 @@
 from __future__ import print_function
 import IsoSpecPy
+import os
+import platform
+import subprocess
+import sys
 from IsoSpecPy.Formulas import *
 import math
 
@@ -256,3 +260,37 @@ def test_get_simd_level():
     assert IsoSpecPy.get_simd_level() == level
 
     print(level, "OK!")
+
+
+def _simd_level_under(isa_level):
+    # The level is chosen once per process, on first use, so each setting of
+    # ISOSPEC_ISA_LEVEL needs a fresh interpreter.
+    env = dict(os.environ)
+    env.pop("ISOSPEC_ISA_LEVEL", None)
+    if isa_level is not None:
+        env["ISOSPEC_ISA_LEVEL"] = isa_level
+    out = subprocess.run(
+        [sys.executable, "-c", "import IsoSpecPy; print(IsoSpecPy.get_simd_level())"],
+        env=env, check=True, capture_output=True, text=True)
+    return out.stdout.strip()
+
+
+def test_isa_level_environment_override():
+    default = _simd_level_under(None)
+
+    # A name the library does not know is ignored, not an error.
+    for junk in ("", "nonsense", "V3", "avx2"):
+        assert _simd_level_under(junk) == default, junk
+
+    # A raised level either takes effect or, if this CPU or build lacks it,
+    # is ignored.
+    raised = {"avx": "avx", "v3": "avx2", "v4": "avx512"}
+    got = {name: _simd_level_under(name) for name in ("baseline",) + tuple(raised)}
+    for name, reported in raised.items():
+        assert got[name] in (reported, default), (name, got[name], default)
+
+    # The wheel is built with no -march, so on x86-64 a raised default can only
+    # come from the dispatcher, and then the baseline level is always usable:
+    # some override must move the result off the default.
+    if platform.machine().lower() in ("x86_64", "amd64") and default in raised.values():
+        assert any(level != default for level in got.values()), got
