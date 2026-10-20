@@ -30,7 +30,6 @@
 #include "isoSpec++.cpp"        // NOLINT(build/include)
 #include "isoMath.cpp"          // NOLINT(build/include)
 #include "marginalTrek++.cpp"   // NOLINT(build/include)
-#include "operators.cpp"        // NOLINT(build/include)
 #include "element_tables.cpp"   // NOLINT(build/include)
 #include "element_lookup.cpp"   // NOLINT(build/include)
 #include "composition.cpp"      // NOLINT(build/include)
