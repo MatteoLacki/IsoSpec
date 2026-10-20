@@ -161,6 +161,8 @@ TEST_CASE("distance to an empty spectrum is zero by convention") {
     // Two empty spectra are trivially at distance 0.
     FixedEnvelope empty2;
     CHECK(empty.WassersteinDistance(empty2) == doctest::Approx(0.0));
+    CHECK(empty.OrientedWassersteinDistance(empty2) == doctest::Approx(0.0));
+    CHECK(empty.AbyssalWassersteinDistance(empty2, 1.0) == doctest::Approx(0.0));
 }
 
 TEST_CASE("oriented distance is signed and cancels") {

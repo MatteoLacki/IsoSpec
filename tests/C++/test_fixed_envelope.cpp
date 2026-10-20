@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -573,6 +574,129 @@ TEST_CASE("resample redistributes a fixed ionic current") {
     double sum = 0.0;
     for (std::size_t i = 0; i < one.confs_no(); ++i) sum += one.prob(i);
     CHECK(sum == doctest::Approx(1.0));
+}
+
+TEST_CASE("resample with few molecules jumps over configurations") {
+    // While samples * (the current configuration's share of what is left) is
+    // below beta_bias, resample() places molecules one at a time by beta
+    // jumps, and a jump can carry it past configurations that receive
+    // nothing. A large resample is almost all binomial steps; a handful of
+    // molecules over hundreds of small peaks takes the jumping path on nearly
+    // every draw, and walks onto the end-of-array sentinel when the last
+    // molecule lands in the tail.
+    FixedEnvelope source = FixedEnvelope::FromTotalProb(Iso("C100H200N40O40S2"), 0.9999, true, false);
+    source.normalize();
+    const std::size_t n = source.confs_no();
+    REQUIRE(n > 100);
+    const double true_mean = source.empiric_average_mass();
+
+    double mass_sum = 0.0;
+    double molecules = 0.0;
+    for (std::size_t samples : {1, 2, 5, 20}) {
+        for (int rep = 0; rep < 100; ++rep) {
+            CAPTURE(samples);
+            CAPTURE(rep);
+            FixedEnvelope env = source;
+            env.resample(samples);
+            REQUIRE(env.confs_no() == n);
+            double total = 0.0;
+            for (std::size_t i = 0; i < n; ++i) {
+                // Includes the sentinel slot, which must come back as a count.
+                REQUIRE(env.prob(i) >= 0.0);
+                REQUIRE(env.prob(i) <= static_cast<double>(samples));
+                REQUIRE(env.prob(i) == std::round(env.prob(i)));
+                total += env.prob(i);
+                mass_sum += env.prob(i) * env.mass(i);
+            }
+            REQUIRE(total == static_cast<double>(samples));
+            molecules += total;
+        }
+    }
+    // 2800 molecules with a mass spread of 1.39 Da: the standard error of the
+    // mean is 0.026 Da, and the tolerance below is ~6 of them.
+    CHECK(mass_sum / molecules == doctest::Approx(true_mean).epsilon(0.15 / true_mean));
+}
+
+TEST_CASE("FromTotalProb's trim keeps exactly the smallest covering set") {
+    // quicktrim narrows the last layer down by partitioning; a segment
+    // narrowed to a single configuration is kept or dropped on the prefix sum
+    // alone. Sweeping the target through many values puts that configuration
+    // on both sides of the boundary.
+    for (const char* formula : {"C10H20O5", "C20H30N5O5S1"}) {
+        CAPTURE(formula);
+        std::vector<double> probs;
+        for (const Peak& p : enumerate_threshold_full(formula)) probs.push_back(p.prob);
+        std::sort(probs.begin(), probs.end(), std::greater<double>());
+        std::vector<double> prefix(probs.size());
+        double sum = 0.0;
+        for (std::size_t i = 0; i < probs.size(); ++i) prefix[i] = (sum += probs[i]);
+
+        for (int step = 1; step < 400; ++step) {
+            const double target = step / 400.0;
+            CAPTURE(target);
+            // Summation order differs from the library's; skip targets that
+            // a rounding difference could put on the other side of a prefix.
+            const auto it = std::lower_bound(prefix.begin(), prefix.end(), target);
+            REQUIRE(it != prefix.end());
+            if (std::fabs(*it - target) < 1e-12 || (it != prefix.begin() && std::fabs(*(it - 1) - target) < 1e-12))
+                continue;
+            const std::size_t expected = static_cast<std::size_t>(it - prefix.begin()) + 1;
+            CHECK(FixedEnvelope::FromTotalProb(Iso(formula), target, true, false).confs_no() == expected);
+        }
+    }
+}
+
+TEST_CASE("Binned: a non-positive target gives an empty envelope") {
+    for (double target : {0.0, -1.0}) {
+        CAPTURE(target);
+        CHECK(FixedEnvelope::Binned(Iso("C2"), target, 1.0, 0.0).confs_no() == 0);
+    }
+}
+
+TEST_CASE("Binned skips configurations whose probability underflows to zero") {
+    // Raw isotope probabilities need not sum to 1. With a total of 1/8 the
+    // target is never reached, so the layered fill runs through every
+    // configuration, including the two whose product underflows to 0.0.
+    // Those must not leave an (empty) bin behind.
+    int isotope_numbers[1] = {2};
+    int atom_counts[1] = {3};
+    double masses[2] = {1.0, 2.0};
+    double probs[2] = {0.5, 1e-200};
+    FixedEnvelope binned = FixedEnvelope::Binned(Iso(1, isotope_numbers, atom_counts, masses, probs), 0.9, 1.0, 0.0);
+    REQUIRE(binned.confs_no() == 2);
+    binned.sort_by_mass();
+    CHECK(binned.mass(0) == doctest::Approx(3.0));
+    CHECK(binned.prob(0) == doctest::Approx(0.125));
+    CHECK(binned.mass(1) == doctest::Approx(4.0));
+    CHECK(binned.prob(1) == doctest::Approx(7.5e-201));
+}
+
+TEST_CASE("FromTotalProb with an unreachable target keeps every configuration") {
+    // Raw isotope probabilities summing to 1/8 over the molecule: the layers
+    // run out before the target is met, and whatever was stored is the
+    // answer, trimmed or not.
+    int isotope_numbers[1] = {2};
+    int atom_counts[1] = {3};
+    double masses[2] = {1.0, 2.0};
+    double probs[2] = {0.5, 1e-200};
+    for (bool optimize : {true, false})
+        for (bool get_confs : {true, false}) {
+            CAPTURE(optimize);
+            CAPTURE(get_confs);
+            FixedEnvelope env = FixedEnvelope::FromTotalProb(Iso(1, isotope_numbers, atom_counts, masses, probs),
+                                                             0.9, optimize, get_confs);
+            CHECK(env.confs_no() == 4);
+            CHECK(env.get_total_prob() == doctest::Approx(0.125));
+        }
+}
+
+TEST_CASE("Binned rejects a grid whose last bin index would overflow") {
+    // The first bin index fits in ptrdiff_t, but the ~10^5 bins above it do
+    // not: the second range check, not the first, has to catch this.
+    Iso iso("C100");
+    const double width = 1e-3;
+    const double middle = iso.getLightestPeakMass() + 0.5 * width - (std::ldexp(1.0, 63) - 50000.0) * width;
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C100"), 0.99, width, middle), std::length_error);
 }
 
 TEST_CASE("FromThreshold const-Iso overloads do not consume the Iso") {
