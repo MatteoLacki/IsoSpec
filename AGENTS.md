@@ -6,7 +6,7 @@ This file is tracked in git. Keep it up to date as part of any change that makes
 
 ## What this is
 
-IsoSpec: a fine-structure isotopic distribution calculator for chemical formulas. C++20 core (`src/IsoSpec++/`), Python binding via cffi (`src/IsoSpecPy/`, PyPI wheel built through `skbuild/`), R binding via Rcpp (`src/IsoSpecR/`, CRAN). Single-threaded by design. `VERSION` at the repo root is the single source of truth for the version (read by both pyproject.toml and CMake).
+IsoSpec: a fine-structure isotopic distribution calculator for chemical formulas. C++20 core (`src/IsoSpec++/`), Python binding via cffi (`src/IsoSpecPy/`, PyPI wheel built through `skbuild/`), R binding via Rcpp (`src/IsoSpecR/`, CRAN). No parallelism inside the library, but thread-safe to use from many threads (see Threading below). `VERSION` at the repo root is the single source of truth for the version (read by both pyproject.toml and CMake).
 
 ## Commands
 
@@ -14,8 +14,9 @@ IsoSpec: a fine-structure isotopic distribution calculator for chemical formulas
 
 ```bash
 cd tests/C++
-make -j"$(nproc)" test   # build gcc/clang/dbg/asan configs + run all (also the fasta.h header-isolation compile check)
+make -j"$(nproc)" test   # build gcc/clang/dbg/asan/tsan configs + run all (also the fasta.h header-isolation compile check)
 make asan                # just the ASan+UBSan binary
+make tsan                # just the ThreadSanitizer binary
 make coverage            # gcov + gcovr report
 make cli                 # investigation CLIs under cli/ (from_formula_*, mass_range)
 ```
@@ -76,6 +77,17 @@ The pipeline is: **Iso → per-element Marginals → a generator that combines t
 The batched fill kernels use `std::experimental::simd`, whose ABI is fixed at template instantiation from `-march` macros — so `target_clones`/function attributes cannot work. Instead the kernels (`isa_kernel_impl.h`, deliberately **no include guard**) are compiled once per ISA level into separate namespaces/objects: `isa_kernels_{baseline,avx,v3,v4}.cpp`, selected at runtime by `isa_dispatch.cpp` (which must itself stay baseline-compiled). Enabled by `-DISOSPEC_ISA_DISPATCH=1` + per-level objects (see `IsaDispatch.cmake` and the tests/C++ Makefile); without it (plain unity build, R package) kernels compile at the build's native `-march`. This matters because the PyPI wheel is built with no `-march` (x86-64 baseline, 2-wide vectors) while user machines are mostly AVX2+.
 
 Build-system consequence: any target using the library must compile the four `isa_kernels_*.cpp` with matching flags minus `-march` (sanitizers/`_GLIBCXX_DEBUG` must match across objects — ODR).
+
+### Threading
+
+The library never parallelises its own work, but callers may use it from any number of threads:
+
+- Independent objects (`Iso`, generators, `FixedEnvelope`s) on separate threads never interfere. Nothing process-global is mutable without synchronisation: the Unimod override-path cache is a mutex-guarded, never-evicted map; `lgamma` goes through `lgamma_nosign` (`lgamma_r`, so no `signgam` write); the ISA selection is one atomic pointer.
+- `const` methods on one shared `Iso` or `FixedEnvelope` may run concurrently. This is why `Marginal` computes its mode in the constructor rather than lazily (+210 ns per bare `Iso` from a peptide on x86-64-v3; free once any generator runs).
+- A generator is stateful and belongs to one thread at a time.
+- `tests/C++/test_threads.cpp` under `make tsan` is the proof. Under TSan, `aligned_ptr.h` grows VM-backed buffers by mmap+copy+munmap instead of `mremap`, which TSan does not intercept (it reports address reuse across threads as races).
+
+Do not reintroduce function-local `static` scratch buffers or lazy caches behind `const` accessors; `thread_local` is no escape either (TLS teardown has crashed the Python module at interpreter shutdown on macOS).
 
 ### Platform notes
 

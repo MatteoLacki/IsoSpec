@@ -7,6 +7,8 @@
 #   run_tests_clang  release, clang++
 #   run_tests_dbg    -O0 -g, _GLIBCXX_DEBUG
 #   run_tests_asan   AddressSanitizer + UBSan (clang)
+#   run_tests_tsan   ThreadSanitizer (clang); test_threads.cpp is what gives it
+#                    something to find
 #   run_tests_memsan MemorySanitizer + UBSan (opt-in; needs an MSan-instrumented
 #                    libc++, so it is NOT part of `make test`)
 #
@@ -14,6 +16,7 @@
 #   make            # build the default test configs + CLIs
 #   make test       # build the default configs and RUN them (fails on any error)
 #   make asan       # just the ASan/UBSan config
+#   make tsan       # just the ThreadSanitizer config
 #   make coverage   # gcov-instrumented run + line/branch coverage report
 #   make cli        # build the command-line investigation tools under cli/
 #   make clean
@@ -33,6 +36,7 @@ OPTFLAGS   := -O3 -march=native -mtune=native -g
 DEBUGFLAGS := -O0 -g -DISOSPEC_DEBUG -DDEBUG -D_GLIBCXX_DEBUG
 ASANFLAGS  := -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all
 MSANFLAGS  := -O1 -g -fsanitize=memory,undefined -DISOSPEC_TESTS_MEMSAN
+TSANFLAGS  := -O1 -g -fsanitize=thread
 
 # --- runtime ISA dispatch ---------------------------------------------------
 # The tests exercise the dispatching build, so each configuration also compiles
@@ -78,6 +82,7 @@ TEST_SRCS := tests_main.cpp \
              test_regression.cpp \
              test_simd_equivalence.cpp \
              test_single_atom.cpp \
+             test_threads.cpp \
              test_unimod.cpp \
              test_wasserstein.cpp
 # Rebuild whenever anything in the library changes, not just the test sources:
@@ -88,7 +93,7 @@ TEST_DEPS := $(TEST_SRCS) test_helpers.h doctest.h $(UNITY) $(LIB_SRCS)
 CLI_SRCS := $(wildcard cli/*.cpp)
 CLI_BINS := $(patsubst cli/%.cpp,$(BUILD)/cli/%,$(CLI_SRCS))
 
-.PHONY: all tests test asan memsan coverage cli fasta_header_isolation clean
+.PHONY: all tests test asan memsan tsan coverage cli fasta_header_isolation clean
 
 all: tests cli
 
@@ -112,13 +117,16 @@ $(eval $(call TEST_rule,clang,$(CXX_CLANG),$(OPTFLAGS),$(ISA_OPTFLAGS)))
 $(eval $(call TEST_rule,dbg,$(CXX_GCC),$(DEBUGFLAGS),$(DEBUGFLAGS)))
 $(eval $(call TEST_rule,asan,$(CXX_CLANG),$(ASANFLAGS),$(ASANFLAGS)))
 $(eval $(call TEST_rule,memsan,$(CXX_CLANG),$(MSANFLAGS),$(MSANFLAGS)))
+$(eval $(call TEST_rule,tsan,$(CXX_CLANG),$(TSANFLAGS),$(TSANFLAGS)))
 
 DEFAULT_TEST_BINS := $(BUILD)/run_tests_gcc $(BUILD)/run_tests_clang \
-                     $(BUILD)/run_tests_dbg $(BUILD)/run_tests_asan
+                     $(BUILD)/run_tests_dbg $(BUILD)/run_tests_asan \
+                     $(BUILD)/run_tests_tsan
 
 tests: $(DEFAULT_TEST_BINS)
 asan: $(BUILD)/run_tests_asan
 memsan: $(BUILD)/run_tests_memsan
+tsan: $(BUILD)/run_tests_tsan
 
 # Build every default config and run it; stop at the first failure.
 test: $(DEFAULT_TEST_BINS) fasta_header_isolation

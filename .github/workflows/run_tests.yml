@@ -75,10 +75,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y g++ clang make
-      - name: Build and run the doctest suite (release, debug, ASan+UBSan)
+      - name: Build and run the doctest suite (release, debug, ASan+UBSan, TSan)
         # `make test` also runs the compile-only fasta.h header-isolation check.
+        # ThreadSanitizer's fixed shadow layout cannot cope with the 32 bits of
+        # mmap randomisation the runners' kernels use ("unexpected memory
+        # mapping"); 28 is the long-standing default it was built around.
         working-directory: ./tests/C++
         run: |
+          sudo sysctl -w vm.mmap_rnd_bits=28
           make -j"$(nproc)" test
       - name: Build and run the C-ABI suite (cwrapper.h compiled as C11)
         working-directory: ./tests/C

@@ -305,17 +305,38 @@ inline void vm_resize(vm_region& r, std::size_t new_bytes)
 
 #else  // Linux / other real-mman UNIX with an actual mremap()
 
+// ThreadSanitizer intercepts mmap() and munmap() but not mremap(), so a region
+// that mremap() moves away from is freed behind its back and keeps its old
+// shadow state. When another thread's mremap() later lands on those
+// addresses, TSan reports its writes as racing with the previous owner's --
+// pure address reuse, reproduced with two threads and nothing else. Under
+// TSan, growth therefore goes through mmap + copy + munmap, which it does see.
+#if defined(__SANITIZE_THREAD__)
+    #define ISOSPEC_ALIGNED_PTR_UNDER_TSAN 1
+#elif defined(__has_feature)
+    #if __has_feature(thread_sanitizer)
+        #define ISOSPEC_ALIGNED_PTR_UNDER_TSAN 1
+    #endif
+#endif
+
 inline void vm_resize(vm_region& r, std::size_t new_bytes)
 {
     const std::size_t new_size = round_up_to_page(new_bytes);
     if (new_size == r.size)
         return;
 
+#if defined(ISOSPEC_ALIGNED_PTR_UNDER_TSAN)
+    vm_region moved = vm_create(new_bytes);
+    std::memcpy(moved.base, r.base, (std::min)(r.size, moved.size));
+    vm_destroy(r);
+    r = moved;
+#else
     void* p = ::mremap(r.base, r.size, new_size, MREMAP_MAYMOVE);
     if (p == MAP_FAILED)
         throw std::bad_alloc();
     r.base = p;
     r.size = new_size;
+#endif
 }
 
 #endif  // __APPLE__
