@@ -21,15 +21,6 @@ namespace IsoSpec
 {
 
 
-void release_g_lfact_table()
-{
-#if ISOSPEC_GOT_MMAN
-    munmap(g_lfact_table, ISOSPEC_G_FACT_TABLE_SIZE*sizeof(double));
-#else
-    free(g_lfact_table);
-#endif
-}
-
 double* alloc_lfact_table()
 {
     double* ret;
@@ -57,7 +48,12 @@ double* alloc_lfact_table()
     for (std::size_t n = 2; n < eager_end; ++n)
         ret[n] = -lgamma_nosign(static_cast<double>(n + 1));
 
-    std::atexit(release_g_lfact_table);
+    // Deliberately never freed. An atexit() handler releasing it would run
+    // while threads that outlive main() -- detached, or still winding down --
+    // may be reading it, a use-after-free at exit; the OS reclaims it at
+    // process end anyway. The cost: a library that is dlclose()d and loaded
+    // again leaks one table per reload, mostly untouched address space past
+    // the eager prefix.
     return ret;
 }
 
