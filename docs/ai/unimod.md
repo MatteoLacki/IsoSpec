@@ -133,10 +133,10 @@ Every lookup in this feature is a direct-indexed table, not a `std::map`/`unorde
   `int[26][27]` table (first letter × optional second letter), built once at static-init from
   `element_tables.h`'s 292 rows — verified those 292 rows resolve to 87 unique symbols with
   zero collisions, so this table has no ambiguity to encode.
-- **Override-path "cache"**: not a map either — a single cached `(path, table)` pair
-  (`unimod_table_for_path`), since a process realistically uses 0 or 1 distinct override paths
-  in its lifetime; a full path-keyed cache would buy nothing. Not synchronized — IsoSpec is
-  single-threaded by design (see the top-level `CLAUDE.md`).
+- **Override-path cache** (`unimod_table_for_path`): a path-keyed map behind a mutex, never
+  evicted. It used to be a single `(path, table)` pair, unsynchronized; that let a load on one
+  path overwrite the table another thread was still parsing against. A process realistically
+  uses 0 or 1 distinct override paths, so keeping every table costs nothing.
 - **Per-sequence composition accumulator** (`fasta_mods.cpp`): a fixed-size array, one slot per
   `element_tables.h` row (292), zero-initialized per call — not a string-keyed map.
 

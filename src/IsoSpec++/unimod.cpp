@@ -18,6 +18,9 @@
 
 #include <cstdint>
 #include <fstream>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -144,17 +147,22 @@ const UnimodTable& embedded_unimod_table() {
 }
 
 const UnimodTable& unimod_table_for_path(const std::string& path) {
-    // Single cached (path, table) pair, not a map -- deliberately: a process
-    // realistically uses 0 or 1 distinct override paths in its lifetime (set
-    // once at startup), so a full path-keyed cache would buy nothing. Not
-    // synchronized -- IsoSpec is single-threaded by design (see this repo's
-    // CLAUDE.md); do not call this from more than one thread.
-    static std::string cached_path;
-    static UnimodTable cached_table;
-    static bool cached_valid = false;
+    // Path-keyed, never evicted, behind a mutex: the returned reference must
+    // stay valid for as long as any caller (on any thread) may still be
+    // parsing against it, and a cache that overwrote or dropped a table on a
+    // different path's load could not promise that. Never evicting costs one
+    // table per distinct path ever passed -- realistically 0 or 1, set once at
+    // startup. The table is built while the lock is held, so concurrent first
+    // loads queue up rather than parse the same file twice; the lock is held
+    // only for lookup thereafter.
+    static std::mutex mutex;
+    static std::map<std::string, std::unique_ptr<const UnimodTable>> cache;
 
-    if (cached_valid && cached_path == path)
-        return cached_table;
+    const std::lock_guard<std::mutex> lock(mutex);
+
+    auto it = cache.find(path);
+    if (it != cache.end())
+        return *it->second;
 
     std::ifstream file(path);
     if (!file)
@@ -162,10 +170,10 @@ const UnimodTable& unimod_table_for_path(const std::string& path) {
     std::stringstream buffer;
     buffer << file.rdbuf();
 
-    cached_table = parse_unimod_csv(buffer.str());
-    cached_path = path;
-    cached_valid = true;
-    return cached_table;
+    auto table = std::make_unique<const UnimodTable>(parse_unimod_csv(buffer.str()));
+    const UnimodTable& ret = *table;
+    cache.emplace(path, std::move(table));
+    return ret;
 }
 
 }  // namespace IsoSpec

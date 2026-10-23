@@ -70,11 +70,10 @@ const UnimodTable& embedded_unimod_table();
 //! Loads and parses `path` (same CSV shape as the embedded default),
 //! overriding it. `unimod_db_path == nullptr` or `""` should use
 //! `embedded_unimod_table()` instead -- callers check that, not this
-//! function. Caches a single (path, table) pair -- not a map: a process
-//! realistically uses 0 or 1 distinct override paths, so a full path-keyed
-//! map buys nothing over remembering just the last one. IsoSpec is
-//! single-threaded by design (see this repo's CLAUDE.md), so this cache is
-//! not synchronized; do not call it from more than one thread.
+//! function. Each distinct path is read once and its table kept for the life
+//! of the process, so the returned reference never dangles; a file changed on
+//! disk after its first load is not re-read. Safe to call from any number of
+//! threads.
 const UnimodTable& unimod_table_for_path(const std::string& path);
 
 }  // namespace IsoSpec
