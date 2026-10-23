@@ -332,6 +332,9 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     //! nothing -- for fills that counted their output up front.
     template<bool tgetConfs> void allocate_memory(size_t new_size);
 
+    //! Store the rest of the generator's current marginal-0 run, batched; see fixedEnvelopes.cpp.
+    size_t store_run(IsoLayeredGenerator& generator, isa_fill_run_fn fill_run);
+
     //! Store every remaining configuration of the generator's current layer.
     template<bool tgetConfs> void store_layer(IsoLayeredGenerator& generator);
 

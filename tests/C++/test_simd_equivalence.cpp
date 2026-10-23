@@ -9,9 +9,10 @@
 // This is the regression net that guards the SIMD generator work and MUST stay
 // green before any change to the shared marginal/guardian machinery.  Binned()'s
 // full-enumeration filler is batched over the same generator and is covered at
-// the bottom of this file; the layered fills are not batched (measured -- see
-// FixedEnvelope::store_layer()) and are checked here only for the invariants
-// their restructuring had to preserve.
+// the bottom of this file.  The layered generator's fills are batched too
+// (FromTotalProb without configurations, and Binned()'s probability-bounded
+// filler, both via IsoLayeredGenerator::batch_fill_run()), and are held to the
+// same bit-identity below.
 
 #include "doctest.h"
 #include "test_helpers.h"
@@ -81,12 +82,11 @@ TEST_CASE("scalar vs SIMD: single leftover config (< W tail only)") {
 }
 
 // ---------------------------------------------------------------------------
-// FromTotalProb: neither of its fills is batched -- the layered generator's runs
-// over marginal 0 are far too short for that (see FixedEnvelope::store_layer()).
-// What is checked here is the invariant the restructuring of total_prob_init
-// into store_layer()/store_layer_to_prob() has to preserve: the with- and
-// without-configurations fills must walk the layers identically and stop at the
-// same configuration.
+// FromTotalProb: with configurations the fill is scalar, without them it is
+// batched (FixedEnvelope::store_run()), including stopping partway through a
+// marginal-0 run once the target is met -- the batch overshoots and is trimmed
+// back.  Both must walk the layers identically, stop at the same configuration
+// and agree bit-for-bit.
 // ---------------------------------------------------------------------------
 
 namespace {

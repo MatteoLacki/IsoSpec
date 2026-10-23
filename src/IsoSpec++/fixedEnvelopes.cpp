@@ -908,35 +908,101 @@ template void FixedEnvelope::threshold_init<true>(Iso&& iso, double threshold, b
 template void FixedEnvelope::threshold_init<false>(Iso&& iso, double threshold, bool absolute);
 
 
-// Left deliberately unbatched, unlike threshold_init()'s fill: the layered
-// generator's runs over marginal 0 are far too short for it. A layer admits
-// only configurations whose log-probability falls in a thin band, and for any
-// fixed choice of the higher marginals very few of marginal 0's fall in it --
-// measured at 1.36 configurations per run (37889 configurations over 27863 runs,
-// C520H817N139O147S8 to p=0.99999), where a W=4 batch needs 5. Batching it
-// anyway fires on 0.0% of configurations and costs 1-4% in the probe it adds per
-// run. Widening the layers does not rescue it either: at a -50 nat cap (vs the
-// -5 of ISOSPEC_TOTALPROB_LAYER_MAXSTEP) the batch still covers only 2.8% of
-// configurations, while generating 13% more of them.
+// Batched like threshold_init()'s fill when no configuration signatures are
+// stored. This used not to pay: with the layered generator ordering marginals
+// ascending, its runs over marginal 0 held 1.36 configurations on average
+// (C520H817N139O147S8 to p=0.99999) and a W=4 batch fired on 0.0% of them.
+// With marginal 0 the largest marginal the same case averages 7.8 per run, 91%
+// of configurations in runs of 5 or more -- see
+// IsoLayeredGenerator::batch_fill_run(). With signatures the fill stays scalar:
+// get_conf_signature() needs the generator positioned on each configuration.
+
+// Store the rest of the generator's current marginal-0 run: the bulk W at a time
+// by the batched kernel, the < W tail scalar. Leaves the generator past the end
+// of the run, where carry() continues from; returns how many it stored.
+size_t FixedEnvelope::store_run(IsoLayeredGenerator& generator, isa_fill_run_fn fill_run)
+{
+    const size_t room_needed = generator.max_run_length();
+    if(current_size - _confs_no < room_needed)
+        reallocate_memory<false>((std::max)(current_size*2, _confs_no + room_needed));
+
+    size_t stored = generator.batch_fill_run(fill_run, tmasses, tprobs);
+    tmasses += stored;
+    tprobs  += stored;
+
+    while(generator.advanceToNextConfigurationWithinLayer_no_carry())
+    {
+        *tmasses = generator.mass(); tmasses++;
+        *tprobs  = generator.prob(); tprobs++;
+        stored++;
+    }
+
+    _confs_no += stored;
+    return stored;
+}
 
 template<bool tgetConfs> void FixedEnvelope::store_layer(IsoLayeredGenerator& generator)
 {
-    while(generator.advanceToNextConfigurationWithinLayer())
-        this->template addConfILG<tgetConfs>(generator);
+    constexpr_if(tgetConfs)
+    {
+        while(generator.advanceToNextConfigurationWithinLayer())
+            this->template addConfILG<tgetConfs>(generator);
+    }
+    else
+    {
+        const isa_fill_run_fn fill_run = isa_kernels().fill_run;
+        do
+            store_run(generator, fill_run);
+        while(generator.carry());  // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
+    }
 }
 
 template<bool tgetConfs> bool FixedEnvelope::store_layer_to_prob(IsoLayeredGenerator& generator,
                                                                  double& prob_so_far,
                                                                  double target_total_prob)
 {
-    while(generator.advanceToNextConfigurationWithinLayer())
+    constexpr_if(tgetConfs)
     {
-        this->template addConfILG<tgetConfs>(generator);
-        prob_so_far += *(tprobs-1);  // The just-stored probability
-        if(prob_so_far >= target_total_prob)
-            return true;
+        while(generator.advanceToNextConfigurationWithinLayer())
+        {
+            this->template addConfILG<tgetConfs>(generator);
+            prob_so_far += *(tprobs-1);  // The just-stored probability
+            if(prob_so_far >= target_total_prob)
+                return true;
+        }
+        return false;
     }
-    return false;
+    else
+    {
+        const isa_fill_run_fn fill_run = isa_kernels().fill_run;
+        do
+        {
+            // An index, not a pointer: store_run() may reallocate the arrays.
+            const size_t run_start = _confs_no;
+            const size_t stored = store_run(generator, fill_run);
+            const double* const run_probs = _probs + run_start;
+            // The same additions, in the same order, as the scalar fill makes.
+            for(size_t ii = 0; ii < stored; ii++)
+            {
+                prob_so_far += run_probs[ii];
+                if(prob_so_far >= target_total_prob)
+                {
+                    // Reached partway through the run: drop what was stored past
+                    // this configuration, and put the generator back on it, as if
+                    // the scalar fill had stopped here. store_run() left it one
+                    // past the run's last configuration.
+                    const size_t surplus = stored - ii - 1;
+                    tmasses -= surplus;
+                    tprobs  -= surplus;
+                    _confs_no -= surplus;
+                    generator.step_back_within_run(surplus + 1);
+                    return true;
+                }
+            }
+        }
+        while(generator.carry());  // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
+        return false;
+    }
 }
 
 template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double target_total_prob, bool optimize)
@@ -1229,31 +1295,53 @@ static bool fill_bins_to_prob(IsoLayeredGenerator& generator,
     bool seeded = false;
     const double sum_above = log1p(-target_total_prob) - 2.3025850929940455;  // log(0.1)
 
+    // Each marginal-0 run is batch-filled into scratch arrays (as store_layer()
+    // does into the envelope; see the note above it), then scattered from there
+    // configuration by configuration, exactly as the unbatched loop did -- the
+    // bin_run kernel cannot stop partway through a run once the target is met.
+    const isa_fill_run_fn fill_run = isa_kernels().fill_run;
+    std::vector<double> run_masses, run_probs;
+
     do
     {
-        // Unbatched, deliberately: see the note on store_layer() -- the layered
-        // generator's runs over marginal 0 are ~1.4 configurations long, so the
-        // batched kernel never fires here. (Binned()'s other filler, over the
-        // threshold generator, does batch and does gain from it.)
-        while(generator.advanceToNextConfigurationWithinLayer())
+        // Marginal 0 grows with every layer, and so does the longest run.
+        if(run_masses.size() < generator.max_run_length())
         {
-            double prob = generator.prob();
-            if(prob == 0.0)
-                continue;
+            run_masses.resize(generator.max_run_length());
+            run_probs.resize(generator.max_run_length());
+        }
 
-            std::ptrdiff_t bin_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
-            acc[bin_idx] += prob;
-
-            if(!seeded)
+        do
+        {
+            size_t stored = generator.batch_fill_run(fill_run, run_masses.data(), run_probs.data());
+            while(generator.advanceToNextConfigurationWithinLayer_no_carry())
             {
-                nonzero_idx = bin_idx;
-                seeded = true;
+                run_masses[stored] = generator.mass();
+                run_probs[stored] = generator.prob();
+                stored++;
             }
 
-            prob_so_far += prob;
-            if(prob_so_far >= target_total_prob)
-                return true;
+            for(size_t ii = 0; ii < stored; ii++)
+            {
+                double prob = run_probs[ii];
+                if(prob == 0.0)
+                    continue;
+
+                std::ptrdiff_t bin_idx = bin_index(run_masses[ii], hwmm, inv_bin_width);
+                acc[bin_idx] += prob;
+
+                if(!seeded)
+                {
+                    nonzero_idx = bin_idx;
+                    seeded = true;
+                }
+
+                prob_so_far += prob;
+                if(prob_so_far >= target_total_prob)
+                    return true;
+            }
         }
+        while(generator.carry());  // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
 
         layer_delta = sum_above - log1p(-prob_so_far);
         // Cap the widest step; see ISOSPEC_BINNED_LAYER_MAXSTEP in fixedEnvelopes.h.
