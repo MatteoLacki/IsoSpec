@@ -55,7 +55,7 @@ double* alloc_lfact_table()
     if (eager_end > 0) ret[0] = 0.0;
     if (eager_end > 1) ret[1] = 0.0;
     for (std::size_t n = 2; n < eager_end; ++n)
-        ret[n] = -lgamma(static_cast<double>(n + 1));
+        ret[n] = -lgamma_nosign(static_cast<double>(n + 1));
 
     std::atexit(release_g_lfact_table);
     return ret;

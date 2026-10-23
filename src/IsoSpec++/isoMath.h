@@ -48,6 +48,24 @@
 namespace IsoSpec
 {
 
+// lgamma() reports the sign of Gamma(x) through the global `signgam`, so every
+// call is a write to shared state -- a data race whenever two threads call it
+// at once, whatever the arguments. lgamma_r() returns the sign through a
+// pointer instead. Every argument this library passes is positive, so the sign
+// is never wanted. On Windows plain lgamma() stays: MSVC's CRT has neither
+// signgam nor lgamma_r, and whether MinGW's runtime (R's Rtools) declares
+// lgamma_r is unverified -- a missing declaration there would break the CRAN
+// build, which is worse than a race nobody has observed on that platform.
+inline double lgamma_nosign(double x) noexcept
+{
+#if defined(_WIN32)
+    return std::lgamma(x);
+#else
+    int sign;
+    return ::lgamma_r(x, &sign);
+#endif
+}
+
 extern double* g_lfact_table;
 
 static inline double minuslogFactorial(int n)
@@ -59,13 +77,13 @@ static inline double minuslogFactorial(int n)
 
     #if ISOSPEC_BUILDING_OPENMS
     if (n >= ISOSPEC_G_FACT_TABLE_SIZE)
-        return -lgamma(n+1);
+        return -lgamma_nosign(n+1);
     #endif
 
     std::atomic_ref<double> slot(g_lfact_table[n]);
     double v = slot.load(std::memory_order_relaxed);
     if (v == 0.0) {
-        v = -lgamma(n+1);
+        v = -lgamma_nosign(n+1);
         slot.store(v, std::memory_order_relaxed);
     }
     return v;

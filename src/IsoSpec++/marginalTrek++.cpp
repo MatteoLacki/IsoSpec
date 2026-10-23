@@ -198,7 +198,7 @@ double* getMLogProbs(const double* probs, int isoNo)
 double get_loggamma_nominator(int x)
 {
     // calculate log gamma of the nominator calculated in the binomial exression.
-    double ret = lgamma(x+1);
+    double ret = lgamma_nosign(x+1);
     return ret;
 }
 
@@ -438,9 +438,9 @@ double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
     for(int jj = 0; jj < i; jj++)
         sum_lprobs += atom_lProbs[jj];
 
-    double log_V_simplex = k * log(n) - lgamma(i);
-    double log_N_simplex = lgamma(n+i) - lgamma(n+1.0) - lgamma(i);
-    double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma((i+1)*0.5);
+    double log_V_simplex = k * log(n) - lgamma_nosign(i);
+    double log_N_simplex = lgamma_nosign(n+i) - lgamma_nosign(n+1.0) - lgamma_nosign(i);
+    double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma_nosign((i+1)*0.5);
 
     return log_N_simplex + log_V_ellipsoid - log_V_simplex;
 }
