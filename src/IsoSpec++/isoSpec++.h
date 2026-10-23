@@ -676,7 +676,46 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
     /*! Unlike IsoThresholdGenerator::carry(), leaves the generator one *before* the run's first configuration,
         i.e. in the "last-emitted" convention batch_fill_run() and advanceToNextConfigurationWithinLayer_no_carry()
         continue from -- no configuration needs emitting in between. */
-    bool carry();
+    ISOSPEC_FORCE_INLINE bool carry()
+    {
+        // If we reached this point, a carry is needed
+
+        int idx = 0;
+
+        int * cntr_ptr = counter;
+
+        while(idx < dimNumber-1)
+        {
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
+                recalc(idx-1);
+                // Walk back to the end of the confs emitted in previous layers, starting from the boundary found for the
+                // previous line: marginals are sorted by decreasing probability, so that line was at least as probable
+                // and its boundary is never before this one. It is 1-2 steps away, where the boundary of the block's
+                // first line (resetPositions[idx]) was 8-19 steps away on large molecules - with marginal 0 the largest,
+                // lines are long and the band boundary drifts far within a block. Unlike count_confs()'s continuation
+                // this needs no extra select: it only changes which slot is read.
+                lProbs_ptr = resetPositions[idx-1];
+
+                while(*lProbs_ptr <= last_lcfmsv)
+                    lProbs_ptr--;
+
+                for(int ii = 0; ii < idx; ii++)
+                    resetPositions[ii] = lProbs_ptr;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     //! Hand the rest of the current marginal-0 run to a batched kernel; see IsoThresholdGenerator::batch_fill_run().
     /*! With marginal 0 the largest marginal (see the constructor), runs within a layer are long enough for this to
