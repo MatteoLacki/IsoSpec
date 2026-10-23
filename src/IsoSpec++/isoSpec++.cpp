@@ -819,9 +819,11 @@ IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso
         for(int ii = 0; ii < dimNumber; ii++)
             tmpMarginalOrder[ii] = ii;
 
-        TableOrder<double> TO(marginal_priorities);
-
-        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, TO);
+        // Largest marginal innermost, as in IsoThresholdGenerator: long rows of marginal 0 mean few carries.
+        // (Sorting ascending - smallest, or single-isotope, marginal innermost - gave about one configuration per
+        // row per layer, so nearly every configuration paid for a carry.) Single-isotope marginals have priority
+        // -inf and so end up outermost.
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, [&](int a, int b) { return marginal_priorities[a] > marginal_priorities[b]; });
         marginalResults = new MarginalType*[dimNumber];
 
         for(int ii = 0; ii < dimNumber; ii++)
@@ -909,12 +911,6 @@ bool IsoLayeredGeneratorTemplate<MarginalType>::carry()
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
             partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
             recalc(idx-1);
-            // Deliberately NOT boundary-continued from the previous line the
-            // way count_confs() is: here marginal 0 is the *smallest* marginal
-            // (the layered ctor orders ascending), so the re-descent this
-            // would save is already short -- measured as no gain even under
-            // adversarial thin-layer schedules, while the extra select in
-            // this, the hottest carry path, cost ~5% on Binned.
             lProbs_ptr = resetPositions[idx];
 
             while(*lProbs_ptr <= last_lcfmsv)
