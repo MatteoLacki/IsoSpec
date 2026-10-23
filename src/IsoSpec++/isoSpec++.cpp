@@ -500,6 +500,16 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     // tokenizer. Keep it unreachable.
     reject_negative_counts(composition);
 
+    // An element written twice ("C1C1") would otherwise become two independent marginals of the same element: the
+    // right distribution, but an extra dimension the generators pay for, and not what a formula means. Rejected
+    // here, like the negative counts above, rather than in parse_formula_tokens, which the Unimod composition-delta
+    // loader shares. IsoSpecPy's ParseFormula rejects it too.
+    const std::vector<int>& first_indexes = composition.element_first_index;
+    for(size_t ii = 1; ii < first_indexes.size(); ii++)
+        if(std::find(first_indexes.begin(), first_indexes.begin() + ii, first_indexes[ii]) != first_indexes.begin() + ii)
+            throw std::invalid_argument(std::string("Invalid formula: element ") + elem_table_symbol[first_indexes[ii]] +
+                                        " appears more than once - write C2H6O1 and not C1H3C1H3O1");
+
     ExpandedComposition expanded;
     expand_composition_into(composition, expanded, use_nominal_masses);
 
@@ -819,9 +829,11 @@ IsoLayeredGeneratorTemplate<MarginalType>::IsoLayeredGeneratorTemplate(Iso&& iso
         for(int ii = 0; ii < dimNumber; ii++)
             tmpMarginalOrder[ii] = ii;
 
-        TableOrder<double> TO(marginal_priorities);
-
-        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, TO);
+        // Largest marginal innermost, as in IsoThresholdGenerator: long rows of marginal 0 mean few carries.
+        // (Sorting ascending - smallest, or single-isotope, marginal innermost - gave about one configuration per
+        // row per layer, so nearly every configuration paid for a carry.) Single-isotope marginals have priority
+        // -inf and so end up outermost.
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, [&](int a, int b) { return marginal_priorities[a] > marginal_priorities[b]; });
         marginalResults = new MarginalType*[dimNumber];
 
         for(int ii = 0; ii < dimNumber; ii++)
@@ -888,47 +900,6 @@ bool IsoLayeredGeneratorTemplate<MarginalType>::nextLayer(double offset)
     return true;
 }
 
-template <typename MarginalType>
-bool IsoLayeredGeneratorTemplate<MarginalType>::carry()
-{
-    // If we reached this point, a carry is needed
-
-    int idx = 0;
-
-    int * cntr_ptr = counter;
-
-    while(idx < dimNumber-1)
-    {
-        *cntr_ptr = 0;
-        idx++;
-        cntr_ptr++;
-        (*cntr_ptr)++;
-        partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
-        if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
-        {
-            partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
-            recalc(idx-1);
-            // Deliberately NOT boundary-continued from the previous line the
-            // way count_confs() is: here marginal 0 is the *smallest* marginal
-            // (the layered ctor orders ascending), so the re-descent this
-            // would save is already short -- measured as no gain even under
-            // adversarial thin-layer schedules, while the extra select in
-            // this, the hottest carry path, cost ~5% on Binned.
-            lProbs_ptr = resetPositions[idx];
-
-            while(*lProbs_ptr <= last_lcfmsv)
-                lProbs_ptr--;
-
-            for(int ii = 0; ii < idx; ii++)
-                resetPositions[ii] = lProbs_ptr;
-
-            return true;
-        }
-    }
-
-    return false;
-}
 
 template<typename MarginalType>
 void IsoLayeredGeneratorTemplate<MarginalType>::terminate_search()

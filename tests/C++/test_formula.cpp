@@ -86,19 +86,29 @@ TEST_CASE("parse_formula: two-letter symbols and multi-digit counts") {
     CHECK(r.isotopeNumbers[2] == static_cast<int>(element_isotopes("Cl").size()));
 }
 
-TEST_CASE("a repeated element becomes two independent marginals") {
-    // C1C1 is not normalized into C2 — it stays two dimensions. Both describe
-    // the same molecule, so the distributions must agree.
-    Iso split("C1C1");
-    Iso joined("C2");
-    CHECK(split.getDimNumber() == 2);
-    CHECK(joined.getDimNumber() == 1);
-    CHECK(split.getTheoreticalAverageMass() == doctest::Approx(joined.getTheoreticalAverageMass()));
-    CHECK(split.variance() == doctest::Approx(joined.variance()));
+TEST_CASE("a repeated element is rejected") {
+    // "C1C1" would otherwise silently become two independent marginals of the
+    // same element -- the right distribution, but an extra dimension, and not
+    // what a formula means. IsoSpecPy's ParseFormula rejects it too.
+    const char* const repeated[] = {
+        "C1C1",
+        "C1H4C1",
+        "H2O1H2",
+        "C6H12O6C1",
+        "C0C0",
+    };
+    for (const char* f : repeated) {
+        INFO("formula='" << f << "'");
+        CHECK_THROWS_AS(Iso{f}, std::invalid_argument);
+    }
 
-    CHECK(peaks_close(
-        merge_equal_masses(enumerate_threshold_full("C1C1")),
-        merge_equal_masses(enumerate_threshold_full("C2")), 1e-12));
+    // The tokenizer underneath still reads repeated elements: the check lives
+    // in parse_formula, so the Unimod loader that shares the tokenizer is
+    // unaffected.
+    std::vector<int> indexes, counts;
+    parse_formula_tokens("C1C1", indexes, counts);
+    REQUIRE(indexes.size() == 2);
+    CHECK(indexes[0] == indexes[1]);
 }
 
 TEST_CASE("zero-count elements are allowed and contribute nothing") {

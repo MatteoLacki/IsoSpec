@@ -660,10 +660,86 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
         return false;
     }
 
-    // Deliberately no simd_massprobs() counterpart to IsoThresholdGenerator's:
-    // a layer admits only a thin band of log-probabilities, so the runs this
-    // would batch are ~1.4 configurations long and it never fires. Measured;
-    // see the note on FixedEnvelope::store_layer().
+    //! advanceToNextConfigurationWithinLayer() without the carry: returns false at the end of the current
+    //! marginal-0 run, leaving the generator where carry() continues from.
+    ISOSPEC_FORCE_INLINE bool advanceToNextConfigurationWithinLayer_no_carry()
+    {
+        lProbs_ptr++;
+
+        if(ISOSPEC_LIKELY(*lProbs_ptr >= lcfmsv))
+            return true;
+
+        return false;
+    }
+
+    //! Move on to the next marginal-0 run within the current layer; false once the layer is exhausted.
+    /*! Unlike IsoThresholdGenerator::carry(), leaves the generator one *before* the run's first configuration,
+        i.e. in the "last-emitted" convention batch_fill_run() and advanceToNextConfigurationWithinLayer_no_carry()
+        continue from -- no configuration needs emitting in between. */
+    ISOSPEC_FORCE_INLINE bool carry()
+    {
+        // If we reached this point, a carry is needed
+
+        int idx = 0;
+
+        int * cntr_ptr = counter;
+
+        while(idx < dimNumber-1)
+        {
+            *cntr_ptr = 0;
+            idx++;
+            cntr_ptr++;
+            (*cntr_ptr)++;
+            partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
+            if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= currentLThreshold)
+            {
+                partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
+                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
+                recalc(idx-1);
+                // Walk back to the end of the confs emitted in previous layers, starting from the boundary found for the
+                // previous line: marginals are sorted by decreasing probability, so that line was at least as probable
+                // and its boundary is never before this one. It is 1-2 steps away, where the boundary of the block's
+                // first line (resetPositions[idx]) was 8-19 steps away on large molecules - with marginal 0 the largest,
+                // lines are long and the band boundary drifts far within a block. Unlike count_confs()'s continuation
+                // this needs no extra select: it only changes which slot is read.
+                lProbs_ptr = resetPositions[idx-1];
+
+                while(*lProbs_ptr <= last_lcfmsv)
+                    lProbs_ptr--;
+
+                for(int ii = 0; ii < idx; ii++)
+                    resetPositions[ii] = lProbs_ptr;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    //! Hand the rest of the current marginal-0 run to a batched kernel; see IsoThresholdGenerator::batch_fill_run().
+    /*! With marginal 0 the largest marginal (see the constructor), runs within a layer are long enough for this to
+        pay: 7.8 configurations per run on C520H817N139O147S8 to p=0.99999, 91% of configurations in runs of 5 or
+        more, where the ascending order this generator used to have gave 1.36 and batching never fired. The
+        kernel's read-ahead stays inside marginal 0's lProbs array: LayeredMarginal keeps
+        ISOSPEC_LPROB_GUARDIANS sentinels past its end, as every marginal does. */
+    ISOSPEC_FORCE_INLINE size_t batch_fill_run(isa_fill_run_fn kernel, double* out_masses, double* out_probs)
+    {
+        return kernel(&lProbs_ptr, lProbs_ptr_start,
+                      marginalResults[0]->get_masses_ptr(),
+                      marginalResults[0]->get_probs_ptr(),
+                      lcfmsv, partialMasses[1], partialProbs[1],
+                      out_masses, out_probs);
+    }
+
+    //! The longest a marginal-0 run can be in the current layer: what batch_fill_run() and the scalar drain after
+    //! it can emit between two carries, at most.
+    ISOSPEC_FORCE_INLINE size_t max_run_length() const { return marginalResults[0]->get_no_confs(); }
+
+    //! Move the position back by n configurations within the current marginal-0 run.
+    /*! For callers that batch-emit a run and then find they only needed part of it: positioned on the last
+        configuration they keep, the generator continues exactly as if it had stopped there. */
+    ISOSPEC_FORCE_INLINE void step_back_within_run(size_t n) { lProbs_ptr -= n; }
 
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
@@ -719,9 +795,6 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
         else
             throw std::runtime_error("IsoLayeredGeneratorTemplate::get_conf_by_indexes() called on a non-SingleAtomMarginal generator. This is not supported yet.");
     }
-
- private:
-    bool carry();
 };
 using IsoLayeredGenerator = IsoLayeredGeneratorTemplate<LayeredMarginal>;
 

@@ -431,6 +431,11 @@ class LayeredMarginal : public Marginal
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
     inline double get_mass(int idx) const { return masses[idx]; }
 
+    //! Marginal masses and probabilities as raw arrays, indexed as get_lProbs_ptr() is -- for the batched kernels
+    //! (isa_kernels.h). Invalidated, like get_lProbs_ptr(), by calls to extend().
+    inline const double* get_masses_ptr() const { return masses.data(); }
+    inline const double* get_probs_ptr() const { return probs.data(); }
+
     //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of +inf (trailing guardians of -inf follow the data). Warning: The pointer gets invalidated on calls to extend()
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
 
@@ -508,6 +513,11 @@ class SingleAtomMarginal : public Marginal
 
     //! get the mass of the idx-th subisotopologue, see details in @ref PrecalculatedMarginal::get_mass.
     inline double get_mass(int idx) const { return masses[idx]; }
+
+    //! Marginal masses and probabilities as raw arrays, indexed as get_lProbs_ptr() is -- for the batched kernels
+    //! (isa_kernels.h). Invalidated, like get_lProbs_ptr(), by calls to extend().
+    inline const double* get_masses_ptr() const { return masses.data(); }
+    inline const double* get_probs_ptr() const { return probs.data(); }
 
     //! get the pointer to lProbs array. Accessing index -1 is legal and returns a guardian of +inf (trailing guardians of -inf follow the data). Warning: The pointer gets invalidated on calls to extend()
     inline const double* get_lProbs_ptr() const { return lProbs.data()+1; }
