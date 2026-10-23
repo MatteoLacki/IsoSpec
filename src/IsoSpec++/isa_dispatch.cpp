@@ -49,7 +49,7 @@ namespace isa_v4 { extern const IsaKernels kernels; }
 namespace
 {
 
-const IsaKernels* level_table(IsaLevel level)
+constexpr const IsaKernels* level_table(IsaLevel level)
 {
     switch(level)
     {
@@ -135,47 +135,65 @@ IsaLevel best_available_level()
 // safe if two threads race to initialize it for the first time, which is
 // unnecessary here. Computing the answer is a pure, deterministic function
 // of CPU features and an environment variable, so letting two racing
-// threads compute and publish it twice is harmless; only the publication
-// itself (the pointer store below) needs to be atomic.
+// threads compute it twice is harmless; only the publication needs care.
 struct Selection {
     IsaLevel level;
     const IsaKernels* kernels;
 };
 
-Selection compute_selection()
+// One immutable record per level, so that publishing a selection is a single
+// pointer store. With the level and the kernels in two separate atomics, a
+// reader racing set_isa_level() could pair one call's level with another's
+// kernels. constinit: the addresses of the extern tables are link-time
+// constants, so this is never part of dynamic initialisation -- a reader
+// during another TU's static initialisation still sees it filled in.
+constinit const Selection level_records[ISA_LEVEL_COUNT] = {
+    {ISA_LEVEL_BASELINE, level_table(ISA_LEVEL_BASELINE)},
+    {ISA_LEVEL_AVX,      level_table(ISA_LEVEL_AVX)},
+    {ISA_LEVEL_V3,       level_table(ISA_LEVEL_V3)},
+    {ISA_LEVEL_V4,       level_table(ISA_LEVEL_V4)},
+};
+
+const Selection* compute_selection()
 {
-    Selection s;
-    s.level = best_available_level();
+    IsaLevel level = best_available_level();
 
     // An override lets a user work around a CPU whose wide units are a trap
     // (or slower), and lets the test suite exercise every level the host can
     // actually run. Ignored, rather than rejected, if it names something
     // unavailable -- a stray environment variable must not stop the library.
+    //
+    // getenv() is safe against concurrent getenv(); a host program calling
+    // setenv() on another thread at the same moment is POSIX's problem, not
+    // one this library can solve.
     const char* env = getenv("ISOSPEC_ISA_LEVEL");
     if(env != nullptr)
     {
         const IsaLevel wanted = level_from_name(env);
         if(wanted != ISA_LEVEL_COUNT && level_usable(wanted))
-            s.level = wanted;
+            level = wanted;
     }
 
-    s.kernels = level_table(s.level);
-    return s;
+    return &level_records[level];
 }
 
-std::atomic<const IsaKernels*> g_kernels{nullptr};
-std::atomic<IsaLevel> g_level{ISA_LEVEL_BASELINE};
+std::atomic<const Selection*> g_selection{nullptr};
 
-Selection selection()
+const Selection& selection()
 {
-    const IsaKernels* k = g_kernels.load(std::memory_order_acquire);
-    if(k != nullptr)
-        return Selection{g_level.load(std::memory_order_relaxed), k};
+    const Selection* s = g_selection.load(std::memory_order_acquire);
+    if(s != nullptr)
+        return *s;
 
-    const Selection s = compute_selection();
-    g_level.store(s.level, std::memory_order_relaxed);
-    g_kernels.store(s.kernels, std::memory_order_release);
-    return s;
+    // Publish only if nothing has been published meanwhile: an explicit
+    // set_isa_level() that landed while this thread was computing the default
+    // must win over it, not be silently overwritten. On failure `expected`
+    // holds whatever got there first.
+    const Selection* expected = nullptr;
+    const Selection* computed = compute_selection();
+    if(g_selection.compare_exchange_strong(expected, computed, std::memory_order_acq_rel, std::memory_order_acquire))
+        return *computed;
+    return *expected;
 }
 
 }  // anonymous namespace
@@ -204,8 +222,7 @@ bool set_isa_level(IsaLevel level)
 {
     if(!level_usable(level))
         return false;
-    g_level.store(level, std::memory_order_relaxed);
-    g_kernels.store(level_table(level), std::memory_order_release);
+    g_selection.store(&level_records[level], std::memory_order_release);
     return true;
 }
 
