@@ -227,7 +227,8 @@ atom_lProbs(_atom_lProbs.release()),
 atom_masses(_atom_masses.release()),
 loggamma_nominator(get_loggamma_nominator(_atomCnt)),
 mode_conf(nullptr)
-// Deliberately not initializing mode_lprob
+// Deliberately not initializing mode_lprob: every constructor delegating here
+// sets both mode members in its own body (see the public one below).
 {}
 
 Marginal::Marginal(
@@ -243,7 +244,17 @@ Marginal::Marginal(
 Marginal(std::unique_ptr<const double[]>(getMLogProbs(_probs, _isotopeNo)),
          std::unique_ptr<const double[]>(array_copy<double>(_masses, _isotopeNo)),
          _isotopeNo, _atomCnt)
-{}
+{
+    // The mode is computed here, eagerly, rather than on first request. A lazy
+    // fill would be a write hidden behind const accessors (Iso::getModeLProb()
+    // const reaches it through the marginals pointer), i.e. a data race for
+    // two threads reading one shared Iso. Nearly every user of a marginal
+    // needs the mode anyway -- every generator starts from it. Done in this
+    // body, not in the delegated-to constructor, so that a throw from it runs
+    // the destructor and frees the two arrays.
+    mode_conf = computeModeConf();
+    mode_lprob = logProb(mode_conf);
+}
 
 Marginal::Marginal(const Marginal& other) :
 // Same exception-safety reasoning as the public constructor above. Because this
@@ -254,16 +265,8 @@ Marginal(std::unique_ptr<const double[]>(array_copy<double>(other.atom_lProbs, o
          std::unique_ptr<const double[]>(array_copy<double>(other.atom_masses, other.isotopeNo)),
          other.isotopeNo, other.atomCnt)
 {
-    if(other.mode_conf == nullptr)
-    {
-        mode_conf = nullptr;
-        // Deliberately not initializing mode_lprob. In this state other.mode_lprob is uninitialized too.
-    }
-    else
-    {
-        mode_conf = array_copy<int>(other.mode_conf, isotopeNo);
-        mode_lprob = other.mode_lprob;
-    }
+    mode_conf = array_copy<int>(other.mode_conf, isotopeNo);
+    mode_lprob = other.mode_lprob;
 }
 
 
@@ -274,19 +277,11 @@ isotopeNo(other.isotopeNo),
 atomCnt(other.atomCnt),
 atom_lProbs(other.atom_lProbs),
 atom_masses(other.atom_masses),
-loggamma_nominator(other.loggamma_nominator)
+loggamma_nominator(other.loggamma_nominator),
+mode_conf(other.mode_conf),
+mode_lprob(other.mode_lprob)
 {
     other.disowned = true;
-    if(other.mode_conf == nullptr)
-    {
-        mode_conf = nullptr;
-        // Deliberately not initializing mode_lprob. In this state other.mode_lprob is uninitialized too.
-    }
-    else
-    {
-        mode_conf = other.mode_conf;
-        mode_lprob = other.mode_lprob;
-    }
 }
 
 Marginal::~Marginal()
@@ -305,13 +300,6 @@ Conf Marginal::computeModeConf() const
     Conf res = new int[isotopeNo];
     writeInitialConfiguration(atomCnt, isotopeNo, atom_lProbs, res);
     return res;
-}
-
-void Marginal::setupMode()
-{
-    ISOSPEC_IMPOSSIBLE(mode_conf != nullptr);
-    mode_conf = computeModeConf();
-    mode_lprob = logProb(mode_conf);
 }
 
 

@@ -543,8 +543,6 @@ IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     partialMasses(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
 {
-    for(int ii = 0; ii < dimNumber; ++ii)
-        marginals[ii]->ensureModeConf();
     if(alloc_partials)
     {
         partialLProbs[dimNumber] = 0.0;

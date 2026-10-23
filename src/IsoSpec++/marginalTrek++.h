@@ -156,16 +156,16 @@ class Marginal
         \return The mass of one of the most probable subisotopologues.
     */
 
-    inline double getModeMass() { ensureModeConf(); return calc_mass(mode_conf, atom_masses, isotopeNo); }
+    inline double getModeMass() const { return calc_mass(mode_conf, atom_masses, isotopeNo); }
 
     //! Get the log-probability of the mode subisotopologue.
     /*!
         \return The log-probability of a/the most probable subisotopologue.
     */
-    inline double getModeLProb() { ensureModeConf(); return mode_lprob; }
+    inline double getModeLProb() const { return mode_lprob; }
 
-    //! Get the log-probability of the mode subisotopologue. Results undefined if ensureModeConf() wasn't called before.
-    inline double fastGetModeLProb() { return mode_lprob; }
+    //! Same as getModeLProb(). Kept for source compatibility: the mode used to be computed lazily, and this was the unchecked accessor.
+    inline double fastGetModeLProb() const { return mode_lprob; }
 
     //! The the probability of the mode subisotopologue.
     /*!
@@ -209,9 +209,8 @@ class Marginal
     //! Return estimated logarithm of size of the marginal at a given ellipsoid radius
     double getLogSizeEstimate(double logEllipsoidRadius) const;
 
-    inline void ensureModeConf() { if (mode_conf == nullptr) setupMode(); }
- private:
-    void setupMode();
+    //! No-op, kept for source compatibility: the mode is now computed by the constructor.
+    inline void ensureModeConf() const {}
 };
 
 
