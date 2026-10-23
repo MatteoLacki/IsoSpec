@@ -500,6 +500,16 @@ unsigned int parse_formula(const char* formula, std::vector<double>& isotope_mas
     // tokenizer. Keep it unreachable.
     reject_negative_counts(composition);
 
+    // An element written twice ("C1C1") would otherwise become two independent marginals of the same element: the
+    // right distribution, but an extra dimension the generators pay for, and not what a formula means. Rejected
+    // here, like the negative counts above, rather than in parse_formula_tokens, which the Unimod composition-delta
+    // loader shares. IsoSpecPy's ParseFormula rejects it too.
+    const std::vector<int>& first_indexes = composition.element_first_index;
+    for(size_t ii = 1; ii < first_indexes.size(); ii++)
+        if(std::find(first_indexes.begin(), first_indexes.begin() + ii, first_indexes[ii]) != first_indexes.begin() + ii)
+            throw std::invalid_argument(std::string("Invalid formula: element ") + elem_table_symbol[first_indexes[ii]] +
+                                        " appears more than once - write C2H6O1 and not C1H3C1H3O1");
+
     ExpandedComposition expanded;
     expand_composition_into(composition, expanded, use_nominal_masses);
 

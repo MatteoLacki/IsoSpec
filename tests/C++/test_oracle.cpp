@@ -43,7 +43,8 @@ double support_size(const std::vector<ElementSpec>& es) {
     return total;
 }
 
-// Random formulas over a handful of elements, with a fixed seed.
+// Random formulas over a handful of elements, with a fixed seed. Each element
+// appears at most once: a formula may not repeat an element.
 std::vector<std::string> random_formulas(unsigned seed, int count) {
     const char* const elements[] = {"C", "H", "N", "O", "S", "Cl", "Fe", "Si", "B", "Li"};
     std::mt19937 rng(seed);
@@ -54,9 +55,15 @@ std::vector<std::string> random_formulas(unsigned seed, int count) {
     std::vector<std::string> out;
     for (int i = 0; i < count; ++i) {
         std::string f;
+        bool used[10] = {};
         const int k = n_elements(rng);
-        for (int j = 0; j < k; ++j)
-            f += std::string(elements[which(rng)]) + std::to_string(atoms(rng));
+        for (int j = 0; j < k; ++j) {
+            int e = which(rng);
+            while (used[e])
+                e = which(rng);
+            used[e] = true;
+            f += std::string(elements[e]) + std::to_string(atoms(rng));
+        }
         out.push_back(f);
     }
     return out;
