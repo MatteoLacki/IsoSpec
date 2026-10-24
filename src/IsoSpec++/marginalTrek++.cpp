@@ -162,8 +162,12 @@ double* getMLogProbs(const double* probs, int isoNo)
     Rounding down could result in the algorithm falling in an infinite loop
     because of the numerical instability of summing.
     */
+    if(isoNo < 1)
+        throw std::invalid_argument("An element must have at least one isotope");
+    // Written as !(in range) so that a NaN, for which every comparison is
+    // false, is rejected too.
     for(int ii = 0; ii < isoNo; ii++)
-        if(probs[ii] <= 0.0 || probs[ii] > 1.0)
+        if(!(probs[ii] > 0.0 && probs[ii] <= 1.0))
             throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
 
     double* ret = new double[isoNo];
@@ -201,8 +205,26 @@ double get_loggamma_nominator(int x)
     return -minuslogFactorial(x);
 }
 
+//! Isotope masses enter sums of (count * mass) over a whole molecule. Bounding
+//! them keeps every such sum finite: an infinite one, or a NaN from opposite
+//! infinities, would reach std::sort and the binning's float-to-integer cast,
+//! both undefined behaviour on NaN. 1e100 Da is no constraint on chemistry.
+constexpr double kMaxAbsIsotopeMass = 1e100;
+
+const double* checked_masses(const double* masses, int isoNo)
+{
+    if(isoNo < 1)
+        throw std::invalid_argument("An element must have at least one isotope");
+    for(int ii = 0; ii < isoNo; ii++)
+        if(!(std::fabs(masses[ii]) <= kMaxAbsIsotopeMass))
+            throw std::invalid_argument("Isotope masses must be finite, with |mass| <= 1e100");
+    return masses;
+}
+
 int verify_atom_cnt(int atomCnt)
 {
+    if(atomCnt < 0)
+        throw std::invalid_argument("Atom counts must not be negative");
     #if !ISOSPEC_BUILDING_OPENMS
     if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
         throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
@@ -241,7 +263,7 @@ Marginal::Marginal(
 // instead of being leaked (constructor bodies/init-lists don't free raw members
 // on throw). The target constructor then takes ownership.
 Marginal(std::unique_ptr<const double[]>(getMLogProbs(_probs, _isotopeNo)),
-         std::unique_ptr<const double[]>(array_copy<double>(_masses, _isotopeNo)),
+         std::unique_ptr<const double[]>(array_copy<double>(checked_masses(_masses, _isotopeNo), _isotopeNo)),
          _isotopeNo, _atomCnt)
 {
     // The mode is computed here, eagerly, rather than on first request. A lazy

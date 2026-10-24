@@ -28,6 +28,7 @@
 #include <iomanip>
 #include <stdexcept>
 #include <string>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <cassert>
@@ -60,6 +61,26 @@ marginals(nullptr)
 {}
 
 
+// The shape every raw-array constructor is handed, checked before anything is
+// sized from it: a negative element count, an element with no isotopes, or an
+// isotope total past int would otherwise size the arrays below (and allDim)
+// from garbage. The values themselves are checked per element, in Marginal.
+static int checked_dim_number(int dimNumber, const int* isotopeNumbers)
+{
+    if(dimNumber < 0)
+        throw std::invalid_argument("The number of elements must not be negative");
+    std::int64_t total = 0;
+    for(int ii = 0; ii < dimNumber; ++ii)
+    {
+        if(isotopeNumbers[ii] < 1)
+            throw std::invalid_argument("Every element must have at least one isotope");
+        total += isotopeNumbers[ii];
+    }
+    if(total > std::numeric_limits<int>::max())
+        throw std::length_error("Too many isotopes in total");
+    return dimNumber;
+}
+
 Iso::Iso(
     int             _dimNumber,
     const int*      _isotopeNumbers,
@@ -68,7 +89,7 @@ Iso::Iso(
     const double* const *  _isotopeProbabilities
 ) :
 disowned(false),
-dimNumber(_dimNumber),
+dimNumber(checked_dim_number(_dimNumber, _isotopeNumbers)),
 isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
@@ -116,7 +137,7 @@ Iso::Iso(
     const double*   _isotopeProbabilities
 ) :
 disowned(false),
-dimNumber(_dimNumber),
+dimNumber(checked_dim_number(_dimNumber, _isotopeNumbers)),
 isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
 atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
 confSize(_dimNumber * sizeof(int)),
@@ -394,6 +415,8 @@ marginals(nullptr)
 
 void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities)
 {
+    if(noIsotopes > std::numeric_limits<int>::max() - allDim)
+        throw std::length_error("Too many isotopes in total");
     Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
     realloc_append<int>(&isotopeNumbers, noIsotopes, dimNumber);
     realloc_append<int>(&atomCounts, atomCount, dimNumber);

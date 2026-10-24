@@ -367,3 +367,56 @@ TEST_CASE("single-isotope element has a degenerate log-size estimate") {
     CHECK(env.confs_no() == 1);
     CHECK(env.probs()[0] == doctest::Approx(1.0));
 }
+
+TEST_CASE("the raw-array constructor rejects every input it cannot represent") {
+    const int one[1] = {1};
+    const int two[1] = {2};
+    const double masses[2] = {12.0, 13.0034};
+    const double probs[2] = {0.9893, 0.0107};
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+
+    // The well-formed case, for contrast.
+    CHECK_NOTHROW(Iso(1, two, one, masses, probs));
+
+    SUBCASE("shape") {
+        CHECK_THROWS_AS(Iso(-1, two, one, masses, probs), std::invalid_argument);
+        const int none[1] = {0};
+        CHECK_THROWS_AS(Iso(1, none, one, masses, probs), std::invalid_argument);
+        const int negative[1] = {-3};
+        CHECK_THROWS_AS(Iso(1, negative, one, masses, probs), std::invalid_argument);
+        // Thrown before any mass or probability is read.
+        const int huge[2] = {std::numeric_limits<int>::max(), 1};
+        const int counts[2] = {1, 1};
+        CHECK_THROWS_AS(Iso(2, huge, counts, masses, probs), std::length_error);
+    }
+    SUBCASE("atom counts") {
+        const int negative[1] = {-1};
+        CHECK_THROWS_AS(Iso(1, two, negative, masses, probs), std::invalid_argument);
+        const int zero[1] = {0};
+        CHECK_NOTHROW(Iso(1, two, zero, masses, probs));
+    }
+    SUBCASE("probabilities") {
+        for (double bad : {nan, inf, -inf, 0.0, -0.5, 1.5}) {
+            CAPTURE(bad);
+            const double p[2] = {bad, 0.5};
+            CHECK_THROWS_AS(Iso(1, two, one, masses, p), std::invalid_argument);
+        }
+    }
+    SUBCASE("masses") {
+        for (double bad : {nan, inf, -inf, 1e101, -1e101}) {
+            CAPTURE(bad);
+            const double m[2] = {12.0, bad};
+            CHECK_THROWS_AS(Iso(1, two, one, m, probs), std::invalid_argument);
+        }
+        const double negative[2] = {-12.0, 13.0};
+        CHECK_NOTHROW(Iso(1, two, one, negative, probs));
+    }
+    SUBCASE("addElement") {
+        Iso iso(1, two, one, masses, probs);
+        const double p[2] = {nan, 0.5};
+        CHECK_THROWS_AS(iso.addElement(1, 2, masses, p), std::invalid_argument);
+        CHECK_THROWS_AS(iso.addElement(-1, 2, masses, probs), std::invalid_argument);
+        CHECK_THROWS_AS(iso.addElement(1, 0, masses, probs), std::invalid_argument);
+    }
+}
