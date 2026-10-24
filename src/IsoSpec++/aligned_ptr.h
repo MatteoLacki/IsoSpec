@@ -313,11 +313,11 @@ inline void vm_resize(vm_region& r, std::size_t new_bytes)
 // pure address reuse, reproduced with two threads and nothing else. Under
 // TSan, growth therefore goes through mmap + copy + munmap, which it does see.
 #if defined(__SANITIZE_THREAD__)
-    #define ISOSPEC_ALIGNED_PTR_UNDER_TSAN 1
+#define ISOSPEC_ALIGNED_PTR_UNDER_TSAN 1
 #elif defined(__has_feature)
-    #if __has_feature(thread_sanitizer)
-        #define ISOSPEC_ALIGNED_PTR_UNDER_TSAN 1
-    #endif
+#if __has_feature(thread_sanitizer)
+#define ISOSPEC_ALIGNED_PTR_UNDER_TSAN 1
+#endif
 #endif
 
 inline void vm_resize(vm_region& r, std::size_t new_bytes)
