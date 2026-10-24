@@ -89,3 +89,26 @@ jobs:
         run: |
           make test
 
+  run_cpp_tests_apple_clang:
+    # Apple's own toolchain, as a Rust (cxx) build on macOS gets it: Apple clang
+    # with libc++, no Homebrew GCC. libc++ has no usable <experimental/simd>,
+    # so the kernels run their scalar fallback here; the point is that the
+    # library builds and gives the same answers, not speed. On macOS g++ is
+    # Apple clang too, so every configuration of `make test` uses it.
+    name: Run C++ tests with Apple clang + libc++
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Show the toolchain
+        run: |
+          clang++ --version
+          g++ --version
+      - name: Build and run the doctest suite (release, debug, ASan+UBSan, TSan)
+        working-directory: ./tests/C++
+        run: |
+          make -j"$(sysctl -n hw.ncpu)" test
+      - name: Build and run the C-ABI suite (cwrapper.h compiled as C11)
+        working-directory: ./tests/C
+        run: |
+          make test
+
