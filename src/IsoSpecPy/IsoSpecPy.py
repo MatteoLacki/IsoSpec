@@ -806,19 +806,6 @@ class IsoDistribution(object):
         other.prob_sorted = False
         return ret
 
-    def abyssalWassersteinDistanceGrad(self, others, scales, grad, abyss_depth_exp, abyss_depth_the):
-        assert len(others) + 1 == len(scales) == len(grad)
-        cobjs = _get_cobjects([self, *others])
-        ret = isoFFI.clib.abyssalWassersteinDistanceGrad(cobjs, scales, grad, len(others), abyss_depth_exp, abyss_depth_the)
-        for cobj in cobjs:
-            isoFFI.clib.deleteFixedEnvelope(cobj, True)
-        self.mass_sorted = True
-        self.prob_sorted = False
-        for other in others:
-            other.mass_sorted = True
-            other.prob_sorted = False
-        return ret
-
     def wassersteinMatch(self, other, flow_dist, other_scale = 1.0):
         flow_dist = _check_scalar("flow_dist", flow_dist, nonnegative=True, finite=False)
         other_scale = _check_scalar("other_scale", other_scale, nonnegative=True)
