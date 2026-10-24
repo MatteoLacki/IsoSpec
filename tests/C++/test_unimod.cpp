@@ -320,3 +320,19 @@ TEST_CASE("adding water creates H and O when the modified composition has none")
     std::map<int, int> s = by_element(parse_fasta_with_mods_full("[UNIMOD:2]", table));
     CHECK(s == std::map<int, int>{{element("S"), 1}, {element("H"), 2}, {element("O"), 1}});
 }
+
+TEST_CASE("modification deltas past int range clamp instead of overflowing") {
+    // An override table may carry any int as a delta; applied twice, a sum in
+    // int would overflow (undefined behaviour). The count is clamped, and Iso
+    // then refuses the molecule as too large.
+    UnimodTable table = parse_unimod_csv("id,name,mono_mass,composition\n"
+                                         "1,Huge,0.0,H2000000000\n"
+                                         "2,HugeLoss,0.0,H-2000000000\n");
+    std::map<int, int> up = by_element(parse_fasta_with_mods_full("G[UNIMOD:1][UNIMOD:1][UNIMOD:1]", table));
+    CHECK(up[element("H")] == AA_ATOM_COUNT_CEILING + 2);
+    CHECK_THROWS_AS(Iso::FromFASTAWithMods("G[UNIMOD:1][UNIMOD:1]", table), std::length_error);
+
+    std::map<int, int> down = by_element(parse_fasta_with_mods("G[UNIMOD:2][UNIMOD:2]", table));
+    CHECK(down[element("H")] == -AA_ATOM_COUNT_CEILING);
+    CHECK_THROWS_AS(Iso::FromFASTAWithMods("G[UNIMOD:2][UNIMOD:2]", table), std::invalid_argument);
+}

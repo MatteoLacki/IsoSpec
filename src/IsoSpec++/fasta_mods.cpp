@@ -16,6 +16,7 @@
 
 #include "fasta_mods.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstring>
@@ -60,7 +61,7 @@ const AminoAcidElementIndex& amino_acid_element_index() {
     return instance;
 }
 
-void add_residue(int accumulator[kAccumulatorSize], char residue) {
+void add_residue(std::int64_t accumulator[kAccumulatorSize], char residue) {
     int counts[6] = {0, 0, 0, 0, 0, 0};
     const char one[2] = {residue, '\0'};
     parse_fasta(one, counts);  // zero for anything that isn't a recognized amino-acid letter
@@ -76,7 +77,7 @@ void add_residue(int accumulator[kAccumulatorSize], char residue) {
 //! std::invalid_argument on anything not exactly this shape, or an id not
 //! present in `mods` -- unknown and deliberately-excluded ids are the same
 //! error, no special-casing.
-void consume_unimod_bracket(const char*& p, const UnimodTable& mods, int accumulator[kAccumulatorSize]) {
+void consume_unimod_bracket(const char*& p, const UnimodTable& mods, std::int64_t accumulator[kAccumulatorSize]) {
     static const char kPrefix[] = "UNIMOD:";
     constexpr size_t kPrefixLen = sizeof(kPrefix) - 1;
 
@@ -118,12 +119,17 @@ void consume_unimod_bracket(const char*& p, const UnimodTable& mods, int accumul
     p = q + 1;  // past ']'
 }
 
-void accumulator_to_composition_into(const int accumulator[kAccumulatorSize], ElementComposition& out) {
+//! The accumulator is 64-bit because an int one overflows: an override
+//! table's deltas are arbitrary ints ("H2000000000"), and a sequence may
+//! apply them repeatedly. Clamped on the way out, like parse_fasta's counts
+//! (AA_ATOM_COUNT_CEILING): too large either way, still rejected downstream.
+void accumulator_to_composition_into(const std::int64_t accumulator[kAccumulatorSize], ElementComposition& out) {
     out.clear();
     for (int i = 0; i < kAccumulatorSize; i++) {
         if (accumulator[i] != 0) {
             out.element_first_index.push_back(i);
-            out.count.push_back(accumulator[i]);
+            out.count.push_back(static_cast<int>(std::clamp<std::int64_t>(
+                accumulator[i], -AA_ATOM_COUNT_CEILING, AA_ATOM_COUNT_CEILING)));
         }
     }
 }
@@ -155,7 +161,7 @@ void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out, c
         return;
     }
 
-    int accumulator[kAccumulatorSize] = {0};
+    std::int64_t accumulator[kAccumulatorSize] = {0};
 
     const char* p = sequence;
     while (*p != '\0') {

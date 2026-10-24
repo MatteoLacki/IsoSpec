@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <limits>
 
 namespace IsoSpec{
 
@@ -45,6 +46,15 @@ constexpr int AA_PACKED_FIELD_BITS = 10;
 //! largest count in the table times this still fits a field.
 constexpr int AA_PACKED_FLUSH_EVERY = 48;
 
+//! Ceiling the sequence parsers clamp each atom count to, instead of letting a
+//! sum overflow `int` (undefined behaviour) -- reachable from a sequence of
+//! ~10^8 residues, or from a few modifications with huge override-table
+//! deltas. Any count this large is far past the per-element limit Iso enforces
+//! (verify_atom_cnt), so a clamped molecule is still rejected there; the
+//! headroom up to INT_MAX absorbs the terminal water and modification deltas
+//! later added to a clamped count.
+constexpr int AA_ATOM_COUNT_CEILING = std::numeric_limits<int>::max() / 2;
+
 //! Count elemental composition of an unmodificed sequence of amino acids, resulting in CHNOSSe counts.
 /*!
     WARNING!!! This function does not add the terminating H and OH groups, resulting in a residue backbone skeleton formula.
@@ -52,15 +62,16 @@ constexpr int AA_PACKED_FLUSH_EVERY = 48;
 */
 inline void parse_fasta(const char* fasta, int atomCounts[6])
 {
-    memset(atomCounts, 0, sizeof(decltype(atomCounts[0]))*6);
-
     // One load and one add per residue, using the packed table, instead of
     // six of each: the six-count row add vectorised under clang but not under
     // gcc, which made this loop -- most of the cost of reading a protein --
     // markedly slower there. The length is taken up front so that the inner
     // loop is a counted one, with no per-residue test for the terminator.
+    // Summed in 64 bits and clamped once at the end (AA_ATOM_COUNT_CEILING):
+    // 21 hydrogens per residue overflow an int after ~10^8 residues.
     const unsigned char* p = reinterpret_cast<const unsigned char*>(fasta);
     const size_t len = strlen(fasta);
+    std::uint64_t totals[6] = {0, 0, 0, 0, 0, 0};
     for(size_t block = 0; block < len; block += AA_PACKED_FLUSH_EVERY)
     {
         const size_t block_end = len - block < static_cast<size_t>(AA_PACKED_FLUSH_EVERY) ? len : block + AA_PACKED_FLUSH_EVERY;
@@ -68,8 +79,11 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
         for(size_t idx = block; idx < block_end; ++idx)
             packed += aa_symbol_to_packed_elem_counts.row[p[idx]];
         for(int ii = 0; ii < 6; ++ii)
-            atomCounts[ii] += static_cast<int>((packed >> (AA_PACKED_FIELD_BITS * ii)) & ((1u << AA_PACKED_FIELD_BITS) - 1));
+            totals[ii] += (packed >> (AA_PACKED_FIELD_BITS * ii)) & ((1u << AA_PACKED_FIELD_BITS) - 1);
     }
+    for(int ii = 0; ii < 6; ++ii)
+        atomCounts[ii] = totals[ii] < static_cast<std::uint64_t>(AA_ATOM_COUNT_CEILING)
+                             ? static_cast<int>(totals[ii]) : AA_ATOM_COUNT_CEILING;
 }
 
 //! Turn an input FASTA aminoacid sequence into atom counts, in CHNOSSe order.

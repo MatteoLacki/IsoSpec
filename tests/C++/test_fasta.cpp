@@ -245,3 +245,15 @@ TEST_CASE("known peptide monoisotopic masses") {
               doctest::Approx(r.mass).epsilon(1e-6));
     }
 }
+
+TEST_CASE("atom counts of a sequence past int range clamp instead of overflowing") {
+    // 'O' (pyrrolysine) carries 21 hydrogens: 1.1e8 of them sum past INT_MAX.
+    // The count is clamped to AA_ATOM_COUNT_CEILING, and Iso refuses it.
+    const std::string huge(110000000, 'O');
+    int counts[6];
+    parse_fasta(huge.c_str(), counts);
+    CHECK(counts[1] == AA_ATOM_COUNT_CEILING);
+    CHECK(counts[0] == AA_ATOM_COUNT_CEILING);
+    CHECK(counts[4] == 0);
+    CHECK_THROWS_AS(Iso::FromFASTA(huge.c_str()), std::length_error);
+}
