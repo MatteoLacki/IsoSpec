@@ -20,6 +20,7 @@
 #include <queue>
 #include <limits>
 #include <string>
+#include <string_view>
 #include <vector>
 #include <algorithm>
 #include "platform.h"
@@ -39,6 +40,16 @@ namespace IsoSpec
 // Any input is safe: a malformed formula throws std::invalid_argument (or
 // std::out_of_range for a count past int), never undefined behaviour. Checked by
 // fuzzing under ASan+UBSan (tests/fuzz/fuzz_formula); keep it that way.
+// The parsers take a std::string_view and read exactly its bytes: no NUL
+// terminator is needed, and a NUL inside is an invalid character rather than
+// the end of the input. The const char* overloads read up to the first NUL.
+unsigned int parse_formula(std::string_view formula,
+                           std::vector<double>& isotope_masses,
+                           std::vector<double>& isotope_probabilities,
+                           int** isotopeNumbers,
+                           int** atomCounts,
+                           unsigned int* confSize,
+                           bool use_nominal_masses = false);
 unsigned int parse_formula(const char* formula,
                            std::vector<double>& isotope_masses,
                            std::vector<double>& isotope_probabilities,
@@ -51,6 +62,9 @@ unsigned int parse_formula(const char* formula,
 // comment in isoSpec++.cpp. Reused by the Unimod composition-delta loader
 // (unimod.cpp) so a modification's atomic composition is read through the
 // same formula-string parser as everything else, not a second one.
+void parse_formula_tokens(std::string_view formula,
+                           std::vector<int>& element_first_indexes,
+                           std::vector<int>& counts);
 void parse_formula_tokens(const char* formula,
                            std::vector<int>& element_first_indexes,
                            std::vector<int>& counts);
@@ -117,11 +131,14 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
         const double* const *  _isotopeProbabilities
     );
 
-    //! Constructor from the formula object.
+    //! Constructor from a chemical formula: exactly the bytes of the view (see parse_formula).
+    Iso(std::string_view formula, bool use_nominal_masses = false);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+
+    //! Constructor from a chemical formula as a C string.
     Iso(const char* formula, bool use_nominal_masses = false);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
-    //! Constructor from C++ std::string chemical formula.
-    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(formula.c_str(), use_nominal_masses) {}  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    //! Constructor from C++ std::string chemical formula, all of it.
+    inline Iso(const std::string& formula, bool use_nominal_masses = false) : Iso(std::string_view(formula), use_nominal_masses) {}  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Constructor (named) from aminoacid FASTA sequence as C string.
     /*!
@@ -134,8 +151,11 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     */
     static Iso FromFASTA(const char* fasta, bool use_nominal_masses = false, bool add_water = true);
 
+    //! As above, reading exactly the bytes of the view: a NUL is one more ignored character.
+    static Iso FromFASTA(std::string_view fasta, bool use_nominal_masses = false, bool add_water = true);
+
     //! Constructor (named) from aminoacid FASTA sequence as C++ std::string. See above for details.
-    static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(fasta.c_str(), use_nominal_masses, add_water); }
+    static inline Iso FromFASTA(const std::string& fasta, bool use_nominal_masses = false, bool add_water = true) { return FromFASTA(std::string_view(fasta), use_nominal_masses, add_water); }
 
     //! Constructor (named) from a peptide sequence recognizing [UNIMOD:<id>]
     //! modification brackets (see fasta_mods.h's parse_fasta_with_mods for
@@ -149,6 +169,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //!             default) unless the caller has a specific override table
     //!             (e.g. from unimod_table_for_path()).
     static Iso FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool use_nominal_masses = false, bool add_water = true);
+    static Iso FromFASTAWithMods(std::string_view sequence, const UnimodTable& mods, bool use_nominal_masses = false, bool add_water = true);
 
     //! Convenience overload: unimod_db_path == nullptr or "" uses the
     //! compile-time embedded default table; otherwise resolves and caches
@@ -156,6 +177,7 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //! (path, table) pair, not a map, since a process realistically uses 0
     //! or 1 distinct override paths in its lifetime).
     static Iso FromFASTAWithMods(const char* sequence, bool use_nominal_masses = false, bool add_water = true, const char* unimod_db_path = nullptr);
+    static Iso FromFASTAWithMods(std::string_view sequence, bool use_nominal_masses = false, bool add_water = true, const char* unimod_db_path = nullptr);
 
     //! The move constructor.
     Iso(Iso&& other);

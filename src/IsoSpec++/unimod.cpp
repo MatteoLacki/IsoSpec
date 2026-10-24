@@ -123,7 +123,7 @@ UnimodTable parse_unimod_csv(const std::string& csv_text) {
         // that native grammar by scripts/build_unimod_table.py precisely so
         // this call works, rather than a second, bespoke tokenizer for
         // Unimod's own "H(3) C(2) N O" notation.
-        parse_formula_tokens(fields[3].c_str(), entry.element_first_index, entry.element_delta_count);
+        parse_formula_tokens(std::string_view(fields[3]), entry.element_first_index, entry.element_delta_count);
 
         if (id >= table.entries_.size())
             table.entries_.resize(id + 1);

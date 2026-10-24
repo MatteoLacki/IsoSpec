@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <cstring>
 #include <limits>
+#include <string_view>
 
 namespace IsoSpec{
 
@@ -60,7 +61,7 @@ constexpr int AA_ATOM_COUNT_CEILING = std::numeric_limits<int>::max() / 2;
     WARNING!!! This function does not add the terminating H and OH groups, resulting in a residue backbone skeleton formula.
     If you don't know what that means, you should probably be using parse_fasta_full function.
 */
-inline void parse_fasta(const char* fasta, int atomCounts[6])
+inline void parse_fasta(std::string_view fasta, int atomCounts[6])
 {
     // One load and one add per residue, using the packed table, instead of
     // six of each: the six-count row add vectorised under clang but not under
@@ -69,8 +70,10 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
     // loop is a counted one, with no per-residue test for the terminator.
     // Summed in 64 bits and clamped once at the end (AA_ATOM_COUNT_CEILING):
     // 21 hydrogens per residue overflow an int after ~10^8 residues.
-    const unsigned char* p = reinterpret_cast<const unsigned char*>(fasta);
-    const size_t len = strlen(fasta);
+    // Exactly the bytes of the view are read: a NUL in it is one more
+    // character with no amino acid, ignored like 'X'.
+    const unsigned char* p = reinterpret_cast<const unsigned char*>(fasta.data());
+    const size_t len = fasta.size();
     std::uint64_t totals[6] = {0, 0, 0, 0, 0, 0};
     for(size_t block = 0; block < len; block += AA_PACKED_FLUSH_EVERY)
     {
@@ -86,11 +89,17 @@ inline void parse_fasta(const char* fasta, int atomCounts[6])
                              ? static_cast<int>(totals[ii]) : AA_ATOM_COUNT_CEILING;
 }
 
+//! As above, for a C string: the sequence ends at the first NUL.
+inline void parse_fasta(const char* fasta, int atomCounts[6])
+{
+    parse_fasta(std::string_view(fasta), atomCounts);
+}
+
 //! Turn an input FASTA aminoacid sequence into atom counts, in CHNOSSe order.
 /*!
     Unlike parse_fasta, this function includes the H and OH groups at the N- and C- termini of the skeleton, resulting in a formula of a full (inert) molecule.
 */
-inline void parse_fasta_full(const char* fasta, int atomCounts[6])
+inline void parse_fasta_full(std::string_view fasta, int atomCounts[6])
 {
     parse_fasta(fasta, atomCounts);
     // Add terminal water (H2O) for either precursor or fragment.
@@ -99,6 +108,11 @@ inline void parse_fasta_full(const char* fasta, int atomCounts[6])
 
     atomCounts[H_INDEX] += 2;
     atomCounts[O_INDEX] += 1;
+}
+
+inline void parse_fasta_full(const char* fasta, int atomCounts[6])
+{
+    parse_fasta_full(std::string_view(fasta), atomCounts);
 }
 
 

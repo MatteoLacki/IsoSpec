@@ -23,6 +23,7 @@
 #include <limits>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "composition.h"
@@ -63,8 +64,7 @@ const AminoAcidElementIndex& amino_acid_element_index() {
 
 void add_residue(std::int64_t accumulator[kAccumulatorSize], char residue) {
     int counts[6] = {0, 0, 0, 0, 0, 0};
-    const char one[2] = {residue, '\0'};
-    parse_fasta(one, counts);  // zero for anything that isn't a recognized amino-acid letter
+    parse_fasta(std::string_view(&residue, 1), counts);  // zero for anything that isn't a recognized amino-acid letter
 
     const AminoAcidElementIndex& idx = amino_acid_element_index();
     for (int i = 0; i < 6; i++)
@@ -72,33 +72,34 @@ void add_residue(std::int64_t accumulator[kAccumulatorSize], char residue) {
             accumulator[idx.first_index[i]] += counts[i];
 }
 
-//! `p` points at '['. Parses "UNIMOD:<id>]", applies that id's composition
-//! delta to `accumulator`, and advances `p` past the closing ']'. Throws
-//! std::invalid_argument on anything not exactly this shape, or an id not
-//! present in `mods` -- unknown and deliberately-excluded ids are the same
-//! error, no special-casing.
-void consume_unimod_bracket(const char*& p, const UnimodTable& mods, std::int64_t accumulator[kAccumulatorSize]) {
-    static const char kPrefix[] = "UNIMOD:";
-    constexpr size_t kPrefixLen = sizeof(kPrefix) - 1;
+//! `p` points at '[', `end` one past the sequence (which need not be
+//! NUL-terminated: nothing here reads past `end`). Parses "UNIMOD:<id>]",
+//! applies that id's composition delta to `accumulator`, and advances `p` past
+//! the closing ']'. Throws std::invalid_argument on anything not exactly this
+//! shape, or an id not present in `mods` -- unknown and deliberately-excluded
+//! ids are the same error, no special-casing.
+void consume_unimod_bracket(const char*& p, const char* const end, const UnimodTable& mods, std::int64_t accumulator[kAccumulatorSize]) {
+    constexpr std::string_view kPrefix = "UNIMOD:";
+    const auto rest = [p, end] { return std::string(p, end); };  // built only for an error message
 
     const char* q = p + 1;  // skip '['
-    if (strncmp(q, kPrefix, kPrefixLen) != 0)
-        throw std::invalid_argument(std::string("Malformed modification bracket (expected '[UNIMOD:<id>]'): ") + p);
-    q += kPrefixLen;
+    if (static_cast<size_t>(end - q) < kPrefix.size() || std::string_view(q, kPrefix.size()) != kPrefix)
+        throw std::invalid_argument("Malformed modification bracket (expected '[UNIMOD:<id>]'): " + rest());
+    q += kPrefix.size();
 
     const char* digits_start = q;
-    while (isdigit(static_cast<unsigned char>(*q)))
+    while (q < end && isdigit(static_cast<unsigned char>(*q)))
         q++;
     if (q == digits_start)
-        throw std::invalid_argument(std::string("Malformed modification bracket (missing numeric id): ") + p);
-    if (*q != ']')
-        throw std::invalid_argument(std::string("Malformed modification bracket (missing closing ']'): ") + p);
+        throw std::invalid_argument("Malformed modification bracket (missing numeric id): " + rest());
+    if (q == end || *q != ']')
+        throw std::invalid_argument("Malformed modification bracket (missing closing ']'): " + rest());
 
     uint64_t id;
     try {
         id = std::stoull(std::string(digits_start, static_cast<size_t>(q - digits_start)));
     } catch (const std::exception&) {
-        throw std::invalid_argument(std::string("Malformed modification bracket (id out of range): ") + p);
+        throw std::invalid_argument("Malformed modification bracket (id out of range): " + rest());
     }
 
     // UnimodTable::lookup takes an unsigned int, so an id past UINT_MAX would
@@ -137,9 +138,13 @@ void accumulator_to_composition_into(const std::int64_t accumulator[kAccumulator
 }  // namespace
 
 void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out, const UnimodTable& mods) {
+    parse_fasta_with_mods_into(std::string_view(sequence), out, mods);
+}
+
+void parse_fasta_with_mods_into(std::string_view sequence, ElementComposition& out, const UnimodTable& mods) {
     out.clear();
 
-    if (strchr(sequence, '[') == nullptr) {
+    if (sequence.find('[') == std::string_view::npos) {
         // '[' is the only character this parser ever treats specially (it's
         // never a valid FASTA/amino-acid character on its own), so its
         // absence means the sequence cannot contain a [UNIMOD:<id>]
@@ -163,15 +168,16 @@ void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out, c
 
     std::int64_t accumulator[kAccumulatorSize] = {0};
 
-    const char* p = sequence;
-    while (*p != '\0') {
+    const char* p = sequence.data();
+    const char* const end = p + sequence.size();
+    while (p < end) {
         if (*p == '[') {
             // A [UNIMOD:<id>] bracket has the same effect wherever it
             // appears (N-terminal "[id]-SEQUENCE", internal "X[id]",
             // C-terminal "SEQUENCE-[id]") -- the '-' either side of a
             // terminal bracket is just an ordinary character, handled by
             // the branch below like any other. No position-tracking needed.
-            consume_unimod_bracket(p, mods, accumulator);
+            consume_unimod_bracket(p, end, mods, accumulator);
         } else {
             add_residue(accumulator, *p);
             p++;
@@ -182,6 +188,10 @@ void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out, c
 }
 
 void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& out, const UnimodTable& mods) {
+    parse_fasta_with_mods_full_into(std::string_view(sequence), out, mods);
+}
+
+void parse_fasta_with_mods_full_into(std::string_view sequence, ElementComposition& out, const UnimodTable& mods) {
     parse_fasta_with_mods_into(sequence, out, mods);
 
     const AminoAcidElementIndex& idx = amino_acid_element_index();
@@ -208,20 +218,32 @@ void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& o
     }
 }
 
-ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods) {
+ElementComposition parse_fasta_with_mods(std::string_view sequence, const UnimodTable& mods) {
     ElementComposition result;
     parse_fasta_with_mods_into(sequence, result, mods);
     return result;
 }
 
-ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods) {
+ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods) {
+    return parse_fasta_with_mods(std::string_view(sequence), mods);
+}
+
+ElementComposition parse_fasta_with_mods_full(std::string_view sequence, const UnimodTable& mods) {
     ElementComposition result;
     parse_fasta_with_mods_full_into(sequence, result, mods);
     return result;
 }
 
+ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods) {
+    return parse_fasta_with_mods_full(std::string_view(sequence), mods);
+}
+
 Iso Iso::FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool use_nominal_masses, bool add_water) {
-    if (strchr(sequence, '[') == nullptr)
+    return FromFASTAWithMods(std::string_view(sequence), mods, use_nominal_masses, add_water);
+}
+
+Iso Iso::FromFASTAWithMods(std::string_view sequence, const UnimodTable& mods, bool use_nominal_masses, bool add_water) {
+    if (sequence.find('[') == std::string_view::npos)
         // Nothing for `mods` to resolve -- go straight through the plain
         // path instead of building a composition via the general
         // dimNumber-vector Iso constructor build_iso_from_composition uses
@@ -236,7 +258,11 @@ Iso Iso::FromFASTAWithMods(const char* sequence, const UnimodTable& mods, bool u
 }
 
 Iso Iso::FromFASTAWithMods(const char* sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path) {
-    if (strchr(sequence, '[') == nullptr)
+    return FromFASTAWithMods(std::string_view(sequence), use_nominal_masses, add_water, unimod_db_path);
+}
+
+Iso Iso::FromFASTAWithMods(std::string_view sequence, bool use_nominal_masses, bool add_water, const char* unimod_db_path) {
+    if (sequence.find('[') == std::string_view::npos)
         // As above, and also skips resolving/loading unimod_db_path's table
         // (embedded or override) entirely when there's nothing to look up.
         return Iso::FromFASTA(sequence, use_nominal_masses, add_water);

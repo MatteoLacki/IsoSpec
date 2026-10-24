@@ -37,7 +37,7 @@ make                         # clang/libFuzzer + ASan + UBSan: fuzz_formula, fuz
 make run TIME=600 JOBS=8     # fuzz each target from seeds/<target>/; corpus and crashes under build/
 ```
 
-Every parser of untrusted text (formulas, peptide sequences with `[UNIMOD:<id>]`, override Unimod CSVs), and the raw-array `Iso` constructor, must stay free of undefined behaviour on any input: bad input throws a `std::exception`, nothing else. The safe Rust API depends on this. Opt-in, not part of `make test`; rerun it after touching any parser.
+Every parser of untrusted text (formulas, peptide sequences with `[UNIMOD:<id>]`, override Unimod CSVs), and the raw-array `Iso` constructor, must stay free of undefined behaviour on any input: bad input throws a `std::exception`, nothing else. The safe Rust API depends on this. The parsers take `std::string_view` and read exactly its bytes (no terminator; a NUL is an ordinary character), the `const char*` overloads forwarding to them; the fuzz targets feed exactly-sized buffers so that ASan catches any read past the end. Likewise for caller-supplied numbers: scalar parameters that could hang or reach UB are rejected, `FixedEnvelope::FromArrays` checks caller arrays, and envelope operations throw `std::overflow_error` rather than produce inf. Opt-in, not part of `make test`; rerun it after touching any parser.
 
 ### C-ABI tests
 

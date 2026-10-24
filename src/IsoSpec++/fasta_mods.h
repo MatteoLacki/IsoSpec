@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <string_view>
 #include <vector>
 
 #include "composition.h"
@@ -48,10 +49,12 @@ namespace IsoSpec {
 //! in `mods` -- covers both a genuinely-unknown id and one of the ids
 //! data/unimod.csv deliberately excludes (isotope-labeled, glycan/
 //! derivatization "brick" entries) alike, same error, no special-casing.
+ElementComposition parse_fasta_with_mods(std::string_view sequence, const UnimodTable& mods = embedded_unimod_table());
 ElementComposition parse_fasta_with_mods(const char* sequence, const UnimodTable& mods = embedded_unimod_table());
 
 //! As above, plus terminal H2O -- mirrors parse_fasta_full's role for the
 //! mods-unaware path.
+ElementComposition parse_fasta_with_mods_full(std::string_view sequence, const UnimodTable& mods = embedded_unimod_table());
 ElementComposition parse_fasta_with_mods_full(const char* sequence, const UnimodTable& mods = embedded_unimod_table());
 
 //! Same as parse_fasta_with_mods, but fills a caller-owned `out` in place
@@ -60,10 +63,14 @@ ElementComposition parse_fasta_with_mods_full(const char* sequence, const Unimod
 //! reused across the whole loop reallocates at most a handful of times, not
 //! once per call). parse_fasta_with_mods/_full are thin convenience wrappers
 //! around this pair for one-off callers.
+void parse_fasta_with_mods_into(std::string_view sequence, ElementComposition& out,
+                                 const UnimodTable& mods = embedded_unimod_table());
 void parse_fasta_with_mods_into(const char* sequence, ElementComposition& out,
                                  const UnimodTable& mods = embedded_unimod_table());
 
 //! As above, plus terminal H2O.
+void parse_fasta_with_mods_full_into(std::string_view sequence, ElementComposition& out,
+                                      const UnimodTable& mods = embedded_unimod_table());
 void parse_fasta_with_mods_full_into(const char* sequence, ElementComposition& out,
                                       const UnimodTable& mods = embedded_unimod_table());
 

@@ -8,11 +8,14 @@
 
 #include <memory>
 #include <stdexcept>
+#include <cstring>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "doctest.h"
 #include "test_helpers.h"
+#include "fasta_mods.h"
 
 using namespace IsoSpec;
 using namespace test_helpers;
@@ -289,5 +292,49 @@ TEST_CASE("every tabulated element parses and yields a sane distribution") {
         CHECK(env.get_total_prob() == doctest::Approx(1.0).epsilon(1e-9));
 
         i = j;
+    }
+}
+
+TEST_CASE("String-view parser entries read exactly the view: no terminator needed, a NUL is just a character") {
+    // Exactly-sized heap copies, so that under ASan any read past the end of
+    // the view is reported, not satisfied by a trailing NUL.
+    auto exact = [](const char* s, size_t n) { return std::vector<char>(s, s + n); };
+
+    SUBCASE("formula") {
+        const auto buf = exact("C2H6O1", 6);
+        const Iso a{std::string_view(buf.data(), buf.size())};
+        const Iso b("C2H6O1");
+        CHECK(a.getMonoisotopicPeakMass() == b.getMonoisotopicPeakMass());
+        const auto trailing_minus = exact("C2H-", 4);
+        CHECK_THROWS_AS(Iso(std::string_view(trailing_minus.data(), trailing_minus.size())), std::invalid_argument);
+        // A std::string is read whole: "C2" followed by a NUL is no longer silently "C2".
+        CHECK_THROWS_AS(Iso(std::string("C2\0H6", 5)), std::invalid_argument);
+        CHECK_THROWS_AS(Iso(std::string_view("C2\0H6", 5)), std::invalid_argument);
+        // The const char* entry still stops at the first NUL, as it always did.
+        CHECK(Iso("C2\0H6").getMonoisotopicPeakMass() == Iso("C2").getMonoisotopicPeakMass());
+        CHECK_THROWS_AS(Iso(std::string_view("C99999999999", 12)), std::out_of_range);
+        CHECK_THROWS_AS(Iso{std::string_view{}}, std::invalid_argument);
+    }
+    SUBCASE("plain sequence: a NUL is ignored like any non-residue character") {
+        const auto buf = exact("PEP\0TIDE", 8);
+        const Iso a = Iso::FromFASTA(std::string_view(buf.data(), buf.size()));
+        const Iso b = Iso::FromFASTA("PEPTIDE");
+        CHECK(a.getMonoisotopicPeakMass() == b.getMonoisotopicPeakMass());
+        CHECK(Iso::FromFASTA(std::string("PEP\0TIDE", 8)).getMonoisotopicPeakMass() == b.getMonoisotopicPeakMass());
+    }
+    SUBCASE("sequence with modifications") {
+        const auto buf = exact("PEPTIDE[UNIMOD:4]K", 18);
+        const Iso a = Iso::FromFASTAWithMods(std::string_view(buf.data(), buf.size()));
+        const Iso b = Iso::FromFASTAWithMods("PEPTIDE[UNIMOD:4]K");
+        CHECK(a.getMonoisotopicPeakMass() == b.getMonoisotopicPeakMass());
+        for (const char* cut : {"PEPTIDE[", "PEPTIDE[UNIMOD", "PEPTIDE[UNIMOD:", "PEPTIDE[UNIMOD:4"})
+        {
+            const auto truncated = exact(cut, strlen(cut));
+            CHECK_THROWS_AS(Iso::FromFASTAWithMods(std::string_view(truncated.data(), truncated.size())), std::invalid_argument);
+            CHECK_THROWS_AS(parse_fasta_with_mods(std::string_view(truncated.data(), truncated.size())), std::invalid_argument);
+        }
+        const auto with_nul = exact("PEP\0TIDE[UNIMOD:4]K", 19);
+        CHECK(Iso::FromFASTAWithMods(std::string_view(with_nul.data(), with_nul.size())).getMonoisotopicPeakMass() ==
+              b.getMonoisotopicPeakMass());
     }
 }

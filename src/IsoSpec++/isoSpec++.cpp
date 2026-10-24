@@ -33,6 +33,9 @@
 #include <memory>
 #include <cassert>
 #include <cctype>
+#include <charconv>
+#include <string_view>
+#include <system_error>
 #include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
@@ -190,6 +193,11 @@ marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
 }
 
 Iso Iso::FromFASTA(const char* fasta, bool use_nominal_masses, bool add_water)
+{
+    return FromFASTA(std::string_view(fasta), use_nominal_masses, add_water);
+}
+
+Iso Iso::FromFASTA(std::string_view fasta, bool use_nominal_masses, bool add_water)
 {
     int atomCounts[6];
 
@@ -387,7 +395,9 @@ double Iso::variance() const
 }
 
 
-Iso::Iso(const char* formula, bool use_nominal_masses) :
+Iso::Iso(const char* formula, bool use_nominal_masses) : Iso(std::string_view(formula), use_nominal_masses) {}
+
+Iso::Iso(std::string_view formula, bool use_nominal_masses) :
 disowned(false),
 allDim(0),
 marginals(nullptr)
@@ -456,10 +466,15 @@ void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_p
 // of two.
 void parse_formula_tokens(const char* formula, std::vector<int>& element_first_indexes, std::vector<int>& counts)
 {
-    size_t slen = strlen(formula);
-    // Yes, it would be more elegant to use std::string here, but it's the only promiment place where it would be used in IsoSpec, and avoiding it here
-    // means we can run the whole thing through Clang's memory sanitizer without the need for instrumented libc++/libstdc++. That's worth messing with char pointers a
-    // little bit.
+    parse_formula_tokens(std::string_view(formula), element_first_indexes, counts);
+}
+
+void parse_formula_tokens(std::string_view formula_view, std::vector<int>& element_first_indexes, std::vector<int>& counts)
+{
+    // Every index below is bounds-checked against slen: the view need not be
+    // NUL-terminated, and a NUL inside it fails the character check.
+    const char* const formula = formula_view.data();
+    const size_t slen = formula_view.size();
     std::vector<std::pair<const char*, size_t> > elements;
 
     if(slen == 0)
@@ -477,21 +492,27 @@ void parse_formula_tokens(const char* formula, std::vector<int>& element_first_i
     while(position < slen)
     {
         size_t elem_end = position;
-        while(isalpha(static_cast<unsigned char>(formula[elem_end])))
+        while(elem_end < slen && isalpha(static_cast<unsigned char>(formula[elem_end])))
             elem_end++;
         // An element's count may carry a leading '-' (a signed delta, e.g. a
         // Unimod modification's atom-count change) -- consumed here so the
         // digit run below still starts exactly at the first digit.
         size_t digit_end = elem_end;
-        if(formula[digit_end] == '-')
+        if(digit_end < slen && formula[digit_end] == '-')
             digit_end++;
         size_t digits_start = digit_end;
-        while(isdigit(static_cast<unsigned char>(formula[digit_end])))
+        while(digit_end < slen && isdigit(static_cast<unsigned char>(formula[digit_end])))
             digit_end++;
         if(digit_end == digits_start)
             throw std::invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
         elements.emplace_back(&formula[position], elem_end-position);
-        counts.push_back(std::stoi(&formula[elem_end]));
+        // from_chars reads only [elem_end, digit_end), unlike std::stoi, which
+        // would need a terminator; out_of_range as stoi threw it.
+        int count;
+        const std::from_chars_result parsed = std::from_chars(formula + elem_end, formula + digit_end, count);
+        if(parsed.ec == std::errc::result_out_of_range)
+            throw std::out_of_range("Invalid formula: atom count out of range");
+        counts.push_back(count);
         position = digit_end;
     }
 
@@ -505,6 +526,11 @@ void parse_formula_tokens(const char* formula, std::vector<int>& element_first_i
 }
 
 unsigned int parse_formula(const char* formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
+{
+    return parse_formula(std::string_view(formula), isotope_masses, isotope_probabilities, isotopeNumbers, atomCounts, confSize, use_nominal_masses);
+}
+
+unsigned int parse_formula(std::string_view formula, std::vector<double>& isotope_masses, std::vector<double>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize, bool use_nominal_masses)
 {
     // parse_formula_tokens' two output vectors are exactly an
     // ElementComposition's two members, so the formula path joins the
