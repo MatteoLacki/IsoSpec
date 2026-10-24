@@ -33,11 +33,11 @@ build/run_tests_gcc -tc='<test case name>'     # -ltc lists test cases
 
 ```bash
 cd tests/fuzz
-make                         # clang/libFuzzer + ASan + UBSan: fuzz_formula, fuzz_sequence, fuzz_unimod
+make                         # clang/libFuzzer + ASan + UBSan: fuzz_formula, fuzz_sequence, fuzz_unimod, fuzz_iso_arrays
 make run TIME=600 JOBS=8     # fuzz each target from seeds/<target>/; corpus and crashes under build/
 ```
 
-Every parser of untrusted text (formulas, peptide sequences with `[UNIMOD:<id>]`, override Unimod CSVs) must stay free of undefined behaviour on any input: bad input throws a `std::exception`, nothing else. The safe Rust API depends on this. Opt-in, not part of `make test`; rerun it after touching any parser.
+Every parser of untrusted text (formulas, peptide sequences with `[UNIMOD:<id>]`, override Unimod CSVs), and the raw-array `Iso` constructor, must stay free of undefined behaviour on any input: bad input throws a `std::exception`, nothing else. The safe Rust API depends on this. Opt-in, not part of `make test`; rerun it after touching any parser.
 
 ### C-ABI tests
 

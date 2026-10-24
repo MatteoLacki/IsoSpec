@@ -1,8 +1,9 @@
-# libFuzzer targets for everything in the library that parses text:
+# libFuzzer targets for the library's untrusted inputs:
 #
 #   fuzz_formula   a chemical formula, as Iso(const char*) takes it
 #   fuzz_sequence  a peptide sequence, plain and with [UNIMOD:<id>] modifications
 #   fuzz_unimod    an override Unimod CSV, then a sequence parsed against it
+#   fuzz_iso_arrays  the raw-array Iso constructor, then envelope operations
 #
 # clang only (libFuzzer), built with ASan + UBSan, every report fatal.
 #
@@ -25,7 +26,7 @@ INC   := -I../../src/IsoSpec++
 UNITY := ../../src/IsoSpec++/unity-build.cpp
 BUILD := build
 
-TARGETS := fuzz_formula fuzz_sequence fuzz_unimod
+TARGETS := fuzz_formula fuzz_sequence fuzz_unimod fuzz_iso_arrays
 LIB_SRCS := $(wildcard ../../src/IsoSpec++/*.cpp ../../src/IsoSpec++/*.h)
 
 TIME ?= 60
