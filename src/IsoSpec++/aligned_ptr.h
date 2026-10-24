@@ -57,17 +57,18 @@
 
 // The small-allocation backend needs an aligned allocator that can also be
 // deallocated with a plain std::free() (release() promises exactly that).
-// glibc/libc++'s std::aligned_alloc satisfies both at once. MSVC's CRT has
+// glibc/libc++'s std::aligned_alloc satisfies both at once. Windows' CRT
+// (MSVC's, and the msvcrt/UCRT that MinGW, i.e. R's Rtools, links against) has
 // no C11 aligned_alloc at all, only _aligned_malloc/_aligned_free -- and
 // memory from those two is NOT free()-compatible (the CRT stores its own
 // offset bookkeeping ahead of the returned pointer, which plain free() does
-// not know how to unwind). So on MSVC the small backend uses
+// not know how to unwind). So on Windows the small backend uses
 // _aligned_malloc/_aligned_free for its own storage (still genuinely
 // Alignment-aligned, as marginalTrek++.h's use of this class relies on),
 // and release() falls back to materialising a fresh plain-malloc()'d copy
 // to keep its free()-compatibility promise -- the same thing it already
 // does to escape a VM-backed region.
-#if defined(_MSC_VER)
+#if defined(_WIN32)
 #define ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE 0
 #else
 #define ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE 1
@@ -75,7 +76,7 @@
 
 #if ISOSPEC_WE_ARE_ON_WINDOWS
     #include <windows.h>
-    #if defined(_MSC_VER)
+    #if defined(_WIN32)
         #include <malloc.h>   // _aligned_malloc / _aligned_free
     #endif
 #elif ISOSPEC_WE_ARE_ON_UNIX_YAY
@@ -594,7 +595,7 @@ class aligned_unique_ptr {
     // bare std::free() / C free(), regardless of which backend produced it.
     // Whenever the current backend isn't already free()-compatible on its
     // own -- a VM-backed region always needs this, and so does the small
-    // backend on MSVC (see ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE
+    // backend on Windows (see ISOSPEC_ALIGNED_PTR_SMALL_BACKEND_FREE_COMPATIBLE
     // above) -- this materialises a fresh plain-malloc()'d copy instead.
     // That copy is the whole cost of calling this in those cases;
     // release_with_deleter() below avoids it when the caller can accept a
