@@ -63,3 +63,93 @@ def test_unimod_override_tables_from_many_threads(tmp_path):
     jobs = paths * (20 * THREADS)
     for path, got in zip(jobs, _run_everywhere(parse, jobs)):
         assert got == want[path]
+
+
+def test_generators_iterated_on_many_threads():
+    def drain(kind):
+        if kind == "threshold":
+            gen = IsoSpecPy.IsoThresholdGenerator(1e-4, formula="C520H817N139O147S8")
+        elif kind == "layered":
+            gen = IsoSpecPy.IsoLayeredGenerator(formula="C200H300N50O60S2")
+        else:
+            gen = IsoSpecPy.IsoOrderedGenerator(formula="C100H202")
+        out = []
+        for mass, prob in gen:
+            out.append((mass, prob))
+            if kind != "threshold" and len(out) == 2000:
+                break
+        return kind, out
+
+    kinds = ["threshold", "layered", "ordered"]
+    want = dict(drain(k) for k in kinds)
+    for kind, got in _run_everywhere(drain, kinds * (2 * THREADS)):
+        assert got == want[kind]
+
+
+def test_stochastic_generator_made_on_one_thread_used_on_another():
+    # The generator must draw from whichever thread is sampling, not hold on
+    # to the random-number state of the (pool) thread that built it.
+    molecules = 100000
+
+    def make(_):
+        return IsoSpecPy.IsoStochasticGenerator(molecules, formula="C520H817N139O147S8")
+
+    def sample_while_others_build(gen):
+        return sum(count for _, count in gen)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=THREADS) as pool:
+        generators = list(pool.map(make, range(2 * THREADS)))
+        # Builders keep drawing for their own samples while the generators
+        # they made are consumed elsewhere.
+        busy = [pool.submit(lambda: len(IsoSpecPy.IsoStochastic(1000, formula="C100H202")))
+                for _ in range(THREADS)]
+        totals = list(pool.map(sample_while_others_build, generators))
+        for b in busy:
+            b.result()
+    assert totals == [molecules] * len(generators)
+
+
+def test_shared_objects_read_by_many_threads():
+    iso = IsoSpecPy.Iso("C520H817N139O147S8")
+    a = IsoSpecPy.IsoThreshold(1e-5, formula="C200H300N50O60S2")
+    b = IsoSpecPy.IsoThreshold(1e-5, formula="H2O1")
+
+    def read(_):
+        # Read-only on the shared objects; anything that sorts or normalises
+        # in place works on a private copy.
+        mine = a.copy()
+        mine.normalize()
+        theirs = b.copy()
+        theirs.normalize()
+        return (
+            iso.getModeLProb(),
+            iso.getMonoisotopicPeakMass(),
+            iso.getTheoreticalAverageMass(),
+            len(a + b),
+            len(a * b),
+            mine.wassersteinDistance(theirs),
+        )
+
+    want = read(None)
+    for got in _run_everywhere(read, range(4 * THREADS)):
+        assert got == want
+
+
+def test_errors_raised_on_many_threads():
+    def fail(job):
+        try:
+            if job == "repeat":
+                IsoSpecPy.Iso("C1C1")
+            elif job == "symbol":
+                IsoSpecPy.Iso("Xx5")
+            elif job == "unimod":
+                ParsePeptideSequence("PEP[UNIMOD:999999]TIDE")
+            else:
+                ParsePeptideSequence("PEPC[UNIMOD:4]", unimod_db_path="/nonexistent/unimod.csv")
+        except ValueError:
+            return True
+        return False
+
+    jobs = ["repeat", "symbol", "unimod", "missing"] * (5 * THREADS)
+    assert all(_run_everywhere(fail, jobs))
+    assert ParsePeptideSequence("PEPC[UNIMOD:4]")  # still works afterwards
