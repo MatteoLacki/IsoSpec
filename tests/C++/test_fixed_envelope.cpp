@@ -917,3 +917,37 @@ TEST_CASE("FromArrays checks caller-supplied arrays, and the operations keep the
         CHECK_THROWS_AS(FixedEnvelope::FromArrays(far, one, 1).bin(1e-300), std::overflow_error);
     }
 }
+
+TEST_CASE("bin() terminates, and keeps its grid, whatever the middle and the masses' magnitude") {
+    const double m[5] = {150.3, 300.7, 1088.2, 1312.9, 449.1};
+    const double p[5] = {0.1, 0.2, 0.3, 0.25, 0.15};
+    FixedEnvelope e = FixedEnvelope::FromArrays(m, p, 5);
+    // 1e308 is an integer, so with width 1 it describes the same grid as 0
+    // (found by fuzz_envelope: it used to loop forever, growing the output).
+    FixedEnvelope far = e.bin(1.0, 1e308);
+    FixedEnvelope near = e.bin(1.0, 0.0);
+    REQUIRE(far.confs_no() == near.confs_no());
+    for (size_t ii = 0; ii < far.confs_no(); ii++)
+    {
+        CHECK(far.mass(ii) == near.mass(ii));
+        CHECK(far.prob(ii) == near.prob(ii));
+    }
+    // Masses whose ulp exceeds the width: every bin still takes at least one peak.
+    const double huge[3] = {1e17, 1e17 + 16, 1e17 + 64};
+    FixedEnvelope h = FixedEnvelope::FromArrays(huge, p, 3);
+    FixedEnvelope hb = h.bin(3.0, 0.7);
+    CHECK(hb.confs_no() >= 1);
+    CHECK(hb.confs_no() <= 3);
+    CHECK(hb.get_total_prob() == doctest::Approx(0.6));
+}
+
+TEST_CASE("Wasserstein variants reject an other_scale that overflows the other envelope") {
+    const double m[2] = {100.0, 101.0};
+    const double p[2] = {1e300, 1.0};
+    FixedEnvelope a = FixedEnvelope::FromArrays(m, p, 2);
+    FixedEnvelope b = FixedEnvelope::FromArrays(m, p, 2);
+    CHECK_THROWS_AS(a.WassersteinMatch(b, 1.0, 1e10), std::overflow_error);
+    CHECK_THROWS_AS(a.AbyssalWassersteinDistance(b, 1.0, 1e10), std::overflow_error);
+    CHECK(std::isfinite(std::get<0>(a.WassersteinMatch(b, 1.0, 2.0))));
+    CHECK(std::isfinite(a.AbyssalWassersteinDistance(b, 1.0, 0.5)));
+}

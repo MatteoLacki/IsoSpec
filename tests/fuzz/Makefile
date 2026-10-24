@@ -4,11 +4,12 @@
 #   fuzz_sequence  a peptide sequence, plain and with [UNIMOD:<id>] modifications
 #   fuzz_unimod    an override Unimod CSV, then a sequence parsed against it
 #   fuzz_iso_arrays  the raw-array Iso constructor, then envelope operations
+#   fuzz_envelope  FixedEnvelope::FromArrays, then envelope operations with arbitrary arguments
 #
 # clang only (libFuzzer), built with ASan + UBSan, every report fatal.
 #
 # Usage:
-#   make                      # build the three targets under build/
+#   make                      # build the targets under build/
 #   make run TIME=600 JOBS=8  # fuzz each for TIME seconds with JOBS workers,
 #                             # starting from seeds/<target>/; the growing
 #                             # corpus and any crash files go under build/
@@ -26,7 +27,7 @@ INC   := -I../../src/IsoSpec++
 UNITY := ../../src/IsoSpec++/unity-build.cpp
 BUILD := build
 
-TARGETS := fuzz_formula fuzz_sequence fuzz_unimod fuzz_iso_arrays
+TARGETS := fuzz_formula fuzz_sequence fuzz_unimod fuzz_iso_arrays fuzz_envelope
 LIB_SRCS := $(wildcard ../../src/IsoSpec++/*.cpp ../../src/IsoSpec++/*.h)
 
 TIME ?= 60

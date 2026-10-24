@@ -213,6 +213,18 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
 
 namespace
 {
+// Whether every probability of e times factor stays finite: O(1) for factor <= 1,
+// a branch-free pass otherwise. Used where a scaled envelope enters arithmetic.
+bool scaled_probs_fit(const double* probs, size_t n, double factor)
+{
+    if(factor <= 1.0)
+        return true;
+    bool fits = true;
+    for(size_t ii = 0; ii < n; ii++)
+        fits &= probs[ii] * factor <= (std::numeric_limits<double>::max)();
+    return fits;
+}
+
 struct Extremes { double max_prob, min_mass, max_mass; };
 
 Extremes extremes(const double* masses, const double* probs, size_t n)
@@ -657,6 +669,9 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
     // negative depth or scale only gives a meaningless distance.
     if(!(abyss_depth >= 0.0) || !(other_scale >= 0.0 && other_scale <= (std::numeric_limits<double>::max)()))
         throw std::invalid_argument("Abyss depth must be nonnegative, and the scale finite and nonnegative");
+    // A scaled probability overflowing to inf makes NaN of the flows (inf - inf).
+    if(!scaled_probs_fit(other._probs, other._confs_no, other_scale))
+        throw std::overflow_error("Scaling the other envelope overflows a probability");
     sort_by_mass();
     other.sort_by_mass();
 
@@ -752,6 +767,9 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
     // Infinite is fine: everything may be matched.
     if(!(flow_distance >= 0.0) || !(other_scale >= 0.0 && other_scale <= (std::numeric_limits<double>::max)()))
         throw std::invalid_argument("Flow distance must be nonnegative, and the scale finite and nonnegative");
+    // A scaled probability overflowing to inf makes NaN of the flows (inf - inf).
+    if(!scaled_probs_fit(other._probs, other._confs_no, other_scale))
+        throw std::overflow_error("Scaling the other envelope overflows a probability");
     if(_confs_no == 0)
         return {0.0, other.get_total_prob() * other_scale, 0.0};
 
@@ -881,6 +899,10 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 
     size_t ii = 0;
 
+    // The same grid, with the middle brought within one width of zero (fmod is
+    // exact): a middle far from the masses, say 1e308, otherwise leaves the
+    // bin arithmetic below with no precision at the masses' scale.
+    middle = std::fmod(middle, bin_width);
     double half_width = 0.5*bin_width;
     double hwmm = half_width-middle;
 
@@ -890,11 +912,15 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
         double current_bin_end = current_bin_middle + half_width;
         double bin_prob = 0.0;
 
-        while(ii < _confs_no && _masses[ii] <= current_bin_end)
+        // At least one peak per bin: where masses dwarf the width, rounding can
+        // put the computed end below the very peak that defined the bin, and a
+        // bin that takes nothing would repeat forever, growing the output.
+        do
         {
             bin_prob += _probs[ii];
             ii++;
         }
+        while(ii < _confs_no && _masses[ii] <= current_bin_end);  // NOLINT(whitespace/empty_loop_body) - cpplint bug, that is the end of a do{...}while(...)
         fits &= (bin_prob <= dmax) & (std::fabs(current_bin_middle) <= dmax);
         ret.store_conf(current_bin_middle, bin_prob);
     }

@@ -33,7 +33,7 @@ build/run_tests_gcc -tc='<test case name>'     # -ltc lists test cases
 
 ```bash
 cd tests/fuzz
-make                         # clang/libFuzzer + ASan + UBSan: fuzz_formula, fuzz_sequence, fuzz_unimod, fuzz_iso_arrays
+make                         # clang/libFuzzer + ASan + UBSan: fuzz_formula, fuzz_sequence, fuzz_unimod, fuzz_iso_arrays, fuzz_envelope
 make run TIME=600 JOBS=8     # fuzz each target from seeds/<target>/; corpus and crashes under build/
 ```
 
