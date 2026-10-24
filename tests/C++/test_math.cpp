@@ -28,6 +28,31 @@ TEST_CASE("minuslogFactorial equals -lgamma(n+1)") {
     // Repeated reads of a lazily-filled slot must be stable.
     const double first = minuslogFactorial(200000);
     CHECK(minuslogFactorial(200000) == first);
+
+    // Past the end of the table: computed, not cached.
+    const int beyond = ISOSPEC_G_FACT_TABLE_SIZE + 5;
+    CHECK(minuslogFactorial(beyond) == doctest::Approx(-std::lgamma(beyond + 1.0)).epsilon(1e-14));
+}
+
+TEST_CASE("lgamma_half and lgamma_stirling equal lgamma at integers and half-integers") {
+    // Below 8 compiled-in tables, from 8 Stirling's series; every value within
+    // a few ulp of the platform's lgamma, itself within a few ulp of exact.
+    for (std::int64_t two_x = 2; two_x <= 4000; ++two_x) {
+        CAPTURE(two_x);
+        CHECK(lgamma_half(two_x) == doctest::Approx(std::lgamma(two_x * 0.5)).epsilon(1e-14));
+    }
+    const std::int64_t far[] = {65535, 65536, 65537, 1999999, 2000000, 20000001,
+                                std::int64_t{2} * ISOSPEC_G_FACT_TABLE_SIZE + 7};
+    for (std::int64_t two_x : far) {
+        CAPTURE(two_x);
+        CHECK(lgamma_half(two_x) == doctest::Approx(std::lgamma(two_x * 0.5)).epsilon(1e-14));
+    }
+    CHECK(lgamma_half(2) == 0.0);
+    CHECK(lgamma_half(4) == 0.0);
+    for (double x : {8.0, 8.25, 9.75, 1e3 + 0.1, 1e9, 1e15}) {
+        CAPTURE(x);
+        CHECK(lgamma_stirling(x) == doctest::Approx(std::lgamma(x)).epsilon(1e-14));
+    }
 }
 
 TEST_CASE("NormalCDF matches known quantiles") {

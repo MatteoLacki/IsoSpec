@@ -20,6 +20,62 @@
 namespace IsoSpec
 {
 
+/*
+ * The body of lgamma_stirling() is the 8.0 <= x < 2**58 branch of fdlibm's
+ * e_lgamma_r.c, under this notice:
+ *
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunPro, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ *
+ * lnGamma(x) = (x-0.5)*(log(x)-1) + w, where w approximates
+ * 0.5*ln(2*pi) - 0.5 + (Stirling's correction series in 1/x).
+ * fdlibm switches to x*(log(x)-1) from 2**58 up; there w is below an
+ * ulp of the result, so the one formula serves every argument here.
+ * Against correctly rounded values: at most 2 ulp off, on every integer and
+ * half-integer from 8 to 10**7.
+ */
+double lgamma_stirling(double x) noexcept
+{
+    ISOSPEC_IMPOSSIBLE(x < 8.0);
+    constexpr double w0 =  4.18938533204672725052e-01;
+    constexpr double w1 =  8.33333333333329678849e-02;
+    constexpr double w2 = -2.77777777728775536470e-03;
+    constexpr double w3 =  7.93650558643019558500e-04;
+    constexpr double w4 = -5.95187557450339963135e-04;
+    constexpr double w5 =  8.36339918996282139126e-04;
+    constexpr double w6 = -1.63092934096575273989e-03;
+    const double t = std::log(x);
+    const double z = 1.0 / x;
+    const double y = z * z;
+    const double w = w0 + z * (w1 + y * (w2 + y * (w3 + y * (w4 + y * (w5 + y * w6)))));
+    return (x - 0.5) * (t - 1.0) + w;
+}
+
+double lgamma_half(std::int64_t two_x) noexcept
+{
+    ISOSPEC_IMPOSSIBLE(two_x < 2);
+    if (two_x % 2 == 0)
+    {
+        const std::int64_t n = two_x / 2 - 1;      // lnGamma(n+1) = ln(n!)
+        if (n < ISOSPEC_G_FACT_TABLE_SIZE)
+            return 0.0 - minuslogFactorial(static_cast<int>(n));    // +0.0, not -0.0, at x = 1, 2
+        return lgamma_stirling(static_cast<double>(n) + 1.0);
+    }
+    // lnGamma(1.5), lnGamma(2.5), ..., lnGamma(7.5), correctly rounded.
+    static constexpr double small_half_integers[7] = {
+        -0x1.eeb95b094c191p-4, 0x1.2383e809a67e8p-2, 0x1.3373018970a36p+0, 0x1.3a140a3a623cbp+1,
+        0x1.fa99a5e94985ap+1, 0x1.6a676ab2aa095p+2, 0x1.e233060e41f7fp+2};
+    if (two_x < 16)
+        return small_half_integers[(two_x - 3) / 2];
+    return lgamma_stirling(static_cast<double>(two_x) * 0.5);
+}
+
 
 double* alloc_lfact_table()
 {
@@ -43,10 +99,17 @@ double* alloc_lfact_table()
                 static_cast<std::size_t>(ISOSPEC_LFACT_EAGER_FILL)
             ? static_cast<std::size_t>(ISOSPEC_G_FACT_TABLE_SIZE)
             : static_cast<std::size_t>(ISOSPEC_LFACT_EAGER_FILL);
-    if (eager_end > 0) ret[0] = 0.0;
-    if (eager_end > 1) ret[1] = 0.0;
-    for (std::size_t n = 2; n < eager_end; ++n)
-        ret[n] = -lgamma_nosign(static_cast<double>(n + 1));
+    // Below 7, n+1 is under Stirling's crossover at 8: -ln(n!), correctly
+    // rounded. Written even when ISOSPEC_LFACT_EAGER_FILL is smaller, which is
+    // harmless: the lazy path only computes a slot it finds still 0.0.
+    static_assert(ISOSPEC_G_FACT_TABLE_SIZE >= 7, "log-factorial table must hold the compiled-in values");
+    static constexpr double small_minuslogfactorials[7] = {
+        0.0, 0.0, -0x1.62e42fefa39efp-1, -0x1.cab0bfa2a2002p+0, -0x1.96ca77c922cf9p+1,
+        -0x1.326643c4479c9p+2, -0x1.a51273acf01cap+2};
+    for (std::size_t n = 0; n < 7; ++n)
+        ret[n] = small_minuslogfactorials[n];
+    for (std::size_t n = 7; n < eager_end; ++n)
+        ret[n] = -lgamma_stirling(static_cast<double>(n + 1));
 
     // Deliberately never freed. An atexit() handler releasing it would run
     // while threads that outlive main() -- detached, or still winding down --

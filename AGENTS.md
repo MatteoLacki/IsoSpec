@@ -82,7 +82,7 @@ Build-system consequence: any target using the library must compile the four `is
 
 The library never parallelises its own work, but callers may use it from any number of threads:
 
-- Independent objects (`Iso`, generators, `FixedEnvelope`s) on separate threads never interfere. Nothing process-global is mutable without synchronisation: the Unimod override-path cache is a mutex-guarded, never-evicted map; `lgamma` goes through `lgamma_nosign` (`lgamma_r`, so no `signgam` write); the ISA selection is one atomic pointer.
+- Independent objects (`Iso`, generators, `FixedEnvelope`s) on separate threads never interfere. Nothing process-global is mutable without synchronisation: the Unimod override-path cache is a mutex-guarded, never-evicted map; the C library's `lgamma` (which writes the global `signgam`) is never called: lnΓ comes from `isoMath.h` (`lgamma_stirling`, `lgamma_half`, the log-factorial cache); the ISA selection is one atomic pointer.
 - `const` methods on one shared `Iso` or `FixedEnvelope` may run concurrently. This is why `Marginal` computes its mode in the constructor rather than lazily (+210 ns per bare `Iso` from a peptide on x86-64-v3; free once any generator runs).
 - A generator is stateful and belongs to one thread at a time, but may move between threads. The stochastic generator therefore draws from the `thread_local` RNG of the thread currently sampling, never the one that built it (a user-supplied `std::mt19937&` is kept as given).
 - `tests/C++/test_threads.cpp` under `make tsan` is the proof. Under TSan, `aligned_ptr.h` grows VM-backed buffers by mmap+copy+munmap instead of `mremap`, which TSan does not intercept (it reports address reuse across threads as races).

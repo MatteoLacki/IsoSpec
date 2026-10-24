@@ -198,8 +198,7 @@ double* getMLogProbs(const double* probs, int isoNo)
 double get_loggamma_nominator(int x)
 {
     // calculate log gamma of the nominator calculated in the binomial exression.
-    double ret = lgamma_nosign(x+1);
-    return ret;
+    return -minuslogFactorial(x);
 }
 
 int verify_atom_cnt(int atomCnt)
@@ -426,9 +425,13 @@ double Marginal::getLogSizeEstimate(double logEllipsoidRadius) const
     for(int jj = 0; jj < i; jj++)
         sum_lprobs += atom_lProbs[jj];
 
-    double log_V_simplex = k * log(n) - lgamma_nosign(i);
-    double log_N_simplex = lgamma_nosign(n+i) - lgamma_nosign(n+1.0) - lgamma_nosign(i);
-    double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma_nosign((i+1)*0.5);
+    // lgamma_half() takes twice its argument: (i+1)/2 is a half-integer for even i.
+    const std::int64_t two_i = 2 * static_cast<std::int64_t>(isotopeNo);
+    const std::int64_t two_n = 2 * static_cast<std::int64_t>(atomCnt);
+    const double lgamma_i = lgamma_half(two_i);
+    double log_V_simplex = k * log(n) - lgamma_i;
+    double log_N_simplex = lgamma_half(two_n + two_i) - lgamma_half(two_n + 2) - lgamma_i;
+    double log_V_ellipsoid = (k * (log(n) + logpi + logEllipsoidRadius) + sum_lprobs) * 0.5 - lgamma_half(static_cast<std::int64_t>(isotopeNo) + 1);
 
     return log_N_simplex + log_V_ellipsoid - log_V_simplex;
 }

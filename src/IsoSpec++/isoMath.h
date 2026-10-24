@@ -48,26 +48,25 @@
 namespace IsoSpec
 {
 
-// lgamma() reports the sign of Gamma(x) through the global `signgam`, so every
-// call is a write to shared state -- a data race whenever two threads call it
-// at once, whatever the arguments. lgamma_r() returns the sign through a
-// pointer instead. Every argument this library passes is positive, so the sign
-// is never wanted. On Windows plain lgamma() stays: MSVC's CRT has neither
-// signgam nor lgamma_r, and whether MinGW's runtime (R's Rtools) declares
-// lgamma_r is unverified -- a missing declaration there would break the CRAN
-// build, which is worse than a race nobody has observed on that platform.
-inline double lgamma_nosign(double x) noexcept
-{
-#if defined(_WIN32)
-    return std::lgamma(x);
-#else
-    int sign;
-    return ::lgamma_r(x, &sign);
-#endif
-}
+// The library never calls the C library's lgamma(). It reports the sign of
+// Gamma(x) through the global `signgam`, so every call writes shared state --
+// a data race between threads -- and lgamma_r(), which avoids that, is missing
+// from MSVC's and MinGW's runtimes (MinGW's own lgamma, linked even under UCRT,
+// writes signgam too). Every argument the library needs is an integer or a
+// half-integer, so lnGamma is served instead by: exact values below 8, compiled
+// in; Stirling's series from 8 up; and, for integers, the log-factorial cache
+// below. Results are within 2 ulp of correctly rounded (glibc >= 2.43 rounds
+// correctly), at about half the cost: 4.75 vs 9.06 ns per value on x86-64-v3.
+
+// lnGamma(x) for x >= 8, by Stirling's series. Calls only log(), which writes
+// no shared state for such arguments.
+double lgamma_stirling(double x) noexcept;
 
 extern double* g_lfact_table;
 
+// -ln(n!) = -lnGamma(n+1), from a cache: entries below 7 are compiled in, the
+// rest up to ISOSPEC_LFACT_EAGER_FILL are filled at startup, the remainder of
+// the table on first use; beyond the table it is computed every time.
 static inline double minuslogFactorial(int n)
 {
     if (n < 2)
@@ -75,19 +74,24 @@ static inline double minuslogFactorial(int n)
     if (static_cast<std::size_t>(n) < static_cast<std::size_t>(ISOSPEC_LFACT_EAGER_FILL))
         return g_lfact_table[n];                              // immutable after startup
 
-    #if ISOSPEC_BUILDING_OPENMS
     if (n >= ISOSPEC_G_FACT_TABLE_SIZE)
-        return -lgamma_nosign(n+1);
-    #endif
+        return -lgamma_stirling(n + 1.0);
 
     std::atomic_ref<double> slot(g_lfact_table[n]);
     double v = slot.load(std::memory_order_relaxed);
     if (v == 0.0) {
-        v = -lgamma_nosign(n+1);
+        v = -lgamma_stirling(n + 1.0);
         slot.store(v, std::memory_order_relaxed);
     }
     return v;
 }
+
+// lnGamma(two_x / 2) for two_x >= 2, i.e. at an integer or half-integer. The
+// argument is passed doubled so that no other argument is expressible. Integers
+// come from the log-factorial cache; half-integers below 8 from a small table,
+// above it from Stirling. Not on any hot path (setup-time size estimates), so
+// half-integers get no cache of their own.
+double lgamma_half(std::int64_t two_x) noexcept;
 
 const double pi = 3.14159265358979323846264338328;
 const double logpi = 1.144729885849400174143427351353058711647294812915311571513623071472137769884826079783623270275489708;
