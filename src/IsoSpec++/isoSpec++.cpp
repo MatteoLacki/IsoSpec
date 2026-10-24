@@ -433,7 +433,6 @@ void Iso::saveMarginalLogSizeEstimates(double* priorities, double target_total_p
 // of two.
 void parse_formula_tokens(const char* formula, std::vector<int>& element_first_indexes, std::vector<int>& counts)
 {
-    // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
     // Yes, it would be more elegant to use std::string here, but it's the only promiment place where it would be used in IsoSpec, and avoiding it here
     // means we can run the whole thing through Clang's memory sanitizer without the need for instrumented libc++/libstdc++. That's worth messing with char pointers a

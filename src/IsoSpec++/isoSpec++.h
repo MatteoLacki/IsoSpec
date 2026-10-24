@@ -36,7 +36,9 @@
 namespace IsoSpec
 {
 
-// This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
+// Any input is safe: a malformed formula throws std::invalid_argument (or
+// std::out_of_range for a count past int), never undefined behaviour. Checked by
+// fuzzing under ASan+UBSan (tests/fuzz/fuzz_formula); keep it that way.
 unsigned int parse_formula(const char* formula,
                            std::vector<double>& isotope_masses,
                            std::vector<double>& isotope_probabilities,
