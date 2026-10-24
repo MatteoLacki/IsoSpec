@@ -55,7 +55,7 @@ NumericMatrix Rinterface(
     const DataFrame&        isotopes,
     double                  stopCondition,
     int                     algo = 0,
-    int                     tabSize = 1000,
+    int                     tabSize = 64,
     int                     hashSize = 1000,
     double                  step = .3,
     bool                    showCounts = false,

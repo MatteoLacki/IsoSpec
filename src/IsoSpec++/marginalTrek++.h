@@ -242,7 +242,7 @@ class MarginalTrek : public Marginal
     */
     MarginalTrek(
         Marginal&& m,
-        int tabSize = 1000,
+        int tabSize = default_tab_size,
         int hashSize = 1000
     );  // NOLINT(runtime/explicit) - Constructor deliberately left usable as a conversion.
 
@@ -312,7 +312,7 @@ class PrecalculatedMarginal : public Marginal
         Marginal&& m,
         double lCutOff,
         bool sort = true,
-        int tabSize = 1000,
+        int tabSize = default_tab_size,
         int hashSize = 1000
     );
 
@@ -409,7 +409,7 @@ class LayeredMarginal : public Marginal
         \param tabSize The size of the table used to store configurations in the allocator.
         \param hashSize The size of the hash table used to store visited subisotopologues.
     */
-    LayeredMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
+    LayeredMarginal(Marginal&& m, int tabSize = default_tab_size, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
 
     LayeredMarginal(const LayeredMarginal& other) = delete;
     LayeredMarginal& operator=(const LayeredMarginal& other) = delete;
@@ -482,7 +482,7 @@ class SingleAtomMarginal : public Marginal
     //! Move constructor: specializes the Marginal class.
     /*!
     */
-    SingleAtomMarginal(Marginal&& m, int tabSize = 1000, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
+    SingleAtomMarginal(Marginal&& m, int tabSize = default_tab_size, int hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left usable as a conversion
 
     SingleAtomMarginal(const SingleAtomMarginal& other) = delete;
     SingleAtomMarginal& operator=(const SingleAtomMarginal& other) = delete;

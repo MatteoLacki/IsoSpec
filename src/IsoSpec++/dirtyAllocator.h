@@ -18,6 +18,7 @@
 
 #include <cstring>
 #include "pod_vector.h"
+#include "allocator.h"
 
 namespace IsoSpec
 {
@@ -33,7 +34,7 @@ class DirtyAllocator
     pod_vector<void*>  prevTabs;
 
  public:
-    explicit DirtyAllocator(const int dim, const int tabSize = 10000);
+    explicit DirtyAllocator(const int dim, const int tabSize = default_tab_size);
     ~DirtyAllocator();
 
     DirtyAllocator(const DirtyAllocator& other) = delete;

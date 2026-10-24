@@ -84,7 +84,7 @@ IsoSpecify <- function(
         isotopes        = isotopes,
         stopCondition   = stopCondition,
         algo            = as.integer(algo),
-        tabSize         = 1000,
+        tabSize         = 64,
         hashSize        = 1000,
         step            = step,
         showCounts      = showCounts,

@@ -1016,7 +1016,7 @@ class IsoThresholdGenerator(IsoGenerator):
         self.cgen = _check_pointer(self.ffi.setupIsoThresholdGenerator(self.iso,
                                                         threshold,
                                                         absolute,
-                                                        1000,
+                                                        64,
                                                         1000,
                                                         reorder_marginals), "setupIsoThresholdGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoThresholdGenerator
@@ -1048,7 +1048,7 @@ class IsoLayeredGenerator(IsoGenerator):
             **kwargs: named arguments to the superclass.
         """
         super(IsoLayeredGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
-        self.cgen = _check_pointer(self.ffi.setupIsoLayeredGenerator(self.iso, 1000, 1000, reorder_marginals, t_prob_hint), "setupIsoLayeredGenerator")
+        self.cgen = _check_pointer(self.ffi.setupIsoLayeredGenerator(self.iso, 64, 1000, reorder_marginals, t_prob_hint), "setupIsoLayeredGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoLayeredGenerator
         self.xprob_getter = self.ffi.probIsoLayeredGenerator
         self.mass_getter = self.ffi.massIsoLayeredGenerator
@@ -1081,7 +1081,7 @@ class IsoOrderedGenerator(IsoGenerator):
             **kwargs: named arguments to the superclass.
         """
         super(IsoOrderedGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
-        self.cgen = _check_pointer(self.ffi.setupIsoOrderedGenerator(self.iso, 1000, 1000), "setupIsoOrderedGenerator")
+        self.cgen = _check_pointer(self.ffi.setupIsoOrderedGenerator(self.iso, 64, 1000), "setupIsoOrderedGenerator")
         self.advancer = self.ffi.advanceToNextConfigurationIsoOrderedGenerator
         self.xprob_getter = self.ffi.probIsoOrderedGenerator
         self.mass_getter = self.ffi.massIsoOrderedGenerator

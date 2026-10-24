@@ -1016,7 +1016,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
         return;
     }
 
-    IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true, std::min<double>(target_total_prob, 0.9999));
+    IsoLayeredGenerator generator(std::move(iso), default_tab_size, 1000, true, std::min<double>(target_total_prob, 0.9999));
 
     this->allDim = generator.getAllDim();
     this->allDimSizeofInt = this->allDim*sizeof(int);
@@ -1454,7 +1454,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         // Pass the requested probability as the layer-sizing hint (as
         // total_prob_init does) so the marginal ordering is tuned to the amount
         // of mass actually needed; the default 0.99 hint over- or under-shoots.
-        IsoLayeredGenerator generator(std::move(iso), 1000, 1000, true,
+        IsoLayeredGenerator generator(std::move(iso), default_tab_size, 1000, true,
                                       std::min<double>(target_total_prob, 0.9999));
         non_empty = fill_bins_to_prob(
                         generator, acc, hwmm, inv_bin_width, target_total_prob, nonzero_idx);

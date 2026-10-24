@@ -355,7 +355,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
     };
 
     //! The move-contstructor.
-    IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize  = 1000, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoOrderedGeneratorTemplate(Iso&& iso, int _tabSize  = default_tab_size, int _hashSize = 1000);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     //! Destructor.
     virtual ~IsoOrderedGeneratorTemplate();
@@ -436,7 +436,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
         \param tabSize The size of the extension of the table with configurations.
         \param hashSize The size of the hash-table used to store subisotopologues and check if they have been already calculated.
     */
-    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute = true, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true);
+    IsoThresholdGenerator(Iso&& iso, double _threshold, bool _absolute = true, int _tabSize = default_tab_size, int _hashSize = 1000, bool reorder_marginals = true);
 
     ~IsoThresholdGenerator();
 
@@ -644,7 +644,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoLayeredGeneratorTemplate : public IsoGenerator
 
     inline double get_currentLThreshold() const { return currentLThreshold; }
 
-    IsoLayeredGeneratorTemplate(Iso&& iso, int _tabSize = 1000, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
+    IsoLayeredGeneratorTemplate(Iso&& iso, int _tabSize = default_tab_size, int _hashSize = 1000, bool reorder_marginals = true, double t_prob_hint = 0.99);  // NOLINT(runtime/explicit) - constructor deliberately left to be used as a conversion
 
     ~IsoLayeredGeneratorTemplate();
 
