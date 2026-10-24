@@ -1055,7 +1055,9 @@ precision(_precision),
 beta_bias(_beta_bias),
 confs_prob(0.0),
 chasing_prob(0.0),
-rdvariate_gen(_rng)
+// The default argument is random_gen as seen by the constructing thread;
+// recognise it and defer to the drawing thread's own instead (see user_rng).
+user_rng(&_rng == &random_gen ? nullptr : &_rng)
 {}
 
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;
