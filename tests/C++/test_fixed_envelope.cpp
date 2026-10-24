@@ -9,7 +9,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <limits>
+#include <random>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -741,4 +744,60 @@ TEST_CASE("binning validates grid parameters before processing peaks") {
     CHECK(exact.prob(0) == doctest::Approx(0.5));
     CHECK(exact.mass(1) == 2.0);
     CHECK(exact.prob(1) == doctest::Approx(0.5));
+}
+
+TEST_CASE("Scalar parameters that would loop forever or reach undefined behaviour are rejected") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    const char* f = "C10H20O5S1";
+    std::mt19937 rng = seeded_rng(1);
+
+    SUBCASE("threshold: NaN rejected, <= 0 still means everything") {
+        CHECK_THROWS_AS(IsoThresholdGenerator(Iso(f), nan), std::invalid_argument);
+        CHECK_THROWS_AS(FixedEnvelope::FromThreshold(Iso(f), nan, false), std::invalid_argument);
+        CHECK(FixedEnvelope::FromThreshold(Iso(f), -1.0, true).confs_no() ==
+              FixedEnvelope::FromThreshold(Iso(f), 0.0, true).confs_no());
+    }
+    SUBCASE("target total probability: NaN rejected, out-of-range values still clamp") {
+        CHECK_THROWS_AS(FixedEnvelope::FromTotalProb(Iso(f), nan, true), std::invalid_argument);
+        CHECK_THROWS_AS(FixedEnvelope::Binned(Iso(f), nan, 1.0), std::invalid_argument);
+        CHECK(FixedEnvelope::FromTotalProb(Iso(f), -1.0, true).confs_no() == 0);
+        CHECK(FixedEnvelope::FromTotalProb(Iso(f), 2.0, true).get_total_prob() == doctest::Approx(1.0));
+    }
+    SUBCASE("stochastic precision in (0, 1], beta_bias nonnegative") {
+        for (double p : {nan, -inf, -1.0, 0.0, 1.0 + 1e-15, 2.0, inf})
+            CHECK_THROWS_AS(FixedEnvelope::FromStochastic(Iso(f), 1000, p, 5.0, false, rng), std::invalid_argument);
+        for (double b : {nan, -1.0, -inf})
+            CHECK_THROWS_AS(IsoStochasticGenerator(Iso(f), 1000, 0.9999, b, rng), std::invalid_argument);
+        CHECK(FixedEnvelope::FromStochastic(Iso(f), 1000, 1.0, 5.0, false, rng).get_total_prob() == 1000.0);
+        CHECK(FixedEnvelope::FromStochastic(Iso(f), 1000, 0.9999, inf, false, rng).get_total_prob() == 1000.0);
+    }
+    SUBCASE("envelope operations") {
+        FixedEnvelope e = FixedEnvelope::FromTotalProb(Iso(f), 0.999, true);
+        FixedEnvelope other = FixedEnvelope::FromTotalProb(Iso("C10H22O5S1"), 0.999, true);
+        for (double x : {nan, inf, -inf, -1.0})
+        {
+            CHECK_THROWS_AS(e.scale(x), std::invalid_argument);
+            const FixedEnvelope* s[1] = {&e};
+            CHECK_THROWS_AS(FixedEnvelope::LinearCombination(s, &x, 1), std::invalid_argument);
+            CHECK_THROWS_AS(e.AbyssalWassersteinDistance(other, 1.0, x), std::invalid_argument);
+            CHECK_THROWS_AS(e.WassersteinMatch(other, 0.1, x), std::invalid_argument);
+        }
+        for (double x : {nan, inf, -inf})
+            CHECK_THROWS_AS(e.shift_mass(x), std::invalid_argument);
+        for (double x : {nan, -inf, -1.0})
+        {
+            CHECK_THROWS_AS(e.AbyssalWassersteinDistance(other, x), std::invalid_argument);
+            CHECK_THROWS_AS(e.WassersteinMatch(other, x), std::invalid_argument);
+            CHECK_THROWS_AS(e.resample(1000, x, rng), std::invalid_argument);
+        }
+        // Infinite depth and flow distance stay meaningful, as do a zero factor and beta_bias.
+        CHECK(e.AbyssalWassersteinDistance(other, inf) > 0.0);
+        CHECK(std::get<1>(e.WassersteinMatch(other, inf)) >= 0.0);
+        e.normalize();
+        e.resample(1000, 0.0, rng);
+        CHECK(e.get_total_prob() == 1000.0);
+        e.scale(0.0);
+        CHECK(e.get_total_prob() == 0.0);
+    }
 }

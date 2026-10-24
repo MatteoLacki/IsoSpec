@@ -601,6 +601,9 @@ Lcutoff(_threshold <= 0.0 ? minsqrt : (_absolute ? log(_threshold) : log(_thresh
     // misleading bad_alloc.
     if (dimNumber == 0)
         throw std::invalid_argument("IsoThresholdGenerator requires a non-empty Iso");
+    // NaN would silently give an empty result; anything <= 0 means everything.
+    if (std::isnan(_threshold))
+        throw std::invalid_argument("Threshold must not be NaN");
 
     counter = new int[dimNumber];
     maxConfsLPSum = new double[dimNumber-1];
@@ -1080,7 +1083,15 @@ chasing_prob(0.0),
 // The default argument is random_gen as seen by the constructing thread;
 // recognise it and defer to the drawing thread's own instead (see user_rng).
 user_rng(&_rng == &random_gen ? nullptr : &_rng)
-{}
+{
+    // Precision is the probability mass sampling stops at: NaN reaches the
+    // binomial sampler's float-to-integer conversion (undefined behaviour),
+    // above 1 is never reached and the sampler loops forever.
+    if(!(precision > 0.0 && precision <= 1.0))
+        throw std::invalid_argument("Precision must be in (0, 1]");
+    if(!(beta_bias >= 0.0))
+        throw std::invalid_argument("beta_bias must be nonnegative");
+}
 
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<LayeredMarginal>>;
 template class IsoStochasticGeneratorTemplate<IsoLayeredGeneratorTemplate<SingleAtomMarginal<true>>>;

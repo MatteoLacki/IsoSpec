@@ -324,6 +324,10 @@ double FixedEnvelope::get_total_prob()
 
 void FixedEnvelope::scale(double factor)
 {
+    // A NaN or negative probability later reaches resample()'s float-to-integer
+    // conversions (undefined behaviour) or walks it off the end of the array.
+    if(!(factor >= 0.0 && factor <= (std::numeric_limits<double>::max)()))
+        throw std::invalid_argument("Scaling factor must be finite and nonnegative");
     for(size_t ii = 0; ii < _confs_no; ii++)
         _probs[ii] *= factor;
     total_prob *= factor;
@@ -341,6 +345,9 @@ void FixedEnvelope::normalize()
 
 void FixedEnvelope::shift_mass(double value)
 {
+    // A NaN mass never satisfies bin()'s <= and hangs it; +inf then -inf makes NaN.
+    if(!std::isfinite(value))
+        throw std::invalid_argument("Mass shift must be finite");
     for(size_t ii = 0; ii < _confs_no; ii++)
         _masses[ii] += value;
 }
@@ -349,6 +356,8 @@ void FixedEnvelope::resample(size_t samples, double beta_bias, std::mt19937& rng
 {
     if(_confs_no == 0)
         throw std::logic_error("Resample called on an empty spectrum");
+    if(!(beta_bias >= 0.0))
+        throw std::invalid_argument("beta_bias must be nonnegative");
 
     // The probabilities are about to be replaced by molecule counts, so any
     // cached sum is stale; invalidate it and let get_total_prob() rescan.
@@ -404,6 +413,10 @@ FixedEnvelope FixedEnvelope::LinearCombination(const std::vector<const FixedEnve
 
 FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spectra, const double* intensities, size_t size)
 {
+    // As in scale().
+    for(size_t ii = 0; ii < size; ii++)
+        if(!(intensities[ii] >= 0.0 && intensities[ii] <= (std::numeric_limits<double>::max)()))
+            throw std::invalid_argument("Intensities must be finite and nonnegative");
     size_t ret_size = 0;
     for(size_t ii = 0; ii < size; ii++)
         ret_size += spectra[ii]->_confs_no;
@@ -565,6 +578,10 @@ double FixedEnvelope::OrientedWassersteinDistance(FixedEnvelope& other)
 
 double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double abyss_depth, double other_scale)
 {
+    // Infinite depth is meaningful (nothing falls into the abyss); NaN or a
+    // negative depth or scale only gives a meaningless distance.
+    if(!(abyss_depth >= 0.0) || !(other_scale >= 0.0 && other_scale <= (std::numeric_limits<double>::max)()))
+        throw std::invalid_argument("Abyss depth must be nonnegative, and the scale finite and nonnegative");
     sort_by_mass();
     other.sort_by_mass();
 
@@ -656,6 +673,10 @@ double FixedEnvelope::AbyssalWassersteinDistance(FixedEnvelope& other, double ab
 
 std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope& other, double flow_distance, double other_scale)
 {
+    // A NaN or negative flow distance never lets the matching loop advance.
+    // Infinite is fine: everything may be matched.
+    if(!(flow_distance >= 0.0) || !(other_scale >= 0.0 && other_scale <= (std::numeric_limits<double>::max)()))
+        throw std::invalid_argument("Flow distance must be nonnegative, and the scale finite and nonnegative");
     if(_confs_no == 0)
         return {0.0, other.get_total_prob() * other_scale, 0.0};
 
@@ -1007,6 +1028,9 @@ template<bool tgetConfs> bool FixedEnvelope::store_layer_to_prob(IsoLayeredGener
 
 template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double target_total_prob, bool optimize)
 {
+    // NaN passes both range tests below and the layered loop never reaches it.
+    if(std::isnan(target_total_prob))
+        throw std::invalid_argument("Target total probability must not be NaN");
     if(target_total_prob <= 0.0)
         return;
 
@@ -1358,6 +1382,9 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     // invalid too. Validate even an empty requested distribution consistently.
     if(!std::isfinite(bin_width) || bin_width <= 0.0 || !std::isfinite(bin_middle))
         throw std::invalid_argument("Bin width must be finite and positive, and middle finite");
+
+    if(std::isnan(target_total_prob))
+        throw std::invalid_argument("Target total probability must not be NaN");
 
     FixedEnvelope ret;
 
