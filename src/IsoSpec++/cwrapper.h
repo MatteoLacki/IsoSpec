@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "platform.h"
 
 #define ISOSPEC_ALGO_LAYERED 0
@@ -117,6 +120,15 @@ ISOSPEC_C_API double probIsoStochasticGenerator(void* generator);
 ISOSPEC_C_API void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
 ISOSPEC_C_API bool advanceToNextConfigurationIsoStochasticGenerator(void* generator);
 ISOSPEC_C_API void deleteIsoStochasticGenerator(void* generator);
+// The *Seeded variants draw from a generator seeded with `seed`, so the same
+// seed reproduces the same sample (also across bindings). The unseeded ones draw
+// from a randomly seeded per-thread generator. A seeded stochastic generator
+// owns its random state and is used and deleted like an unseeded one.
+ISOSPEC_C_API void* setupIsoStochasticGeneratorSeeded(void* iso,
+                                   size_t no_molecules,
+                                   double precision,
+                                   double beta_bias,
+                                   uint64_t seed);
 
 ISOSPEC_C_API void* setupThresholdFixedEnvelope(void* iso,
                               double threshold,
@@ -133,6 +145,13 @@ ISOSPEC_C_API void* setupStochasticFixedEnvelope(void* iso,
                               double precision,
                               double beta_bias,
                               bool get_confs);
+
+ISOSPEC_C_API void* setupStochasticFixedEnvelopeSeeded(void* iso,
+                              size_t no_molecules,
+                              double precision,
+                              double beta_bias,
+                              bool get_confs,
+                              uint64_t seed);
 
 ISOSPEC_C_API void* setupBinnedFixedEnvelope(void* iso,
                     double target_total_prob,
@@ -203,6 +222,7 @@ ISOSPEC_C_API void scaleEnvelope(void* envelope, double factor);
 ISOSPEC_C_API void normalizeEnvelope(void* envelope);
 ISOSPEC_C_API void shiftMassEnvelope(void* envelope, double d_mass);
 ISOSPEC_C_API void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias);
+ISOSPEC_C_API void resampleEnvelopeSeeded(void* envelope, size_t ionic_current, double beta_bias, uint64_t seed);
 ISOSPEC_C_API void* binnedEnvelope(void* envelope, double width, double middle);
 ISOSPEC_C_API void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
 

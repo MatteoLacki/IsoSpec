@@ -80,6 +80,7 @@ TEST_SRCS := tests_main.cpp \
              test_math.cpp \
              test_oracle.cpp \
              test_regression.cpp \
+             test_seeding.cpp \
              test_simd_equivalence.cpp \
              test_single_atom.cpp \
              test_threads.cpp \

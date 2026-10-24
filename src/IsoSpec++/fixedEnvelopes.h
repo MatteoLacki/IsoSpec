@@ -266,7 +266,9 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     void scale(double factor);
     void normalize();
     void shift_mass(double shift);
-    void resample(size_t ionic_current, double beta_bias = 1.0);
+    //! Draws from `rng`; pass seeded_rng(seed) for a reproducible result. The
+    //! default is the calling thread's own (randomly seeded) generator.
+    void resample(size_t ionic_current, double beta_bias = 1.0, std::mt19937& rng = random_gen);
 
     double empiric_average_mass();
     double empiric_variance();
@@ -392,23 +394,25 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
         return FromTotalProb(Iso(iso, true), _target_total_prob, _optimize, tgetConfs);
     }
 
-    template<bool tgetConfs> void stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
+    template<bool tgetConfs> void stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias, std::mt19937& rng);
 
-    inline static FixedEnvelope FromStochastic(Iso&& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false)
+    //! Draws from `rng`; pass seeded_rng(seed) for a reproducible result. The
+    //! default is the calling thread's own (randomly seeded) generator.
+    inline static FixedEnvelope FromStochastic(Iso&& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false, std::mt19937& rng = random_gen)
     {
         FixedEnvelope ret;
 
         if(tgetConfs)
-            ret.stochastic_init<true>(std::move(iso), _no_molecules, _precision, _beta_bias);
+            ret.stochastic_init<true>(std::move(iso), _no_molecules, _precision, _beta_bias, rng);
         else
-            ret.stochastic_init<false>(std::move(iso), _no_molecules, _precision, _beta_bias);
+            ret.stochastic_init<false>(std::move(iso), _no_molecules, _precision, _beta_bias, rng);
 
         return ret;
     }
 
-    static FixedEnvelope FromStochastic(const Iso& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false)
+    static FixedEnvelope FromStochastic(const Iso& iso, size_t _no_molecules, double _precision = 0.9999, double _beta_bias = 5.0, bool tgetConfs = false, std::mt19937& rng = random_gen)
     {
-        return FromStochastic(Iso(iso, true), _no_molecules, _precision, _beta_bias, tgetConfs);
+        return FromStochastic(Iso(iso, true), _no_molecules, _precision, _beta_bias, tgetConfs, rng);
     }
 
     static FixedEnvelope Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle = 0.0);

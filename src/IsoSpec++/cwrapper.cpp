@@ -300,6 +300,43 @@ void* setupIsoStochasticGenerator(void* iso,
             beta_bias);
     });
 }
+
+namespace
+{
+// The random state a seeded generator draws from has to live as long as the
+// generator and be built before it: a base class listed first is both.
+struct OwnedRng
+{
+    std::mt19937 owned_rng;
+    explicit OwnedRng(uint64_t seed) : owned_rng(seeded_rng(seed)) {}
+};
+
+class SeededIsoStochasticGenerator : private OwnedRng, public IsoStochasticGenerator
+{
+ public:
+    SeededIsoStochasticGenerator(Iso&& iso, size_t no_molecules, double precision, double beta_bias, uint64_t seed) :
+    OwnedRng(seed),
+    IsoStochasticGenerator(std::move(iso), no_molecules, precision, beta_bias, owned_rng)
+    {}
+};
+}  // namespace
+
+void* setupIsoStochasticGeneratorSeeded(void* iso,
+                                        size_t no_molecules,
+                                        double precision,
+                                        double beta_bias,
+                                        uint64_t seed)
+{
+    return c_guard([&]() -> void*
+    {
+        // Handed out as the base, like the unseeded generator, so every
+        // *IsoStochasticGenerator function (delete included, through the
+        // virtual destructor) works on it unchanged.
+        IsoStochasticGenerator* generator = new SeededIsoStochasticGenerator(
+            std::move(*reinterpret_cast<Iso*>(iso)), no_molecules, precision, beta_bias, seed);
+        return generator;
+    });
+}
 ISOSPEC_C_FN_CODES(IsoStochasticGenerator)
 
 // ______________________________________________________ FixedEnvelopes
@@ -348,6 +385,26 @@ void* setupStochasticFixedEnvelope(void* iso,
                                           precision,
                                           beta_bias,
                                           get_confs));
+    });
+}
+
+void* setupStochasticFixedEnvelopeSeeded(void* iso,
+                    size_t no_molecules,
+                    double precision,
+                    double beta_bias,
+                    bool get_confs,
+                    uint64_t seed)
+{
+    return c_guard([&]() -> void*
+    {
+        std::mt19937 rng = seeded_rng(seed);
+        return new FixedEnvelope(
+            FixedEnvelope::FromStochastic(Iso(*reinterpret_cast<const Iso*>(iso), true),
+                                          no_molecules,
+                                          precision,
+                                          beta_bias,
+                                          get_confs,
+                                          rng));
     });
 }
 
@@ -540,6 +597,15 @@ void shiftMassEnvelope(void* envelope, double d_mass)
 void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias)
 {
     return c_guard([&]{ reinterpret_cast<FixedEnvelope*>(envelope)->resample(ionic_current, beta_bias); });
+}
+
+void resampleEnvelopeSeeded(void* envelope, size_t ionic_current, double beta_bias, uint64_t seed)
+{
+    return c_guard([&]
+    {
+        std::mt19937 rng = seeded_rng(seed);
+        reinterpret_cast<FixedEnvelope*>(envelope)->resample(ionic_current, beta_bias, rng);
+    });
 }
 
 

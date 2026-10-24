@@ -22,6 +22,7 @@ from . import PeriodicTbl
 from .confs_passthrough import ConfsPassthrough
 from collections import namedtuple, OrderedDict
 import math
+import numbers
 
 regex_pattern = re.compile('([A-Z][a-z]?)(-?[0-9]*)')
 ParsedFormula = namedtuple('ParsedFormula', 'atomCounts masses probs elems')
@@ -38,6 +39,16 @@ def _check_pointer(pointer, operation):
     if pointer == isoFFI.ffi.NULL:
         raise ValueError(operation + " failed (invalid arguments or allocation failure)")
     return pointer
+
+
+def _check_seed(seed):
+    """A seed for the C ABI's uint64_t: an integer in [0, 2**64), not a bool."""
+    if isinstance(seed, bool) or not isinstance(seed, numbers.Integral):
+        raise TypeError("seed must be an integer, got " + type(seed).__name__)
+    seed = int(seed)
+    if not 0 <= seed < 2**64:
+        raise ValueError("seed must satisfy 0 <= seed < 2**64, got " + str(seed))
+    return seed
 
 
 def _get_cobjects(envelopes):
@@ -686,9 +697,15 @@ class IsoDistribution(object):
         ret.scale(factor)
         return ret
 
-    def resample(self, ionic_current, beta_bias=1.0):
+    def resample(self, ionic_current, beta_bias=1.0, seed=None):
+        '''Replaces the probabilities by the ion counts of a simulated measurement of
+        ionic_current ions. With an integer seed (0 <= seed < 2**64) the counts are
+        reproducible; by default they come from a randomly seeded generator.'''
         co = self._get_cobject()
-        isoFFI.clib.resampleEnvelope(co, ionic_current, beta_bias)
+        if seed is None:
+            isoFFI.clib.resampleEnvelope(co, ionic_current, beta_bias)
+        else:
+            isoFFI.clib.resampleEnvelopeSeeded(co, ionic_current, beta_bias, _check_seed(seed))
         isoFFI.clib.deleteFixedEnvelope(co, True)
         self._total_prob = float(ionic_current)
         self.prob_sorted = False
@@ -893,6 +910,7 @@ def IsoStochastic(no_molecules,
                  precision=0.9999,
                  beta_bias=5.0,
                  get_confs=False,
+                 seed=None,
                  **kwargs):
         """Initialize the isotopic distribution by stochastic sampling, simulating a measured mass spectrum
         with a given number of ions. Each configuration is drawn independently according to its isotopic
@@ -904,10 +922,17 @@ def IsoStochastic(no_molecules,
             precision (float): total probability of the envelope used for sampling. Between 0.0 and 1.0.
             beta_bias (float, nonnegative): fiddling with this parameter does not change the result, but might make computations slightly faster (or likely, much, much slower if you screw it up...)
             get_confs (boolean): should we report the counts of isotopologues?
+            seed (int or None): an integer 0 <= seed < 2**64 makes the sample reproducible
+                (the same seed gives the same sample on every platform); None draws from a
+                randomly seeded generator.
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
-        tabulator = isoFFI.clib.setupStochasticFixedEnvelope(iso.iso, no_molecules, precision, beta_bias, get_confs)
+        if seed is None:
+            tabulator = isoFFI.clib.setupStochasticFixedEnvelope(iso.iso, no_molecules, precision, beta_bias, get_confs)
+        else:
+            tabulator = isoFFI.clib.setupStochasticFixedEnvelopeSeeded(iso.iso, no_molecules, precision, beta_bias,
+                                                                       get_confs, _check_seed(seed))
         ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)
         return ido
@@ -1071,14 +1096,23 @@ class IsoOrderedGenerator(IsoGenerator):
 
 
 class IsoStochasticGenerator(IsoGenerator):
-    def __init__(self, no_molecules, formula="", precision=0.9999, beta_bias = 1.0, get_confs=False, **kwargs):
+    def __init__(self, no_molecules, formula="", precision=0.9999, beta_bias = 1.0, get_confs=False, seed=None, **kwargs):
+        """seed: an integer 0 <= seed < 2**64 makes the sample reproducible; None
+        (the default) draws from a randomly seeded generator."""
         super(IsoStochasticGenerator, self).__init__(formula=formula, get_confs=get_confs, **kwargs)
         self.threshold = precision
         self.no_molecules = no_molecules
-        self.cgen = _check_pointer(self.ffi.setupIsoStochasticGenerator(self.iso,
-                                                        no_molecules,
-                                                        precision,
-                                                        beta_bias), "setupIsoStochasticGenerator")
+        if seed is None:
+            self.cgen = _check_pointer(self.ffi.setupIsoStochasticGenerator(self.iso,
+                                                            no_molecules,
+                                                            precision,
+                                                            beta_bias), "setupIsoStochasticGenerator")
+        else:
+            self.cgen = _check_pointer(self.ffi.setupIsoStochasticGeneratorSeeded(self.iso,
+                                                            no_molecules,
+                                                            precision,
+                                                            beta_bias,
+                                                            _check_seed(seed)), "setupIsoStochasticGeneratorSeeded")
         self.advancer = self.ffi.advanceToNextConfigurationIsoStochasticGenerator
         self.xprob_getter = self.ffi.probIsoStochasticGenerator
         self.mass_getter = self.ffi.massIsoStochasticGenerator

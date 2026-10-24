@@ -82,6 +82,11 @@ class IsoFFI:
         bool advanceToNextConfigurationIsoStochasticGenerator(void* generator);
         void deleteIsoStochasticGenerator(void* generator);
         void get_conf_signatureIsoStochasticGenerator(void* generator, int* space);
+        void* setupIsoStochasticGeneratorSeeded(void* iso,
+                                   size_t no_molecules,
+                                   double precision,
+                                   double beta_bias,
+                                   uint64_t seed);
 
         void* setupThresholdFixedEnvelope(void* iso,
                                     double threshold,
@@ -98,6 +103,13 @@ class IsoFFI:
                                      double precision,
                                      double beta_bias,
                                      bool get_confs);
+
+        void* setupStochasticFixedEnvelopeSeeded(void* iso,
+                                     size_t no_molecules,
+                                     double precision,
+                                     double beta_bias,
+                                     bool get_confs,
+                                     uint64_t seed);
 
         void* setupBinnedFixedEnvelope(void* iso,
                             double target_total_prob,
@@ -146,6 +158,7 @@ class IsoFFI:
         void normalizeEnvelope(void* envelope);
         void shiftMassEnvelope(void* envelope, double d_mass);
         void resampleEnvelope(void* envelope, size_t ionic_current, double beta_bias);
+        void resampleEnvelopeSeeded(void* envelope, size_t ionic_current, double beta_bias, uint64_t seed);
         void* binnedEnvelope(void* envelope, double width, double middle);
         void* linearCombination(void* const * const envelopes, const double* intensities, size_t count);
 

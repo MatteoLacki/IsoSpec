@@ -115,6 +115,16 @@ inline double InverseChiSquareCDF2(int k, double x)
 
 extern thread_local std::mt19937 random_gen;
 
+//! A generator for reproducible sampling: the same seed gives the same stream
+//! on every platform and through every binding (C ABI, Python, Rust), since
+//! std::mt19937 and std::seed_seq are fully specified by the standard. Both
+//! halves of the seed are used.
+inline std::mt19937 seeded_rng(std::uint64_t seed)
+{
+    std::seed_seq seq{static_cast<std::uint32_t>(seed), static_cast<std::uint32_t>(seed >> 32)};
+    return std::mt19937(seq);
+}
+
 //! Uniform draw from [0,1), 53-bit resolution.
 /*! Not std::uniform_real_distribution: libstdc++ routes that through
     std::generate_canonical, which takes std::log2 of a long double at every
@@ -136,6 +146,30 @@ inline double rdvariate_beta_1_b(double b, std::mt19937& rgen = random_gen)
 
 
 size_t rdvariate_binom(size_t tries, double succ_prob, std::mt19937& rgen = random_gen);
+
+//! Pivot positions for the quickselects (trimming FromTotalProb's envelope,
+//! quickselect() in misc.cpp): a splitmix64 stream from a fixed start, so a
+//! selection, and the order it leaves the array in, is the same on every run.
+//! Drawing from random_gen instead (seeded from std::random_device) made
+//! FromTotalProb's output order, and which of several equally probable
+//! configurations survive the cut, differ between runs of the same program.
+//! Pseudo-random rather than e.g. middle-of-range so the expected cost stays
+//! linear whatever order the generators emit configurations in.
+class PivotSequence
+{
+    std::uint64_t state = 0;
+
+ public:
+    //! A position in [0, len), len > 0.
+    std::size_t next(std::size_t len) noexcept
+    {
+        std::uint64_t z = (state += 0x9e3779b97f4a7c15ULL);
+        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+        z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+        z ^= z >> 31;
+        return static_cast<std::size_t>(z % len);
+    }
+};
 
 
 

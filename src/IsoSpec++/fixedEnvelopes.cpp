@@ -345,7 +345,7 @@ void FixedEnvelope::shift_mass(double value)
         _masses[ii] += value;
 }
 
-void FixedEnvelope::resample(size_t samples, double beta_bias)
+void FixedEnvelope::resample(size_t samples, double beta_bias, std::mt19937& rng)
 {
     if(_confs_no == 0)
         throw std::logic_error("Resample called on an empty spectrum");
@@ -373,7 +373,7 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
         double covered_part = (pprob - cprob) / (1.0 - cprob);
         while(samples * covered_part < beta_bias && samples > 0)
         {
-            cprob += rdvariate_beta_1_b(samples) * (1.0 - cprob);
+            cprob += rdvariate_beta_1_b(samples, rng) * (1.0 - cprob);
             while(pprob < cprob)
             {
                 pprob += _probs[++pidx];
@@ -385,7 +385,7 @@ void FixedEnvelope::resample(size_t samples, double beta_bias)
         }
         if(samples <= 0)
                 break;
-        size_t nrtaken = rdvariate_binom(samples, covered_part);
+        size_t nrtaken = rdvariate_binom(samples, covered_part, rng);
         _probs[pidx] += static_cast<double>(nrtaken);
         samples -= nrtaken;
         cprob = pprob;
@@ -1075,6 +1075,9 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
     size_t end = this->_confs_no;
     double sum_to_start = prob_at_last_switch;
 
+#if !ISOSPEC_BUILDING_R
+    PivotSequence pivots;
+#endif
     while(start < end)
     {
         size_t len = end - start;
@@ -1089,9 +1092,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 #if ISOSPEC_BUILDING_R
         size_t pivot = len/2 + start;
 #else
-        size_t pivot = random_gen() % len + start;  // Using Mersenne twister directly - we don't
-                                                    // need a very uniform distribution just for pivot
-                                                    // selection
+        size_t pivot = pivots.next(len) + start;
 #endif
         const double pprob = this->_probs[pivot];
 
@@ -1160,9 +1161,9 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
 template void FixedEnvelope::total_prob_init<true>(Iso&& iso, double target_total_prob, bool optimize);
 template void FixedEnvelope::total_prob_init<false>(Iso&& iso, double target_total_prob, bool optimize);
 
-template<bool tgetConfs> void FixedEnvelope::stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias)
+template<bool tgetConfs> void FixedEnvelope::stochastic_init(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias, std::mt19937& rng)
 {
-    IsoStochasticGenerator generator(std::move(iso), _no_molecules, _precision, _beta_bias);
+    IsoStochasticGenerator generator(std::move(iso), _no_molecules, _precision, _beta_bias, rng);
 
     this->allDim = generator.getAllDim();
     this->allDimSizeofInt = this->allDim * sizeof(int);
@@ -1173,8 +1174,8 @@ template<bool tgetConfs> void FixedEnvelope::stochastic_init(Iso&& iso, size_t _
         addConfILG<tgetConfs, IsoStochasticGenerator>(generator);
 }
 
-template void FixedEnvelope::stochastic_init<true>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
-template void FixedEnvelope::stochastic_init<false>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias);
+template void FixedEnvelope::stochastic_init<true>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias, std::mt19937& rng);
+template void FixedEnvelope::stochastic_init<false>(Iso&& iso, size_t _no_molecules, double _precision, double _beta_bias, std::mt19937& rng);
 
 double FixedEnvelope::empiric_average_mass()
 {

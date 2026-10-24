@@ -550,3 +550,52 @@ TEST_CASE("the algorithm-selection constants are stable") {
     CHECK(ISOSPEC_ALGO_THRESHOLD_RELATIVE == 3);
     CHECK(ISOSPEC_ALGO_LAYERED_ESTIMATE == 4);
 }
+
+TEST_CASE("seeded sampling through the C ABI is reproducible") {
+    std::vector<int> isoNo, atomCnt;
+    std::vector<double> masses, probs;
+    IsoHandle h(c_iso_for("C100H202", isoNo, atomCnt, masses, probs));
+
+    auto envelope = [&](uint64_t seed) {
+        void* env = setupStochasticFixedEnvelopeSeeded(h.p, 50000, 0.9999, 5.0, false, seed);
+        REQUIRE(env != nullptr);
+        const std::size_t n = confs_noFixedEnvelope(env);
+        const double* p = probsFixedEnvelope(env);
+        std::vector<double> out(p, p + n);
+        freeReleasedArray(const_cast<double*>(p));
+        deleteFixedEnvelope(env, false);
+        return out;
+    };
+    CHECK(envelope(5) == envelope(5));
+    CHECK(envelope(5) != envelope(6));
+
+    auto generated = [&](uint64_t seed) {
+        // The generator moves out of its Iso, so each run sets up a fresh one.
+        void* iso = c_iso_for("C100H202", isoNo, atomCnt, masses, probs);
+        void* gen = setupIsoStochasticGeneratorSeeded(iso, 50000, 0.9999, 5.0, seed);
+        REQUIRE(gen != nullptr);
+        std::vector<double> out;
+        while (advanceToNextConfigurationIsoStochasticGenerator(gen))
+            out.push_back(probIsoStochasticGenerator(gen));
+        deleteIsoStochasticGenerator(gen);
+        deleteIso(iso);
+        return out;
+    };
+    CHECK(generated(9) == generated(9));
+    CHECK(generated(9) != generated(10));
+
+    auto resampled = [&](uint64_t seed) {
+        void* env = setupTotalProbFixedEnvelope(h.p, 0.999, true, false);
+        REQUIRE(env != nullptr);
+        normalizeEnvelope(env);
+        resampleEnvelopeSeeded(env, 100000, 1.0, seed);
+        const std::size_t n = confs_noFixedEnvelope(env);
+        const double* p = probsFixedEnvelope(env);
+        std::vector<double> out(p, p + n);
+        freeReleasedArray(const_cast<double*>(p));
+        deleteFixedEnvelope(env, false);
+        return out;
+    };
+    CHECK(resampled(2) == resampled(2));
+    CHECK(resampled(2) != resampled(3));
+}

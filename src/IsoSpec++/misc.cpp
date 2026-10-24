@@ -30,6 +30,9 @@ void* quickselect(void** array, size_t n, size_t start, size_t end)
     if(start == end)
         return array[start];
 
+#if !ISOSPEC_BUILDING_R
+    PivotSequence pivots;
+#endif
     while(true)
     {
         // Partition part
@@ -37,9 +40,7 @@ void* quickselect(void** array, size_t n, size_t start, size_t end)
 #if ISOSPEC_BUILDING_R
         size_t pivot = len/2 + start;
 #else
-        size_t pivot = random_gen() % len + start;  // Using Mersenne twister directly - we don't
-                                                    // need a very uniform distribution just for pivot
-                                                    // selection
+        size_t pivot = pivots.next(len) + start;
 #endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);
