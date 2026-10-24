@@ -12,7 +12,10 @@ Authors@R: c(person(given = c("Mateusz", "Krzysztof"),
                person(given = c("Michał", "Piotr"),
                       family = "Startek",
                       role = "aut",
-                      comment = c(ORCID = "0000-0001-5227-3447"))
+                      comment = c(ORCID = "0000-0001-5227-3447")),
+               person(given = "Sun Microsystems, Inc.",
+                      role = "cph",
+                      comment = "fdlibm lgamma asymptotic expansion in src/isoMath.cpp")
                )
 Maintainer: Mateusz Krzysztof Łącki <matteo.lacki@gmail.com>
 Description: IsoSpec is a fine structure calculator used for obtaining the most
