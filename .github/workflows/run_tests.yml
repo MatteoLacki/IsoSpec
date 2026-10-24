@@ -112,3 +112,42 @@ jobs:
         run: |
           make test
 
+  run_cpp_tests_msvc:
+    # MSVC: the compiler a Rust (cxx) build on the windows-msvc target uses,
+    # and the one the Python wheel is built with -- but nothing else runs the
+    # C++ suite under it. MSVC has no <experimental/simd>, so the kernels run
+    # scalar. The source list comes from the Makefile's TEST_SRCS, so a new
+    # test file is picked up here without editing this job.
+    name: Run C++ tests with MSVC
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build and run the doctest suite
+        shell: pwsh
+        working-directory: ./tests/C++
+        run: |
+          $lines = Get-Content Makefile
+          $first = ($lines | Select-String '^TEST_SRCS').LineNumber - 1
+          $last = ($lines | Select-String '^# Rebuild').LineNumber - 1
+          $srcs = $lines[$first..$last] | Select-String '[a-z_]+\.cpp' | ForEach-Object { $_.Matches[0].Value }
+          $lib = '..\..\src\IsoSpec++'
+          New-Item -ItemType Directory -Force build | Out-Null
+          cl /nologo /std:c++20 /EHsc /O2 /W3 /MP /bigobj /utf-8 /Zc:__cplusplus /I $lib /DISOSPEC_ISA_DISPATCH=1 `
+             $srcs "$lib\unity-build.cpp" "$lib\isa_kernels_baseline.cpp" "$lib\isa_kernels_avx.cpp" `
+             "$lib\isa_kernels_v3.cpp" "$lib\isa_kernels_v4.cpp" /Fo:build\ /Fe:build\run_tests_msvc.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          build\run_tests_msvc.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build and run the C-ABI suite (cwrapper.h compiled as C11)
+        shell: pwsh
+        working-directory: ./tests/C
+        run: |
+          $lib = '..\..\src\IsoSpec++'
+          New-Item -ItemType Directory -Force build | Out-Null
+          cl /nologo /std:c++20 /EHsc /O2 /W3 /bigobj /utf-8 /I $lib /c "$lib\unity-build.cpp" /Fo:build\unity.obj
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cl /nologo /std:c11 /W3 /I $lib test_c_api.c build\unity.obj /Fo:build\ /Fe:build\test_c_api.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          build\test_c_api.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
