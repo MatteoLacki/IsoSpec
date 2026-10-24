@@ -51,6 +51,16 @@ def _check_seed(seed):
     return seed
 
 
+def _check_scalar(name, value, nonnegative=False, finite=True):
+    """The C ABI's void functions cannot report the C++ library's rejection of
+    a bad scalar (they turn it into a no-op), so those callers check here."""
+    value = float(value)
+    if math.isnan(value) or (finite and math.isinf(value)) or (nonnegative and value < 0.0):
+        raise ValueError(name + " must be " + ("finite" if finite else "not NaN") +
+                         (" and nonnegative" if nonnegative else "") + ", got " + repr(value))
+    return value
+
+
 def _get_cobjects(envelopes):
     # Wrappers borrow their arrays from Python. If a later allocation fails,
     # release earlier wrappers without freeing the Python-owned buffers.
@@ -675,19 +685,24 @@ class IsoDistribution(object):
         return ret
 
     def add_mass(self, d_mass):
+        d_mass = _check_scalar("d_mass", d_mass)
         isoFFI.clib.array_add(self.masses, self.size, d_mass)
 
     def mul_mass(self, d_mass):
+        d_mass = _check_scalar("d_mass", d_mass)
         isoFFI.clib.array_mul(self.masses, self.size, d_mass)
 
     def add_mul_mass(self, add, mul):
+        add, mul = _check_scalar("add", add), _check_scalar("mul", mul)
         isoFFI.clib.array_fma(self.masses, self.size, mul, add*mul)
 
     def mul_add_mass(self, mul, add):
+        add, mul = _check_scalar("add", add), _check_scalar("mul", mul)
         isoFFI.clib.array_fma(self.masses, self.size, mul, add)
 
     def scale(self, factor):
-        '''Multiplies the pribabilities of spectrum by factor. Works in place.'''
+        '''Multiplies the probabilities of spectrum by factor (finite, nonnegative). Works in place.'''
+        factor = _check_scalar("factor", factor, nonnegative=True)
         co = self._get_cobject()
         isoFFI.clib.scaleEnvelope(co, factor)
         isoFFI.clib.deleteFixedEnvelope(co, True)
@@ -703,6 +718,7 @@ class IsoDistribution(object):
         '''Replaces the probabilities by the ion counts of a simulated measurement of
         ionic_current ions. With an integer seed (0 <= seed < 2**64) the counts are
         reproducible; by default they come from a randomly seeded generator.'''
+        beta_bias = _check_scalar("beta_bias", beta_bias, nonnegative=True, finite=False)
         co = self._get_cobject()
         if seed is None:
             isoFFI.clib.resampleEnvelope(co, ionic_current, beta_bias)
@@ -778,6 +794,8 @@ class IsoDistribution(object):
         return ret
 
     def abyssalWassersteinDistance(self, other, abyss_depth, other_scale = 1.0):
+        abyss_depth = _check_scalar("abyss_depth", abyss_depth, nonnegative=True, finite=False)
+        other_scale = _check_scalar("other_scale", other_scale, nonnegative=True)
         x, y = _get_cobjects((self, other))
         ret = isoFFI.clib.abyssalWassersteinDistance(x, y, abyss_depth, other_scale)
         isoFFI.clib.deleteFixedEnvelope(x, True)
@@ -802,6 +820,8 @@ class IsoDistribution(object):
         return ret
 
     def wassersteinMatch(self, other, flow_dist, other_scale = 1.0):
+        flow_dist = _check_scalar("flow_dist", flow_dist, nonnegative=True, finite=False)
+        other_scale = _check_scalar("other_scale", other_scale, nonnegative=True)
         x, y = _get_cobjects((self, other))
         ret = isoFFI.clib.wassersteinMatch(x, y, flow_dist, other_scale)
         isoFFI.clib.deleteFixedEnvelope(x, True)
@@ -816,6 +836,7 @@ class IsoDistribution(object):
         co = self._get_cobject()
         cbo = isoFFI.clib.binnedEnvelope(co, width, middle)
         isoFFI.clib.deleteFixedEnvelope(co, True)
+        _check_pointer(cbo, "binnedEnvelope")
         ret = IsoDistribution(cobject = cbo)
         isoFFI.clib.deleteFixedEnvelope(cbo, False)
         self.mass_sorted = True
@@ -835,6 +856,7 @@ class IsoDistribution(object):
         cobject = isoFFI.clib.linearCombination(envelope_objs, intensities, len(envelope_objs))
         for x in envelope_objs:
             isoFFI.clib.deleteFixedEnvelope(x, True)
+        _check_pointer(cobject, "linearCombination")
         ret = IsoDistribution(cobject = cobject)
         isoFFI.clib.deleteFixedEnvelope(cobject, False)
         return ret
@@ -880,7 +902,8 @@ def IsoThreshold(threshold,
         **kwds: named arguments to IsoSpectrum.
     """
     iso = Iso(formula = formula, get_confs = get_confs, **kwargs)
-    tabulator = isoFFI.clib.setupThresholdFixedEnvelope(iso.iso, threshold, absolute, get_confs)
+    tabulator = _check_pointer(isoFFI.clib.setupThresholdFixedEnvelope(iso.iso, threshold, absolute, get_confs),
+                               "setupThresholdFixedEnvelope")
     ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
     isoFFI.clib.deleteFixedEnvelope(tabulator, False)
     return ido
@@ -901,7 +924,8 @@ def IsoTotalProb(prob_to_cover,
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
-        tabulator = isoFFI.clib.setupTotalProbFixedEnvelope(iso.iso, prob_to_cover, get_minimal_pset, get_confs)
+        tabulator = _check_pointer(isoFFI.clib.setupTotalProbFixedEnvelope(iso.iso, prob_to_cover, get_minimal_pset, get_confs),
+                                   "setupTotalProbFixedEnvelope")
         ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)
         return ido
@@ -935,6 +959,7 @@ def IsoStochastic(no_molecules,
         else:
             tabulator = isoFFI.clib.setupStochasticFixedEnvelopeSeeded(iso.iso, no_molecules, precision, beta_bias,
                                                                        get_confs, _check_seed(seed))
+        _check_pointer(tabulator, "setupStochasticFixedEnvelope")
         ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)
         return ido
@@ -956,7 +981,8 @@ def IsoBinned(bin_width,
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=False, **kwargs)
-        tabulator = isoFFI.clib.setupBinnedFixedEnvelope(iso.iso, target_total_prob, bin_width, bin_middle)
+        tabulator = _check_pointer(isoFFI.clib.setupBinnedFixedEnvelope(iso.iso, target_total_prob, bin_width, bin_middle),
+                                   "setupBinnedFixedEnvelope")
         ido = IsoDistribution(cobject = tabulator, get_confs = False, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)
         return ido
