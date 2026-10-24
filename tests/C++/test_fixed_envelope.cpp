@@ -801,3 +801,119 @@ TEST_CASE("Scalar parameters that would loop forever or reach undefined behaviou
         CHECK(e.get_total_prob() == 0.0);
     }
 }
+
+TEST_CASE("FromArrays checks caller-supplied arrays, and the operations keep them finite") {
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    const double big = 1e300;
+
+    SUBCASE("accepts a valid envelope and copies it") {
+        const double m[3] = {100.0, -5.0, 1e100};
+        const double p[3] = {0.5, 0.0, 0.25};
+        FixedEnvelope e = FixedEnvelope::FromArrays(m, p, 3);
+        REQUIRE(e.confs_no() == 3);
+        CHECK(e.masses() != m);
+        for (size_t ii = 0; ii < 3; ii++)
+        {
+            CHECK(e.mass(ii) == m[ii]);
+            CHECK(e.prob(ii) == p[ii]);
+        }
+        CHECK(FixedEnvelope::FromArrays(nullptr, nullptr, 0).confs_no() == 0);
+    }
+    SUBCASE("rejects bad masses and probabilities wherever they are") {
+        for (double bad_mass : {nan, inf, -inf, 1.01e100, -2e100})
+            for (size_t pos = 0; pos < 3; pos++)
+            {
+                double m[3] = {1.0, 2.0, 3.0};
+                const double p[3] = {0.1, 0.2, 0.3};
+                m[pos] = bad_mass;
+                CHECK_THROWS_AS(FixedEnvelope::FromArrays(m, p, 3), std::invalid_argument);
+            }
+        for (double bad_prob : {nan, inf, -inf, -1e-300})
+            for (size_t pos = 0; pos < 3; pos++)
+            {
+                const double m[3] = {1.0, 2.0, 3.0};
+                double p[3] = {0.1, 0.2, 0.3};
+                p[pos] = bad_prob;
+                CHECK_THROWS_AS(FixedEnvelope::FromArrays(m, p, 3), std::invalid_argument);
+            }
+    }
+    SUBCASE("scale above 1 rejects an overflow and leaves the envelope unchanged") {
+        const double m[2] = {1.0, 2.0};
+        const double p[2] = {big, 1.0};
+        FixedEnvelope e = FixedEnvelope::FromArrays(m, p, 2);
+        CHECK_THROWS_AS(e.scale(1e10), std::overflow_error);
+        CHECK(e.prob(0) == big);
+        CHECK(e.prob(1) == 1.0);
+        e.get_total_prob();  // the O(1) path: a known total
+        CHECK_THROWS_AS(e.scale(1e10), std::overflow_error);
+        CHECK(e.prob(0) == big);
+        e.scale(2.0);
+        CHECK(e.prob(0) == big * 2.0);
+        e.scale(0.5);
+        CHECK(e.prob(0) == big);
+    }
+    SUBCASE("normalize: empty is a no-op, zero or infinite total is rejected") {
+        FixedEnvelope empty = FixedEnvelope::FromArrays(nullptr, nullptr, 0);
+        empty.normalize();
+        CHECK(empty.confs_no() == 0);
+        const double m[2] = {1.0, 2.0};
+        const double zeros[2] = {0.0, 0.0};
+        FixedEnvelope z = FixedEnvelope::FromArrays(m, zeros, 2);
+        CHECK_THROWS_AS(z.normalize(), std::invalid_argument);
+        const double huge[2] = {1.5e308, 1.5e308};
+        FixedEnvelope h = FixedEnvelope::FromArrays(m, huge, 2);
+        CHECK_THROWS_AS(h.normalize(), std::invalid_argument);
+    }
+    SUBCASE("shift_mass rejects an overflow and leaves the masses unchanged") {
+        const double m[2] = {1e100, -1e100};
+        const double p[2] = {0.5, 0.5};
+        FixedEnvelope e = FixedEnvelope::FromArrays(m, p, 2);
+        e.shift_mass(1.7e308);
+        CHECK_THROWS_AS(e.shift_mass(1.7e308), std::overflow_error);
+        CHECK(e.mass(0) == 1e100 + 1.7e308);
+        // Both masses are now 1.7e308: the +-1e100 was lost to rounding.
+        e.sort_by_mass();  // the O(1) path: the two ends
+        CHECK_THROWS_AS(e.shift_mass(1e308), std::overflow_error);
+        CHECK(e.mass(1) == 1.7e308);
+        e.shift_mass(-1.7e308);
+        CHECK(e.mass(0) == 0.0);
+    }
+    SUBCASE("convolution rejects overflowing products and sums, exactly") {
+        const double m[2] = {1.0, 2.0};
+        const double p[2] = {big, 1.0};
+        FixedEnvelope a = FixedEnvelope::FromArrays(m, p, 2);
+        const double q[1] = {1e8};
+        FixedEnvelope b = FixedEnvelope::FromArrays(m, q, 1);
+        CHECK((a * b).confs_no() == 2);
+        const double r[1] = {1e9};
+        FixedEnvelope c = FixedEnvelope::FromArrays(m, r, 1);
+        CHECK_THROWS_AS(a * c, std::overflow_error);
+
+        const double far[1] = {1e100};
+        const double one[1] = {1.0};
+        FixedEnvelope f = FixedEnvelope::FromArrays(far, one, 1);
+        f.shift_mass(1.7e308);
+        CHECK_THROWS_AS(f * f, std::overflow_error);
+        FixedEnvelope g = FixedEnvelope::FromArrays(far, one, 1);
+        g.shift_mass(-1.7e308);
+        CHECK(std::isfinite((f * g).mass(0)));  // opposite extremes cancel: no overflow
+    }
+    SUBCASE("linear combination and binning reject overflowing sums") {
+        const double m[2] = {1.0, 1.2};
+        const double p[2] = {1.5e308, 1.5e308};
+        FixedEnvelope e = FixedEnvelope::FromArrays(m, p, 2);
+        const FixedEnvelope* s[1] = {&e};
+        const double two = 2.0;
+        CHECK_THROWS_AS(FixedEnvelope::LinearCombination(s, &two, 1), std::overflow_error);
+        CHECK_THROWS_AS(e.bin(1.0), std::overflow_error);
+        CHECK_THROWS_AS(e.bin(0.5), std::overflow_error);
+        CHECK(e.bin(0.1).confs_no() == 2);
+        const double same[2] = {1.0, 1.0};
+        FixedEnvelope d = FixedEnvelope::FromArrays(same, p, 2);
+        CHECK_THROWS_AS(d.bin(0.0), std::overflow_error);
+        const double far[1] = {1e100};
+        const double one[1] = {1.0};
+        CHECK_THROWS_AS(FixedEnvelope::FromArrays(far, one, 1).bin(1e-300), std::overflow_error);
+    }
+}

@@ -15,10 +15,12 @@
  */
 
 #include "fixedEnvelopes.h"
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <cassert>
 #include <algorithm>
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -209,10 +211,41 @@ FixedEnvelope FixedEnvelope::operator+(const FixedEnvelope& other) const
     return FixedEnvelope(std::move(nmasses), std::move(nprobs), new_size);
 }
 
+namespace
+{
+struct Extremes { double max_prob, min_mass, max_mass; };
+
+Extremes extremes(const double* masses, const double* probs, size_t n)
+{
+    Extremes ret{0.0, masses[0], masses[0]};
+    for(size_t ii = 0; ii < n; ii++)
+    {
+        ret.max_prob = (std::max)(ret.max_prob, probs[ii]);
+        ret.min_mass = (std::min)(ret.min_mass, masses[ii]);
+        ret.max_mass = (std::max)(ret.max_mass, masses[ii]);
+    }
+    return ret;
+}
+}  // namespace
+
 FixedEnvelope FixedEnvelope::operator*(const FixedEnvelope& other) const
 {
     if(other._confs_no != 0 && _confs_no > SIZE_MAX / other._confs_no)
         throw std::bad_alloc();
+
+    // Every product and sum in the loop below must stay finite. Rounding is
+    // monotonic, so the largest product is that of the two largest
+    // probabilities and the extreme sums are those of the extreme masses:
+    // checking those, in O(n + m), clears the whole O(n * m) loop exactly.
+    if(_confs_no > 0 && other._confs_no > 0)
+    {
+        const Extremes a = extremes(_masses, _probs, _confs_no);
+        const Extremes b = extremes(other._masses, other._probs, other._confs_no);
+        if(!(a.max_prob * b.max_prob <= (std::numeric_limits<double>::max)()) ||
+           !(std::fabs(a.min_mass + b.min_mass) <= (std::numeric_limits<double>::max)()) ||
+           !(std::fabs(a.max_mass + b.max_mass) <= (std::numeric_limits<double>::max)()))
+            throw std::overflow_error("Convolution overflows: a probability product or a mass sum is not finite");
+    }
 
     aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> nprobs;
     aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> nmasses;
@@ -328,6 +361,19 @@ void FixedEnvelope::scale(double factor)
     // conversions (undefined behaviour) or walks it off the end of the array.
     if(!(factor >= 0.0 && factor <= (std::numeric_limits<double>::max)()))
         throw std::invalid_argument("Scaling factor must be finite and nonnegative");
+    // Above 1, a large enough probability overflows to +inf. Checked before
+    // anything is written, so a rejected call leaves the envelope unchanged.
+    // No probability exceeds the (rounded) total, so a known total that
+    // survives the scaling clears them all in O(1) -- always the case in
+    // normalize(); otherwise a branch-free pass, which vectorises.
+    if(factor > 1.0 && !(total_prob * factor <= (std::numeric_limits<double>::max)()))
+    {
+        bool fits = true;
+        for(size_t ii = 0; ii < _confs_no; ii++)
+            fits &= _probs[ii] * factor <= (std::numeric_limits<double>::max)();
+        if(!fits)
+            throw std::overflow_error("Scaling overflows a probability");
+    }
     for(size_t ii = 0; ii < _confs_no; ii++)
         _probs[ii] *= factor;
     total_prob *= factor;
@@ -335,9 +381,15 @@ void FixedEnvelope::scale(double factor)
 
 void FixedEnvelope::normalize()
 {
+    if(_confs_no == 0)
+        return;
     double tp = get_total_prob();
     if(tp != 1.0)
     {
+        // A zero total has nothing to normalise to; an infinite one (finite
+        // probabilities summing past DBL_MAX) would scale everything to zero.
+        if(!(tp > 0.0 && tp <= (std::numeric_limits<double>::max)()))
+            throw std::invalid_argument("Cannot normalize: total probability is zero or not finite");
         scale(1.0/tp);
         total_prob = 1.0;
     }
@@ -348,6 +400,23 @@ void FixedEnvelope::shift_mass(double value)
     // A NaN mass never satisfies bin()'s <= and hangs it; +inf then -inf makes NaN.
     if(!std::isfinite(value))
         throw std::invalid_argument("Mass shift must be finite");
+    // A finite shift can still carry a mass past DBL_MAX, and a +inf mass in
+    // one envelope convolved with a -inf one in another makes NaN. Checked
+    // before anything is written, as in scale(): in O(1) from the two ends
+    // when sorted by mass, otherwise in a pass over all of them.
+    const double dmax = (std::numeric_limits<double>::max)();
+    bool fits = true;
+    if(sorted_by_mass && _confs_no > 0)
+    {
+        fits = std::fabs(_masses[0] + value) <= dmax && std::fabs(_masses[_confs_no-1] + value) <= dmax;
+    }
+    else
+    {
+        for(size_t ii = 0; ii < _confs_no; ii++)
+            fits &= std::fabs(_masses[ii] + value) <= dmax;
+    }
+    if(!fits)
+        throw std::overflow_error("Mass shift overflows a mass");
     for(size_t ii = 0; ii < _confs_no; ii++)
         _masses[ii] += value;
 }
@@ -427,15 +496,21 @@ FixedEnvelope FixedEnvelope::LinearCombination(const FixedEnvelope* const * spec
     newmasses.reset(ret_size);
 
     size_t cntr = 0;
+    bool fits = true;
     for(size_t ii = 0; ii < size; ii++)
     {
         double mul = intensities[ii];
         for(size_t jj = 0; jj < spectra[ii]->_confs_no; jj++)
+        {
             newprobs[jj+cntr] = spectra[ii]->_probs[jj] * mul;
+            fits &= newprobs[jj+cntr] <= (std::numeric_limits<double>::max)();
+        }
         if(spectra[ii]->_confs_no > 0)
             memcpy(newmasses.get() + cntr, spectra[ii]->_masses, sizeof(double) * spectra[ii]->_confs_no);
         cntr += spectra[ii]->_confs_no;
     }
+    if(!fits)
+        throw std::overflow_error("Linear combination overflows a probability");
     return FixedEnvelope(std::move(newmasses), std::move(newprobs), cntr);
 }
 
@@ -775,6 +850,12 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
 
     ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
 
+    // Bin sums can overflow a probability, and with a tiny width the bin
+    // arithmetic can overflow a mass; either breaks what FromArrays checked.
+    // Once per bin, on the bin's way out.
+    bool fits = true;
+    const double dmax = (std::numeric_limits<double>::max)();
+
     if(bin_width == 0)
     {
         double curr_mass = _masses[0];
@@ -783,6 +864,7 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
         {
             if(curr_mass != _masses[ii])
             {
+                fits &= accd_prob <= dmax;
                 ret.store_conf(curr_mass, accd_prob);
                 curr_mass = _masses[ii];
                 accd_prob = _probs[ii];
@@ -790,7 +872,10 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
             else
                 accd_prob += _probs[ii];
         }
+        fits &= accd_prob <= dmax;
         ret.store_conf(curr_mass, accd_prob);
+        if(!fits)
+            throw std::overflow_error("Binning overflows a probability");
         return ret;
     }
 
@@ -810,10 +895,37 @@ FixedEnvelope FixedEnvelope::bin(double bin_width, double middle)
             bin_prob += _probs[ii];
             ii++;
         }
+        fits &= (bin_prob <= dmax) & (std::fabs(current_bin_middle) <= dmax);
         ret.store_conf(current_bin_middle, bin_prob);
     }
 
+    if(!fits)
+        throw std::overflow_error("Binning overflows a probability or a bin's mass");
     return ret;
+}
+
+FixedEnvelope FixedEnvelope::FromArrays(const double* in_masses, const double* in_probs, size_t confs_no)
+{
+    aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> nmasses;
+    aligned_unique_ptr<double, DOUBLE_SIMD_ALIGNMENT> nprobs;
+    nmasses.reset(confs_no);
+    nprobs.reset(confs_no);
+
+    // Checked during the copy, branch-free, so that the check rides along
+    // with the memory traffic the copy pays anyway.
+    bool valid = true;
+    for(size_t ii = 0; ii < confs_no; ii++)
+    {
+        const double m = in_masses[ii];
+        const double p = in_probs[ii];
+        nmasses[ii] = m;
+        nprobs[ii] = p;
+        valid &= (std::fabs(m) <= max_abs_mass) & (p >= 0.0) & (p <= (std::numeric_limits<double>::max)());
+    }
+    if(!valid)
+        throw std::invalid_argument("Envelope masses must be finite with |mass| <= 1e100, probabilities finite and nonnegative");
+
+    return FixedEnvelope(std::move(nmasses), std::move(nprobs), confs_no);
 }
 
 template<bool tgetConfs> void FixedEnvelope::reallocate_memory(size_t new_size)

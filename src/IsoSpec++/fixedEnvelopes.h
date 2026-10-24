@@ -209,7 +209,9 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
     FixedEnvelope& operator=(const FixedEnvelope& other);
     FixedEnvelope& operator=(FixedEnvelope&& other);
 
-    //! Adopt foreign, malloc()'d arrays (see the ownership note above).
+    //! Adopt foreign, malloc()'d arrays (see the ownership note above). The
+    //! contents are trusted: every mass finite, every probability finite and
+    //! nonnegative. For arrays from an untrusted caller, use FromArrays().
     FixedEnvelope(double* masses, double* probs, size_t confs_no, bool masses_sorted = false, bool probs_sorted = false, double _total_prob = NAN);
     FixedEnvelope(double* masses, double* probs, int* confs, size_t confs_no, int _allDim, bool masses_sorted = false, bool probs_sorted = false, double _total_prob = NAN);
 
@@ -285,6 +287,13 @@ class ISOSPEC_EXPORT_SYMBOL FixedEnvelope {
 
 
     FixedEnvelope bin(double bin_width = 1.0, double middle = 0.0);
+
+    //! Copy caller-supplied arrays into a new envelope, checking what every
+    //! other operation relies on: masses finite with |mass| <= max_abs_mass,
+    //! probabilities finite and nonnegative (std::invalid_argument otherwise).
+    //! The operations keep that true -- those that could overflow throw
+    //! std::overflow_error instead -- so nothing downstream checks again.
+    static FixedEnvelope FromArrays(const double* masses, const double* probs, size_t confs_no);
 
  private:
     void sort_by(double* order);

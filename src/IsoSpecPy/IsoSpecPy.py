@@ -674,6 +674,11 @@ class IsoDistribution(object):
         return self._total_prob
 
     def normalize(self):
+        if self.size == 0:
+            return
+        total = self.total_prob()
+        if not (0.0 < total < math.inf):
+            raise ValueError("Cannot normalize: total probability is " + repr(total))
         co = self._get_cobject()
         isoFFI.clib.normalizeEnvelope(co)
         isoFFI.clib.deleteFixedEnvelope(co, True)

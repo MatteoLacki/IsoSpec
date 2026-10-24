@@ -230,18 +230,12 @@ double get_loggamma_nominator(int x)
     return -minuslogFactorial(x);
 }
 
-//! Isotope masses enter sums of (count * mass) over a whole molecule. Bounding
-//! them keeps every such sum finite: an infinite one, or a NaN from opposite
-//! infinities, would reach std::sort and the binning's float-to-integer cast,
-//! both undefined behaviour on NaN. 1e100 Da is no constraint on chemistry.
-constexpr double kMaxAbsIsotopeMass = 1e100;
-
 const double* checked_masses(const double* masses, int isoNo)
 {
     if(isoNo < 1)
         throw std::invalid_argument("An element must have at least one isotope");
     for(int ii = 0; ii < isoNo; ii++)
-        if(!(std::fabs(masses[ii]) <= kMaxAbsIsotopeMass))
+        if(!(std::fabs(masses[ii]) <= max_abs_mass))
             throw std::invalid_argument("Isotope masses must be finite, with |mass| <= 1e100");
     return masses;
 }

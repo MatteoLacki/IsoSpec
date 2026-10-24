@@ -48,6 +48,15 @@
 namespace IsoSpec
 {
 
+//! Bound on caller-supplied masses: isotope masses given to Iso's raw-array
+//! constructor, and the masses of FixedEnvelope::FromArrays. Masses enter sums
+//! of (count * mass) over a whole molecule (at most ~4.6e18 atoms: under 5e118
+//! here), convolutions add them, variances square their differences. Bounding
+//! them keeps all of that finite: an infinite mass, or a NaN from opposite
+//! infinities, would reach std::sort and the binning's float-to-integer cast,
+//! both undefined behaviour on NaN. 1e100 Da is no constraint on chemistry.
+constexpr double max_abs_mass = 1e100;
+
 // The library never calls the C library's lgamma(). It reports the sign of
 // Gamma(x) through the global `signgam`, so every call writes shared state --
 // a data race between threads -- and lgamma_r(), which avoids that, is missing

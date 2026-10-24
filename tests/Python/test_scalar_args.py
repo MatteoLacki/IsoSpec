@@ -83,3 +83,12 @@ def test_infinite_depth_and_flow_still_accepted():
     a, b = env(), IsoSpecPy.IsoTotalProb(0.999, "C10H22O5S1")
     assert not math.isnan(a.abyssalWassersteinDistance(b, INF))
     assert a.wassersteinMatch(b, INF)[1] >= 0
+
+
+def test_normalize_zero_total_raises_and_empty_is_noop():
+    z = IsoSpecPy.IsoDistribution(masses=[1.0, 2.0], probs=[0.0, 0.0])
+    with pytest.raises(ValueError):
+        z.normalize()
+    e = IsoSpecPy.IsoTotalProb(0.0, F)
+    e.normalize()
+    assert len(e.masses) == 0
