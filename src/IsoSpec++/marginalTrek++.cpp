@@ -166,9 +166,34 @@ double* getMLogProbs(const double* probs, int isoNo)
         throw std::invalid_argument("An element must have at least one isotope");
     // Written as !(in range) so that a NaN, for which every comparison is
     // false, is rejected too.
+    double sum = 0.0;
     for(int ii = 0; ii < isoNo; ii++)
+    {
         if(!(probs[ii] > 0.0 && probs[ii] <= 1.0))
             throw std::invalid_argument("All isotope probabilities p must fulfill: 0.0 < p <= 1.0");
+        sum += probs[ii];
+    }
+
+    // An element's probabilities must sum to 1. Far off, the molecule's
+    // probabilities are meaningless and numerically dangerous: a sum near 0
+    // underflows every configuration to 0 (and normalising that gives NaN), a
+    // sum above 1 overflows large molecules' to infinity ((1.0001)^(10^7) is
+    // e^1000). So: rejected beyond kMaxProbabilitySumError -- loose enough for
+    // abundances rounded to four decimals -- and divided by the sum beyond
+    // kProbabilitySumRoundoff, below which the element table's rows (within
+    // 2.2e-16 of 1) and anything else exact up to rounding pass untouched.
+    constexpr double kMaxProbabilitySumError = 1e-3;
+    constexpr double kProbabilitySumRoundoff = 1e-12;
+    if(!(std::fabs(sum - 1.0) <= kMaxProbabilitySumError))
+        throw std::invalid_argument("The isotope probabilities of an element must sum to 1 (within 1e-3)");
+    std::unique_ptr<double[]> normalized;
+    if(std::fabs(sum - 1.0) > kProbabilitySumRoundoff)
+    {
+        normalized.reset(new double[isoNo]);
+        for(int ii = 0; ii < isoNo; ii++)
+            normalized[ii] = probs[ii] / sum;
+        probs = normalized.get();
+    }
 
     double* ret = new double[isoNo];
 

@@ -420,3 +420,44 @@ TEST_CASE("the raw-array constructor rejects every input it cannot represent") {
         CHECK_THROWS_AS(iso.addElement(1, 0, masses, probs), std::invalid_argument);
     }
 }
+
+TEST_CASE("isotope probabilities must sum to 1: renormalized when rounded, rejected when garbage") {
+    const int two[1] = {2};
+    const int count[1] = {50};
+    const double masses[2] = {12.0, 13.0034};
+
+    // Abundances rounded to four decimals, summing to 0.9999 (or 1.0001):
+    // accepted, and treated as the normalized element they stand for.
+    const double low[2] = {0.9892, 0.0107};
+    const double high[2] = {0.9893, 0.0108};
+    for (const double* p : {low, high}) {
+        const Iso rounded(1, two, count, masses, p);
+        const double renormalized[2] = {p[0] / (p[0] + p[1]), p[1] / (p[0] + p[1])};
+        CHECK(rounded.getModeLProb() == doctest::Approx(Iso(1, two, count, masses, renormalized).getModeLProb()));
+        // A normalized molecule's probabilities sum to 1, not 0.9999^50.
+        CHECK(FixedEnvelope::FromTotalProb(Iso(1, two, count, masses, p), 2.0, false, false).get_total_prob() ==
+              doctest::Approx(1.0));
+    }
+
+    // Further off than 1e-3: rejected.
+    for (double second : {0.5, 1e-12, 0.0005}) {
+        CAPTURE(second);
+        const double p[2] = {0.9, second};
+        CHECK_THROWS_AS(Iso(1, two, count, masses, p), std::invalid_argument);
+    }
+    const double tiny[2] = {9.09e-13, 3.47e-18};  // what the fuzzer found
+    CHECK_THROWS_AS(Iso(1, two, count, masses, tiny), std::invalid_argument);
+
+    // The element table's own rows (within 2.2e-16 of 1) are used as they
+    // are: bit for bit the molecule the formula parser builds.
+    std::vector<double> table_masses, table_probs;
+    int* isotope_numbers = nullptr;
+    int* atom_counts = nullptr;
+    unsigned int conf_size = 0;
+    const unsigned int dims = parse_formula("C50H20Mo3Sn2", table_masses, table_probs, &isotope_numbers, &atom_counts, &conf_size);
+    const Iso raw(static_cast<int>(dims), isotope_numbers, atom_counts, table_masses.data(), table_probs.data());
+    CHECK(raw.getModeLProb() == Iso("C50H20Mo3Sn2").getModeLProb());
+    CHECK(raw.getMonoisotopicPeakLProb() == Iso("C50H20Mo3Sn2").getMonoisotopicPeakLProb());
+    delete[] isotope_numbers;
+    delete[] atom_counts;
+}

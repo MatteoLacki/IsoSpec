@@ -317,6 +317,8 @@ class Iso(object):
             atomCounts (list): a list of atom counts (alternative to 'formula').
             isotopeMasses (list): a list of lists of masses of elements with counts in 'atomCounts'.
             isotopeProbabilities (list): a list of lists of probabilities of elements with counts in 'atomCounts'.
+                Each element's probabilities must lie in (0, 1] and sum to 1 within 1e-3 (they are then
+                divided by their sum); masses must be finite. Anything else raises ValueError.
             use_nominal_masses (boolean): should the masses be rounded to the closest integer values.
             fasta (str): a peptide sequence, optionally with [UNIMOD:<id>] modification
                 brackets -- see ParsePeptideSequence's docstring (this is the same argument

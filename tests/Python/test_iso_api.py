@@ -223,6 +223,31 @@ def test_iso_rejects_invalid_probabilities(probs):
                       isotopeProbabilities=probs)
 
 
+@pytest.mark.parametrize("probs", [
+    [[0.5, 0.25]],              # sums to 0.75
+    [[0.9, 1e-12]],             # sums to ~0.9
+    [[float("nan"), 0.5]],      # NaN
+])
+def test_iso_rejects_probabilities_not_summing_to_one(probs):
+    with pytest.raises(ValueError):
+        IsoSpecPy.Iso(atomCounts=[2], isotopeMasses=[[10.0, 11.0]],
+                      isotopeProbabilities=probs)
+
+
+def test_iso_renormalizes_rounded_probabilities():
+    # Four-decimal abundances summing to 0.9999: accepted, and treated as
+    # the normalized element (total probability 1, not 0.9999**50).
+    rounded = IsoSpecPy.IsoTotalProb(2.0, atomCounts=[50], isotopeMasses=[[12.0, 13.0034]],
+                                     isotopeProbabilities=[[0.9892, 0.0107]])
+    assert sum(rounded.probs) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("masses", [[[10.0, float("inf")]], [[float("nan"), 11.0]]])
+def test_iso_rejects_non_finite_masses(masses):
+    with pytest.raises(ValueError):
+        IsoSpecPy.Iso(atomCounts=[2], isotopeMasses=masses, isotopeProbabilities=[[0.5, 0.5]])
+
+
 def test_iso_rejects_mismatched_arrays():
     with pytest.raises(ValueError):
         # Two masses, three probabilities.

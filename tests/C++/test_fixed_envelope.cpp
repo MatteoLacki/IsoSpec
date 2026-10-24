@@ -654,39 +654,38 @@ TEST_CASE("Binned: a non-positive target gives an empty envelope") {
 }
 
 TEST_CASE("Binned skips configurations whose probability underflows to zero") {
-    // Raw isotope probabilities need not sum to 1. With a total of 1/8 the
-    // target is never reached, so the layered fill runs through every
-    // configuration, including the two whose product underflows to 0.0.
-    // Those must not leave an (empty) bin behind.
+    // {1, 1e-200} sums to exactly 1 in double. A target above 1 is never
+    // reached, so the layered fill runs through every configuration,
+    // including the two whose product underflows to 0.0. Those must not
+    // leave an (empty) bin behind.
     int isotope_numbers[1] = {2};
     int atom_counts[1] = {3};
     double masses[2] = {1.0, 2.0};
-    double probs[2] = {0.5, 1e-200};
-    FixedEnvelope binned = FixedEnvelope::Binned(Iso(1, isotope_numbers, atom_counts, masses, probs), 0.9, 1.0, 0.0);
+    double probs[2] = {1.0, 1e-200};
+    FixedEnvelope binned = FixedEnvelope::Binned(Iso(1, isotope_numbers, atom_counts, masses, probs), 2.0, 1.0, 0.0);
     REQUIRE(binned.confs_no() == 2);
     binned.sort_by_mass();
     CHECK(binned.mass(0) == doctest::Approx(3.0));
-    CHECK(binned.prob(0) == doctest::Approx(0.125));
+    CHECK(binned.prob(0) == doctest::Approx(1.0));
     CHECK(binned.mass(1) == doctest::Approx(4.0));
-    CHECK(binned.prob(1) == doctest::Approx(7.5e-201));
+    CHECK(binned.prob(1) == doctest::Approx(3e-200));
 }
 
 TEST_CASE("FromTotalProb with an unreachable target keeps every configuration") {
-    // Raw isotope probabilities summing to 1/8 over the molecule: the layers
-    // run out before the target is met, and whatever was stored is the
-    // answer, trimmed or not.
+    // A target above the molecule's total of 1: the layers run out before it
+    // is met, and whatever was stored is the answer, trimmed or not.
     int isotope_numbers[1] = {2};
     int atom_counts[1] = {3};
     double masses[2] = {1.0, 2.0};
-    double probs[2] = {0.5, 1e-200};
+    double probs[2] = {1.0, 1e-200};
     for (bool optimize : {true, false})
         for (bool get_confs : {true, false}) {
             CAPTURE(optimize);
             CAPTURE(get_confs);
             FixedEnvelope env = FixedEnvelope::FromTotalProb(Iso(1, isotope_numbers, atom_counts, masses, probs),
-                                                             0.9, optimize, get_confs);
+                                                             2.0, optimize, get_confs);
             CHECK(env.confs_no() == 4);
-            CHECK(env.get_total_prob() == doctest::Approx(0.125));
+            CHECK(env.get_total_prob() == doctest::Approx(1.0));
         }
 }
 

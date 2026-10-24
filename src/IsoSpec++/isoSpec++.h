@@ -93,6 +93,14 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
         \param _atomCounts Number of atoms of each element in the formula, e.g. for C100H202 corresponds to {100, 202}.
         \param _isotopeMasses A table of tables of masses of isotopes of the elements in the chemical formula, e.g. {{12.0, 13.003355}, {1.007825, 2.014102}} for C100H202.
         \param _isotopeProbabilities A table of tables of isotope frequencies of the elements in the chemical formula, e.g. {{.989212, .010788}, {.999885, .000115}} for C100H202.
+
+        Every input is validated; anything the algorithms cannot represent throws
+        std::invalid_argument (or std::length_error for sizes): a negative
+        _dimNumber or atom count, an element with no isotopes, a probability
+        outside (0, 1] (NaN included), a mass that is not finite or exceeds
+        1e100 in magnitude, or an element whose probabilities sum further than
+        1e-3 from 1. Probabilities within that tolerance (rounded abundances)
+        are divided by their sum; within 1e-12 of 1 they are used as given.
     */
     Iso(
         int             _dimNumber,
