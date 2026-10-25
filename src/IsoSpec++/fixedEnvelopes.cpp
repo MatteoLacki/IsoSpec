@@ -375,10 +375,13 @@ void FixedEnvelope::scale(double factor)
         throw std::invalid_argument("Scaling factor must be finite and nonnegative");
     // Above 1, a large enough probability overflows to +inf. Checked before
     // anything is written, so a rejected call leaves the envelope unchanged.
-    // No probability exceeds the (rounded) total, so a known total that
-    // survives the scaling clears them all in O(1) -- always the case in
-    // normalize(); otherwise a branch-free pass, which vectorises.
-    if(factor > 1.0 && !(total_prob * factor <= (std::numeric_limits<double>::max)()))
+    // No probability exceeds the total, so a known total that survives the
+    // scaling clears them all in O(1) -- always the case in normalize();
+    // otherwise a branch-free pass, which vectorises. The total is known only
+    // up to rounding (normalize() records exactly 1.0 for probabilities that
+    // may sum to 1 + 2^-52; found by fuzz_envelope), hence the factor-2
+    // headroom, far beyond any rounding error.
+    if(factor > 1.0 && !(total_prob * factor <= 0.5 * (std::numeric_limits<double>::max)()))
     {
         bool fits = true;
         for(size_t ii = 0; ii < _confs_no; ii++)

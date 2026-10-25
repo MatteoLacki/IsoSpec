@@ -853,6 +853,16 @@ TEST_CASE("FromArrays checks caller-supplied arrays, and the operations keep the
         e.scale(0.5);
         CHECK(e.prob(0) == big);
     }
+    SUBCASE("scale after normalize: the recorded total of 1 may be an ulp short") {
+        // Found by fuzz_envelope: p * (1/p) rounds to 1 + 2^-52 here, while
+        // normalize() records a total of exactly 1.
+        const double m[1] = {1138.5};
+        const double p1[1] = {0x1.b1cdfffffffffp+1023};
+        FixedEnvelope e = FixedEnvelope::FromArrays(m, p1, 1);
+        e.normalize();
+        CHECK_THROWS_AS(e.scale(0x1.fffffffffffffp+1023), std::overflow_error);
+        CHECK(std::isfinite(e.prob(0)));
+    }
     SUBCASE("normalize: empty is a no-op, zero or infinite total is rejected") {
         FixedEnvelope empty = FixedEnvelope::FromArrays(nullptr, nullptr, 0);
         empty.normalize();
