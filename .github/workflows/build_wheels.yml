@@ -107,8 +107,60 @@ jobs:
           name: cibw-sdist
           path: dist/*.tar.gz
 
+  package_crate:
+    # The Rust sources as crates.io would receive them. Publishing the crate
+    # stays manual (cargo publish); the release only carries the .crate.
+    name: Package Rust crate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      # Builds the crate from the packaged tarball alone, so a .crate missing a
+      # C++ source fails here.
+      - run: cargo package
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-crate
+          path: target/package/*.crate
+
+  build_r:
+    # The CRAN source tarball, checked the way CRAN checks it. R CMD build
+    # copies the symlinks in src/IsoSpecR/src as the files they point to, so
+    # the tarball is self-contained.
+    name: Build and check R package
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install dependencies
+        run: Rscript -e 'install.packages(c("Rcpp", "testthat"))'
+      - name: R CMD build
+        run: R CMD build src/IsoSpecR
+      # R CMD check exits non-zero only on ERROR; CRAN rejects WARNINGs too,
+      # so both checks fail on either. NOTEs are left to a human (a stale
+      # Date field, say, is one).
+      - name: R CMD check
+        run: |
+          R CMD check --no-manual IsoSpecR_*.tar.gz
+          ! grep -E '^\* .*\.\.\. (WARNING|ERROR)' IsoSpecR.Rcheck/00check.log
+      - name: R CMD check --as-cran
+        run: |
+          R CMD check --as-cran --no-manual IsoSpecR_*.tar.gz
+          ! grep -E '^\* .*\.\.\. (WARNING|ERROR)' IsoSpecR.Rcheck/00check.log
+      - name: Check logs
+        if: always()
+        run: cat IsoSpecR.Rcheck/00check.log || true
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-r
+          path: IsoSpecR_*.tar.gz
+
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build_wheels, build_sdist, package_crate, build_r]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -128,3 +180,34 @@ jobs:
         # To test uploads to TestPyPI, uncomment the following:
         # with:
         #   repository-url: https://test.pypi.org/legacy/
+
+  github_release:
+    # After PyPI accepted the wheels: the GitHub release for the same tag, with
+    # the source packages for all three registries (the Python sdist, the Rust
+    # .crate, the CRAN tarball), each built and checked above.
+    needs: [upload_pypi, build_sdist, package_crate, build_r]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: cibw-sdist
+          path: release
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-crate
+          path: release
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-r
+          path: release
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -l release
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "IsoSpec ${GITHUB_REF_NAME#v}" --generate-notes
