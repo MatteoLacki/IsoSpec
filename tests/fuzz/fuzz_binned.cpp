@@ -4,8 +4,9 @@
 // either side of the 2^48 limit, where the shifted grid origin rounds the most.
 // The accumulator is mmap'ed, beyond ASan's sight: what catches a slot outside
 // it is the bin_slot()/bin_run() check, live in this ISOSPEC_DEBUG build. The
-// output must be finite, nonnegative, sum to at most 1, and sit on bins
-// between the lightest and heaviest masses; a broken invariant aborts.
+// output must be finite, nonnegative, sit on bins between the lightest and
+// heaviest masses, and sum to at most 1 and at least the target (which a bin
+// lost by the gap-bounded scan would break); a broken invariant aborts.
 //
 // Inputs whose work is legitimately large -- millions of bins, or (nearly) full
 // enumerations of millions of configurations -- are skipped, so that each runs
@@ -110,8 +111,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         const double bins = (heaviest - lightest) / width;
         if(bins > 2e6 && scale / width < 0x1p49)
             return 0;
-        // A target near 1 makes the layered generator walk nearly everything too.
-        if(target > 0.99 && enumeration > 2e5)
+        // The layered generator walks roughly that share of the configurations
+        // (much more than it on flat, many-isotope elements: 5e9 at 0.95 took
+        // minutes).
+        if(enumeration * std::min(target, 1.0) > 1e6)
             return 0;
 
         IsoSpec::FixedEnvelope env = IsoSpec::FixedEnvelope::Binned(std::move(iso), target, width, middle);
@@ -127,7 +130,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
                 std::abort();
             total += p;
         }
-        if(!(total <= 1.0 + 1e-9))
+        // Every configuration the generator counted towards the target must have
+        // been found by the scan: this is what a gap wider than
+        // getMaxAtomMassSpan() allows for would break.
+        if(!(total <= 1.0 + 1e-9) || (target > 0.0 && !(total >= std::min(target, 1.0) * (1.0 - 1e-9))))
             std::abort();
     }
     catch(const std::exception&)

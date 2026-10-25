@@ -221,6 +221,14 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     */
     double getMassRoundingBound() const;
 
+    //! The largest mass change from moving one atom between two isotopes of an element: the largest Marginal::getAtomMassSpan().
+    /*!
+        Configurations above a probability cutoff are connected by such moves
+        (their log-probability is M-concave), so the masses of a complete set of
+        them leave no gap wider than this.
+    */
+    double getMaxAtomMassSpan() const;
+
     //! Get the log-probability of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakLProb() const;
 

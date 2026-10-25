@@ -329,6 +329,14 @@ double Iso::getMassRoundingBound() const
     return (max_isotopes + 2.0 * dimNumber + 4.0) * std::numeric_limits<double>::epsilon() * total;
 }
 
+double Iso::getMaxAtomMassSpan() const
+{
+    double span = 0.0;
+    for (int ii = 0; ii < dimNumber; ii++)
+        span = (std::max)(span, marginals[ii]->getAtomMassSpan());
+    return span;
+}
+
 double Iso::getHeaviestPeakLProb() const
 {
     double lprob = 0.0;

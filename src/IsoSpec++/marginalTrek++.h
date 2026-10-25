@@ -123,6 +123,9 @@ class Marginal
     //! Get the log-probability of the heaviest subisotopologue.
     double getHeaviestConfLProb() const;
 
+    //! The heaviest isotope's mass minus the lightest's: the most that moving one atom between two isotopes changes a configuration's mass (0 with no atoms, or one isotope).
+    double getAtomMassSpan() const;
+
     //! Get the mass of the monoisotopic subisotopologue.
     /*! The monoisotopic subisotopologue is defined as the molecule consiting only
         of the most likely isotope. This is frequently the lightest subisotopologue,

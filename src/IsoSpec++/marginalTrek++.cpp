@@ -361,6 +361,19 @@ double Marginal::getLightestConfLProb() const
     return logProb(lightest_conf.get());
 }
 
+double Marginal::getAtomMassSpan() const
+{
+    if(atomCnt == 0 || isotopeNo < 2)
+        return 0.0;
+    double lightest = atom_masses[0], heaviest = atom_masses[0];
+    for(unsigned int ii = 1; ii < isotopeNo; ii++)
+    {
+        lightest = (std::min)(lightest, atom_masses[ii]);
+        heaviest = (std::max)(heaviest, atom_masses[ii]);
+    }
+    return heaviest - lightest;
+}
+
 double Marginal::getHeaviestConfMass() const
 {
     double ret_mass = 0.0;

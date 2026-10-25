@@ -1421,14 +1421,14 @@ static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_slot(size_t no_bins, double mass,
 
 // The seeding contract for both fillers below: nonzero_slot just needs to be the
 // slot of *some* populated bin, to seed the outward compaction scan in Binned().
-// The scan walks both ways from the seed until it hits >10 Da of empty bins, so
-// *any* nonzero bin works equally well (it need not be the smallest, leftmost, or
-// the peak) -- we take whichever configuration the generator yields first, which
-// is the cheapest choice and lands on the mode.  The one requirement is that the
-// seed be nonzero: an empty seed lying >10 Da from the support would let the scan
-// stop before ever reaching it.  Hence zero-probability configurations are skipped.
-// (The seed also fixes the order of the output bins, and with gaps over 10 Da,
-// which of them are found.)
+// The scan walks both ways from the seed until it hits a gap wider than any the
+// configurations can leave (see Binned()), so *any* nonzero bin works equally
+// well (it need not be the smallest, leftmost, or the peak) -- we take whichever
+// configuration the generator yields first, which is the cheapest choice and
+// lands on the mode.  The one requirement is that the seed be nonzero: an empty
+// seed lying beyond that gap from the support would let the scan stop before
+// ever reaching it.  Hence zero-probability configurations are skipped.  (The
+// seed also fixes the order of the output bins.)
 
 // Scatter a generator's entire output into the dense bin accumulator `acc` (used
 // for the target>=1 full-enumeration path).  Returns false if empty.
@@ -1572,6 +1572,8 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     const double rounding = iso.getMassRoundingBound();
     const double lo = iso.getLightestPeakMass() - rounding;
     const double hi = iso.getHeaviestPeakMass() + rounding;
+    // Read now: iso is moved into the generator below.
+    const double max_step = iso.getMaxAtomMassSpan();
 
     // Bin indices (signed: masses below bin_middle - half_width have negative
     // ones) beyond 2^48 in magnitude would mean bins narrower than 1/16 of an
@@ -1670,25 +1672,33 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 
     if(non_empty)
     {
-        // Making the assumption that there won't be gaps of more than 10 Da in the spectrum. This is true for all
-        // molecules made of natural elements.
-        // FIXME: this has to be computed from the actual molecule, because
-        // there are also people that hijack IsoSpec for statistical calculations with arbitrary distributions
-        // transcribed onto artificial "elements".
-        // (Capped at the accumulator's size, which the scans cannot pass anyway,
-        // before converting: 10/width can exceed any integer.)
-        const double bins_10da = 10.0/bin_width;
-        const size_t distance_10da = bins_10da < static_cast<double>(no_bins) ? static_cast<size_t>(bins_10da) + 1 : no_bins;
+        // How wide a gap the populated bins can leave.  Every set of
+        // configurations above a probability cutoff is connected by moves of
+        // one atom between two isotopes (log-probability is M-concave in the
+        // isotope counts, so its superlevel sets have no holes and no islands),
+        // and such a move changes the mass by at most max_step: the masses
+        // leave no gap wider than that, however improbable the configurations
+        // left out.  It is twice that here, for configurations whose computed
+        // log-probability rounds across the cutoff, plus both masses' rounding,
+        // plus two bins for where the masses fall within theirs.  (Not covered:
+        // the partial last layer of fill_bins_to_prob, an arbitrary subset of
+        // one band of probabilities; a configuration from it more than this
+        // beyond the rest would be missed.  None found so far.)  Artificial
+        // elements may have isotopes far apart, and the 10 Da assumed here
+        // before lost whole peaks of them.  Capped at the accumulator's size,
+        // which the scans cannot pass anyway, before converting.
+        const double gap_bins = (2.0 * max_step + 2.0 * rounding) * inv_bin_width + 2.0;
+        const size_t max_gap = gap_bins < static_cast<double>(no_bins) ? static_cast<size_t>(gap_bins) : no_bins;
 
         ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
 
-        // Each scan stops after distance_10da consecutive empty bins, or at the
-        // end of the accumulator: its bound moves out with every populated bin.
+        // Each scan stops after max_gap consecutive empty bins, or at the end
+        // of the accumulator: its bound moves out with every populated bin.
         // One compare per bin: with a separate count of empty bins gcc kept
         // both loop conditions as flags, twice the instructions per bin, and
-        // the 2000 empty bins every spectrum at 0.01 Da ends with were 11% of
-        // a small peptide's whole Binned().
-        const std::ptrdiff_t distance = static_cast<std::ptrdiff_t>(distance_10da);
+        // the 2000 empty bins every spectrum at 0.01 Da ended with (at 10 Da
+        // each way) were 11% of a small peptide's whole Binned().
+        const std::ptrdiff_t distance = static_cast<std::ptrdiff_t>(max_gap);
         const std::ptrdiff_t bins = static_cast<std::ptrdiff_t>(no_bins);
 
         std::ptrdiff_t stop = (std::max)(nonzero_slot - distance, std::ptrdiff_t(0));

@@ -715,6 +715,86 @@ TEST_CASE("Binned rejects bin indices beyond ptrdiff_t, and takes any middle as 
          FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, 1e300));
 }
 
+// Binned() finds its populated bins by scanning out from one of them until a gap
+// wider than any the configurations can leave: the widest isotope mass span of
+// the molecule's elements (configurations above a probability cutoff are
+// connected by moving one atom between any two isotopes). A fixed 10 Da used
+// to be assumed, and lost whole peaks of artificial elements.
+namespace {
+
+// One element: isotopes at 0, 1, ..., n, n + 1 Da; 40% at each end and the
+// remaining 20% spread thinly over the n in between, which no 70% envelope
+// needs, so the ends are n + 1 Da apart with nothing populated between.
+Iso far_ends(int n, int atoms) {
+    std::vector<double> masses, probs;
+    masses.push_back(0.0);
+    probs.push_back(0.4);
+    for(int ii = 1; ii <= n; ii++) {
+        masses.push_back(ii);
+        probs.push_back(0.2 / n);
+    }
+    masses.push_back(n + 1.0);
+    probs.push_back(0.4);
+    const int isotope_numbers[] = {n + 2};
+    const int counts[] = {atoms};
+    return Iso(1, isotope_numbers, counts, masses.data(), probs.data());
+}
+
+bool has_bin_at(const FixedEnvelope& env, double mass, double tolerance) {
+    for(size_t ii = 0; ii < env.confs_no(); ii++)
+        if(std::fabs(env.mass(ii) - mass) <= tolerance)
+            return true;
+    return false;
+}
+
+}  // namespace
+
+TEST_CASE("Binned finds peaks of an artificial element far beyond 10 Da apart") {
+    const int n = 1000;
+    for(double width : {1.0, 0.1}) {
+        INFO("width=" << width);
+        // The layered path, which stops at the target, and full enumeration.
+        for(double target : {0.7, 1.0}) {
+            INFO("target=" << target);
+            FixedEnvelope env = FixedEnvelope::Binned(far_ends(n, 1), target, width);
+            CHECK(env.get_total_prob() >= target * (1.0 - 1e-12));
+            CHECK(has_bin_at(env, 0.0, width));
+            CHECK(has_bin_at(env, n + 1.0, width));
+        }
+    }
+    // Two atoms: 0, n + 1 and 2n + 2 Da carry 64%, so reaching 70% takes
+    // ~94000 of the 4n exactly tied configurations with one atom in between:
+    // an arbitrary subset of that band, which must not lose the far ends.
+    FixedEnvelope two = FixedEnvelope::Binned(far_ends(n, 2), 0.7, 1.0);
+    CHECK(two.get_total_prob() >= 0.7 * (1.0 - 1e-12));
+    CHECK(has_bin_at(two, 0.0, 1.0));
+    CHECK(has_bin_at(two, n + 1.0, 1.0));
+    CHECK(has_bin_at(two, 2.0 * n + 2.0, 1.0));
+}
+
+TEST_CASE("Binned finds clusters as far apart as the widest element's isotopes") {
+    // Element A: 0 or 50 Da, two atoms; element B: two isotopes 1 mDa apart.
+    // Clusters at 0, 50 and 100 Da, each a few mDa wide.
+    const int isotope_numbers[] = {2, 2};
+    const int counts[] = {2, 3};
+    const double masses[] = {0.0, 50.0, 0.0, 0.001};
+    const double probs[] = {0.5, 0.5, 0.5, 0.5};
+    // The two most probable configurations (37.5%) are at 50 Da; then come four
+    // tied at 9.375%, two at 0 and two at 100 Da: by 80% every cluster is in.
+    for(double target : {0.6, 0.8, 1.0}) {
+        INFO("target=" << target);
+        FixedEnvelope env = FixedEnvelope::Binned(Iso(2, isotope_numbers, counts, masses, probs), target, 0.0001);
+        CHECK(env.get_total_prob() >= target * (1.0 - 1e-12));
+        CHECK(has_bin_at(env, 50.0, 0.01));
+        if(target >= 0.8) {
+            CHECK(has_bin_at(env, 0.0, 0.01));
+            CHECK(has_bin_at(env, 100.0, 0.01));
+        }
+    }
+    CHECK(Iso(2, isotope_numbers, counts, masses, probs).getMaxAtomMassSpan() == 50.0);
+    CHECK(Iso("C100H202").getMaxAtomMassSpan() == doctest::Approx(1.00628).epsilon(1e-4));
+}
+
 TEST_CASE("Binned takes bins up to ~1e308 wide, and refuses wider ones") {
     // The grid's shifted origin, idx_min * width with idx_min around -2, is
     // what overflows first (found by fuzz_binned).
