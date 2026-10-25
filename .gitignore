@@ -50,3 +50,9 @@ tests/C/build/
 # Rust (cargo) build output
 /target/
 /Cargo.lock
+
+# cargo-fuzz output
+/rust/fuzz/target/
+/rust/fuzz/corpus/
+/rust/fuzz/artifacts/
+/rust/fuzz/Cargo.lock
