@@ -56,6 +56,14 @@ path = "rust/tests/iso.rs"
 name = "threads"
 path = "rust/tests/threads.rs"
 
+[[test]]
+name = "isa"
+path = "rust/tests/isa.rs"
+
+[[test]]
+name = "misc"
+path = "rust/tests/misc.rs"
+
 [dependencies]
 cxx = "1.0.205"
 
