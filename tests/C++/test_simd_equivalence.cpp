@@ -215,17 +215,22 @@ std::vector<test_helpers::Peak> reference_binned(const char* formula, double tar
     if (target_total_prob <= 0.0)
         return out;
 
+    // Binned()'s grid: the middle reduced mod the width, and the origin moved
+    // to two bins below the lightest mass, so that the index arithmetic yields
+    // accumulator slots directly.
     Iso iso(formula);
-    const double min_mass = iso.getLightestPeakMass();
-    const double range_len = iso.getHeaviestPeakMass() - min_mass;
-    const std::size_t no_bins = static_cast<std::size_t>(range_len / bin_width) + 2;
-    const double hwmm = 0.5 * bin_width - bin_middle;
+    bin_middle = std::fmod(bin_middle, bin_width);
+    const double rounding = iso.getMassRoundingBound();
+    const double lo = iso.getLightestPeakMass() - rounding;
+    const double hi = iso.getHeaviestPeakMass() + rounding;
     const double inv_bin_width = 1.0 / bin_width;
-    const std::ptrdiff_t idx_min = ref_bin_index(min_mass, hwmm, inv_bin_width);
-    const std::ptrdiff_t idx_max = idx_min + static_cast<std::ptrdiff_t>(no_bins);
+    const std::ptrdiff_t idx_min = ref_bin_index(lo, 0.5 * bin_width - bin_middle, inv_bin_width) - 2;
+    const double hwmm = (0.5 * bin_width - bin_middle) - static_cast<double>(idx_min) * bin_width;
+    const std::size_t no_bins = static_cast<std::size_t>(ref_bin_index(hi, hwmm, inv_bin_width)) + 2;
+    const std::ptrdiff_t idx_max = static_cast<std::ptrdiff_t>(no_bins);
 
     std::vector<double> acc(no_bins, 0.0);
-    auto at = [&](std::ptrdiff_t i) -> double& { return acc[static_cast<std::size_t>(i - idx_min)]; };
+    auto at = [&](std::ptrdiff_t i) -> double& { return acc.at(static_cast<std::size_t>(i)); };
 
     std::ptrdiff_t nonzero_idx = 0;
     bool seeded = false;
@@ -276,18 +281,18 @@ std::vector<test_helpers::Peak> reference_binned(const char* formula, double tar
     for (std::ptrdiff_t ii = nonzero_idx; empty_steps < distance_10da; ) {
         if (at(ii) > 0.0) {
             empty_steps = 0;
-            out.push_back({static_cast<double>(ii) * bin_width + bin_middle, at(ii)});
+            out.push_back({static_cast<double>(ii + idx_min) * bin_width + bin_middle, at(ii)});
         } else {
             empty_steps++;
         }
-        if (ii == idx_min) break;
+        if (ii == 0) break;
         ii--;
     }
     empty_steps = 0;
     for (std::ptrdiff_t ii = nonzero_idx + 1; ii < idx_max && empty_steps < distance_10da; ii++) {
         if (at(ii) > 0.0) {
             empty_steps = 0;
-            out.push_back({static_cast<double>(ii) * bin_width + bin_middle, at(ii)});
+            out.push_back({static_cast<double>(ii + idx_min) * bin_width + bin_middle, at(ii)});
         } else {
             empty_steps++;
         }

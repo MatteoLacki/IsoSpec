@@ -715,10 +715,12 @@ TEST_CASE("Binned rejects bin indices beyond ptrdiff_t, and takes any middle as 
          FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, 1e300));
 }
 
-TEST_CASE("Binned stays in bounds when the masses dwarf the width") {
-    // Indices near 2^55, where neighbouring masses land 8 or more indices
-    // apart: only the monotonicity of the index arithmetic bounds them. The
-    // dbg build asserts every slot; ASan cannot see past an mmap'ed buffer.
+TEST_CASE("Binned stays in bounds when the masses nearly dwarf the width, and refuses beyond") {
+    // Indices near 2^47, where bins are a few ulps of the masses wide and the
+    // shifted grid origin rounds the most. The dbg build asserts every slot;
+    // ASan cannot see past an mmap'ed buffer. (At 2^55, which the old code
+    // accepted, neighbouring masses landed 8 indices apart and the scatter
+    // wrote past the accumulator.)
     const double m = 1e6;
     const double masses[] = {m, std::nextafter(m, 2e6), std::nextafter(std::nextafter(m, 2e6), 2e6)};
     const double probs[] = {0.25, 0.5, 0.25};
@@ -727,8 +729,11 @@ TEST_CASE("Binned stays in bounds when the masses dwarf the width") {
         for(double target : {0.5, 1.0})
         {
             const int counts[] = {atoms};
+            CHECK_THROWS_AS(FixedEnvelope::Binned(
+                Iso(1, isotope_numbers, counts, masses, probs), target, atoms * m * std::ldexp(1.0, -55)),
+                std::length_error);
             FixedEnvelope env = FixedEnvelope::Binned(
-                Iso(1, isotope_numbers, counts, masses, probs), target, atoms * m * std::ldexp(1.0, -55));
+                Iso(1, isotope_numbers, counts, masses, probs), target, atoms * m * std::ldexp(1.0, -47));
             CHECK(env.confs_no() > 0);
             CHECK(env.get_total_prob() >= target * (1.0 - 1e-12));
             for(size_t ii = 0; ii < env.confs_no(); ii++)

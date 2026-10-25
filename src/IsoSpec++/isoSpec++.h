@@ -552,14 +552,14 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     }
 
     //! As above, but scattering into a dense bin accumulator.
-    ISOSPEC_FORCE_INLINE size_t batch_bin_run(isa_bin_run_fn kernel, double* acc, std::ptrdiff_t idx_min, size_t no_bins,
+    ISOSPEC_FORCE_INLINE size_t batch_bin_run(isa_bin_run_fn kernel, double* acc, size_t no_bins,
                                               double hwmm, double inv_bin_width)
     {
         return kernel(&lProbs_ptr, lProbs_ptr_start,
                       marginalResults[0]->get_masses_ptr(),
                       marginalResults[0]->get_probs_ptr(),
                       lcfmsv, partialMasses[1], partialProbs[1],
-                      acc, static_cast<double>(idx_min), static_cast<double>(no_bins), hwmm, inv_bin_width);
+                      acc, hwmm, inv_bin_width, static_cast<double>(no_bins));
     }
 
 

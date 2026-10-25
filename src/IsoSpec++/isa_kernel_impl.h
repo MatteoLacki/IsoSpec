@@ -104,10 +104,9 @@ static std::size_t bin_run(const double** lProbs_ptr,
                            double partial_mass,
                            double partial_prob,
                            double* acc,
-                           double idx_min,
-                           double no_bins,
                            double hwmm,
-                           double inv_bin_width)
+                           double inv_bin_width,
+                           double no_bins)
 {
     constexpr std::size_t W = simd_double::size();
     const double* p = *lProbs_ptr;
@@ -117,7 +116,7 @@ static std::size_t bin_run(const double** lProbs_ptr,
     const simd_double vpartial_mass(partial_mass);
     const simd_double vhwmm(hwmm);
     const simd_double vinv_bin_width(inv_bin_width);
-    const simd_double vidx_min(idx_min);
+    (void)no_bins;  // only for the debug check below
 
     simd_double masses;
     simd_double probs;
@@ -136,11 +135,7 @@ static std::size_t bin_run(const double** lProbs_ptr,
         // The scatter that consumes it cannot be vectorised -- the indices repeat
         // and collide, and resolving that would need AVX-512CD conflict detection
         // -- but everything ahead of it is, which is where the work is.
-        // Rebased to the slot while still a vector: the floor and idx_min are
-        // integer-valued and differ by less than no_bins < 2^52, so the
-        // difference is exact, the same slot as subtracting after conversion,
-        // for one vector subtract instead of an integer one per lane.
-        const simd_double slots = simd_ns::floor((masses + vhwmm) * vinv_bin_width) - vidx_min;
+        const simd_double slots = simd_ns::floor((masses + vhwmm) * vinv_bin_width);
 
         // Hand the probabilities to the scatter through a buffer rather than by
         // subscripting the vector. Clang otherwise sees every lane extracted and
@@ -154,11 +149,15 @@ static std::size_t bin_run(const double** lProbs_ptr,
         alignas(DOUBLE_SIMD_ALIGNMENT) double pbuf[W];
         probs.copy_to(pbuf, simd_ns::vector_aligned);
 
+        // The check is compiled out of release builds altogether: even as a
+        // named slot variable around the same arithmetic, it changed how clang
+        // interleaves these lanes.
         for(std::size_t ii = 0; ii < W; ii++)
         {
-            const std::ptrdiff_t slot = static_cast<std::ptrdiff_t>(slots[ii]);
-            ISOSPEC_IMPOSSIBLE(slot < 0 || static_cast<double>(slot) >= no_bins);
-            acc[slot] += pbuf[ii];
+#ifdef ISOSPEC_DEBUG
+            ISOSPEC_IMPOSSIBLE(!(slots[ii] >= 0.0 && slots[ii] < no_bins));
+#endif
+            acc[static_cast<std::ptrdiff_t>(slots[ii])] += pbuf[ii];
         }
 
         emitted += W;
@@ -184,7 +183,7 @@ static std::size_t fill_run(const double**, const double*, const double*, const 
 }
 
 static std::size_t bin_run(const double**, const double*, const double*, const double*,
-                           double, double, double, double*, double, double, double, double)
+                           double, double, double, double*, double, double, double)
 {
     return 0;
 }

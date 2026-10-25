@@ -84,12 +84,15 @@ typedef std::size_t (*isa_fill_run_fn)(const double** lProbs_ptr,
                                        double* out_probs);
 
 //! As above, but scattering into a dense bin accumulator instead of storing.
-/*! A configuration whose bin index is idx goes to acc[idx - idx_min], which
-    the caller guarantees is one of the no_bins slots of acc. Both are integers
-    passed as (exactly representable) doubles: as a seventh and eighth integer
-    argument they would go on the stack, and gcc then gave the caller a frame
-    pointer, its spills losing the fast rsp-relative store forwarding of recent
-    x86 cores (Binned()'s layered fill 2-3% slower on x86-64-v3). */
+/*! A configuration of mass m goes to acc[floor((m + hwmm) * inv_bin_width)],
+    which the caller guarantees is one of the no_bins slots of acc. no_bins is
+    only for a debug-build check, and is passed last and as a double (exact:
+    far below 2^53). As a seventh integer argument it would go on the stack,
+    and gcc then gave the caller a frame pointer, its spills losing the fast
+    rsp-relative store forwarding of recent x86 cores (Binned()'s layered fill
+    2-3% slower on x86-64-v3); anywhere but last it moves hwmm and
+    inv_bin_width to other registers, after which clang interleaved the
+    scatter's lanes differently (+1% on full enumerations into wide bins). */
 typedef std::size_t (*isa_bin_run_fn)(const double** lProbs_ptr,
                                       const double* lProbs_start,
                                       const double* marginal_masses,
@@ -98,10 +101,9 @@ typedef std::size_t (*isa_bin_run_fn)(const double** lProbs_ptr,
                                       double partial_mass,
                                       double partial_prob,
                                       double* acc,
-                                      double idx_min,
-                                      double no_bins,
                                       double hwmm,
-                                      double inv_bin_width);
+                                      double inv_bin_width,
+                                      double no_bins);
 
 //! One instruction-set level's build of the kernels.
 struct IsaKernels {
