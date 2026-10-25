@@ -85,5 +85,9 @@ RIsotopicTable <- function() {
     current$IsoSpecShort <- fresh_short
     current$IsoSpecShortZero <- fresh_short_zero
 
-    assignInNamespace("isotopicData", current, ns = ns)
+    # A plain assign: the namespace is not sealed yet during .onLoad.
+    # assignInNamespace() is utils', which the package does not import, so a
+    # load with only base attached (R CMD check's) failed, and CRAN flags it
+    # in package code regardless.
+    assign("isotopicData", current, envir = ns)
 }
