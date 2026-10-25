@@ -409,7 +409,7 @@ class ISOSPEC_EXPORT_SYMBOL IsoOrderedGeneratorTemplate: public IsoGenerator
                 return;
 
             int* c = getConf(topConf);
-            space[0] = std::max(c[0]-1, 0);
+            space[0] = (std::max)(c[0]-1, 0);
 
             for(int ii = 1; ii < dimNumber; ii++)
                 space[ii] = c[ii];

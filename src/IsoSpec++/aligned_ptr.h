@@ -75,7 +75,22 @@
 #endif
 
 #if ISOSPEC_WE_ARE_ON_WINDOWS
+    // Without NOMINMAX, <windows.h> defines min and max as macros, which break
+    // every later std::min(...) and numeric_limits<T>::max() in the including
+    // translation unit. Defined only around this include, so that the macro
+    // itself does not leak into the caller's code (though a later <windows.h>
+    // there is then a no-op, without the macros); a caller who included
+    // <windows.h> first, macros and all, is covered by the parenthesised
+    // (std::min)(...) calls in the public headers.
+    #ifndef NOMINMAX
+        #define NOMINMAX
+        #define ISOSPEC_UNDEF_NOMINMAX
+    #endif
     #include <windows.h>
+    #ifdef ISOSPEC_UNDEF_NOMINMAX
+        #undef NOMINMAX
+        #undef ISOSPEC_UNDEF_NOMINMAX
+    #endif
     #if defined(_WIN32)
         #include <malloc.h>   // _aligned_malloc / _aligned_free
     #endif
@@ -571,7 +586,7 @@ class aligned_unique_ptr {
             // still has to copy -- there is nothing yet to remap.
             aligned_ptr_detail::vm_region r = aligned_ptr_detail::vm_create(new_bytes);
             if (ptr_) {
-                std::memcpy(r.base, ptr_, std::min(capacity_bytes_, new_bytes));
+                std::memcpy(r.base, ptr_, (std::min)(capacity_bytes_, new_bytes));
                 free_small(ptr_);
             }
             region_ = r;
@@ -584,7 +599,7 @@ class aligned_unique_ptr {
 
         T* new_ptr = allocate_small(n);
         if (ptr_) {
-            std::memcpy(new_ptr, ptr_, std::min(capacity_bytes_, new_bytes));
+            std::memcpy(new_ptr, ptr_, (std::min)(capacity_bytes_, new_bytes));
             free_small(ptr_);
         }
         ptr_ = new_ptr;

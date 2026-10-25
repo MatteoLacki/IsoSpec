@@ -54,7 +54,7 @@ constexpr int AA_PACKED_FLUSH_EVERY = 48;
 //! (verify_atom_cnt), so a clamped molecule is still rejected there; the
 //! headroom up to INT_MAX absorbs the terminal water and modification deltas
 //! later added to a clamped count.
-constexpr int AA_ATOM_COUNT_CEILING = std::numeric_limits<int>::max() / 2;
+constexpr int AA_ATOM_COUNT_CEILING = (std::numeric_limits<int>::max)() / 2;
 
 //! Count elemental composition of an unmodificed sequence of amino acids, resulting in CHNOSSe counts.
 /*!
