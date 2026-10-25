@@ -282,6 +282,20 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //! Get the total number of isotopes of elements present in a chemical formula.
     inline int getAllDim() const { return allDim; }
 
+    //! The number of isotopes of each element: getDimNumber() entries.
+    inline const int* getIsotopeNumbers() const { return isotopeNumbers; }
+
+    //! The number of atoms of each element: getDimNumber() entries.
+    inline const int* getAtomCounts() const { return atomCounts; }
+
+    //! The isotope masses of element `element` (0 <= element < getDimNumber()):
+    //! getIsotopeNumbers()[element] entries, as the molecule was built with them.
+    inline const double* getElementIsotopeMasses(int element) const { return marginals[element]->get_masses(); }
+
+    //! The isotope log-probabilities of element `element`, renormalised to sum
+    //! to 1 (see the constructor): getIsotopeNumbers()[element] entries.
+    inline const double* getElementIsotopeLProbs(int element) const { return marginals[element]->get_lProbs(); }
+
     //! Add an element to the molecule. Note: this method can only be used BEFORE Iso is used to construct an IsoGenerator instance.
     void addElement(int atomCount, int noIsotopes, const double* isotopeMasses, const double* isotopeProbabilities);
 

@@ -36,6 +36,26 @@ include = [
 [lib]
 path = "rust/src/lib.rs"
 
+[[test]]
+name = "composition"
+path = "rust/tests/composition.rs"
+
+[[test]]
+name = "envelope"
+path = "rust/tests/envelope.rs"
+
+[[test]]
+name = "generator"
+path = "rust/tests/generator.rs"
+
+[[test]]
+name = "iso"
+path = "rust/tests/iso.rs"
+
+[[test]]
+name = "threads"
+path = "rust/tests/threads.rs"
+
 [dependencies]
 cxx = "1.0.205"
 

@@ -28,6 +28,10 @@ fn main() {
     println!("cargo:rerun-if-changed=rust/shim");
     println!("cargo:rerun-if-changed={CXX_DIR}");
     println!("cargo:rerun-if-env-changed=DOCS_RS");
+    println!("cargo:rerun-if-changed=VERSION");
+
+    let version = std::fs::read_to_string(root.join("VERSION")).expect("reading VERSION");
+    println!("cargo:rustc-env=ISOSPEC_LIBRARY_VERSION={}", version.trim());
 
     // docs.rs: rustdoc never links, and its compiler may lack C++20's
     // <experimental/simd> support; documentation needs none of the C++.
