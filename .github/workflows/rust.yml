@@ -14,21 +14,96 @@ jobs:
   test:
     # The platforms a `cargo add isospec` user builds on: libstdc++ with
     # runtime ISA dispatch on Linux (x86-64 and aarch64), Apple clang + libc++
-    # and MSVC with scalar kernels.
+    # (arm64 and Intel) and MSVC (x86-64 and arm64) with scalar kernels.
     name: cargo test (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
-      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      # Installs rustup too where the image lacks it (windows-11-arm).
+      - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all-targets
       - name: Kernels this platform's build runs
         run: cargo test --test isa -- --nocapture
       - run: cargo test --doc
       - run: cargo test --release --all-targets
+
+  mingw:
+    # x86_64-pc-windows-gnu: MinGW-w64 gcc and libstdc++, so the SIMD kernels
+    # and runtime dispatch, on Windows. MINGW64 (msvcrt), the C runtime Rust's
+    # windows-gnu target links, not UCRT64.
+    name: cargo test (windows, MinGW)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+      - name: Put MinGW gcc on PATH
+        shell: bash
+        run: echo "$(cygpath -u '${{ steps.msys2.outputs.msys2-location }}')/mingw64/bin" >> "$GITHUB_PATH"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-gnu
+      - run: cargo test --target x86_64-pc-windows-gnu --all-targets
+      - run: cargo test --target x86_64-pc-windows-gnu --test isa -- --nocapture
+      - run: cargo test --target x86_64-pc-windows-gnu --release --all-targets
+
+  musl:
+    # x86_64-unknown-linux-musl, natively in Alpine: musl libc, gcc and
+    # libstdc++.
+    name: cargo test (Alpine, musl)
+    runs-on: ubuntu-latest
+    container: rust:alpine
+    steps:
+      - run: apk add --no-cache g++ git
+      - uses: actions/checkout@v7
+      - run: cargo test --all-targets
+      - run: cargo test --test isa -- --nocapture
+      - run: cargo test --release --all-targets
+
+  freebsd:
+    # FreeBSD: base clang and libc++ (scalar kernels), in a VM.
+    name: cargo test (FreeBSD)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y curl
+            curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          run: |
+            . "$HOME/.cargo/env"
+            cargo test --all-targets
+            cargo test --test isa -- --nocapture
+
+  cross:
+    # Cross-compiled from x86-64 to aarch64 and run under qemu: the build
+    # script must take the ISA levels and compiler flags from the target, not
+    # the host. Doc tests are not cross-run.
+    name: cargo test (cross, x86-64 to aarch64)
+    runs-on: ubuntu-latest
+    env:
+      CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+      CXX_aarch64_unknown_linux_gnu: aarch64-linux-gnu-g++
+      AR_aarch64_unknown_linux_gnu: aarch64-linux-gnu-ar
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER: qemu-aarch64 -L /usr/aarch64-linux-gnu
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo apt-get update && sudo apt-get install -y g++-aarch64-linux-gnu qemu-user
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+      - run: cargo test --target aarch64-unknown-linux-gnu --tests
+      - run: cargo test --target aarch64-unknown-linux-gnu --test isa -- --nocapture
 
   package:
     # `cargo package` builds the crate from the packaged tarball alone: the
