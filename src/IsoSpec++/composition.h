@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <string_view>
 #include <vector>
 
 #include "isoSpec++.h"
@@ -86,6 +87,14 @@ struct ExpandedComposition {
         isotope_probabilities.clear();
     }
 };
+
+//! A formula string read as a composition: each element once, in the order
+//! written, counts signed ("H-2O-1" is accepted -- a composition may be a
+//! delta; build_iso_from_composition rejects negatives when one becomes a
+//! molecule). Throws std::invalid_argument for a malformed formula, an unknown
+//! element or one written twice, std::out_of_range for a count past int. The
+//! same tokenizer and checks as parse_formula, which goes through it.
+ElementComposition parse_formula_composition(std::string_view formula);
 
 //! Resolves each element of `composition` to its isotopes' masses and
 //! probabilities from element_tables.h, filling a caller-owned `out`

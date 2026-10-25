@@ -172,6 +172,34 @@ TEST_CASE("build_iso_from_composition still rejects a negative count") {
                     std::invalid_argument);
 }
 
+TEST_CASE("parse_formula_composition reads a formula as signed element counts, in written order") {
+    const ElementComposition water = parse_formula_composition("H2O1");
+    CHECK(water.element_first_index == make_composition({"H", "O"}, {2, 1}).element_first_index);
+    CHECK(water.count == std::vector<int>{2, 1});
+
+    const ElementComposition delta = parse_formula_composition("O1H-2C0");
+    CHECK(delta.element_first_index == make_composition({"O", "H", "C"}, {1, -2, 0}).element_first_index);
+    CHECK(delta.count == std::vector<int>{1, -2, 0});
+
+    // Exactly the bytes of the view: the trailing "9" is outside it.
+    CHECK(parse_formula_composition(std::string_view("C6H129", 5)).count == std::vector<int>{6, 12});
+
+    // The same composition parse_formula builds the molecule from.
+    CHECK(build_iso_from_composition(parse_formula_composition("C6H12O6")).getMonoisotopicPeakMass() ==
+          Iso("C6H12O6").getMonoisotopicPeakMass());
+}
+
+TEST_CASE("parse_formula_composition rejects what parse_formula rejects, negative counts aside") {
+    CHECK_THROWS_AS(parse_formula_composition(""), std::invalid_argument);
+    CHECK_THROWS_AS(parse_formula_composition("H2O"), std::invalid_argument);
+    CHECK_THROWS_AS(parse_formula_composition("Xx1"), std::invalid_argument);
+    CHECK_THROWS_AS(parse_formula_composition("C1H4C1"), std::invalid_argument);
+    CHECK_THROWS_AS(parse_formula_composition(std::string_view("C1\0H1", 5)), std::invalid_argument);
+    CHECK_THROWS_AS(parse_formula_composition("C99999999999"), std::out_of_range);
+    // A molecule still may not be a delta.
+    CHECK_THROWS_AS(Iso("H-2O1"), std::invalid_argument);
+}
+
 TEST_CASE("expandCompositionC feeds setupIso an Iso equal to the formula's") {
     // The round trip a binding actually performs: composition in, flat arrays
     // out, straight into setupIso.
