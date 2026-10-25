@@ -84,7 +84,12 @@ typedef std::size_t (*isa_fill_run_fn)(const double** lProbs_ptr,
                                        double* out_probs);
 
 //! As above, but scattering into a dense bin accumulator instead of storing.
-/*! acc must already be rebased so that a bin index of any sign is in range. */
+/*! A configuration whose bin index is idx goes to acc[idx - idx_min], which
+    the caller guarantees is one of the no_bins slots of acc. Both are integers
+    passed as (exactly representable) doubles: as a seventh and eighth integer
+    argument they would go on the stack, and gcc then gave the caller a frame
+    pointer, its spills losing the fast rsp-relative store forwarding of recent
+    x86 cores (Binned()'s layered fill 2-3% slower on x86-64-v3). */
 typedef std::size_t (*isa_bin_run_fn)(const double** lProbs_ptr,
                                       const double* lProbs_start,
                                       const double* marginal_masses,
@@ -93,6 +98,8 @@ typedef std::size_t (*isa_bin_run_fn)(const double** lProbs_ptr,
                                       double partial_mass,
                                       double partial_prob,
                                       double* acc,
+                                      double idx_min,
+                                      double no_bins,
                                       double hwmm,
                                       double inv_bin_width);
 

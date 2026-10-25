@@ -1387,33 +1387,60 @@ double FixedEnvelope::empiric_variance()
 }
 
 // Map a mass to its bin index.  Multiplying by the precomputed reciprocal avoids
-// a per-configuration division on this hot path.  The idx_min bound in Binned()
-// MUST use this exact same expression: since the bin index is monotonic in mass
-// and every configuration mass is >= min_mass, that guarantees bin_idx >= idx_min
-// and keeps the scatter in bounds (acc is rebased by -idx_min).  (Reciprocal vs
-// true division can disagree by <=1 ULP, which at an exact bin boundary could
-// move a peak to an adjacent bin, but never out of the allocated range.)
+// a per-configuration division on this hot path.  The index range in Binned()
+// MUST come from this exact same expression (as must the vector one in the
+// bin_run kernel): every step of it -- the rounded add, the rounded multiply by
+// a positive number, floor -- is monotonic, so a mass within the range Binned()
+// bounds lands on an index within the range it allocates, however coarse the
+// rounding.  (Reciprocal vs true division can disagree by <=1 ULP, which at an
+// exact bin boundary could move a peak to an adjacent bin, but never out of
+// the allocated range.)
+static ISOSPEC_FORCE_INLINE double bin_index_fp(double mass, double hwmm, double inv_bin_width)
+{
+    return floor((mass + hwmm) * inv_bin_width);
+}
+
+// The same, converted, for the scatter.  Deliberately not written as a cast of
+// bin_index_fp(): gcc folds a cast written around floor() into lfloor, which
+// below SSE4.1 (the wheel's baseline build of this file) is a call to libm's
+// floor -- ifunc'ed to roundsd -- while a floor() whose result crosses a
+// function boundary first gets gcc's inline SSE2 expansion instead, which made
+// the layered fill below 1.5-1.7x slower on Piledriver.  Same value either way.
 static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_index(double mass, double hwmm, double inv_bin_width)
 {
     return static_cast<std::ptrdiff_t>(floor((mass + hwmm) * inv_bin_width));
 }
 
-// The seeding contract for both fillers below: nonzero_idx just needs to be the
-// bin of *some* populated bin, to seed the outward compaction scan in Binned().
+// The accumulator slot of a mass: its bin index relative to the first one
+// allocated, idx_min.
+static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_slot(std::ptrdiff_t idx_min, size_t no_bins,
+                                                    double mass, double hwmm, double inv_bin_width)
+{
+    const std::ptrdiff_t slot = bin_index(mass, hwmm, inv_bin_width) - idx_min;
+    ISOSPEC_IMPOSSIBLE(slot < 0 || static_cast<size_t>(slot) >= no_bins);
+    return slot;
+}
+
+// The seeding contract for both fillers below: nonzero_slot just needs to be the
+// slot of *some* populated bin, to seed the outward compaction scan in Binned().
 // The scan walks both ways from the seed until it hits >10 Da of empty bins, so
 // *any* nonzero bin works equally well (it need not be the smallest, leftmost, or
 // the peak) -- we take whichever configuration the generator yields first, which
 // is the cheapest choice and lands on the mode.  The one requirement is that the
 // seed be nonzero: an empty seed lying >10 Da from the support would let the scan
 // stop before ever reaching it.  Hence zero-probability configurations are skipped.
+// (The seed also fixes the order of the output bins, and with gaps over 10 Da,
+// which of them are found.)
 
 // Scatter a generator's entire output into the dense bin accumulator `acc` (used
 // for the target>=1 full-enumeration path).  Returns false if empty.
 static bool fill_bins_full(IsoThresholdGenerator& generator,
                            double* acc,
+                           std::ptrdiff_t idx_min,
+                           size_t no_bins,
                            double hwmm,
                            double inv_bin_width,
-                           std::ptrdiff_t& nonzero_idx)
+                           std::ptrdiff_t& nonzero_slot)
 {
     bool non_empty;
     while((non_empty = generator.advanceToNextConfiguration()) && generator.prob() == 0.0)
@@ -1422,8 +1449,8 @@ static bool fill_bins_full(IsoThresholdGenerator& generator,
     if(!non_empty)
         return false;
 
-    nonzero_idx = bin_index(generator.mass(), hwmm, inv_bin_width);
-    acc[nonzero_idx] = generator.prob();
+    nonzero_slot = bin_slot(idx_min, no_bins, generator.mass(), hwmm, inv_bin_width);
+    acc[nonzero_slot] = generator.prob();
 
     // Same batching as threshold_init()'s fill, including the carry convention:
     // the seeding loop above left the pointer on the configuration it emitted,
@@ -1433,12 +1460,12 @@ static bool fill_bins_full(IsoThresholdGenerator& generator,
     const isa_bin_run_fn bin_run = isa_kernels().bin_run;
     do
     {
-        generator.batch_bin_run(bin_run, acc, hwmm, inv_bin_width);
+        generator.batch_bin_run(bin_run, acc, idx_min, no_bins, hwmm, inv_bin_width);
         while(generator.advanceToNextConfiguration_no_carry())
-            acc[bin_index(generator.mass(), hwmm, inv_bin_width)] += generator.prob();
+            acc[bin_slot(idx_min, no_bins, generator.mass(), hwmm, inv_bin_width)] += generator.prob();
         if(!generator.carry())
             break;
-        acc[bin_index(generator.mass(), hwmm, inv_bin_width)] += generator.prob();
+        acc[bin_slot(idx_min, no_bins, generator.mass(), hwmm, inv_bin_width)] += generator.prob();
     } while(true);
 
     return true;
@@ -1451,14 +1478,16 @@ static bool fill_bins_full(IsoThresholdGenerator& generator,
 // (extend()) overhead.  Returns false if the distribution is empty.
 static bool fill_bins_to_prob(IsoLayeredGenerator& generator,
                               double* acc,
+                              std::ptrdiff_t idx_min,
+                              size_t no_bins,
                               double hwmm,
                               double inv_bin_width,
                               double target_total_prob,
-                              std::ptrdiff_t& nonzero_idx)
+                              std::ptrdiff_t& nonzero_slot)
 {
     double prob_so_far = 0.0;
     double layer_delta;
-    bool seeded = false;
+    std::ptrdiff_t seed = -1;  // the first configuration's slot, once there is one
     const double sum_above = log1p(-target_total_prob) - 2.3025850929940455;  // log(0.1)
 
     // Each marginal-0 run is batch-filled into scratch arrays (as store_layer()
@@ -1493,18 +1522,17 @@ static bool fill_bins_to_prob(IsoLayeredGenerator& generator,
                 if(prob == 0.0)
                     continue;
 
-                std::ptrdiff_t bin_idx = bin_index(run_masses[ii], hwmm, inv_bin_width);
-                acc[bin_idx] += prob;
-
-                if(!seeded)
-                {
-                    nonzero_idx = bin_idx;
-                    seeded = true;
-                }
+                std::ptrdiff_t slot = bin_slot(idx_min, no_bins, run_masses[ii], hwmm, inv_bin_width);
+                acc[slot] += prob;
+                if(seed < 0)
+                    seed = slot;
 
                 prob_so_far += prob;
                 if(prob_so_far >= target_total_prob)
+                {
+                    nonzero_slot = seed;
                     return true;
+                }
             }
         }
         while(generator.carry());  // NOLINT(whitespace/empty_loop_body) - cpplint bug, that's not an empty loop body, that's a do{...}while(...) construct
@@ -1514,7 +1542,8 @@ static bool fill_bins_to_prob(IsoLayeredGenerator& generator,
         layer_delta = (std::max)((std::min)(layer_delta, -0.1), ISOSPEC_BINNED_LAYER_MAXSTEP);
     } while(generator.nextLayer(layer_delta));
 
-    return seeded;
+    nonzero_slot = seed;
+    return seed >= 0;
 }
 
 FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double bin_width, double bin_middle)
@@ -1532,36 +1561,46 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     if(target_total_prob <= 0.0)
         return ret;
 
-    double min_mass = iso.getLightestPeakMass();
-    double range_len = iso.getHeaviestPeakMass() - min_mass;
-    const double bin_count = range_len / bin_width;
-    // Check before converting or multiplying: tiny positive widths can exceed
-    // both the byte allocation limit and the signed index range. Leave room
-    // for the two boundary bins, using a strict bound to allow for rounding
-    // when the integer limit is converted to double.
+    // The same grid, with the middle brought within one width of zero (fmod is
+    // exact, and the identity for any |middle| < width): a middle far from the
+    // masses would otherwise leave mass + hwmm below with no precision at the
+    // masses' scale.
+    bin_middle = std::fmod(bin_middle, bin_width);
+    const double half_width = 0.5*bin_width;
+    const double hwmm = half_width-bin_middle;
+    const double inv_bin_width = 1.0/bin_width;
+
+    // Allocate the bins of every mass a generator can compute, which may lie
+    // a little outside the computed extremes (see getMassRoundingBound()).
+    // Their indices come from bin_index_fp() itself, which is monotonic, so
+    // every configuration's index lies between these two however coarse the
+    // rounding (masses dwarfing the width, say): the bound needs no error
+    // analysis of the index arithmetic. Indices are signed: masses below
+    // bin_middle - half_width have negative ones.
+    const double rounding = iso.getMassRoundingBound();
+    const double first_index = bin_index_fp(iso.getLightestPeakMass() - rounding, hwmm, inv_bin_width);
+    const double last_index = bin_index_fp(iso.getHeaviestPeakMass() + rounding, hwmm, inv_bin_width);
+    // Check before converting or subtracting: tiny positive widths can exceed
+    // both the byte allocation limit and the signed index range. The bounds
+    // are strict, to allow for rounding when the integer limits are converted
+    // to double.
     const size_t max_bins = (std::min)(SIZE_MAX / sizeof(double),
         static_cast<size_t>((std::numeric_limits<std::ptrdiff_t>::max)()));
-    if(!std::isfinite(bin_count) || bin_count < 0.0 ||
-       bin_count >= static_cast<double>(max_bins - 2))
-        throw std::length_error("Binned spectrum is too large");
-    size_t no_bins = static_cast<size_t>(bin_count) + 2;
-    double half_width = 0.5*bin_width;
-    double hwmm = half_width-bin_middle;
-    double inv_bin_width = 1.0/bin_width;
-    // Bin indices are signed: for masses below bin_middle - half_width they
-    // are legitimately negative.  Using size_t here would UB on the floor()
-    // cast and underflow the acc-=idx_min pointer arithmetic below.
-    const double first_index = floor((min_mass + hwmm) * inv_bin_width);
     const auto index_max = (std::numeric_limits<std::ptrdiff_t>::max)();
     const auto index_min = (std::numeric_limits<std::ptrdiff_t>::min)();
-    if(!std::isfinite(first_index) ||
-       first_index < static_cast<double>(index_min) ||
-       first_index >= static_cast<double>(index_max))
+    if(!std::isfinite(first_index) || !std::isfinite(last_index) ||
+       first_index <= static_cast<double>(index_min) ||
+       last_index >= static_cast<double>(index_max))
         throw std::length_error("Bin index is outside the supported range");
-    std::ptrdiff_t idx_min = static_cast<std::ptrdiff_t>(first_index);
-    if(idx_min > index_max - static_cast<std::ptrdiff_t>(no_bins))
-        throw std::length_error("Bin index is outside the supported range");
-    std::ptrdiff_t idx_max = idx_min + static_cast<std::ptrdiff_t>(no_bins);
+    // Below 2^52 bins (32 PiB, so nothing real) the bin kernel can rebase
+    // indices to slots exactly in floating point; see bin_run().
+    if(last_index - first_index >= (std::min)(static_cast<double>(max_bins / 2), 0x1p52))
+        throw std::length_error("Binned spectrum is too large");
+    // One spare bin at each end costs nothing and keeps the scatter in bounds
+    // should the vector and scalar forms of the index ever disagree by one.
+    // idx_min goes through a double for the kernel, which needs it exactly.
+    const std::ptrdiff_t idx_min = static_cast<std::ptrdiff_t>(first_index - 1.0);
+    const size_t no_bins = static_cast<size_t>(static_cast<std::ptrdiff_t>(last_index) - idx_min) + 2;
 
     double* acc;
 # if ISOSPEC_GOT_MMAN
@@ -1602,9 +1641,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         madvise(acc, sizeof(double)*no_bins, MADV_HUGEPAGE);
 #endif
 
-    acc -= idx_min;
-
-    std::ptrdiff_t nonzero_idx = 0;
+    std::ptrdiff_t nonzero_slot = 0;
     bool non_empty;
 
     if(target_total_prob >= 1.0)
@@ -1615,7 +1652,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         // >= 1.0 fast path in total_prob_init.
         IsoThresholdGenerator generator(std::move(iso), 0.0, true);
         non_empty = fill_bins_full(
-                        generator, acc, hwmm, inv_bin_width, nonzero_idx);
+                        generator, acc, idx_min, no_bins, hwmm, inv_bin_width, nonzero_slot);
     }
     else
     {
@@ -1625,7 +1662,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         IsoLayeredGenerator generator(std::move(iso), default_tab_size, 1000, true,
                                       std::min<double>(target_total_prob, 0.9999));
         non_empty = fill_bins_to_prob(
-                        generator, acc, hwmm, inv_bin_width, target_total_prob, nonzero_idx);
+                        generator, acc, idx_min, no_bins, hwmm, inv_bin_width, target_total_prob, nonzero_slot);
     }
 
     if(non_empty)
@@ -1635,36 +1672,37 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         // FIXME: this has to be computed from the actual molecule, because
         // there are also people that hijack IsoSpec for statistical calculations with arbitrary distributions
         // transcribed onto artificial "elements".
-        size_t distance_10da = static_cast<size_t>(10.0/bin_width) + 1;
-
-        size_t empty_steps = 0;
+        // (Capped at the accumulator's size, which the scans cannot pass anyway,
+        // before converting: 10/width can exceed any integer.)
+        const double bins_10da = 10.0/bin_width;
+        const size_t distance_10da = bins_10da < static_cast<double>(no_bins) ? static_cast<size_t>(bins_10da) + 1 : no_bins;
 
         ret.reallocate_memory<false>(ISOSPEC_INIT_TABLE_SIZE);
 
-        for(std::ptrdiff_t ii = nonzero_idx; empty_steps < distance_10da; )
-        {
-            if(acc[ii] > 0.0)
-            {
-                empty_steps = 0;
-                ret.store_conf(static_cast<double>(ii)*bin_width + bin_middle, acc[ii]);
-            }
-            else
-                empty_steps++;
-            if(ii == idx_min) break;
-            ii--;
-        }
+        // Each scan stops after distance_10da consecutive empty bins, or at the
+        // end of the accumulator: its bound moves out with every populated bin.
+        // One compare per bin: with a separate count of empty bins gcc kept
+        // both loop conditions as flags, twice the instructions per bin, and
+        // the 2000 empty bins every spectrum at 0.01 Da ends with were 11% of
+        // a small peptide's whole Binned().
+        const std::ptrdiff_t distance = static_cast<std::ptrdiff_t>(distance_10da);
+        const std::ptrdiff_t bins = static_cast<std::ptrdiff_t>(no_bins);
 
-        empty_steps = 0;
-        for(std::ptrdiff_t ii = nonzero_idx+1; ii < idx_max && empty_steps < distance_10da; ii++)
-        {
+        std::ptrdiff_t stop = (std::max)(nonzero_slot - distance, std::ptrdiff_t(0));
+        for(std::ptrdiff_t ii = nonzero_slot; ii >= stop; ii--)
             if(acc[ii] > 0.0)
             {
-                empty_steps = 0;
-                ret.store_conf(static_cast<double>(ii)*bin_width + bin_middle, acc[ii]);
+                stop = (std::max)(ii - distance, std::ptrdiff_t(0));
+                ret.store_conf(static_cast<double>(ii + idx_min)*bin_width + bin_middle, acc[ii]);
             }
-            else
-                empty_steps++;
-        }
+
+        std::ptrdiff_t end = (std::min)(nonzero_slot + distance + 1, bins);
+        for(std::ptrdiff_t ii = nonzero_slot + 1; ii < end; ii++)
+            if(acc[ii] > 0.0)
+            {
+                end = (std::min)(ii + distance + 1, bins);
+                ret.store_conf(static_cast<double>(ii + idx_min)*bin_width + bin_middle, acc[ii]);
+            }
     }
 
     return ret;

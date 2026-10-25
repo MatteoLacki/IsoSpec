@@ -692,13 +692,48 @@ TEST_CASE("FromTotalProb with an unreachable target keeps every configuration") 
         }
 }
 
-TEST_CASE("Binned rejects a grid whose last bin index would overflow") {
-    // The first bin index fits in ptrdiff_t, but the ~10^5 bins above it do
-    // not: the second range check, not the first, has to catch this.
-    Iso iso("C100");
-    const double width = 1e-3;
-    const double middle = iso.getLightestPeakMass() + 0.5 * width - (std::ldexp(1.0, 63) - 50000.0) * width;
-    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C100"), 0.99, width, middle), std::length_error);
+TEST_CASE("Binned rejects bin indices beyond ptrdiff_t, and takes any middle as the same grid") {
+    // 1200 Da in bins of 1e-17 Da is index ~1.2e20 > 2^63.
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C100"), 0.99, 1e-17), std::length_error);
+
+    // A middle any number of widths away describes the same grid; these used
+    // to wrap the accumulator pointer (2^53..2^62) or throw (1e300).
+    auto same = [](const FixedEnvelope& a, const FixedEnvelope& b) {
+        REQUIRE(a.confs_no() == b.confs_no());
+        for(size_t ii = 0; ii < a.confs_no(); ii++)
+        {
+            CHECK(a.mass(ii) == doctest::Approx(b.mass(ii)).epsilon(1e-12));
+            CHECK(a.prob(ii) == b.prob(ii));
+        }
+    };
+    // (2^k + 0.125 would round to 2^k for k >= 53: these middles are all 0 mod 0.5.)
+    const FixedEnvelope ref = FixedEnvelope::Binned(Iso("C100H202"), 0.99, 0.5, 0.0);
+    for(int k : {53, 55, 60, 62})
+        for(double sign : {1.0, -1.0})
+            same(ref, FixedEnvelope::Binned(Iso("C100H202"), 0.99, 0.5, sign * 3.0 * std::ldexp(1.0, k)));
+    same(FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0),
+         FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, 1e300));
+}
+
+TEST_CASE("Binned stays in bounds when the masses dwarf the width") {
+    // Indices near 2^55, where neighbouring masses land 8 or more indices
+    // apart: only the monotonicity of the index arithmetic bounds them. The
+    // dbg build asserts every slot; ASan cannot see past an mmap'ed buffer.
+    const double m = 1e6;
+    const double masses[] = {m, std::nextafter(m, 2e6), std::nextafter(std::nextafter(m, 2e6), 2e6)};
+    const double probs[] = {0.25, 0.5, 0.25};
+    const int isotope_numbers[] = {3};
+    for(int atoms : {1, 7, 40})
+        for(double target : {0.5, 1.0})
+        {
+            const int counts[] = {atoms};
+            FixedEnvelope env = FixedEnvelope::Binned(
+                Iso(1, isotope_numbers, counts, masses, probs), target, atoms * m * std::ldexp(1.0, -55));
+            CHECK(env.confs_no() > 0);
+            CHECK(env.get_total_prob() >= target * (1.0 - 1e-12));
+            for(size_t ii = 0; ii < env.confs_no(); ii++)
+                CHECK(env.mass(ii) == doctest::Approx(atoms * m).epsilon(1e-12));
+        }
 }
 
 TEST_CASE("FromThreshold const-Iso overloads do not consume the Iso") {
@@ -737,7 +772,6 @@ TEST_CASE("binning validates grid parameters before processing peaks") {
     }
     CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 0.0), std::invalid_argument);
     CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 1e-300), std::length_error);
-    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, 1e300), std::length_error);
     auto exact = env.bin(0.0);
     REQUIRE(exact.confs_no() == 2);
     CHECK(exact.mass(0) == 1.0);

@@ -210,6 +210,17 @@ class ISOSPEC_EXPORT_SYMBOL Iso {
     //! Get the mass of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakMass() const;
 
+    //! A bound on the rounding error of every configuration mass the generators compute, and of getLightestPeakMass() and getHeaviestPeakMass().
+    /*!
+        The exact masses all lie between the exact lightest and heaviest ones, so
+        every computed configuration mass lies in [getLightestPeakMass() - bound,
+        getHeaviestPeakMass() + bound]. These are summed in different orders (the
+        generators add the marginals from the last one down, the extremes from
+        the first one up), so without the margin a configuration can come out
+        lighter than the computed lightest peak.
+    */
+    double getMassRoundingBound() const;
+
     //! Get the log-probability of the heaviest peak in the isotopic distribution.
     double getHeaviestPeakLProb() const;
 
@@ -541,13 +552,14 @@ class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
     }
 
     //! As above, but scattering into a dense bin accumulator.
-    ISOSPEC_FORCE_INLINE size_t batch_bin_run(isa_bin_run_fn kernel, double* acc, double hwmm, double inv_bin_width)
+    ISOSPEC_FORCE_INLINE size_t batch_bin_run(isa_bin_run_fn kernel, double* acc, std::ptrdiff_t idx_min, size_t no_bins,
+                                              double hwmm, double inv_bin_width)
     {
         return kernel(&lProbs_ptr, lProbs_ptr_start,
                       marginalResults[0]->get_masses_ptr(),
                       marginalResults[0]->get_probs_ptr(),
                       lcfmsv, partialMasses[1], partialProbs[1],
-                      acc, hwmm, inv_bin_width);
+                      acc, static_cast<double>(idx_min), static_cast<double>(no_bins), hwmm, inv_bin_width);
     }
 
 

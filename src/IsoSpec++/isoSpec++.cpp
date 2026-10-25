@@ -308,6 +308,27 @@ double Iso::getHeaviestPeakMass() const
     return mass;
 }
 
+double Iso::getMassRoundingBound() const
+{
+    // A marginal's configuration mass is calc_mass(), k = isotopeNumbers[ii]
+    // products and sums, off by at most ~k ulps of atomCnt * max |atom mass|;
+    // the generators then sum dimNumber of those, and the extremes are summed
+    // the same way from one rounded product each. Both errors are relative to
+    // T = sum over marginals of atomCnt * max |atom mass| (which is what the
+    // max below computes, since the extremes are atomCnt times the extreme
+    // atom masses), so (max k + 2 dimNumber) ulps of T cover their sum; the +4
+    // covers T's own rounding and the caller's subtraction of the bound.
+    double total = 0.0;
+    int max_isotopes = 0;
+    for (int ii = 0; ii < dimNumber; ii++)
+    {
+        total += (std::max)(std::fabs(marginals[ii]->getLightestConfMass()),
+                            std::fabs(marginals[ii]->getHeaviestConfMass()));
+        max_isotopes = (std::max)(max_isotopes, isotopeNumbers[ii]);
+    }
+    return (max_isotopes + 2.0 * dimNumber + 4.0) * std::numeric_limits<double>::epsilon() * total;
+}
+
 double Iso::getHeaviestPeakLProb() const
 {
     double lprob = 0.0;

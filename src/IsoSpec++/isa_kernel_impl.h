@@ -104,6 +104,8 @@ static std::size_t bin_run(const double** lProbs_ptr,
                            double partial_mass,
                            double partial_prob,
                            double* acc,
+                           double idx_min,
+                           double no_bins,
                            double hwmm,
                            double inv_bin_width)
 {
@@ -115,6 +117,7 @@ static std::size_t bin_run(const double** lProbs_ptr,
     const simd_double vpartial_mass(partial_mass);
     const simd_double vhwmm(hwmm);
     const simd_double vinv_bin_width(inv_bin_width);
+    const simd_double vidx_min(idx_min);
 
     simd_double masses;
     simd_double probs;
@@ -133,7 +136,11 @@ static std::size_t bin_run(const double** lProbs_ptr,
         // The scatter that consumes it cannot be vectorised -- the indices repeat
         // and collide, and resolving that would need AVX-512CD conflict detection
         // -- but everything ahead of it is, which is where the work is.
-        const simd_double idx = simd_ns::floor((masses + vhwmm) * vinv_bin_width);
+        // Rebased to the slot while still a vector: the floor and idx_min are
+        // integer-valued and differ by less than no_bins < 2^52, so the
+        // difference is exact, the same slot as subtracting after conversion,
+        // for one vector subtract instead of an integer one per lane.
+        const simd_double slots = simd_ns::floor((masses + vhwmm) * vinv_bin_width) - vidx_min;
 
         // Hand the probabilities to the scatter through a buffer rather than by
         // subscripting the vector. Clang otherwise sees every lane extracted and
@@ -148,7 +155,11 @@ static std::size_t bin_run(const double** lProbs_ptr,
         probs.copy_to(pbuf, simd_ns::vector_aligned);
 
         for(std::size_t ii = 0; ii < W; ii++)
-            acc[static_cast<std::ptrdiff_t>(idx[ii])] += pbuf[ii];
+        {
+            const std::ptrdiff_t slot = static_cast<std::ptrdiff_t>(slots[ii]);
+            ISOSPEC_IMPOSSIBLE(slot < 0 || static_cast<double>(slot) >= no_bins);
+            acc[slot] += pbuf[ii];
+        }
 
         emitted += W;
         p += W;
@@ -173,7 +184,7 @@ static std::size_t fill_run(const double**, const double*, const double*, const 
 }
 
 static std::size_t bin_run(const double**, const double*, const double*, const double*,
-                           double, double, double, double*, double, double)
+                           double, double, double, double*, double, double, double, double)
 {
     return 0;
 }
