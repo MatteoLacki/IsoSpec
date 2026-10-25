@@ -5,8 +5,12 @@
 #   fuzz_unimod    an override Unimod CSV, then a sequence parsed against it
 #   fuzz_iso_arrays  the raw-array Iso constructor, then envelope operations
 #   fuzz_envelope  FixedEnvelope::FromArrays, then envelope operations with arbitrary arguments
+#   fuzz_binned    FixedEnvelope::Binned on raw-array molecules with arbitrary grids
 #
-# clang only (libFuzzer), built with ASan + UBSan, every report fatal.
+# clang only (libFuzzer), built with ASan + UBSan, every report fatal, and with
+# ISOSPEC_DEBUG, which turns the library's ISOSPEC_IMPOSSIBLE invariants into
+# asserts (Binned's mmap'ed accumulator is beyond ASan's sight: its slot check
+# is what catches a scatter out of bounds).
 #
 # Usage:
 #   make                      # build the targets under build/
@@ -22,12 +26,12 @@
 ifeq ($(origin CXX),default)
 CXX := clang++
 endif
-FLAGS := -std=c++20 -O1 -g -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=all
+FLAGS := -std=c++20 -O1 -g -DISOSPEC_DEBUG -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=all
 INC   := -I../../src/IsoSpec++
 UNITY := ../../src/IsoSpec++/unity-build.cpp
 BUILD := build
 
-TARGETS := fuzz_formula fuzz_sequence fuzz_unimod fuzz_iso_arrays fuzz_envelope
+TARGETS := fuzz_formula fuzz_sequence fuzz_unimod fuzz_iso_arrays fuzz_envelope fuzz_binned
 LIB_SRCS := $(wildcard ../../src/IsoSpec++/*.cpp ../../src/IsoSpec++/*.h)
 
 TIME ?= 60
@@ -42,10 +46,10 @@ $(BUILD):
 
 # The library is compiled once, instrumented for coverage but without
 # libFuzzer's main() (-fsanitize=fuzzer-no-link); each target links it.
-$(BUILD)/unity.o: $(UNITY) $(LIB_SRCS) | $(BUILD)
+$(BUILD)/unity.o: $(UNITY) $(LIB_SRCS) Makefile | $(BUILD)
 	$(CXX) $(subst fuzzer,fuzzer-no-link,$(FLAGS)) $(INC) -c $< -o $@
 
-$(BUILD)/%: %.cpp $(BUILD)/unity.o
+$(BUILD)/%: %.cpp $(BUILD)/unity.o Makefile
 	$(CXX) $(FLAGS) $(INC) $< $(BUILD)/unity.o -o $@
 
 # -jobs rather than -fork: libFuzzer's fork mode crashed in its own

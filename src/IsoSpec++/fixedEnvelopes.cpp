@@ -1596,6 +1596,11 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     const double hwmm_slot = hwmm - static_cast<double>(idx_min) * bin_width;
     const double first_slot = bin_index_fp(lo, hwmm_slot, inv_bin_width);
     const double last_slot = bin_index_fp(hi, hwmm_slot, inv_bin_width);
+    // Bins so wide that idx_min * bin_width overflows (a few times 1e308; the
+    // indices are small then) leave an infinite origin.  Otherwise last_slot
+    // is at most 2^49 + 3.
+    if(!(std::isfinite(hwmm_slot) && last_slot <= 0x1p50))
+        throw std::length_error("Bins too wide for the range of doubles");
     if(!(first_slot >= 0.0))
         throw std::logic_error("Binned: the shifted bin grid starts below its first slot");
     const size_t no_bins = static_cast<size_t>(last_slot) + 2;

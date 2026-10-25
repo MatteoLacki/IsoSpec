@@ -715,6 +715,17 @@ TEST_CASE("Binned rejects bin indices beyond ptrdiff_t, and takes any middle as 
          FixedEnvelope::Binned(Iso("C2"), 0.99, 1.0, 1e300));
 }
 
+TEST_CASE("Binned takes bins up to ~1e308 wide, and refuses wider ones") {
+    // The grid's shifted origin, idx_min * width with idx_min around -2, is
+    // what overflows first (found by fuzz_binned).
+    FixedEnvelope one = FixedEnvelope::Binned(Iso("C2"), 0.99, 1e300);
+    REQUIRE(one.confs_no() == 1);
+    CHECK(one.mass(0) == 0.0);
+    CHECK(one.prob(0) == doctest::Approx(1.0).epsilon(0.02));
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 0.99, 1.5e308), std::length_error);
+    CHECK_THROWS_AS(FixedEnvelope::Binned(Iso("C2"), 1.0, 1.5e308, -1e308), std::length_error);
+}
+
 TEST_CASE("Binned stays in bounds when the masses nearly dwarf the width, and refuses beyond") {
     // Indices near 2^47, where bins are a few ulps of the masses wide and the
     // shifted grid origin rounds the most. The dbg build asserts every slot;

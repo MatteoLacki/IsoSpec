@@ -33,11 +33,11 @@ build/run_tests_gcc -tc='<test case name>'     # -ltc lists test cases
 
 ```bash
 cd tests/fuzz
-make                         # clang/libFuzzer + ASan + UBSan: fuzz_formula, fuzz_sequence, fuzz_unimod, fuzz_iso_arrays, fuzz_envelope
+make                         # clang/libFuzzer + ASan + UBSan + ISOSPEC_DEBUG: fuzz_formula, fuzz_sequence, fuzz_unimod, fuzz_iso_arrays, fuzz_envelope, fuzz_binned
 make run TIME=600 JOBS=8     # fuzz each target from seeds/<target>/; corpus and crashes under build/
 ```
 
-Every parser of untrusted text (formulas, peptide sequences with `[UNIMOD:<id>]`, override Unimod CSVs), and the raw-array `Iso` constructor, must stay free of undefined behaviour on any input: bad input throws a `std::exception`, nothing else. The safe Rust API depends on this. The parsers take `std::string_view` and read exactly its bytes (no terminator; a NUL is an ordinary character), the `const char*` overloads forwarding to them; the fuzz targets feed exactly-sized buffers so that ASan catches any read past the end. Likewise for caller-supplied numbers: scalar parameters that could hang or reach UB are rejected, `FixedEnvelope::FromArrays` checks caller arrays, and envelope operations throw `std::overflow_error` rather than produce inf. Opt-in, not part of `make test`; rerun it after touching any parser.
+Every parser of untrusted text (formulas, peptide sequences with `[UNIMOD:<id>]`, override Unimod CSVs), and the raw-array `Iso` constructor, must stay free of undefined behaviour on any input: bad input throws a `std::exception`, nothing else. The safe Rust API depends on this. The parsers take `std::string_view` and read exactly its bytes (no terminator; a NUL is an ordinary character), the `const char*` overloads forwarding to them; the fuzz targets feed exactly-sized buffers so that ASan catches any read past the end. Likewise for caller-supplied numbers: scalar parameters that could hang or reach UB are rejected, `FixedEnvelope::FromArrays` checks caller arrays, and envelope operations throw `std::overflow_error` rather than produce inf. `FixedEnvelope::Binned` takes any finite grid: its bins are allocated from the same monotonic index arithmetic that scatters into them (grids beyond what doubles can resolve throw `std::length_error`); its accumulator is mmap'ed, out of ASan's sight, so the fuzz build defines `ISOSPEC_DEBUG`, which makes the slot check (and every other `ISOSPEC_IMPOSSIBLE` invariant) an assert. Opt-in, not part of `make test`; rerun it after touching any parser or `Binned`.
 
 ### C-ABI tests
 
