@@ -141,16 +141,19 @@ jobs:
       - name: R CMD build
         run: R CMD build src/IsoSpecR
       # R CMD check exits non-zero only on ERROR; CRAN rejects WARNINGs too,
-      # so both checks fail on either. NOTEs are left to a human (a stale
-      # Date field, say, is one).
+      # so both checks fail on either. A slow check puts its timing between
+      # the dots and the verdict ("... [4s/10s] WARNING"), hence the match on
+      # the line's end. The incoming-feasibility WARNING includes a version
+      # CRAN already has: DESCRIPTION's Version must be bumped for a release.
+      # NOTEs are left to a human (a stale Date field, say, is one).
       - name: R CMD check
         run: |
           R CMD check --no-manual IsoSpecR_*.tar.gz
-          ! grep -E '^\* .*\.\.\. (WARNING|ERROR)' IsoSpecR.Rcheck/00check.log
+          if grep -E '^\* checking .*(WARNING|ERROR)$' IsoSpecR.Rcheck/00check.log; then exit 1; fi
       - name: R CMD check --as-cran
         run: |
           R CMD check --as-cran --no-manual IsoSpecR_*.tar.gz
-          ! grep -E '^\* .*\.\.\. (WARNING|ERROR)' IsoSpecR.Rcheck/00check.log
+          if grep -E '^\* checking .*(WARNING|ERROR)$' IsoSpecR.Rcheck/00check.log; then exit 1; fi
       - name: Check logs
         if: always()
         run: cat IsoSpecR.Rcheck/00check.log || true
