@@ -217,6 +217,25 @@ TEST_CASE("abyssal distance scales the second spectrum") {
     CHECK(a.AbyssalWassersteinDistance(b, 10.0, 1.0) == doctest::Approx(0.5 * 10.0 * 0.5));
 }
 
+TEST_CASE("WassersteinMatch never leaves a negative remainder of a peak") {
+    // The other side's three small peaks add up to the first peak exactly, but
+    // their running sum, rounded, came out 1 ulp above it: what was left of the
+    // peak then went negative (an assert in debug builds; the fuzzer found it).
+    const double masses_a[] = {100.0};
+    const double probs_a[] = {0.7099647178965433};
+    const double masses_b[] = {100.0, 100.0, 100.0, 100.0};
+    const double probs_b[] = {0.07243892714722928, 0.10690390124369907, 0.530621889505615, 1.0};
+    FixedEnvelope a = FixedEnvelope::FromArrays(masses_a, probs_a, 1);
+    FixedEnvelope b = FixedEnvelope::FromArrays(masses_b, probs_b, 4);
+
+    auto [unmatched_a, unmatched_b, flow] = a.WassersteinMatch(b, 1.0, 1.0);
+    CHECK(unmatched_a >= 0.0);
+    CHECK(unmatched_b >= 0.0);
+    CHECK(flow == doctest::Approx(probs_a[0]));
+    CHECK(unmatched_a == doctest::Approx(0.0));
+    CHECK(unmatched_b == doctest::Approx(1.0));
+}
+
 TEST_CASE("WassersteinMatch conserves probability") {
     FixedEnvelope a = FixedEnvelope::FromThreshold(Iso("C6H12O6"), 1e-6, true, false);
     FixedEnvelope b = FixedEnvelope::FromThreshold(Iso("C6H12O6"), 1e-6, true, false);

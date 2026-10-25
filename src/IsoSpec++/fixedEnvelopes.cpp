@@ -791,67 +791,58 @@ std::tuple<double, double, double> FixedEnvelope::WassersteinMatch(FixedEnvelope
     const double* const probs2 = other._probs;
     const size_t n2 = other._confs_no;
 
+    // What is left of the current peak on each side. Tracked as remainders, not
+    // as amounts used: subtracting the smaller remainder from the larger is
+    // never negative in floating point, whereas p - used, with used a rounded
+    // running sum, can come out a few ulps below zero (the fuzzer found one).
     size_t idx_this = 0;
     size_t idx_other = 0;
-    double used_prob_this = 0.0;
-    double used_prob_other = 0.0;
+    double rem_this = probs1[0];
+    double rem_other = n2 > 0 ? probs2[0]*other_scale : 0.0;
 
     while(idx_this < n1 && idx_other < n2)
     {
-        bool moved = true;
-        while(moved && idx_this < n1 && idx_other < n2)
+        if(masses1[idx_this] < masses2[idx_other] - flow_distance)
         {
-            moved = false;
-            if(masses1[idx_this] < masses2[idx_other] - flow_distance)
-            {
-                unmatched1 += probs1[idx_this] - used_prob_this;
-                used_prob_this = 0.0;
-                idx_this++;
-                moved = true;
-            }
-            // The branch above may have just consumed the last peak of *this*;
-            // without the bound check the read below runs off the end of the
-            // masses array (the leftover peaks of `other` are accounted for by
-            // the tail loop after the outer while).
-            if(idx_this < n1 && masses2[idx_other] < masses1[idx_this] - flow_distance)
-            {
-                unmatched2 += probs2[idx_other]*other_scale - used_prob_other;
-                used_prob_other = 0.0;
-                idx_other++;
-                moved = true;
-            }
+            // Too light to reach anything left in `other`.
+            unmatched1 += rem_this;
+            if(++idx_this < n1)
+                rem_this = probs1[idx_this];
         }
-        if(idx_this < n1 && idx_other < n2)
+        else if(masses2[idx_other] < masses1[idx_this] - flow_distance)
         {
-            assert(probs1[idx_this] - used_prob_this >= 0.0);
-            assert(probs2[idx_other]*other_scale - used_prob_other >= 0.0);
-
-            if(probs1[idx_this] - used_prob_this < probs2[idx_other]*other_scale - used_prob_other)
-            {
-                massflow += probs1[idx_this] - used_prob_this;
-                used_prob_other += probs1[idx_this] - used_prob_this;
-                assert(used_prob_other >= 0.0);
-                used_prob_this = 0.0;
-                idx_this++;
-            }
-            else
-            {
-                massflow += probs2[idx_other]*other_scale - used_prob_other;
-                used_prob_this += probs2[idx_other]*other_scale - used_prob_other;
-                assert(used_prob_this >= 0.0);
-                used_prob_other = 0.0;
-                idx_other++;
-            }
+            unmatched2 += rem_other;
+            if(++idx_other < n2)
+                rem_other = probs2[idx_other]*other_scale;
+        }
+        else if(rem_this < rem_other)
+        {
+            massflow += rem_this;
+            rem_other -= rem_this;
+            if(++idx_this < n1)
+                rem_this = probs1[idx_this];
+        }
+        else
+        {
+            massflow += rem_other;
+            rem_this -= rem_other;
+            if(++idx_other < n2)
+                rem_other = probs2[idx_other]*other_scale;
         }
     }
 
-    unmatched1 -= used_prob_this;
-    unmatched2 -= used_prob_other;
-
-    for(; idx_this < n1; idx_this++)
-        unmatched1 += probs1[idx_this];
-    for(; idx_other < n2; idx_other++)
-        unmatched2 += probs2[idx_other]*other_scale;
+    if(idx_this < n1)
+    {
+        unmatched1 += rem_this;
+        for(idx_this++; idx_this < n1; idx_this++)
+            unmatched1 += probs1[idx_this];
+    }
+    if(idx_other < n2)
+    {
+        unmatched2 += rem_other;
+        for(idx_other++; idx_other < n2; idx_other++)
+            unmatched2 += probs2[idx_other]*other_scale;
+    }
 
     return {unmatched1, unmatched2, massflow};
 }
