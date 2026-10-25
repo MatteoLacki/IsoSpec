@@ -10,7 +10,10 @@
 # clang only (libFuzzer), built with ASan + UBSan, every report fatal, and with
 # ISOSPEC_DEBUG, which turns the library's ISOSPEC_IMPOSSIBLE invariants into
 # asserts (Binned's mmap'ed accumulator is beyond ASan's sight: its slot check
-# is what catches a scatter out of bounds).
+# is what catches a scatter out of bounds). aligned_ptr would mmap buffers
+# from 256 KiB up, equally out of ASan's sight; an infinite threshold keeps
+# every one of them on the heap, which ASan watches (lazily committed all the
+# same: glibc and ASan both map large blocks on demand).
 #
 # Usage:
 #   make                      # build the targets under build/
@@ -26,7 +29,8 @@
 ifeq ($(origin CXX),default)
 CXX := clang++
 endif
-FLAGS := -std=c++20 -O1 -g -DISOSPEC_DEBUG -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=all
+FLAGS := -std=c++20 -O1 -g -DISOSPEC_DEBUG '-DISOSPEC_ALIGNED_PTR_VM_THRESHOLD=(~std::size_t(0))' \
+         -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=all
 INC   := -I../../src/IsoSpec++
 UNITY := ../../src/IsoSpec++/unity-build.cpp
 BUILD := build
