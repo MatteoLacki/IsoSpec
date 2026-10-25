@@ -1,0 +1,60 @@
+name: Rust
+
+on:
+    push:
+        branches:
+            - main
+            - rust-crate
+    pull_request:
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    # The platforms a `cargo add isospec` user builds on: libstdc++ with
+    # runtime ISA dispatch on Linux (x86-64 and aarch64), Apple clang + libc++
+    # and MSVC with scalar kernels.
+    name: cargo test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      - run: cargo test --all-targets
+      - run: cargo test --doc
+      - run: cargo test --release --all-targets
+
+  package:
+    # `cargo package` builds the crate from the packaged tarball alone: the
+    # proof that the C++ sources ship inside it.
+    name: cargo package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      - run: cargo package
+      - run: cargo package --list
+      - run: cargo publish --dry-run
+
+  lint:
+    name: fmt, clippy, docs, MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - name: Documentation as docs.rs builds it (no C++)
+        run: cargo doc --no-deps
+        env:
+          DOCS_RS: "1"
+          RUSTDOCFLAGS: "-D warnings"
+      - name: Minimum supported Rust version
+        run: |
+          msrv=$(sed -n 's/^rust-version = "\(.*\)"/\1/p' Cargo.toml)
+          rustup toolchain install "$msrv" --profile minimal
+          cargo +"$msrv" test --all-targets

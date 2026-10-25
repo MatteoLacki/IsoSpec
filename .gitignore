@@ -46,3 +46,7 @@ dist/
 
 # C-ABI test build output (out-of-tree)
 tests/C/build/
+
+# Rust (cargo) build output
+/target/
+/Cargo.lock

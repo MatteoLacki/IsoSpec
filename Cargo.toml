@@ -1,0 +1,53 @@
+[package]
+name = "isospec"
+version = "0.1.0"
+edition = "2024"
+# cxx 1.0.205 (the bridge) needs 1.88; edition 2024 alone would allow 1.85.
+rust-version = "1.88"
+description = "Fine-structure isotopic distributions of molecules: the IsoSpec C++ library, built from source, behind a safe Rust API"
+license = "BSD-2-Clause"
+repository = "https://github.com/MatteoLacki/IsoSpec"
+readme = "rust/README.md"
+keywords = ["mass-spectrometry", "isotopes", "chemistry", "proteomics", "isotopic"]
+categories = ["science"]
+build = "rust/build.rs"
+# The repository's own tests/ (C++, Python, R) is not cargo's: Rust targets
+# are listed explicitly below.
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
+# The crate lives at the repository root so that the published package takes
+# the C++ sources straight from src/IsoSpec++ -- no copy to keep in sync.
+# Everything else in the repository (Python, R, tests, docs) stays out.
+include = [
+    "/Cargo.toml",
+    "/LICENCE",
+    "/VERSION",
+    "/rust/build.rs",
+    "/rust/README.md",
+    "/rust/src/**/*.rs",
+    "/rust/shim/*.h",
+    "/rust/shim/*.cc",
+    "/src/IsoSpec++/*.h",
+    "/src/IsoSpec++/*.cpp",
+]
+
+[lib]
+path = "rust/src/lib.rs"
+
+[dependencies]
+cxx = "1.0.205"
+
+[build-dependencies]
+cc = "1.2"
+cxx-build = "1.0.205"
+
+[package.metadata.docs.rs]
+# build.rs skips compiling C++ when DOCS_RS is set: rustdoc never links.
+targets = ["x86_64-unknown-linux-gnu"]
+
+# A crate of its own, never a member of some enclosing workspace -- and a
+# future crate further down this repository (a cargo-fuzz directory, say) is
+# not silently made a member of this one.
+[workspace]
