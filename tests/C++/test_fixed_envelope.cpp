@@ -173,12 +173,23 @@ TEST_CASE("release_* hands ownership to the caller") {
     free(probs);
     free(confs);
 
-    FixedEnvelope env2 = FixedEnvelope::FromThreshold(Iso("H2O1"), 0.0, true, false);
-    double* m2 = env2.masses() ? const_cast<double*>(env2.masses()) : nullptr;
-    double* p2 = const_cast<double*>(env2.probs());
-    env2.release_everything();
-    CHECK(env2.masses() == nullptr);
-    CHECK(env2.probs() == nullptr);
+    // release_everything() is for an envelope wrapped around buffers somebody
+    // else owns (deleteFixedEnvelope's use): it drops them without freeing.
+    // Not for the library's own arrays, which need not be malloc()'d (on
+    // Windows they come from _aligned_malloc, and free() corrupts the heap).
+    double* m2 = static_cast<double*>(malloc(2 * sizeof(double)));
+    double* p2 = static_cast<double*>(malloc(2 * sizeof(double)));
+    REQUIRE(m2 != nullptr);
+    REQUIRE(p2 != nullptr);
+    m2[0] = 1.0; m2[1] = 2.0;
+    p2[0] = 0.5; p2[1] = 0.5;
+    {
+        FixedEnvelope env2(m2, p2, 2);
+        env2.release_everything();
+        CHECK(env2.masses() == nullptr);
+        CHECK(env2.probs() == nullptr);
+    }
+    CHECK(m2[1] == 2.0);
     free(m2);
     free(p2);
 }
