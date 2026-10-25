@@ -31,8 +31,98 @@ pub enum Threshold {
     Relative,
 }
 
+mod sealed {
+    pub trait Batch {
+        fn fill(
+            &mut self,
+            masses: &mut [f64],
+            probs: &mut [f64],
+            lprobs: &mut [f64],
+        ) -> crate::Result<usize>;
+    }
+}
+
+const BATCH: usize = 256;
+
+/// The isotopologues of a generator, as an iterator: see the generators'
+/// `IntoIterator`. Peaks come from the library 256 at a time.
+pub struct Peaks<G: sealed::Batch> {
+    generator: G,
+    // masses, probs and lprobs, BATCH each.
+    buf: Box<[f64]>,
+    pos: usize,
+    len: usize,
+    exhausted: bool,
+}
+
+impl<G: sealed::Batch> Peaks<G> {
+    fn new(generator: G) -> Self {
+        Peaks {
+            generator,
+            buf: vec![0.0; 3 * BATCH].into_boxed_slice(),
+            pos: 0,
+            len: 0,
+            exhausted: false,
+        }
+    }
+
+    /// The generator back, positioned after the last peak fetched (which may
+    /// be up to a batch past the last one this iterator returned).
+    pub fn into_inner(self) -> G {
+        self.generator
+    }
+}
+
+impl<G: sealed::Batch> Peaks<G> {
+    // Off the per-peak path, so that `next` stays small enough to inline.
+    #[cold]
+    #[inline(never)]
+    fn refill(&mut self) -> bool {
+        if self.exhausted {
+            return false;
+        }
+        let (masses, rest) = self.buf.split_at_mut(BATCH);
+        let (probs, lprobs) = rest.split_at_mut(BATCH);
+        self.len = self
+            .generator
+            .fill(masses, probs, lprobs)
+            .expect("isotopologue generator");
+        self.pos = 0;
+        self.exhausted = self.len < BATCH;
+        self.len > 0
+    }
+}
+
+impl<G: sealed::Batch> Iterator for Peaks<G> {
+    type Item = Peak;
+
+    #[inline]
+    fn next(&mut self) -> Option<Peak> {
+        if self.pos == self.len && !self.refill() {
+            return None;
+        }
+        let ii = self.pos;
+        self.pos += 1;
+        Some(Peak {
+            mass: self.buf[ii],
+            prob: self.buf[BATCH + ii],
+            lprob: self.buf[2 * BATCH + ii],
+        })
+    }
+}
+
+impl<G: sealed::Batch> std::iter::FusedIterator for Peaks<G> {}
+
+impl<G: sealed::Batch + std::fmt::Debug> std::fmt::Debug for Peaks<G> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Peaks")
+            .field("generator", &self.generator)
+            .finish_non_exhaustive()
+    }
+}
+
 macro_rules! generator_common {
-    ($name:ident, $raw:ident, $next:ident, $conf:ident) => {
+    ($name:ident, $raw:ident, $next:ident, $fill:ident, $conf:ident) => {
         impl $name {
             fn wrap(inner: UniquePtr<sys::$raw>, isotope_numbers: Arc<[i32]>) -> Self {
                 let all_dim = isotope_numbers.iter().map(|&n| n as usize).sum();
@@ -59,16 +149,20 @@ macro_rules! generator_common {
                 if self.done {
                     return Ok(None);
                 }
-                if sys::$next(self.inner.pin_mut(), &mut out)? {
-                    self.current = Some(Peak {
-                        mass: out.mass,
-                        prob: out.prob,
-                        lprob: out.lprob,
-                    });
-                } else {
+                if !sys::$next(self.inner.pin_mut(), &mut out)? {
                     self.done = true;
+                    return Ok(None);
                 }
-                Ok(self.current)
+                // Returned from the local, not read back from self.current:
+                // a store and an immediate reload of a different width cannot
+                // be forwarded, and that stall was most of the cost of a step.
+                let peak = Peak {
+                    mass: out.mass,
+                    prob: out.prob,
+                    lprob: out.lprob,
+                };
+                self.current = Some(peak);
+                Ok(Some(peak))
             }
 
             /// The isotopologue the last [`advance`](Self::advance) (or
@@ -120,17 +214,36 @@ macro_rules! generator_common {
             }
         }
 
-        /// Steps through the isotopologues. Panics if the C++ library fails
-        /// to allocate memory; [`advance`]($name::advance) reports that as an
-        /// error instead.
-        impl Iterator for $name {
-            type Item = Peak;
-            fn next(&mut self) -> Option<Peak> {
-                self.advance().expect("isotopologue generator")
+        impl sealed::Batch for $name {
+            fn fill(
+                &mut self,
+                masses: &mut [f64],
+                probs: &mut [f64],
+                lprobs: &mut [f64],
+            ) -> Result<usize> {
+                self.current = None;
+                if self.done {
+                    return Ok(0);
+                }
+                let n = sys::$fill(self.inner.pin_mut(), masses, probs, lprobs)?;
+                if n < masses.len() {
+                    self.done = true;
+                }
+                Ok(n)
             }
         }
 
-        impl std::iter::FusedIterator for $name {}
+        /// Iterates over the remaining isotopologues, fetching them from the
+        /// library in batches (far faster than one
+        /// [`advance`]($name::advance) per peak). Panics if the C++ library
+        /// fails to allocate memory.
+        impl IntoIterator for $name {
+            type Item = Peak;
+            type IntoIter = Peaks<$name>;
+            fn into_iter(self) -> Peaks<$name> {
+                Peaks::new(self)
+            }
+        }
 
         impl std::fmt::Debug for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -149,7 +262,7 @@ macro_rules! generator_common {
 /// ```
 /// use isospec::{Iso, Threshold, ThresholdGenerator};
 /// let iso = Iso::from_formula("C6H12O6")?;
-/// let total: f64 = ThresholdGenerator::new(iso, 1e-6, Threshold::Absolute)?.map(|p| p.prob).sum();
+/// let total: f64 = ThresholdGenerator::new(iso, 1e-6, Threshold::Absolute)?.into_iter().map(|p| p.prob).sum();
 /// assert!(total > 0.9999 && total <= 1.0);
 /// # Ok::<(), isospec::Error>(())
 /// ```
@@ -182,6 +295,7 @@ generator_common!(
     ThresholdGenerator,
     ThresholdGenerator,
     threshold_generator_next,
+    threshold_generator_fill,
     threshold_generator_conf
 );
 
@@ -278,6 +392,7 @@ generator_common!(
     LayeredGenerator,
     LayeredGenerator,
     layered_generator_next,
+    layered_generator_fill,
     layered_generator_conf
 );
 
@@ -304,7 +419,7 @@ impl LayeredGenerator {
 ///
 /// ```
 /// use isospec::{Iso, OrderedGenerator};
-/// let probs: Vec<f64> = OrderedGenerator::new(Iso::from_formula("H2O1")?)?.take(3).map(|p| p.prob).collect();
+/// let probs: Vec<f64> = OrderedGenerator::new(Iso::from_formula("H2O1")?)?.into_iter().take(3).map(|p| p.prob).collect();
 /// assert!(probs[0] >= probs[1] && probs[1] >= probs[2]);
 /// # Ok::<(), isospec::Error>(())
 /// ```
@@ -321,6 +436,7 @@ generator_common!(
     OrderedGenerator,
     OrderedGenerator,
     ordered_generator_next,
+    ordered_generator_fill,
     ordered_generator_conf
 );
 
@@ -341,6 +457,7 @@ impl OrderedGenerator {
 /// use isospec::{Iso, StochasticGenerator, StochasticOptions};
 /// let options = StochasticOptions { seed: Some(42), ..Default::default() };
 /// let total: f64 = StochasticGenerator::with_options(Iso::from_formula("C100")?, 1000, options)?
+///     .into_iter()
 ///     .map(|p| p.prob)
 ///     .sum();
 /// assert!(total <= 1000.0);
@@ -385,6 +502,7 @@ generator_common!(
     StochasticGenerator,
     StochasticGenerator,
     stochastic_generator_next,
+    stochastic_generator_fill,
     stochastic_generator_conf
 );
 

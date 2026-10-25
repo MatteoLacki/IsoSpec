@@ -156,6 +156,8 @@ struct StochasticGenerator {
 std::unique_ptr<ThresholdGenerator> threshold_generator_new(std::unique_ptr<Iso> iso, double threshold,
                                                             bool absolute, bool reorder_marginals);
 bool threshold_generator_next(ThresholdGenerator& gen, PeakData& out);
+size_t threshold_generator_fill(ThresholdGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs);
 void threshold_generator_conf(const ThresholdGenerator& gen, rust::Slice<int32_t> out);
 size_t threshold_generator_count_confs(ThresholdGenerator& gen);
 void threshold_generator_reset(ThresholdGenerator& gen);
@@ -163,16 +165,22 @@ void threshold_generator_reset(ThresholdGenerator& gen);
 std::unique_ptr<LayeredGenerator> layered_generator_new(std::unique_ptr<Iso> iso, bool reorder_marginals,
                                                         double t_prob_hint);
 bool layered_generator_next(LayeredGenerator& gen, PeakData& out);
+size_t layered_generator_fill(LayeredGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs);
 void layered_generator_conf(const LayeredGenerator& gen, rust::Slice<int32_t> out);
 
 std::unique_ptr<OrderedGenerator> ordered_generator_new(std::unique_ptr<Iso> iso);
 bool ordered_generator_next(OrderedGenerator& gen, PeakData& out);
+size_t ordered_generator_fill(OrderedGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs);
 void ordered_generator_conf(const OrderedGenerator& gen, rust::Slice<int32_t> out);
 
 std::unique_ptr<StochasticGenerator> stochastic_generator_new(std::unique_ptr<Iso> iso, size_t no_molecules,
                                                               double precision, double beta_bias, bool seeded,
                                                               uint64_t seed);
 bool stochastic_generator_next(StochasticGenerator& gen, PeakData& out);
+size_t stochastic_generator_fill(StochasticGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs);
 void stochastic_generator_conf(const StochasticGenerator& gen, rust::Slice<int32_t> out);
 
 // ---- FixedEnvelope -----------------------------------------------------------

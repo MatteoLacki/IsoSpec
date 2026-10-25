@@ -97,6 +97,12 @@ fn configure(mut build: cc::Build, cxx_dir: &std::path::Path) -> cc::Build {
         // The library's own warnings are the C++ build's business; a crate
         // user cannot act on them.
         .warnings(false);
+    // The C++ asserts follow Cargo's debug assertions: off in release, as in
+    // the library's own release builds (cc does not define NDEBUG itself, and
+    // the asserts sit in the per-configuration loops).
+    if env::var_os("CARGO_CFG_DEBUG_ASSERTIONS").is_none() {
+        build.define("NDEBUG", None);
+    }
     if build.get_compiler().is_like_msvc() {
         build.flag("/utf-8").flag("/bigobj").flag("/Zc:__cplusplus");
     }

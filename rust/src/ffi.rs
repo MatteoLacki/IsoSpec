@@ -151,6 +151,12 @@ pub(crate) mod bridge {
             g: Pin<&mut ThresholdGenerator>,
             out: &mut PeakData,
         ) -> Result<bool>;
+        fn threshold_generator_fill(
+            g: Pin<&mut ThresholdGenerator>,
+            masses: &mut [f64],
+            probs: &mut [f64],
+            lprobs: &mut [f64],
+        ) -> Result<usize>;
         fn threshold_generator_conf(g: &ThresholdGenerator, out: &mut [i32]);
         fn threshold_generator_count_confs(g: Pin<&mut ThresholdGenerator>) -> Result<usize>;
         fn threshold_generator_reset(g: Pin<&mut ThresholdGenerator>) -> Result<()>;
@@ -164,6 +170,12 @@ pub(crate) mod bridge {
             g: Pin<&mut LayeredGenerator>,
             out: &mut PeakData,
         ) -> Result<bool>;
+        fn layered_generator_fill(
+            g: Pin<&mut LayeredGenerator>,
+            masses: &mut [f64],
+            probs: &mut [f64],
+            lprobs: &mut [f64],
+        ) -> Result<usize>;
         fn layered_generator_conf(g: &LayeredGenerator, out: &mut [i32]);
 
         fn ordered_generator_new(iso: UniquePtr<Iso>) -> Result<UniquePtr<OrderedGenerator>>;
@@ -171,6 +183,12 @@ pub(crate) mod bridge {
             g: Pin<&mut OrderedGenerator>,
             out: &mut PeakData,
         ) -> Result<bool>;
+        fn ordered_generator_fill(
+            g: Pin<&mut OrderedGenerator>,
+            masses: &mut [f64],
+            probs: &mut [f64],
+            lprobs: &mut [f64],
+        ) -> Result<usize>;
         fn ordered_generator_conf(g: &OrderedGenerator, out: &mut [i32]);
 
         fn stochastic_generator_new(
@@ -185,6 +203,12 @@ pub(crate) mod bridge {
             g: Pin<&mut StochasticGenerator>,
             out: &mut PeakData,
         ) -> Result<bool>;
+        fn stochastic_generator_fill(
+            g: Pin<&mut StochasticGenerator>,
+            masses: &mut [f64],
+            probs: &mut [f64],
+            lprobs: &mut [f64],
+        ) -> Result<usize>;
         fn stochastic_generator_conf(g: &StochasticGenerator, out: &mut [i32]);
 
         // ---- FixedEnvelope ----

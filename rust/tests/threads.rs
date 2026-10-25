@@ -47,9 +47,12 @@ fn shared_iso_and_envelope() {
 fn generators_move_between_threads() {
     let iso = Iso::from_formula("C100H202").unwrap();
     let mut g = ThresholdGenerator::new(iso, 1e-6, Threshold::Absolute).unwrap();
-    let first = g.next().unwrap();
+    let first = g.advance().unwrap().unwrap();
     let (g, rest) = thread::spawn(move || {
-        let rest = g.by_ref().count();
+        let mut rest = 0;
+        while g.advance().unwrap().is_some() {
+            rest += 1;
+        }
         (g, rest)
     })
     .join()

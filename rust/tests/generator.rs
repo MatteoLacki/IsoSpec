@@ -23,6 +23,7 @@ fn threshold_generator_agrees_with_the_threshold_envelope() {
     let env = Envelope::from_threshold(&iso("C6H12O6"), 1e-6, Threshold::Absolute).unwrap();
     let peaks: Vec<_> = ThresholdGenerator::new(iso("C6H12O6"), 1e-6, Threshold::Absolute)
         .unwrap()
+        .into_iter()
         .collect();
     assert_eq!(peaks.len(), 21);
     assert_eq!(
@@ -42,7 +43,7 @@ fn threshold_generator_agrees_with_the_threshold_envelope() {
         },
     )
     .unwrap();
-    assert_eq!(unordered.count(), 21);
+    assert_eq!(unordered.into_iter().count(), 21);
 }
 
 #[test]
@@ -63,26 +64,57 @@ fn threshold_cursor_count_and_reset() {
     assert!(g.write_conf(&mut flat));
     assert_eq!(flat, owned.counts());
     assert_eq!(g.isotope_numbers(), &[2, 2]);
-    let rest = g.by_ref().count();
+    let mut rest = 0;
+    while g.advance().unwrap().is_some() {
+        rest += 1;
+    }
     assert_eq!(rest + 1, n);
     // Exhausted, and stays so.
     assert_eq!(g.advance().unwrap(), None);
     assert!(g.conf().is_none());
     assert!(!g.write_conf(&mut flat));
     g.reset().unwrap();
-    assert_eq!(g.count(), n);
-    // Counting mid-way starts over too.
-    let mut g = ThresholdGenerator::new(iso("C100"), 1e-3, Threshold::Relative).unwrap();
-    g.next();
-    let single = g.count_confs().unwrap();
-    assert_eq!(g.count(), single);
+    assert!(g.advance().unwrap().is_some());
+    g.reset().unwrap();
+    assert_eq!(g.into_iter().count(), n);
+    // Counting mid-way starts over too, for one element as for several.
+    for formula in ["C100", "C100H202"] {
+        let mut g = ThresholdGenerator::new(iso(formula), 1e-3, Threshold::Relative).unwrap();
+        g.advance().unwrap();
+        let count = g.count_confs().unwrap();
+        assert_eq!(g.into_iter().count(), count, "{formula}");
+    }
+}
+
+#[test]
+fn iteration_and_cursor_give_the_same_peaks() {
+    // More peaks than one batch, and a count that is not a multiple of it.
+    let make =
+        || ThresholdGenerator::new(iso("C520H817N139O147S8"), 1e-7, Threshold::Absolute).unwrap();
+    let iterated: Vec<_> = make().into_iter().collect();
+    assert!(iterated.len() > 1000 && iterated.len() % 256 != 0);
+    let mut g = make();
+    let mut stepped = Vec::new();
+    while let Some(p) = g.advance().unwrap() {
+        stepped.push(p);
+    }
+    assert_eq!(iterated, stepped);
+    // Exactly one batch, then nothing: the iterator must not ask again.
+    let mut peaks = make().into_iter();
+    assert_eq!(peaks.by_ref().take(256).count(), 256);
+    let rest = peaks.by_ref().count();
+    assert_eq!(rest, iterated.len() - 256);
+    assert_eq!(peaks.next(), None);
+    // The generator comes back out, past what was fetched.
+    let mut g = peaks.into_inner();
+    assert_eq!(g.advance().unwrap(), None);
 }
 
 #[test]
 #[should_panic(expected = "wrong length")]
 fn write_conf_checks_the_buffer() {
     let mut g = ThresholdGenerator::new(iso("H2O1"), 1e-3, Threshold::Absolute).unwrap();
-    g.next();
+    g.advance().unwrap();
     g.write_conf(&mut [0; 2]);
 }
 
@@ -105,6 +137,7 @@ fn layered_generator_covers_like_total_prob() {
     };
     let all: f64 = LayeredGenerator::with_options(iso("H2O1"), options)
         .unwrap()
+        .into_iter()
         .map(|p| p.prob)
         .sum();
     assert_close(all, 1.0, 1e-12);
@@ -112,7 +145,10 @@ fn layered_generator_covers_like_total_prob() {
 
 #[test]
 fn ordered_generator_is_ordered_and_complete() {
-    let peaks: Vec<_> = OrderedGenerator::new(iso("C6H12O6")).unwrap().collect();
+    let peaks: Vec<_> = OrderedGenerator::new(iso("C6H12O6"))
+        .unwrap()
+        .into_iter()
+        .collect();
     // C6H12O6 has 7 * 13 * 28 configurations.
     assert_eq!(peaks.len(), 7 * 13 * 28);
     assert!(peaks.windows(2).all(|w| w[0].prob >= w[1].prob));
@@ -130,6 +166,7 @@ fn stochastic_generator_is_reproducible_when_seeded() {
     let collect = || {
         let mut v: Vec<(f64, f64)> = StochasticGenerator::with_options(iso("C100"), 1000, options)
             .unwrap()
+            .into_iter()
             .map(|p| (p.mass, p.prob))
             .collect();
         v.sort_by(|a, b| a.0.total_cmp(&b.0));
@@ -141,7 +178,7 @@ fn stochastic_generator_is_reproducible_when_seeded() {
     assert!(total <= 1000.0 && total > 990.0);
     let mut g = StochasticGenerator::new(iso("C100"), 100).unwrap();
     assert_eq!(g.molecule_count(), None);
-    g.next();
+    g.advance().unwrap();
     assert!(g.molecule_count().unwrap() >= 1);
 }
 

@@ -57,6 +57,30 @@ bool next_peak(Gen& g, PeakData& out)
     return true;
 }
 
+// Up to masses.size() peaks (all three slices are that long); fewer means
+// the generator is exhausted. The output pointers are restrict: otherwise
+// every store through them may alias the generator's own state, which is then
+// reloaded from memory after each one.
+template <typename Gen>
+size_t fill_peaks_impl(Gen& g, double* __restrict masses, double* __restrict probs, double* __restrict lprobs,
+                       size_t n)
+{
+    size_t ii = 0;
+    for (; ii < n && g.advanceToNextConfiguration(); ii++)
+    {
+        masses[ii] = g.mass();
+        probs[ii] = g.prob();
+        lprobs[ii] = g.lprob();
+    }
+    return ii;
+}
+
+template <typename Gen>
+size_t fill_peaks(Gen& g, rust::Slice<double> masses, rust::Slice<double> probs, rust::Slice<double> lprobs)
+{
+    return fill_peaks_impl(g, masses.data(), probs.data(), lprobs.data(), masses.size());
+}
+
 std::unique_ptr<std::mt19937> make_rng(bool seeded, uint64_t seed)
 {
     if (!seeded)
@@ -264,6 +288,11 @@ std::unique_ptr<ThresholdGenerator> threshold_generator_new(std::unique_ptr<Iso>
     return std::make_unique<ThresholdGenerator>(std::move(*iso), threshold, absolute, reorder_marginals);
 }
 bool threshold_generator_next(ThresholdGenerator& gen, PeakData& out) { return next_peak(gen.g, out); }
+size_t threshold_generator_fill(ThresholdGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs)
+{
+    return fill_peaks(gen.g, masses, probs, lprobs);
+}
 void threshold_generator_conf(const ThresholdGenerator& gen, rust::Slice<int32_t> out)
 {
     gen.g.get_conf_signature(out.data());
@@ -277,6 +306,11 @@ std::unique_ptr<LayeredGenerator> layered_generator_new(std::unique_ptr<Iso> iso
     return std::make_unique<LayeredGenerator>(std::move(*iso), reorder_marginals, t_prob_hint);
 }
 bool layered_generator_next(LayeredGenerator& gen, PeakData& out) { return next_peak(gen.g, out); }
+size_t layered_generator_fill(LayeredGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs)
+{
+    return fill_peaks(gen.g, masses, probs, lprobs);
+}
 void layered_generator_conf(const LayeredGenerator& gen, rust::Slice<int32_t> out)
 {
     gen.g.get_conf_signature(out.data());
@@ -287,6 +321,11 @@ std::unique_ptr<OrderedGenerator> ordered_generator_new(std::unique_ptr<Iso> iso
     return std::make_unique<OrderedGenerator>(std::move(*iso));
 }
 bool ordered_generator_next(OrderedGenerator& gen, PeakData& out) { return next_peak(gen.g, out); }
+size_t ordered_generator_fill(OrderedGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs)
+{
+    return fill_peaks(gen.g, masses, probs, lprobs);
+}
 void ordered_generator_conf(const OrderedGenerator& gen, rust::Slice<int32_t> out)
 {
     gen.g.get_conf_signature(out.data());
@@ -300,6 +339,11 @@ std::unique_ptr<StochasticGenerator> stochastic_generator_new(std::unique_ptr<Is
                                                  make_rng(seeded, seed));
 }
 bool stochastic_generator_next(StochasticGenerator& gen, PeakData& out) { return next_peak(gen.g, out); }
+size_t stochastic_generator_fill(StochasticGenerator& gen, rust::Slice<double> masses, rust::Slice<double> probs,
+                               rust::Slice<double> lprobs)
+{
+    return fill_peaks(gen.g, masses, probs, lprobs);
+}
 void stochastic_generator_conf(const StochasticGenerator& gen, rust::Slice<int32_t> out)
 {
     gen.g.get_conf_signature(out.data());

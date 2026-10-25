@@ -17,8 +17,9 @@
 //!   (Wasserstein distances);
 //! - or one isotopologue at a time, by a generator: [`ThresholdGenerator`],
 //!   [`LayeredGenerator`], [`OrderedGenerator`] (strictly decreasing
-//!   probability) and [`StochasticGenerator`]. Generators are iterators of
-//!   [`Peak`]s.
+//!   probability) and [`StochasticGenerator`]. Generators iterate over
+//!   [`Peak`]s (`for peak in generator`), or step one isotopologue at a time
+//!   with `advance()`, which also gives each one's configuration.
 //!
 //! ```
 //! use isospec::{Iso, Threshold, ThresholdGenerator};
@@ -30,7 +31,7 @@
 //! println!("{} peaks, {:.4} Da to {:.4} Da", env.len(), env.masses()[0], env.masses()[env.len() - 1]);
 //!
 //! // Or streamed, never stored.
-//! let n = ThresholdGenerator::new(iso, 1e-3, Threshold::Relative)?.count();
+//! let n = ThresholdGenerator::new(iso, 1e-3, Threshold::Relative)?.into_iter().count();
 //! assert!(n > 0);
 //! # Ok::<(), isospec::Error>(())
 //! ```
@@ -67,7 +68,7 @@ pub use element::{Element, Isotope};
 pub use envelope::{Envelope, EnvelopeBuilder, Match};
 pub use error::{Error, ErrorKind, Result};
 pub use generator::{
-    LayeredGenerator, LayeredOptions, OrderedGenerator, Peak, StochasticGenerator,
+    LayeredGenerator, LayeredOptions, OrderedGenerator, Peak, Peaks, StochasticGenerator,
     StochasticOptions, Threshold, ThresholdGenerator, ThresholdOptions,
 };
 pub use iso::{ElementSpec, Iso, Masses};
