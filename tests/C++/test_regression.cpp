@@ -265,13 +265,5 @@ TEST_CASE("zero-length copies from empty objects are not UB") {
     a.release_everything();
 }
 
-// Bug 12 (documentation only): the two-step init lists in Iso(int,...) and
-// Marginal::Marginal(...) leak the first-allocated member if the second
-// allocation throws.  Catchable only by injecting an allocation failure at the
-// right point (custom operator new keyed on allocation count) under
-// -fsanitize=leak.  Recorded as a message rather than a fake passing test.
-TEST_CASE("DOC: ctor-leak in Iso(int,...) / Marginal on second-alloc failure") {
-    MESSAGE("Iso(int,...) and Marginal ctors leak the first array if the second "
-            "allocation throws; test by gating the Nth operator new[] to throw "
-            "and running under -fsanitize=leak. No automated check yet.");
-}
+// Bug 12 (the constructors' leak on a failed allocation) is fixed and tested
+// in test_alloc_failure.cpp.

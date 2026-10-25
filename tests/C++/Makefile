@@ -63,6 +63,7 @@ ISA_FLAGS_v4 := $(if $(call isa-accepts,$(V4_FLAGS)),$(V4_FLAGS))
 # Keep this list alphabetical after tests_main.cpp.
 TEST_SRCS := tests_main.cpp \
              test_aligned_ptr.cpp \
+             test_alloc_failure.cpp \
              test_analytic.cpp \
              test_api_iso.cpp \
              test_boundary_walk.cpp \

@@ -93,12 +93,19 @@ Iso::Iso(
 ) :
 disowned(false),
 dimNumber(checked_dim_number(_dimNumber, _isotopeNumbers)),
-isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
-atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
+isotopeNumbers(nullptr),
+atomCounts(nullptr),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
 marginals(nullptr)
 {
+    // Owned here until construction succeeds: a constructor that throws runs
+    // no destructor, so raw members allocated before the throw would leak.
+    std::unique_ptr<int[]> isotope_numbers(array_copy<int>(_isotopeNumbers, dimNumber));
+    std::unique_ptr<int[]> atom_counts(array_copy<int>(_atomCounts, dimNumber));
+    isotopeNumbers = isotope_numbers.get();
+    atomCounts = atom_counts.get();
+
     for(int ii = 0; ii < dimNumber; ++ii)
         allDim += isotopeNumbers[ii];
 
@@ -116,20 +123,9 @@ marginals(nullptr)
 
     allDim = 0;  // setupMarginals will recalculate it, assuming it's set to 0
 
-    try{
-        setupMarginals(masses.get(), probs.get());
-    }
-    catch(...)
-    {
-        delete[] isotopeNumbers;
-        delete[] atomCounts;
-        // Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
-        // However, this is not the fast code path and we can afford two unneeded instructions to keep
-        // some static analysis tools happy.
-        isotopeNumbers = nullptr;
-        atomCounts = nullptr;
-        throw;
-    }
+    setupMarginals(masses.get(), probs.get());
+    isotope_numbers.release();
+    atom_counts.release();
 }
 
 Iso::Iso(
@@ -141,26 +137,21 @@ Iso::Iso(
 ) :
 disowned(false),
 dimNumber(checked_dim_number(_dimNumber, _isotopeNumbers)),
-isotopeNumbers(array_copy<int>(_isotopeNumbers, _dimNumber)),
-atomCounts(array_copy<int>(_atomCounts, _dimNumber)),
+isotopeNumbers(nullptr),
+atomCounts(nullptr),
 confSize(_dimNumber * sizeof(int)),
 allDim(0),
 marginals(nullptr)
 {
-    try{
-        setupMarginals(_isotopeMasses, _isotopeProbabilities);
-    }
-    catch(...)
-    {
-        delete[] isotopeNumbers;
-        delete[] atomCounts;
-        // Since we're throwing in a constructor, the destructor won't run, and we don't need to NULL these.
-        // However, this is not the fast code path and we can afford two unneeded instructions to keep
-        // some static analysis tools happy.
-        isotopeNumbers = nullptr;
-        atomCounts = nullptr;
-        throw;
-    }
+    // As above: owned here until construction succeeds.
+    std::unique_ptr<int[]> isotope_numbers(array_copy<int>(_isotopeNumbers, dimNumber));
+    std::unique_ptr<int[]> atom_counts(array_copy<int>(_atomCounts, dimNumber));
+    isotopeNumbers = isotope_numbers.get();
+    atomCounts = atom_counts.get();
+
+    setupMarginals(_isotopeMasses, _isotopeProbabilities);
+    isotope_numbers.release();
+    atom_counts.release();
 }
 
 Iso::Iso(Iso&& other) :
@@ -179,16 +170,29 @@ marginals(other.marginals)
 Iso::Iso(const Iso& other, bool fullcopy) :
 disowned(!fullcopy),
 dimNumber(other.dimNumber),
-isotopeNumbers(fullcopy ? array_copy<int>(other.isotopeNumbers, dimNumber) : other.isotopeNumbers),
-atomCounts(fullcopy ? array_copy<int>(other.atomCounts, dimNumber) : other.atomCounts),
+isotopeNumbers(other.isotopeNumbers),
+atomCounts(other.atomCounts),
 confSize(other.confSize),
 allDim(other.allDim),
-marginals(fullcopy ? new Marginal*[dimNumber] : other.marginals)
+marginals(other.marginals)
 {
     if(fullcopy)
     {
+        // Every copy owned here until all of them exist, then handed over:
+        // the release() calls cannot throw.
+        std::unique_ptr<int[]> isotope_numbers(array_copy<int>(other.isotopeNumbers, dimNumber));
+        std::unique_ptr<int[]> atom_counts(array_copy<int>(other.atomCounts, dimNumber));
+        std::unique_ptr<Marginal*[]> marginal_table(new Marginal*[dimNumber]);
+        std::vector<std::unique_ptr<Marginal>> copies;
+        copies.reserve(dimNumber);
         for(int ii = 0; ii < dimNumber; ii++)
-            marginals[ii] = new Marginal(*other.marginals[ii]);
+            copies.push_back(std::make_unique<Marginal>(*other.marginals[ii]));
+
+        for(int ii = 0; ii < dimNumber; ii++)
+            marginal_table[ii] = copies[ii].release();
+        isotopeNumbers = isotope_numbers.release();
+        atomCounts = atom_counts.release();
+        marginals = marginal_table.release();
     }
 }
 
@@ -456,10 +460,14 @@ void Iso::addElement(int atomCount, int noIsotopes, const double* isotopeMasses,
 {
     if(noIsotopes > std::numeric_limits<int>::max() - allDim)
         throw std::length_error("Too many isotopes in total");
-    Marginal* m = new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount);
+    // Owned here until the table holds it. An append that throws leaves its
+    // array as it was; one that succeeded before it leaves an array one longer
+    // than dimNumber says, which is harmless.
+    std::unique_ptr<Marginal> m(new Marginal(isotopeMasses, isotopeProbabilities, noIsotopes, atomCount));
     realloc_append<int>(&isotopeNumbers, noIsotopes, dimNumber);
     realloc_append<int>(&atomCounts, atomCount, dimNumber);
-    realloc_append<Marginal*>(&marginals, m, dimNumber);
+    realloc_append<Marginal*>(&marginals, m.get(), dimNumber);
+    m.release();
     dimNumber++;
     confSize += sizeof(int);
     allDim += noIsotopes;
@@ -599,8 +607,12 @@ unsigned int parse_formula(std::string_view formula, std::vector<double>& isotop
     isotope_probabilities.insert(isotope_probabilities.end(),
                                  expanded.isotope_probabilities.begin(), expanded.isotope_probabilities.end());
 
-    *isotopeNumbers = array_copy<int>(expanded.isotopeNumbers.data(), dimNumber);
-    *atomCounts = array_copy<int>(expanded.atomCounts.data(), dimNumber);
+    // Both allocated before either is handed out, so that neither leaks if the
+    // other throws.
+    std::unique_ptr<int[]> isotope_numbers(array_copy<int>(expanded.isotopeNumbers.data(), dimNumber));
+    std::unique_ptr<int[]> atom_counts(array_copy<int>(expanded.atomCounts.data(), dimNumber));
+    *isotopeNumbers = isotope_numbers.release();
+    *atomCounts = atom_counts.release();
     *confSize = dimNumber * sizeof(int);
 
     return dimNumber;
