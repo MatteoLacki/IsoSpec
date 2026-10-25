@@ -19,6 +19,10 @@
 #include <cstring>
 #include "isa_kernels.h"
 
+#if ISOSPEC_ISA_BUILD_X86 && (defined(__GNUC__) || defined(__clang__))
+#include <cpuid.h>
+#endif
+
 // Compiled at the baseline, always. It must not be built for a raised -march:
 // it runs before anything has established what the CPU can do.
 
@@ -68,29 +72,66 @@ constexpr const IsaKernels* level_table(IsaLevel level)
     }
 }
 
-// Whether the CPU (and the OS, which must have enabled the register state) can
-// run a level. __builtin_cpu_supports covers both: libgcc's initialiser checks
-// the CPUID feature bits and XCR0, so an AVX-capable CPU under a kernel that
-// does not save the wide registers correctly reports false.
+#if ISOSPEC_ISA_BUILD_X86 && (defined(__GNUC__) || defined(__clang__))
+// CPUID and XGETBV read directly rather than through __builtin_cpu_supports:
+// that needs __cpu_model, from libgcc (gcc) or compiler-rt (clang), and a
+// program linked by something other than the compiler driver may have
+// neither -- a Rust program on musl or on macOS does not (undefined
+// __cpu_model, found by the crate's CI).
+struct X86Features
+{
+    bool avx = false, fma = false, avx2 = false;
+    bool avx512f = false, avx512bw = false, avx512dq = false, avx512vl = false;
+};
+
+X86Features x86_features()
+{
+    X86Features f;
+    unsigned int a, b, c, d;
+    if(!__get_cpuid(1, &a, &b, &c, &d))
+        return f;
+    // The OS must also have enabled the register state (XCR0): an AVX-capable
+    // CPU under a kernel that does not save the wide registers cannot run AVX.
+    // (macOS enables the AVX-512 state lazily, on first use, so AVX-512 Macs
+    // report no v4 here: safe, merely slower.)
+    if(!(c & bit_OSXSAVE))
+        return f;
+    unsigned int xcr0_lo, xcr0_hi;
+    __asm__ volatile("xgetbv" : "=a"(xcr0_lo), "=d"(xcr0_hi) : "c"(0));
+    const bool ymm = (xcr0_lo & 0x06) == 0x06;   // SSE and AVX state
+    const bool zmm = (xcr0_lo & 0xe6) == 0xe6;   // plus opmask and ZMM state
+    f.avx = ymm && (c & bit_AVX);
+    f.fma = ymm && (c & bit_FMA);
+    if(__get_cpuid_max(0, nullptr) < 7)
+        return f;
+    __cpuid_count(7, 0, a, b, c, d);
+    f.avx2 = ymm && (b & bit_AVX2);
+    f.avx512f = zmm && (b & bit_AVX512F);
+    f.avx512dq = zmm && (b & bit_AVX512DQ);
+    f.avx512bw = zmm && (b & bit_AVX512BW);
+    f.avx512vl = zmm && (b & bit_AVX512VL);
+    return f;
+}
+#endif
+
+// Whether the CPU, and the OS, can run a level.
 bool cpu_supports(IsaLevel level)
 {
     if(level == ISA_LEVEL_BASELINE)
         return true;  // architecturally guaranteed, by definition of "baseline"
 
 #if ISOSPEC_ISA_BUILD_X86 && (defined(__GNUC__) || defined(__clang__))
+    const X86Features f = x86_features();
     switch(level)
     {
         case ISA_LEVEL_AVX:
-            return __builtin_cpu_supports("avx");
+            return f.avx;
         case ISA_LEVEL_V3:
-            return __builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma");
+            return f.avx2 && f.fma;
         case ISA_LEVEL_V4:
             // x86-64-v4 is F+BW+DQ+VL together; a CPU with only some of those
             // cannot run code compiled for the set.
-            return __builtin_cpu_supports("avx512f")
-                && __builtin_cpu_supports("avx512bw")
-                && __builtin_cpu_supports("avx512dq")
-                && __builtin_cpu_supports("avx512vl");
+            return f.avx512f && f.avx512bw && f.avx512dq && f.avx512vl;
         default:
             return false;
     }
