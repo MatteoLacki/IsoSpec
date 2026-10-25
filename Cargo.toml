@@ -11,6 +11,12 @@ readme = "rust/README.md"
 keywords = ["mass-spectrometry", "isotopes", "chemistry", "proteomics", "isotopic"]
 categories = ["science"]
 build = "rust/build.rs"
+# Two semver-incompatible versions of this crate in one build would both link
+# the C++ library's symbols (IsoSpec::*, the shim's isospec_rs::*) from static
+# archives, where the linker silently keeps the first definition: one
+# version's Rust calling the other's C++. `links` makes Cargo refuse such a
+# dependency graph instead.
+links = "isospec"
 # The repository's own tests/ (C++, Python, R) is not cargo's: Rust targets
 # are listed explicitly below.
 autobins = false

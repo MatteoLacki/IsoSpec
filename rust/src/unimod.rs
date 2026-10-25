@@ -29,6 +29,7 @@ enum Table {
 
 /// One entry of a [`UnimodTable`].
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct UnimodEntry {
     /// The Unimod accession number.
     pub id: u32,

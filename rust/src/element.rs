@@ -22,6 +22,7 @@ pub struct Element {
 
 /// One isotope of an [`Element`].
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Isotope {
     /// Mass in daltons.
     pub mass: f64,

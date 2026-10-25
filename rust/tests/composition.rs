@@ -76,10 +76,7 @@ fn peptides() {
     // IsoSpecPy's ParsePeptideSequence gives the residues, {'H': 60, 'C': 39,
     // 'N': 8, 'O': 16, 'S': 1}; the default here adds the terminal water.
     assert_eq!(p, "C39H62N8O17S1".parse().unwrap());
-    let residues = PeptideOptions {
-        add_water: false,
-        ..options
-    };
+    let residues = options.with_add_water(false);
     assert_eq!(
         Composition::from_peptide("PEPM[UNIMOD:35]TIDE", &residues).unwrap(),
         "C39H60N8O16S1".parse().unwrap()
@@ -102,13 +99,7 @@ fn peptides() {
     // Selenocysteine brings selenium.
     assert_eq!(Composition::from_fasta("U", false).count(el("Se")), 1);
     // A modification can make a count negative.
-    let g = Composition::from_peptide(
-        "G[UNIMOD:11]",
-        &PeptideOptions {
-            add_water: false,
-            ..options
-        },
-    );
+    let g = Composition::from_peptide("G[UNIMOD:11]", &options.with_add_water(false));
     assert!(g.is_ok());
 }
 
@@ -139,10 +130,7 @@ fn unimod_tables_from_csv_and_path() {
     let table = UnimodTable::from_csv(csv).unwrap();
     assert_eq!(table.lookup(1).unwrap().name, "Acetyl");
     assert!(table.lookup(35).is_none());
-    let options = PeptideOptions {
-        mods: &table,
-        ..PeptideOptions::default()
-    };
+    let options = PeptideOptions::default().with_mods(&table);
     let acetylated = Composition::from_peptide("[UNIMOD:1]-PEPTIDE", &options).unwrap();
     let plain = Composition::from_peptide("PEPTIDE", &options).unwrap();
     assert_eq!((&acetylated - &plain), "C2H2O1".parse().unwrap());

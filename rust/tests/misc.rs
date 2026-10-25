@@ -83,20 +83,12 @@ fn remaining_error_paths() {
     assert!(a.oriented_wasserstein(&mut scaled).is_err());
 
     let mut iso = Iso::from_formula("C1").unwrap();
-    let nan = ElementSpec {
-        atoms: 1,
-        masses: &[f64::NAN],
-        probabilities: &[1.0],
-    };
+    let nan = ElementSpec::new(1, &[f64::NAN], &[1.0]);
     assert_eq!(
         iso.add_element(&nan).unwrap_err().kind(),
         ErrorKind::InvalidArgument
     );
-    let big = ElementSpec {
-        atoms: u32::MAX,
-        masses: &[1.0],
-        probabilities: &[1.0],
-    };
+    let big = ElementSpec::new(u32::MAX, &[1.0], &[1.0]);
     assert_eq!(
         iso.add_element(&big).unwrap_err().kind(),
         ErrorKind::OutOfRange

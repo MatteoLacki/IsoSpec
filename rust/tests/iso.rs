@@ -79,11 +79,11 @@ fn every_constructor_agrees_on_glucose() {
     let mut at = 0;
     for (ii, &n) in expanded.isotope_numbers.iter().enumerate() {
         let n = n as usize;
-        specs.push(ElementSpec {
-            atoms: expanded.atom_counts[ii] as u32,
-            masses: &expanded.masses[at..at + n],
-            probabilities: &expanded.probabilities[at..at + n],
-        });
+        specs.push(ElementSpec::new(
+            expanded.atom_counts[ii] as u32,
+            &expanded.masses[at..at + n],
+            &expanded.probabilities[at..at + n],
+        ));
         at += n;
     }
     let from_isotopes = Iso::from_isotopes(&specs).unwrap();
@@ -138,14 +138,7 @@ fn peptides_with_and_without_modifications() {
         18.0105646863,
         1e-8,
     );
-    let residues = Iso::from_peptide(
-        "PEPMTIDE",
-        &PeptideOptions {
-            add_water: false,
-            ..options
-        },
-    )
-    .unwrap();
+    let residues = Iso::from_peptide("PEPMTIDE", &options.with_add_water(false)).unwrap();
     assert_eq!(residues.monoisotopic_mass(), no_water.monoisotopic_mass());
 }
 
@@ -153,12 +146,8 @@ fn peptides_with_and_without_modifications() {
 fn labelled_element_added_to_a_formula() {
     let mut iso = Iso::from_formula("C50H80N12O15").unwrap();
     let before = iso.monoisotopic_mass();
-    iso.add_element(&ElementSpec {
-        atoms: 6,
-        masses: &[12.0, 13.0033548352],
-        probabilities: &[0.01, 0.99],
-    })
-    .unwrap();
+    iso.add_element(&ElementSpec::new(6, &[12.0, 13.0033548352], &[0.01, 0.99]))
+        .unwrap();
     assert_eq!(iso.dim_number(), 5);
     assert_eq!(iso.isotope_numbers()[4], 2);
     // The new element's most abundant isotope is 13C.
@@ -193,10 +182,8 @@ fn bad_input_is_an_error_of_the_right_kind() {
         kind(Iso::from_peptide("PEP[UNIMOD:", &PeptideOptions::default())),
         ErrorKind::InvalidArgument
     );
-    let spec = |masses: &'static [f64], probabilities: &'static [f64]| ElementSpec {
-        atoms: 3,
-        masses,
-        probabilities,
+    let spec = |masses: &'static [f64], probabilities: &'static [f64]| {
+        ElementSpec::new(3, masses, probabilities)
     };
     assert_eq!(
         kind(Iso::from_isotopes(&[spec(&[1.0, 2.0], &[1.0])])),
@@ -218,11 +205,7 @@ fn bad_input_is_an_error_of_the_right_kind() {
         kind(Iso::from_isotopes(&[spec(&[1.0], &[f64::NAN])])),
         ErrorKind::InvalidArgument
     );
-    let huge = ElementSpec {
-        atoms: u32::MAX,
-        masses: &[1.0],
-        probabilities: &[1.0],
-    };
+    let huge = ElementSpec::new(u32::MAX, &[1.0], &[1.0]);
     assert_eq!(kind(Iso::from_isotopes(&[huge])), ErrorKind::OutOfRange);
     let negative: Composition = "H-2".parse().unwrap();
     assert_eq!(
@@ -231,11 +214,7 @@ fn bad_input_is_an_error_of_the_right_kind() {
     );
     let mut iso = Iso::from_formula("C1").unwrap();
     let err = iso
-        .add_element(&ElementSpec {
-            atoms: 1,
-            masses: &[1.0],
-            probabilities: &[],
-        })
+        .add_element(&ElementSpec::new(1, &[1.0], &[]))
         .unwrap_err();
     assert_eq!(err.kind(), ErrorKind::InvalidArgument);
     assert_eq!(

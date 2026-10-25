@@ -35,6 +35,7 @@ pub struct Envelope {
 
 /// The result of [`Envelope::wasserstein_match`].
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Match {
     /// Probability of this envelope left unmatched.
     pub unmatched_this: f64,

@@ -12,11 +12,7 @@ fn main() -> Result<(), isospec::Error> {
     // One natural carbon and the rest of glucose from the formula ...
     let mut labelled = Iso::from_formula("C1H12O6")?;
     // ... and five labelled carbons as an element of their own.
-    labelled.add_element(&ElementSpec {
-        atoms: 5,
-        masses: &masses,
-        probabilities: &[0.01, 0.99],
-    })?;
+    labelled.add_element(&ElementSpec::new(5, &masses, &[0.01, 0.99]))?;
 
     let natural = Iso::from_formula("C6H12O6")?;
     let mut a = Envelope::from_total_prob(&natural, 0.9999)?;

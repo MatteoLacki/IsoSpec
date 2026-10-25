@@ -73,10 +73,7 @@ fn independent_work_on_many_threads() {
                     .envelope()
                     .stochastic(
                         10000,
-                        isospec::StochasticOptions {
-                            seed: Some(ii as u64),
-                            ..Default::default()
-                        },
+                        isospec::StochasticOptions::default().with_seed(ii as u64),
                     )
                     .unwrap();
                 env.total_prob()

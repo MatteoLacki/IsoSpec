@@ -59,6 +59,24 @@ that computes.
   constructed before, destroyed after). Unseeded, it is given the library's
   `random_gen`, the thread-local generator of whichever thread is sampling.
 
+## Keeping 0.x changes non-breaking
+
+- `links = "isospec"`: two semver-incompatible versions in one build would
+  both link the C++ symbols from static archives, and the linker silently
+  keeps one definition of each (one version's Rust calling the other's C++).
+  Cargo refuses such a graph instead. It had to be there from the first
+  release: a published version without it can always coexist with later ones.
+- Option structs (`ThresholdOptions`, `LayeredOptions`, `StochasticOptions`,
+  `PeptideOptions`) and `ElementSpec` are `#[non_exhaustive]`: built from
+  `default()`/`new` plus `with_*` setters (public fields stay readable and
+  assignable), so a new C++ parameter is a new field, not a breaking change.
+  Output structs (`Peak`, `Isotope`, `UnimodEntry`, `Match`,
+  `ExpandedComposition`) likewise, and the enums that can grow (`IsaLevel`,
+  `Masses`, `ErrorKind`); `IsaLevel::ALL` is a slice for the same reason.
+  `Threshold` stays exhaustive: absolute or relative is all a threshold can be.
+- `isa::set` is `#[doc(hidden)]`, for the crate's tests and benchmarks; not
+  part of the API (`ISOSPEC_ISA_LEVEL` is the supported way to force a level).
+
 ## Ownership and threads
 
 - Generators take their `Iso` by value (the C++ constructors move out of it).

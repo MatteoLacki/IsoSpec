@@ -41,10 +41,7 @@ fuzz_target!(|data: &[u8]| {
             }
         }
         1 => {
-            let options = PeptideOptions {
-                add_water: selector & 8 != 0,
-                ..PeptideOptions::default()
-            };
+            let options = PeptideOptions::default().with_add_water(selector & 8 != 0);
             if let Ok(iso) = Iso::from_peptide(&text, &options) {
                 exercise(&iso);
             }
@@ -69,10 +66,7 @@ fuzz_target!(|data: &[u8]| {
                 for entry in table.entries() {
                     let _ = entry.composition.to_string();
                 }
-                let options = PeptideOptions {
-                    mods: &table,
-                    ..PeptideOptions::default()
-                };
+                let options = PeptideOptions::default().with_mods(&table);
                 let _ = Composition::from_peptide("PEPM[UNIMOD:35]TIDE[UNIMOD:1]", &options);
             }
         }

@@ -44,11 +44,7 @@ fuzz_target!(|input: Input| {
         .elements
         .iter()
         .zip(masses.iter().zip(&probs))
-        .map(|(e, (m, p))| ElementSpec {
-            atoms: e.atoms as u32 % 64,
-            masses: m,
-            probabilities: p,
-        })
+        .map(|(e, (m, p))| ElementSpec::new(e.atoms as u32 % 64, m, p))
         .collect();
     let Ok(mut iso) = Iso::from_isotopes(&specs) else {
         return;
@@ -58,11 +54,7 @@ fuzz_target!(|input: Input| {
         let p: Vec<f64> = extra.isotopes.iter().map(|i| i.1).collect();
         let dims = iso.dim_number();
         if iso
-            .add_element(&ElementSpec {
-                atoms: extra.atoms as u32 % 64,
-                masses: &m,
-                probabilities: &p,
-            })
+            .add_element(&ElementSpec::new(extra.atoms as u32 % 64, &m, &p))
             .is_err()
         {
             assert_eq!(iso.dim_number(), dims);
@@ -138,10 +130,7 @@ fuzz_target!(|input: Input| {
             }
         }
         3 => {
-            let options = StochasticOptions {
-                seed: Some(input.seed),
-                ..Default::default()
-            };
+            let options = StochasticOptions::default().with_seed(input.seed);
             if let Ok(g) = StochasticGenerator::with_options(iso.clone(), steps, options) {
                 let total: f64 = g.into_iter().map(|p| p.prob).sum();
                 assert!(total <= steps as f64);

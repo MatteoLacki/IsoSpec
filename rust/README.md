@@ -39,7 +39,9 @@ clang, MSVC 2022).
 
 "Scalar" is the same algorithms without the vectorised inner loops: correct
 everywhere, somewhat slower on the largest enumerations. `isospec::simd_level()`
-says what a build runs; `isospec::isa` can switch levels for testing.
+says what a build runs; `isospec::isa` reports the levels, and the
+`ISOSPEC_ISA_LEVEL` environment variable (`baseline`, `avx`, `v3`, `v4`)
+forces one, for testing.
 
 The C++ is compiled with the optimisation level of the Cargo profile, so
 debug builds of your program run IsoSpec unoptimised. To keep it fast there:

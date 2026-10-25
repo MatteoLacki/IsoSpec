@@ -10,6 +10,7 @@ use crate::ffi::bridge as sys;
 
 /// An instruction-set level of the kernels, in increasing capability.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[non_exhaustive]
 pub enum IsaLevel {
     /// What the target gives without extra flags: SSE2 on x86-64, NEON on aarch64.
     Baseline,
@@ -22,8 +23,9 @@ pub enum IsaLevel {
 }
 
 impl IsaLevel {
-    /// All levels, lowest first.
-    pub const ALL: [IsaLevel; 4] = [
+    /// All levels, lowest first. A slice rather than an array: levels may be
+    /// added.
+    pub const ALL: &'static [IsaLevel] = &[
         IsaLevel::Baseline,
         IsaLevel::Avx,
         IsaLevel::V3,
@@ -31,7 +33,7 @@ impl IsaLevel {
     ];
 
     fn from_raw(level: i32) -> IsaLevel {
-        IsaLevel::ALL[level.clamp(0, 3) as usize]
+        IsaLevel::ALL[level.clamp(0, IsaLevel::ALL.len() as i32 - 1) as usize]
     }
 
     fn raw(self) -> i32 {
@@ -60,8 +62,13 @@ pub fn max_supported() -> IsaLevel {
 }
 
 /// Switches the whole process to `level`; returns `false`, changing nothing,
-/// if it is not available. For testing and benchmarking: the default is
-/// already the best available.
+/// if it is not available.
+///
+/// For this crate's own tests and for benchmarks; not part of the stable API
+/// (hidden from the documentation, and may change or go in any release). The
+/// default is already the best level available, and `ISOSPEC_ISA_LEVEL` sets
+/// another without code.
+#[doc(hidden)]
 pub fn set(level: IsaLevel) -> bool {
     sys::isa_set_level(level.raw())
 }

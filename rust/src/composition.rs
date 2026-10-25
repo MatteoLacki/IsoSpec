@@ -35,6 +35,7 @@ pub struct Composition {
 /// one entry per element in `isotope_numbers` and `atom_counts`, and one per
 /// isotope, element after element, in `masses` and `probabilities`.
 #[derive(Clone, Debug, Default, PartialEq)]
+#[non_exhaustive]
 pub struct ExpandedComposition {
     /// Number of isotopes of each element.
     pub isotope_numbers: Vec<i32>,
@@ -47,8 +48,18 @@ pub struct ExpandedComposition {
 }
 
 /// How a peptide sequence is read: see [`Composition::from_peptide`] and
-/// [`Iso::from_peptide`](crate::Iso::from_peptide).
+/// [`Iso::from_peptide`](crate::Iso::from_peptide). Start from
+/// [`default`](Default::default) and change what you need.
+///
+/// ```
+/// use isospec::{Composition, PeptideOptions};
+/// let residues = Composition::from_peptide("PEPTIDE", &PeptideOptions::default().with_add_water(false))?;
+/// let whole = Composition::from_peptide("PEPTIDE", &PeptideOptions::default())?;
+/// assert_eq!(&residues + &Composition::from_formula("H2O1")?, whole);
+/// # Ok::<(), isospec::Error>(())
+/// ```
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct PeptideOptions<'a> {
     /// Add the terminal H and OH groups (a whole molecule, rather than the
     /// residues alone). Default: `true`.
@@ -67,6 +78,29 @@ impl Default for PeptideOptions<'static> {
             mods: UnimodTable::embedded(),
             masses: Masses::Exact,
         }
+    }
+}
+
+impl<'a> PeptideOptions<'a> {
+    /// Sets [`add_water`](Self::add_water).
+    pub fn with_add_water(mut self, add_water: bool) -> Self {
+        self.add_water = add_water;
+        self
+    }
+
+    /// Sets the Unimod table, [`mods`](Self::mods).
+    pub fn with_mods<'b>(self, mods: &'b UnimodTable) -> PeptideOptions<'b> {
+        PeptideOptions {
+            add_water: self.add_water,
+            mods,
+            masses: self.masses,
+        }
+    }
+
+    /// Sets [`masses`](Self::masses).
+    pub fn with_masses(mut self, masses: Masses) -> Self {
+        self.masses = masses;
+        self
     }
 }
 

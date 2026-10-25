@@ -10,6 +10,7 @@ use crate::{Conf, ConfRef, Iso};
 
 /// One isotopologue as a generator reports it.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Peak {
     /// Mass, in daltons.
     pub mass: f64,
@@ -275,8 +276,17 @@ pub struct ThresholdGenerator {
     conf_buf: Vec<i32>,
 }
 
-/// Options of a [`ThresholdGenerator`].
+/// Options of a [`ThresholdGenerator`]: start from
+/// [`default`](Default::default) and change what you need, so that options
+/// added later leave your code compiling.
+///
+/// ```
+/// use isospec::ThresholdOptions;
+/// let options = ThresholdOptions::default().with_reorder_marginals(false);
+/// assert!(!options.reorder_marginals);
+/// ```
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct ThresholdOptions {
     /// Reorder the elements internally for speed; the set of isotopologues is
     /// the same either way, their order is not. Default: `true`.
@@ -288,6 +298,14 @@ impl Default for ThresholdOptions {
         ThresholdOptions {
             reorder_marginals: true,
         }
+    }
+}
+
+impl ThresholdOptions {
+    /// Sets [`reorder_marginals`](Self::reorder_marginals).
+    pub fn with_reorder_marginals(mut self, reorder: bool) -> Self {
+        self.reorder_marginals = reorder;
+        self
     }
 }
 
@@ -369,8 +387,16 @@ pub struct LayeredGenerator {
     conf_buf: Vec<i32>,
 }
 
-/// Options of a [`LayeredGenerator`].
+/// Options of a [`LayeredGenerator`]: start from
+/// [`default`](Default::default) and change what you need.
+///
+/// ```
+/// use isospec::LayeredOptions;
+/// let options = LayeredOptions::default().with_prob_hint(0.999);
+/// assert_eq!(options.prob_hint, 0.999);
+/// ```
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct LayeredOptions {
     /// Reorder the elements internally for speed. Default: `true`.
     pub reorder_marginals: bool,
@@ -385,6 +411,20 @@ impl Default for LayeredOptions {
             reorder_marginals: true,
             prob_hint: 0.99,
         }
+    }
+}
+
+impl LayeredOptions {
+    /// Sets [`reorder_marginals`](Self::reorder_marginals).
+    pub fn with_reorder_marginals(mut self, reorder: bool) -> Self {
+        self.reorder_marginals = reorder;
+        self
+    }
+
+    /// Sets [`prob_hint`](Self::prob_hint).
+    pub fn with_prob_hint(mut self, prob_hint: f64) -> Self {
+        self.prob_hint = prob_hint;
+        self
     }
 }
 
@@ -455,7 +495,7 @@ impl OrderedGenerator {
 ///
 /// ```
 /// use isospec::{Iso, StochasticGenerator, StochasticOptions};
-/// let options = StochasticOptions { seed: Some(42), ..Default::default() };
+/// let options = StochasticOptions::default().with_seed(42);
 /// let total: f64 = StochasticGenerator::with_options(Iso::from_formula("C100")?, 1000, options)?
 ///     .into_iter()
 ///     .map(|p| p.prob)
@@ -473,8 +513,16 @@ pub struct StochasticGenerator {
 }
 
 /// Options of stochastic sampling: [`StochasticGenerator`] and
-/// [`Envelope::stochastic`](crate::EnvelopeBuilder::stochastic).
+/// [`Envelope::stochastic`](crate::EnvelopeBuilder::stochastic). Start from
+/// [`default`](Default::default) and change what you need.
+///
+/// ```
+/// use isospec::StochasticOptions;
+/// let options = StochasticOptions::default().with_seed(42).with_precision(0.999);
+/// assert_eq!(options.seed, Some(42));
+/// ```
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct StochasticOptions {
     /// The share of the distribution sampled from, in (0, 1]; molecules that
     /// would fall in the remaining tail are dropped. Default: `0.9999`.
@@ -495,6 +543,26 @@ impl Default for StochasticOptions {
             beta_bias: 5.0,
             seed: None,
         }
+    }
+}
+
+impl StochasticOptions {
+    /// Sets [`precision`](Self::precision).
+    pub fn with_precision(mut self, precision: f64) -> Self {
+        self.precision = precision;
+        self
+    }
+
+    /// Sets [`beta_bias`](Self::beta_bias).
+    pub fn with_beta_bias(mut self, beta_bias: f64) -> Self {
+        self.beta_bias = beta_bias;
+        self
+    }
+
+    /// Sets [`seed`](Self::seed), for a reproducible result.
+    pub fn with_seed(mut self, seed: u64) -> Self {
+        self.seed = Some(seed);
+        self
     }
 }
 

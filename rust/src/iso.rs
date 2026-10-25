@@ -11,6 +11,7 @@ use crate::{Composition, Conf};
 
 /// Which isotope masses a molecule is built with.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum Masses {
     /// The isotopes' real masses.
     #[default]
@@ -21,8 +22,10 @@ pub enum Masses {
 
 /// One element of a molecule given by its isotopes rather than by symbol:
 /// for labelled or otherwise non-natural elements. See
-/// [`Iso::from_isotopes`] and [`Iso::add_element`].
+/// [`Iso::from_isotopes`] and [`Iso::add_element`]; made with
+/// [`ElementSpec::new`].
 #[derive(Clone, Copy, Debug)]
+#[non_exhaustive]
 pub struct ElementSpec<'a> {
     /// Number of atoms of the element.
     pub atoms: u32,
@@ -49,6 +52,25 @@ pub struct ElementSpec<'a> {
 /// ```
 pub struct Iso {
     inner: UniquePtr<sys::Iso>,
+}
+
+impl<'a> ElementSpec<'a> {
+    /// `atoms` atoms of an element whose isotopes have these masses and
+    /// abundances (checked when the molecule is built).
+    ///
+    /// ```
+    /// use isospec::ElementSpec;
+    /// // Six carbons, 99% carbon-13.
+    /// let carbon13 = ElementSpec::new(6, &[12.0, 13.0033548352], &[0.01, 0.99]);
+    /// assert_eq!(carbon13.atoms, 6);
+    /// ```
+    pub fn new(atoms: u32, masses: &'a [f64], probabilities: &'a [f64]) -> Self {
+        ElementSpec {
+            atoms,
+            masses,
+            probabilities,
+        }
+    }
 }
 
 fn atoms(n: u32) -> Result<i32> {
@@ -140,11 +162,7 @@ impl Iso {
     /// ```
     /// use isospec::{ElementSpec, Iso};
     /// // Six carbons, 99% carbon-13.
-    /// let labelled = Iso::from_isotopes(&[ElementSpec {
-    ///     atoms: 6,
-    ///     masses: &[12.0, 13.0033548352],
-    ///     probabilities: &[0.01, 0.99],
-    /// }])?;
+    /// let labelled = Iso::from_isotopes(&[ElementSpec::new(6, &[12.0, 13.0033548352], &[0.01, 0.99])])?;
     /// assert_eq!(labelled.dim_number(), 1);
     /// # Ok::<(), isospec::Error>(())
     /// ```
@@ -178,7 +196,7 @@ impl Iso {
     /// use isospec::{ElementSpec, Iso};
     /// let mut iso = Iso::from_formula("C50H80N12O15")?;
     /// // Six more carbons, 13C-labelled.
-    /// iso.add_element(&ElementSpec { atoms: 6, masses: &[12.0, 13.0033548352], probabilities: &[0.01, 0.99] })?;
+    /// iso.add_element(&ElementSpec::new(6, &[12.0, 13.0033548352], &[0.01, 0.99]))?;
     /// assert_eq!(iso.dim_number(), 5);
     /// # Ok::<(), isospec::Error>(())
     /// ```

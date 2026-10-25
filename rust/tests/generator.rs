@@ -38,9 +38,7 @@ fn threshold_generator_agrees_with_the_threshold_envelope() {
         iso("C6H12O6"),
         1e-6,
         Threshold::Absolute,
-        ThresholdOptions {
-            reorder_marginals: false,
-        },
+        ThresholdOptions::default().with_reorder_marginals(false),
     )
     .unwrap();
     assert_eq!(unordered.into_iter().count(), 21);
@@ -131,10 +129,9 @@ fn layered_generator_covers_like_total_prob() {
     }
     // The optimal set for 0.99 has 8 peaks; a layer may hold more.
     assert!(n >= 8);
-    let options = LayeredOptions {
-        reorder_marginals: false,
-        prob_hint: 0.5,
-    };
+    let options = LayeredOptions::default()
+        .with_reorder_marginals(false)
+        .with_prob_hint(0.5);
     let all: f64 = LayeredGenerator::with_options(iso("H2O1"), options)
         .unwrap()
         .into_iter()
@@ -159,10 +156,7 @@ fn ordered_generator_is_ordered_and_complete() {
 
 #[test]
 fn stochastic_generator_is_reproducible_when_seeded() {
-    let options = StochasticOptions {
-        seed: Some(42),
-        ..Default::default()
-    };
+    let options = StochasticOptions::default().with_seed(42);
     let collect = || {
         let mut v: Vec<(f64, f64)> = StochasticGenerator::with_options(iso("C100"), 1000, options)
             .unwrap()
@@ -189,10 +183,7 @@ fn generators_reject_bad_parameters() {
         StochasticGenerator::with_options(
             iso("C1"),
             1,
-            StochasticOptions {
-                precision: 2.0,
-                ..Default::default()
-            }
+            StochasticOptions::default().with_precision(2.0)
         )
         .is_err()
     );

@@ -41,10 +41,7 @@ fn seeded_stochastic_envelope_is_the_same_as_python_s() {
         (1205.016774176, 3.0),
         (1206.0201290112, 3.0),
     ];
-    let options = StochasticOptions {
-        seed: Some(42),
-        ..Default::default()
-    };
+    let options = StochasticOptions::default().with_seed(42);
     let mut env = iso("C100").envelope().stochastic(1000, options).unwrap();
     env.sort_by_mass();
     let got: Vec<(f64, f64)> = env.iter().collect();
@@ -271,24 +268,12 @@ fn scalar_arguments_are_checked() {
     assert!(Envelope::from_total_prob(&iso, f64::NAN).is_err());
     assert!(
         iso.envelope()
-            .stochastic(
-                10,
-                StochasticOptions {
-                    precision: 0.0,
-                    ..Default::default()
-                }
-            )
+            .stochastic(10, StochasticOptions::default().with_precision(0.0))
             .is_err()
     );
     assert!(
         iso.envelope()
-            .stochastic(
-                10,
-                StochasticOptions {
-                    beta_bias: -1.0,
-                    ..Default::default()
-                }
-            )
+            .stochastic(10, StochasticOptions::default().with_beta_bias(-1.0))
             .is_err()
     );
 }

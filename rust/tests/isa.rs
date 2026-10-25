@@ -28,7 +28,7 @@ fn levels_switch_and_agree() {
     // Every available level computes the same envelope.
     let iso = Iso::from_formula("C520H817N139O147S8").unwrap();
     let mut reference: Option<Vec<(f64, f64)>> = None;
-    for level in IsaLevel::ALL {
+    for &level in IsaLevel::ALL {
         if !level.is_available() {
             assert!(!isa::set(level));
             assert_eq!(isa::current(), start, "a refused level changes nothing");
