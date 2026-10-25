@@ -46,6 +46,14 @@ impl Error {
     }
 
     /// The kind of error.
+    ///
+    /// ```
+    /// use isospec::{ErrorKind, Iso};
+    /// let err = Iso::from_formula("H2O").unwrap_err(); // counts are not optional
+    /// assert_eq!(err.kind(), ErrorKind::InvalidArgument);
+    /// assert!(err.message().contains("H2O1"));
+    /// assert_eq!(err.to_string(), err.message());
+    /// ```
     pub fn kind(&self) -> ErrorKind {
         self.kind
     }

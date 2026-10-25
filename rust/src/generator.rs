@@ -69,6 +69,21 @@ impl<G: sealed::Batch> Peaks<G> {
 
     /// The generator back, positioned after the last peak fetched (which may
     /// be up to a batch past the last one this iterator returned).
+    ///
+    /// ```
+    /// use isospec::{Iso, LayeredGenerator};
+    /// let iso = Iso::from_formula("C100H202")?;
+    /// let total = LayeredGenerator::new(iso.clone())?.into_iter().count();
+    /// let mut peaks = LayeredGenerator::new(iso)?.into_iter();
+    /// peaks.next();
+    /// let mut g = peaks.into_inner();
+    /// let mut rest = 0;
+    /// while g.advance()?.is_some() {
+    ///     rest += 1;
+    /// }
+    /// assert!(rest < total); // the fetched batch is not seen again
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn into_inner(self) -> G {
         self.generator
     }
@@ -122,8 +137,9 @@ impl<G: sealed::Batch + std::fmt::Debug> std::fmt::Debug for Peaks<G> {
     }
 }
 
+// `$make` builds a generator of water, `iso` in scope, for the examples.
 macro_rules! generator_common {
-    ($name:ident, $raw:ident, $next:ident, $fill:ident, $conf:ident) => {
+    ($name:ident, $raw:ident, $next:ident, $fill:ident, $conf:ident, $make:literal) => {
         impl $name {
             fn wrap(inner: UniquePtr<sys::$raw>, isotope_numbers: Arc<[i32]>) -> Self {
                 let all_dim = isotope_numbers.iter().map(|&n| n as usize).sum();
@@ -139,6 +155,19 @@ macro_rules! generator_common {
 
             /// Moves to the next isotopologue and returns it, or `None` once
             /// there are no more. An error is a C++ allocation failure.
+            ///
+            /// ```
+            #[doc = concat!("use isospec::{Iso, Threshold, StochasticOptions, ", stringify!($name), "};")]
+            /// let iso = Iso::from_formula("H2O1")?;
+            #[doc = concat!("let mut g = ", $make, ";")]
+            /// assert_eq!(g.current(), None);
+            /// while let Some(peak) = g.advance()? {
+            ///     assert_eq!(g.current(), Some(peak));
+            ///     assert!(peak.mass > 18.0);
+            /// }
+            /// assert_eq!(g.advance()?, None); // and stays exhausted
+            /// # Ok::<(), isospec::Error>(())
+            /// ```
             pub fn advance(&mut self) -> Result<Option<Peak>> {
                 let mut out = sys::PeakData {
                     mass: 0.0,
@@ -174,6 +203,24 @@ macro_rules! generator_common {
 
             /// The configuration of the current isotopologue: `None` before
             /// the first step and after the last.
+            ///
+            /// ```
+            #[doc = concat!("use isospec::{Iso, Threshold, StochasticOptions, ", stringify!($name), "};")]
+            /// let iso = Iso::from_formula("H2O1")?;
+            #[doc = concat!("let mut g = ", $make, ";")]
+            /// assert!(g.conf().is_none());
+            /// g.advance()?;
+            /// let conf = g.conf().unwrap();
+            /// // Hydrogen's two isotopes, oxygen's three: two H atoms, one O.
+            /// assert_eq!(conf.element(0).iter().sum::<i32>(), 2);
+            /// assert_eq!(conf.element(1).iter().sum::<i32>(), 1);
+            /// let owned = g.conf_owned().unwrap();
+            /// let mut flat = vec![0; g.all_dim()];
+            /// assert!(g.write_conf(&mut flat));
+            /// assert_eq!(flat, owned.counts());
+            /// assert_eq!(g.isotope_numbers(), &[2, 3]);
+            /// # Ok::<(), isospec::Error>(())
+            /// ```
             pub fn conf(&mut self) -> Option<ConfRef<'_>> {
                 self.current?;
                 self.conf_buf.resize(self.all_dim, 0);
@@ -314,7 +361,8 @@ generator_common!(
     ThresholdGenerator,
     threshold_generator_next,
     threshold_generator_fill,
-    threshold_generator_conf
+    threshold_generator_conf,
+    "ThresholdGenerator::new(iso, 1e-9, Threshold::Absolute)?"
 );
 
 impl ThresholdGenerator {
@@ -342,6 +390,16 @@ impl ThresholdGenerator {
 
     /// Counts the isotopologues above the threshold, running through all of
     /// them, and [`reset`](Self::reset)s the generator.
+    ///
+    /// ```
+    /// use isospec::{Iso, Threshold, ThresholdGenerator};
+    /// let mut g = ThresholdGenerator::new(Iso::from_formula("C6H12O6")?, 1e-6, Threshold::Absolute)?;
+    /// let n = g.count_confs()?;
+    /// g.advance()?;
+    /// g.reset()?;
+    /// assert_eq!(g.into_iter().count(), n);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn count_confs(&mut self) -> Result<usize> {
         self.current = None;
         self.done = false;
@@ -433,7 +491,8 @@ generator_common!(
     LayeredGenerator,
     layered_generator_next,
     layered_generator_fill,
-    layered_generator_conf
+    layered_generator_conf,
+    "LayeredGenerator::new(iso)?"
 );
 
 impl LayeredGenerator {
@@ -477,7 +536,8 @@ generator_common!(
     OrderedGenerator,
     ordered_generator_next,
     ordered_generator_fill,
-    ordered_generator_conf
+    ordered_generator_conf,
+    "OrderedGenerator::new(iso)?"
 );
 
 impl OrderedGenerator {
@@ -571,7 +631,8 @@ generator_common!(
     StochasticGenerator,
     stochastic_generator_next,
     stochastic_generator_fill,
-    stochastic_generator_conf
+    stochastic_generator_conf,
+    "StochasticGenerator::with_options(iso, 1000, StochasticOptions::default().with_seed(1))?"
 );
 
 impl StochasticGenerator {
@@ -595,6 +656,17 @@ impl StochasticGenerator {
     }
 
     /// Number of molecules at the current isotopologue.
+    ///
+    /// ```
+    /// use isospec::{Iso, StochasticGenerator};
+    /// let mut g = StochasticGenerator::new(Iso::from_formula("C100")?, 1000)?;
+    /// let mut total = 0;
+    /// while g.advance()?.is_some() {
+    ///     total += g.molecule_count().unwrap();
+    /// }
+    /// assert!(total <= 1000);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn molecule_count(&self) -> Option<u64> {
         self.current.map(|p| p.prob as u64)
     }

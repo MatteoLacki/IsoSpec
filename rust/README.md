@@ -76,6 +76,16 @@ the same seed, on every platform.
 
 See `rust/examples/` in the repository for runnable programs.
 
+## Versions
+
+The crate follows semver on its own version numbers; the C++ library it
+bundles is versioned separately, as `isospec::LIBRARY_VERSION`, and each
+crate release names the library version it ships (see `CHANGELOG.md`).
+
+The minimum supported Rust version is 1.88 (that of `cxx`). It is raised
+only in a release that bumps the crate's minor version (before 1.0, a
+release that may also change the API), never in a patch release.
+
 ## Threads
 
 All types can move between threads. `Iso`, `Envelope` and `UnimodTable` are

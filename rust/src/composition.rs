@@ -113,6 +113,14 @@ impl Composition {
     /// Parses a formula such as `"C6H12O6"`: element symbols each followed by
     /// a count, which may be negative (`"H-2O-1"`), each element at most once.
     /// The formula is exactly the bytes of `formula`.
+    ///
+    /// ```
+    /// use isospec::Composition;
+    /// let delta = Composition::from_formula("H-2O-1")?; // losing water
+    /// assert!(delta.has_negative_counts());
+    /// assert!(Composition::from_formula("C1C1").is_err()); // each element once
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_formula(formula: &str) -> Result<Self> {
         let mut first = Vec::new();
         let mut counts = Vec::new();
@@ -126,6 +134,16 @@ impl Composition {
     /// `PEPTIDE-[UNIMOD:<id>]` (C-terminal). Characters that are not amino
     /// acids are ignored; a malformed bracket or an id the table lacks is an
     /// error.
+    ///
+    /// ```
+    /// use isospec::{Composition, PeptideOptions};
+    /// let options = PeptideOptions::default();
+    /// let plain = Composition::from_peptide("PEPMTIDE", &options)?;
+    /// let oxidised = Composition::from_peptide("PEPM[UNIMOD:35]TIDE", &options)?;
+    /// assert_eq!(&oxidised - &plain, "O1".parse()?); // equal: zero counts aside
+    /// assert!(Composition::from_peptide("PEPM[UNIMOD:", &options).is_err());
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_peptide(sequence: &str, options: &PeptideOptions<'_>) -> Result<Self> {
         let mut composition = Composition::new();
         composition.parse_peptide_into(sequence, options)?;
@@ -134,6 +152,17 @@ impl Composition {
 
     /// As [`from_peptide`](Self::from_peptide), but reusing this composition's
     /// storage: for loops over many sequences.
+    ///
+    /// ```
+    /// use isospec::{Composition, PeptideOptions};
+    /// let options = PeptideOptions::default();
+    /// let mut composition = Composition::new();
+    /// for sequence in ["PEPTIDE", "ELVISLIVES"] {
+    ///     composition.parse_peptide_into(sequence, &options)?;
+    ///     assert!(!composition.is_empty());
+    /// }
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn parse_peptide_into(
         &mut self,
         sequence: &str,
@@ -160,6 +189,11 @@ impl Composition {
     /// are skipped and the letters read as residues, so use
     /// [`from_peptide`](Self::from_peptide) for those. With `add_water` the
     /// terminal H and OH groups are added.
+    ///
+    /// ```
+    /// use isospec::Composition;
+    /// assert_eq!(Composition::from_fasta("PEPTIDE", true).to_string(), "C34H53N7O15");
+    /// ```
     pub fn from_fasta(sequence: &str, add_water: bool) -> Self {
         let mut chnosse = [0i32; 6];
         sys::composition_from_fasta(sequence, add_water, &mut chnosse);
@@ -189,6 +223,17 @@ impl Composition {
     }
 
     /// Adds `count` atoms of `element` (subtracts, if negative).
+    ///
+    /// ```
+    /// use isospec::{Composition, Element};
+    /// let carbon = Element::from_symbol("C").unwrap();
+    /// let mut c = Composition::new();
+    /// c.add_element(carbon, 6);
+    /// c.add_element(carbon, -2);
+    /// assert_eq!(c.count(carbon), 4);
+    /// assert_eq!(c.len(), 1);
+    /// assert_eq!(c.iter().collect::<Vec<_>>(), [(carbon, 4)]);
+    /// ```
     pub fn add_element(&mut self, element: Element, count: i32) {
         match self.elements.iter().position(|&e| e == element) {
             Some(ii) => self.counts[ii] += count,
@@ -232,6 +277,16 @@ impl Composition {
 
     /// Resolves the composition to isotope masses and abundances from the
     /// element table. Negative counts are passed through.
+    ///
+    /// ```
+    /// use isospec::{Composition, Masses};
+    /// let ethanol: Composition = "C2H6O1".parse()?;
+    /// let expanded = ethanol.expand(Masses::Nominal)?;
+    /// assert_eq!(expanded.isotope_numbers, [2, 2, 3]);
+    /// assert_eq!(expanded.atom_counts, [2, 6, 1]);
+    /// assert_eq!(expanded.masses, [12.0, 13.0, 1.0, 2.0, 16.0, 17.0, 18.0]);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn expand(&self, masses: Masses) -> Result<ExpandedComposition> {
         let mut out = ExpandedComposition::default();
         sys::composition_expand(

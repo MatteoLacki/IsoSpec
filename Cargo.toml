@@ -32,6 +32,7 @@ include = [
     "/VERSION",
     "/rust/build.rs",
     "/rust/README.md",
+    "/rust/CHANGELOG.md",
     "/rust/src/**/*.rs",
     "/rust/examples/*.rs",
     "/rust/tests/*.rs",

@@ -34,6 +34,14 @@ pub struct Isotope {
 
 impl Element {
     /// The element with this symbol (`"C"`, `"Se"`, ...), if the table has it.
+    ///
+    /// ```
+    /// use isospec::Element;
+    /// let se = Element::from_symbol("Se").unwrap();
+    /// assert_eq!((se.symbol(), se.name(), se.atomic_number()), ("Se", "selenium", 34));
+    /// assert_eq!(se.isotopes().len(), 6);
+    /// assert!(Element::from_symbol("Xx").is_none());
+    /// ```
     pub fn from_symbol(symbol: &str) -> Option<Element> {
         let first = sys::element_find(symbol);
         Element::from_first_index(first)
@@ -58,6 +66,13 @@ impl Element {
     }
 
     /// Every element in the table, in table order (by atomic number).
+    ///
+    /// ```
+    /// use isospec::Element;
+    /// let first = Element::all().next().unwrap();
+    /// assert_eq!(first.symbol(), "H");
+    /// assert!(Element::all().any(|e| e.symbol() == "U"));
+    /// ```
     pub fn all() -> impl Iterator<Item = Element> {
         let len = sys::element_table_len();
         let mut row = 0usize;
@@ -87,6 +102,15 @@ impl Element {
     }
 
     /// The stable isotopes, lightest first.
+    ///
+    /// ```
+    /// use isospec::Element;
+    /// let carbon = Element::from_symbol("C").unwrap();
+    /// let isotopes: Vec<_> = carbon.isotopes().collect();
+    /// assert_eq!(isotopes[0].mass_number, 12);
+    /// assert_eq!(isotopes[0].mass, 12.0);
+    /// assert!((isotopes[1].abundance - 0.0107).abs() < 1e-3);
+    /// ```
     pub fn isotopes(self) -> impl ExactSizeIterator<Item = Isotope> {
         self.rows().map(|row| Isotope {
             mass: sys::element_table_mass(row),

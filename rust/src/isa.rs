@@ -52,6 +52,14 @@ impl IsaLevel {
 }
 
 /// The level in use.
+///
+/// ```
+/// use isospec::isa;
+/// let level = isa::current();
+/// assert!(level.is_available());
+/// assert!(level <= isa::max_supported());
+/// println!("kernels: {} ({})", level.name(), isa::simd_level());
+/// ```
 pub fn current() -> IsaLevel {
     IsaLevel::from_raw(sys::isa_current_level())
 }

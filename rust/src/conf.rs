@@ -33,6 +33,20 @@ impl<'a> ConfRef<'a> {
     }
 
     /// All counts, element after element.
+    ///
+    /// ```
+    /// use isospec::{Iso, Threshold, ThresholdGenerator};
+    /// let mut g = ThresholdGenerator::new(Iso::from_formula("H2O1")?, 0.5, Threshold::Absolute)?;
+    /// g.advance()?;
+    /// let conf = g.conf().unwrap(); // the monoisotopic one: 1H2 16O
+    /// assert_eq!(conf.counts(), &[2, 0, 1, 0, 0]);
+    /// assert_eq!(conf.len(), 2);
+    /// assert_eq!(conf.element(1), &[1, 0, 0]);
+    /// assert_eq!(conf.elements().collect::<Vec<_>>(), [&[2, 0][..], &[1, 0, 0][..]]);
+    /// let owned = conf.to_owned();
+    /// assert_eq!(owned.to_nested(), vec![vec![2, 0], vec![1, 0, 0]]);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn counts(&self) -> &'a [i32] {
         self.counts
     }
@@ -87,6 +101,14 @@ impl Conf {
     }
 
     /// A borrowed view.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let conf = Iso::from_formula("H2O1")?.monoisotopic_conf();
+    /// assert_eq!(conf.as_ref().counts(), conf.counts());
+    /// assert_eq!(format!("{conf:?}"), "[[2, 0], [1, 0, 0]]");
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn as_ref(&self) -> ConfRef<'_> {
         ConfRef::new(&self.counts, &self.isotope_numbers)
     }

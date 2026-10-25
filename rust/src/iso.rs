@@ -104,11 +104,28 @@ impl Iso {
 
     /// Parses a formula such as `"C6H12O6"`: element symbols, each followed
     /// by its count (`"H2O1"`, not `"H2O"`), each element once.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let water = Iso::from_formula("H2O1")?;
+    /// assert_eq!(water.dim_number(), 2);
+    /// assert!(Iso::from_formula("H2O").is_err()); // every count explicit
+    /// let parsed: Iso = "H2O1".parse()?; // the same, through FromStr
+    /// assert_eq!(parsed.monoisotopic_mass(), water.monoisotopic_mass());
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_formula(formula: &str) -> Result<Iso> {
         Iso::from_formula_with(formula, Masses::Exact)
     }
 
     /// As [`from_formula`](Self::from_formula), with the choice of masses.
+    ///
+    /// ```
+    /// use isospec::{Iso, Masses};
+    /// let nominal = Iso::from_formula_with("C6H12O6", Masses::Nominal)?;
+    /// assert_eq!(nominal.monoisotopic_mass(), 180.0);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_formula_with(formula: &str, masses: Masses) -> Result<Iso> {
         Ok(Iso::from_raw(sys::iso_from_formula(
             formula,
@@ -119,6 +136,13 @@ impl Iso {
     /// A peptide from a plain amino-acid sequence (FASTA one-letter codes,
     /// any case, including selenocysteine `U` and `J`); any other character is
     /// ignored. With `add_water` the terminal H and OH groups are included.
+    ///
+    /// ```
+    /// use isospec::{Iso, Masses};
+    /// let peptide = Iso::from_fasta("PEPTIDE", true, Masses::Exact)?;
+    /// assert!((peptide.monoisotopic_mass() - 799.359964).abs() < 1e-6);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_fasta(sequence: &str, add_water: bool, masses: Masses) -> Result<Iso> {
         Ok(Iso::from_raw(sys::iso_from_fasta(
             sequence,
@@ -149,6 +173,16 @@ impl Iso {
 
     /// A molecule of the elements of `composition`, with the element table's
     /// isotopes. Negative counts are an error.
+    ///
+    /// ```
+    /// use isospec::{Composition, Iso, Masses};
+    /// let glucose: Composition = "C6H12O6".parse()?;
+    /// let water: Composition = "H2O1".parse()?;
+    /// let anhydro = Iso::from_composition(&(&glucose - &water), Masses::Exact)?;
+    /// assert!((anhydro.monoisotopic_mass() - 162.052823).abs() < 1e-6);
+    /// assert!(Iso::from_composition(&(&water - &glucose), Masses::Exact).is_err()); // negative
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_composition(composition: &Composition, masses: Masses) -> Result<Iso> {
         Ok(Iso::from_raw(sys::iso_from_composition(
             &composition.raw_first_indexes(),
@@ -213,11 +247,31 @@ impl Iso {
     }
 
     /// A deep copy; as [`Clone::clone`], with allocation failure reported.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let iso = Iso::from_formula("C6H12O6")?;
+    /// let copy = iso.try_clone()?;
+    /// assert_eq!(copy.monoisotopic_mass(), iso.clone().monoisotopic_mass());
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn try_clone(&self) -> Result<Iso> {
         Ok(Iso::from_raw(sys::iso_clone(self.raw())?))
     }
 
     /// Number of elements (each a separate dimension of the distribution).
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let glucose = Iso::from_formula("C6H12O6")?;
+    /// assert_eq!(glucose.dim_number(), 3);
+    /// assert_eq!(glucose.isotope_numbers(), &[2, 2, 3]); // C, H, O
+    /// assert_eq!(glucose.all_dim(), 7);
+    /// assert_eq!(glucose.atom_counts(), &[6, 12, 6]);
+    /// assert_eq!(glucose.element_masses(0), &[12.0, 13.0033548352]);
+    /// assert!(glucose.element_lprobs(0)[0] > glucose.element_lprobs(0)[1]); // 12C is the commoner
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn dim_number(&self) -> usize {
         self.raw().getDimNumber() as usize
     }
@@ -263,6 +317,17 @@ impl Iso {
     }
 
     /// Mass of the lightest isotopologue.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let glucose = Iso::from_formula("C6H12O6")?;
+    /// // All 12C, 1H and 16O at one end, all 13C, 2H and 18O at the other.
+    /// assert_eq!(glucose.lightest_peak_conf().to_nested(), [vec![6, 0], vec![12, 0], vec![6, 0, 0]]);
+    /// assert_eq!(glucose.heaviest_peak_conf().to_nested(), [vec![0, 6], vec![0, 12], vec![0, 0, 6]]);
+    /// assert!((glucose.heaviest_peak_mass() - glucose.lightest_peak_mass() - 30.121).abs() < 1e-3);
+    /// assert!(glucose.heaviest_peak_lprob() < glucose.lightest_peak_lprob());
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn lightest_peak_mass(&self) -> f64 {
         self.raw().getLightestPeakMass()
     }
@@ -294,6 +359,15 @@ impl Iso {
 
     /// Mass of the monoisotopic isotopologue: every atom its element's most
     /// abundant isotope.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let glucose = Iso::from_formula("C6H12O6")?;
+    /// assert!((glucose.monoisotopic_mass() - 180.063388).abs() < 1e-6);
+    /// assert_eq!(glucose.monoisotopic_conf().to_nested(), [vec![6, 0], vec![12, 0], vec![6, 0, 0]]);
+    /// assert!((glucose.monoisotopic_lprob().exp() - 0.922).abs() < 1e-3);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn monoisotopic_mass(&self) -> f64 {
         self.raw().getMonoisotopicPeakMass()
     }
@@ -309,6 +383,18 @@ impl Iso {
     }
 
     /// Mass of the most probable isotopologue.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// // Small molecules peak at the monoisotopic mass; large ones do not.
+    /// let glucose = Iso::from_formula("C6H12O6")?;
+    /// assert_eq!(glucose.mode_mass(), glucose.monoisotopic_mass());
+    /// let insulin = Iso::from_formula("C254H377N65O75S6")?;
+    /// assert!(insulin.mode_mass() > insulin.monoisotopic_mass() + 2.0);
+    /// assert!(insulin.mode_lprob() > insulin.monoisotopic_lprob());
+    /// assert!(insulin.unlikeliest_peak_lprob() < insulin.mode_lprob());
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn mode_mass(&self) -> f64 {
         self.raw().getModeMass()
     }
@@ -324,6 +410,14 @@ impl Iso {
     }
 
     /// Mean mass of the distribution.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let glucose = Iso::from_formula("C6H12O6")?;
+    /// assert!((glucose.average_mass() - 180.156695).abs() < 1e-6);
+    /// assert!((glucose.stddev() - glucose.variance().sqrt()).abs() < 1e-15);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn average_mass(&self) -> f64 {
         self.raw().getTheoreticalAverageMass()
     }
@@ -340,6 +434,14 @@ impl Iso {
 
     /// A bound on how far any isotopologue mass the library computes may be
     /// from the exact sum, from rounding.
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let glucose = Iso::from_formula("C6H12O6")?;
+    /// assert!(glucose.mass_rounding_bound() < 1e-9);
+    /// assert!((glucose.max_atom_mass_span() - 2.004245).abs() < 1e-6); // 16O to 18O
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn mass_rounding_bound(&self) -> f64 {
         self.raw().getMassRoundingBound()
     }
@@ -353,6 +455,15 @@ impl Iso {
     /// For each element, an estimate of the log of the number of its
     /// subisotopologues needed to cover `target_total_prob` of its
     /// distribution (what the generators use to order the elements).
+    ///
+    /// ```
+    /// use isospec::Iso;
+    /// let estimates = Iso::from_formula("C6H12O6")?.marginal_log_size_estimates(0.99)?;
+    /// assert_eq!(estimates.len(), 3);
+    /// // Carbon needs the most subisotopologues.
+    /// assert!(estimates[0] > estimates[1] && estimates[0] > estimates[2]);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn marginal_log_size_estimates(&self, target_total_prob: f64) -> Result<Vec<f64>> {
         let mut out = vec![0.0; self.dim_number()];
         sys::iso_marginal_log_size_estimates(self.raw(), &mut out, target_total_prob)?;

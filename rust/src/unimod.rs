@@ -56,6 +56,17 @@ impl UnimodTable {
     /// Parses a CSV of rows `id,name,mono_mass,composition`, the composition
     /// a formula with signed counts (the shape of the library's
     /// `data/unimod.csv`).
+    ///
+    /// ```
+    /// use isospec::{Composition, PeptideOptions, UnimodTable};
+    /// let table = UnimodTable::from_csv("id,name,mono_mass,composition\n1,Acetyl,42.010565,H2C2O1\n")?;
+    /// assert_eq!(table.lookup(1).unwrap().name, "Acetyl");
+    /// assert_eq!(table.entries().count(), 1);
+    /// let options = PeptideOptions::default().with_mods(&table);
+    /// let acetylated = Composition::from_peptide("[UNIMOD:1]-PEPTIDE", &options)?;
+    /// assert_eq!(acetylated, "C36H55N7O16".parse()?); // PEPTIDE plus C2H2O1
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_csv(csv: &str) -> Result<UnimodTable> {
         Ok(UnimodTable {
             inner: Table::Owned(sys::unimod_from_csv(csv)?),
@@ -65,6 +76,12 @@ impl UnimodTable {
     /// Loads a CSV file as [`from_csv`](Self::from_csv) does. Each distinct
     /// path is read once and kept for the life of the process: a file changed
     /// after its first load is not read again.
+    ///
+    /// ```
+    /// use isospec::UnimodTable;
+    /// assert!(UnimodTable::from_path("/nonexistent/unimod.csv").is_err());
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
     pub fn from_path(path: impl AsRef<Path>) -> Result<UnimodTable> {
         let path = path.as_ref();
         let path = path.to_str().ok_or_else(|| {
@@ -94,6 +111,17 @@ impl UnimodTable {
     }
 
     /// The entry for `id`, if the table has it.
+    ///
+    /// ```
+    /// use isospec::UnimodTable;
+    /// let table = UnimodTable::embedded();
+    /// let carbamidomethyl = table.lookup(4).unwrap();
+    /// assert_eq!(carbamidomethyl.name, "Carbamidomethyl");
+    /// assert!((carbamidomethyl.mono_mass - 57.021464).abs() < 1e-6);
+    /// assert!(table.lookup(0).is_none());
+    /// assert!(table.entries().count() > 100);
+    /// assert!(table.capacity() > 35);
+    /// ```
     pub fn lookup(&self, id: u32) -> Option<UnimodEntry> {
         let mut name = String::new();
         let mut mono_mass = 0.0;
