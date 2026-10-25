@@ -36,7 +36,9 @@
 // elsewhere for plain huge-page mmap): that layer has no remap concept at
 // all on Windows and no equivalent of mremap on Darwin, so each platform's
 // real growth primitive is used directly instead:
-//   - Linux / other real-mman UNIX: mmap + mremap(MREMAP_MAYMOVE) + munmap.
+//   - Linux (any libc with mremap): mmap + mremap(MREMAP_MAYMOVE) + munmap.
+//   - Other UNIX (FreeBSD, ...: no mremap): growth maps a fresh region and
+//     copies, shrink unmaps the tail in place.
 //   - Apple: mmap/munmap for create/destroy (Darwin has no mremap); growth
 //     re-wires pages into a fresh mapping via mach_vm_remap instead of
 //     copying, shrink just munmaps the tail in place.
@@ -319,7 +321,7 @@ inline void vm_resize(vm_region& r, std::size_t new_bytes)
     r.size = new_size;
 }
 
-#else  // Linux / other real-mman UNIX with an actual mremap()
+#else  // Other UNIX: Linux with mremap(), the rest (FreeBSD, ...) without
 
 // ThreadSanitizer intercepts mmap() and munmap() but not mremap(), so a region
 // that mremap() moves away from is freed behind its back and keeps its old
@@ -335,13 +337,24 @@ inline void vm_resize(vm_region& r, std::size_t new_bytes)
 #endif
 #endif
 
+// mremap() is Linux's alone; MREMAP_MAYMOVE, from <sys/mman.h>, is the test.
+#if defined(MREMAP_MAYMOVE) && !defined(ISOSPEC_ALIGNED_PTR_UNDER_TSAN)
+#define ISOSPEC_ALIGNED_PTR_USE_MREMAP 1
+#endif
+
 inline void vm_resize(vm_region& r, std::size_t new_bytes)
 {
     const std::size_t new_size = round_up_to_page(new_bytes);
     if (new_size == r.size)
         return;
 
-#if defined(ISOSPEC_ALIGNED_PTR_UNDER_TSAN)
+#if !defined(ISOSPEC_ALIGNED_PTR_USE_MREMAP)
+    if (new_size < r.size) {
+        // Shrink in place: base address is untouched, just drop the tail.
+        ::munmap(static_cast<char*>(r.base) + new_size, r.size - new_size);
+        r.size = new_size;
+        return;
+    }
     vm_region moved = vm_create(new_bytes);
     std::memcpy(moved.base, r.base, (std::min)(r.size, moved.size));
     vm_destroy(r);
