@@ -2,7 +2,7 @@
 
 IsoSpec is a fine-structure isotopic distribution calculator for chemical formulas — given a molecule, it computes the masses and probabilities of its isotopologues. It is fast enough to handle large molecules (proteins, oligonucleotides) where the full distribution has astronomically many configurations, and it returns provably-optimal subsets that cover a chosen fraction of the total probability mass.
 
-IsoSpec is primarily used as a library by mass spectrometry software. It is implemented in C++ (`src/IsoSpec++/`) and shipped with first-class bindings for Python (`IsoSpecPy`, on PyPI) and R (`IsoSpecR`, on CRAN).
+IsoSpec is primarily used as a library by mass spectrometry software. It is implemented in C++ (`src/IsoSpec++/`) and shipped with first-class bindings for Python (`IsoSpecPy`, on PyPI), R (`IsoSpecR`, on CRAN) and Rust (`isospec`, the crate in `rust/`).
 
 ## Installation
 
@@ -23,6 +23,15 @@ install.packages("IsoSpecR")
 ```
 
 From source: `cd src && R CMD build IsoSpecR && R CMD INSTALL IsoSpecR_*.tar.gz`.
+
+### Rust
+
+```toml
+[dependencies]
+isospec = "0.1"
+```
+
+The build script compiles the bundled C++ library; a C++20 compiler is all that is needed. See `rust/README.md`.
 
 ### C++ library
 
@@ -130,6 +139,27 @@ clang++ -std=c++20 water.cpp src/IsoSpec++/unity-build.cpp -o water
 
 (`unity-build.cpp` is a single translation unit that `#include`s every source file — see `Examples/C++/COMPILING`.)
 
+### Rust
+
+```rust
+use isospec::{Iso, PeptideOptions};
+
+fn main() -> Result<(), isospec::Error> {
+    let iso = Iso::from_formula("H2O1")?;
+    for (mass, prob) in iso.envelope().total_prob(0.999)?.iter() {
+        println!("{mass}\t{prob}");
+    }
+
+    // A modified peptide; unlike Python's peptide_sequence=, the default
+    // here includes the terminal water.
+    let peptide = Iso::from_peptide("PEPTC[UNIMOD:4]DEK", &PeptideOptions::default())?;
+    println!("{}", peptide.monoisotopic_mass());
+    Ok(())
+}
+```
+
+See `rust/examples/` for binned spectra, generators with configurations, and labelled elements.
+
 ### R
 
 ```r
@@ -171,6 +201,7 @@ Algorithmic details are in the papers cited below; the Supporting Information of
 src/IsoSpec++/    C++ core library (the algorithms live here)
 src/IsoSpecPy/    Python binding, loaded via cffi
 src/IsoSpecR/     R binding, via Rcpp
+rust/             Rust crate (Cargo.toml at the repository root), via cxx
 Examples/         Working examples in each language
 tests/            C, C++, and Python test suites
 skbuild/          scikit-build-core entry point used when installing the Python wheel

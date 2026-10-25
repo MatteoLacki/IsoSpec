@@ -27,6 +27,8 @@ include = [
     "/rust/build.rs",
     "/rust/README.md",
     "/rust/src/**/*.rs",
+    "/rust/examples/*.rs",
+    "/rust/tests/*.rs",
     "/rust/shim/*.h",
     "/rust/shim/*.cc",
     "/src/IsoSpec++/*.h",
@@ -63,6 +65,22 @@ path = "rust/tests/isa.rs"
 [[test]]
 name = "misc"
 path = "rust/tests/misc.rs"
+
+[[example]]
+name = "envelope"
+path = "rust/examples/envelope.rs"
+
+[[example]]
+name = "generators"
+path = "rust/examples/generators.rs"
+
+[[example]]
+name = "labelled"
+path = "rust/examples/labelled.rs"
+
+[[example]]
+name = "peptide"
+path = "rust/examples/peptide.rs"
 
 [dependencies]
 cxx = "1.0.205"

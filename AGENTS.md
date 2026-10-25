@@ -6,7 +6,7 @@ This file is tracked in git. Keep it up to date as part of any change that makes
 
 ## What this is
 
-IsoSpec: a fine-structure isotopic distribution calculator for chemical formulas. C++20 core (`src/IsoSpec++/`), Python binding via cffi (`src/IsoSpecPy/`, PyPI wheel built through `skbuild/`), R binding via Rcpp (`src/IsoSpecR/`, CRAN). No parallelism inside the library, but thread-safe to use from many threads (see Threading below). `VERSION` at the repo root is the single source of truth for the version (read by both pyproject.toml and CMake).
+IsoSpec: a fine-structure isotopic distribution calculator for chemical formulas. C++20 core (`src/IsoSpec++/`), Python binding via cffi (`src/IsoSpecPy/`, PyPI wheel built through `skbuild/`), R binding via Rcpp (`src/IsoSpecR/`, CRAN), Rust crate `isospec` via cxx (`Cargo.toml` at the root, sources in `rust/`; crates.io). No parallelism inside the library, but thread-safe to use from many threads (see Threading below). `VERSION` at the repo root is the single source of truth for the library version (read by pyproject.toml, CMake and the Rust build script, which exposes it as `isospec::LIBRARY_VERSION`); the Rust crate has its own semver in `Cargo.toml` (0.x while its API settles).
 
 ## Commands
 
@@ -57,6 +57,19 @@ python -m pytest tests/Python/test_iso_api.py -k <expr>   # single test
 
 Tests use `pip install .[testing]` extras (pytest + OldIsoSpecPy). The installed wheel is what's tested — reinstall after C++ changes.
 
+### Rust
+
+```bash
+cargo test                       # unit + integration (rust/tests/) + doc tests, incl. compile_fail guarantees
+cargo test --release             # release builds define NDEBUG for the C++ (cc does not by itself)
+cargo clippy --all-targets -- -D warnings && cargo fmt --check
+DOCS_RS=1 cargo doc --no-deps    # as docs.rs builds it: no C++ compiled
+cargo package --list             # what ships: the `include` list in Cargo.toml (src/IsoSpec++/*.{h,cpp} taken directly)
+cargo +nightly fuzz build -O --fuzz-dir rust/fuzz   # with CXX=clang++ CXXFLAGS="-fsanitize=address -fsanitize=fuzzer-no-link"
+```
+
+The crate is `Cargo.toml` at the repo root (so that the packaged crate takes the C++ sources straight from `src/IsoSpec++`, no copy) with everything Rust under `rust/`: `build.rs` (mirrors `IsaDispatch.cmake`: unity build plus the four kernel objects with probed flags, archived together), `shim/` (the C++ half of the cxx bridge: constructors, overloads, templates, the stochastic generator's owned RNG, typed exception translation), `src/` (`ffi.rs` is the raw bridge; everything else is the safe API), `tests/`, `examples/`, `fuzz/` (a cargo-fuzz crate of its own). `autotests`/`autoexamples` are off: the repo's own `tests/` is not cargo's, so Rust targets are listed in `Cargo.toml`. Rationale and the measured costs in `docs/ai/rust_bindings.md`. Publishing to crates.io is a release: never without the user's explicit order.
+
 ### C++ library alone
 
 ```bash
@@ -103,7 +116,7 @@ Do not reintroduce function-local `static` scratch buffers or lazy caches behind
 
 - The PyPI wheel is tagged `py3-none-<platform>` (`wheel.py-api = "py3"` in pyproject.toml), not per-interpreter or abi3: the compiled part is a plain C-ABI shared library that cffi `dlopen`s, with no Python.h and no libpython. cibuildwheel builds it once per platform and only tests it under each remaining CPython/PyPy/free-threaded interpreter. Using the CPython API from C++ would invalidate this.
 - macOS **wheel** builds use **Homebrew GCC** — Apple Clang's libc++ has no usable `<experimental/simd>`, so with Apple Clang the library still builds but the kernels run scalar (`platform.h` excludes `_LIBCPP_VERSION`). The wheel links libstdc++ statically with hidden symbols (`-load_hidden`); see the long comment in `skbuild/CMakeLists.txt` before touching that.
-- CI (`.github/workflows/`) runs the pytest matrix on 6 OSes and the C++ suite on ubuntu x86-64 + ARM, plus once each with Apple clang + libc++ on macOS and with MSVC on Windows (both scalar kernels: the toolchains a Rust/cxx build gets there, neither of which has a usable `<experimental/simd>`). AVX-512 and fake-AVX (Opteron) behavior is validated locally, never in CI — do not add non-GitHub machines to CI or committed scripts.
+- CI (`.github/workflows/`) runs the pytest matrix on 6 OSes and the C++ suite on ubuntu x86-64 + ARM, plus once each with Apple clang + libc++ on macOS and with MSVC on Windows (both scalar kernels: the toolchains a Rust/cxx build gets there, neither of which has a usable `<experimental/simd>`), and `rust.yml` runs `cargo test` (debug and release) on the same four platforms plus package, lint, docs and MSRV jobs. AVX-512 and fake-AVX (Opteron) behavior is validated locally, never in CI — do not add non-GitHub machines to CI or committed scripts.
 
 ## Conventions
 
@@ -119,6 +132,7 @@ This file stays a short overview; design rationale/history for each feature live
 |------|--------|
 | `docs/ai/unimod.md` | `[UNIMOD:<id>]` modification-aware peptide sequence parsing (`fasta_mods.h`/`unimod.h`), the `fasta`/`peptide_sequence` naming note |
 | `docs/ai/precursor_isotopes_notebook.md` | Pipeline peptide notebook: unmodified optimal 99% isotope sets, 1 Da sparse mmappet export, notebook fingerprint |
+| `docs/ai/rust_bindings.md` | The `isospec` crate: layout, the cxx shim, error translation, Send/Sync reasoning, the batched iterator and its measurements, what is deliberately not exposed |
 | `docs/ai/composition_expansion.md` | `composition.h`: `ElementComposition`/`expand_composition_into`/`expandCompositionC` — the one symbol→isotopes resolution every path and binding forwards to, and the copy that remains |
 
 # Persona

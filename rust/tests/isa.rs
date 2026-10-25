@@ -7,6 +7,12 @@ use isospec::{Envelope, Iso};
 #[test]
 fn levels_switch_and_agree() {
     let start = isa::current();
+    // For the CI log: what each platform's build runs.
+    eprintln!(
+        "simd level: {}, ISA level: {}",
+        isa::simd_level(),
+        start.name()
+    );
     assert!(start <= isa::max_supported());
     assert!(IsaLevel::Baseline.is_available());
     assert_eq!(
