@@ -1388,33 +1388,28 @@ double FixedEnvelope::empiric_variance()
 
 // Map a mass to its bin index.  Multiplying by the precomputed reciprocal avoids
 // a per-configuration division on this hot path.  The slot range in Binned()
-// MUST come from this exact same expression (as must the vector one in the
-// bin_run kernel): every step of it -- the rounded add, the rounded multiply by
-// a positive number, floor -- is monotonic, so a mass within the range Binned()
-// bounds lands on a slot within the range it allocates.  (Reciprocal vs true
-// division can disagree by <=1 ULP, which at an exact bin boundary could move a
-// peak to an adjacent bin, but never out of the allocated range.)
+// MUST come from this exact same expression (as must bin_slot() and the vector
+// one in the bin_run kernel): every step of it -- the rounded add, the rounded
+// multiply by a positive number, floor -- is monotonic, so a mass within the
+// range Binned() bounds lands on a slot within the range it allocates.
+// (Reciprocal vs true division can disagree by <=1 ULP, which at an exact bin
+// boundary could move a peak to an adjacent bin, but never out of the
+// allocated range.)
 static ISOSPEC_FORCE_INLINE double bin_index_fp(double mass, double hwmm, double inv_bin_width)
 {
     return floor((mass + hwmm) * inv_bin_width);
 }
 
-// The same, converted, for the scatter.  Deliberately not written as a cast of
-// bin_index_fp(): gcc folds a cast written around floor() into lfloor, which
-// below SSE4.1 (the wheel's baseline build of this file) is a call to libm's
-// floor -- ifunc'ed to roundsd -- while a floor() whose result crosses a
-// function boundary first gets gcc's inline SSE2 expansion instead, which made
-// the layered fill below 1.5-1.7x slower on Piledriver.  Same value either way.
-static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_index(double mass, double hwmm, double inv_bin_width)
-{
-    return static_cast<std::ptrdiff_t>(floor((mass + hwmm) * inv_bin_width));
-}
-
-// The accumulator slot of a mass.  Binned() shifts hwmm so that slots, not
-// absolute bin indices, come out of bin_index() directly.
+// The accumulator slot of a mass, for the scatter.  Binned() shifts hwmm so that
+// slots, not absolute bin indices, come out of this directly, and makes sure the
+// lowest mass maps to bin_index_fp() >= 0, so every (mass + hwmm) * inv_bin_width
+// is >= 0, by monotonicity: there truncation, which the conversion does anyway,
+// equals floor.  Without the floor() the scalar fills make no call per
+// configuration -- below SSE4.1, the wheel's baseline build of this file, it is
+// one to libm -- which had them keep the running sums in stack slots across it.
 static ISOSPEC_FORCE_INLINE std::ptrdiff_t bin_slot(size_t no_bins, double mass, double hwmm, double inv_bin_width)
 {
-    const std::ptrdiff_t slot = bin_index(mass, hwmm, inv_bin_width);
+    const std::ptrdiff_t slot = static_cast<std::ptrdiff_t>((mass + hwmm) * inv_bin_width);
     ISOSPEC_IMPOSSIBLE(slot < 0 || static_cast<size_t>(slot) >= no_bins);
     return slot;
 }
@@ -1584,7 +1579,7 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
     if(!(std::fabs(first_index) <= 0x1p48 && std::fabs(last_index) <= 0x1p48))
         throw std::length_error("Bins too fine for the precision of the masses");
 
-    // Shift the grid's origin to bin idx_min, so that bin_index() yields
+    // Shift the grid's origin to bin idx_min, so that bin_slot() yields
     // accumulator slots directly, with no subtraction per configuration.
     // idx_min * bin_width rounds, which moves the bin edges by up to 1/16 of a
     // bin at the 2^48 limit (an ulp of the mass, and less at smaller indices):

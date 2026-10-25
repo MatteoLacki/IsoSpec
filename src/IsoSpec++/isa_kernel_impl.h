@@ -130,12 +130,13 @@ static std::size_t bin_run(const double** lProbs_ptr,
         masses.copy_from(marginal_masses + offset, simd_ns::element_aligned);
         masses += vpartial_mass;
 
-        // The vector form of bin_index(): the same arithmetic in the same order,
-        // so it lands in the same bin and, like it, stays inside the allocation.
+        // The vector form of bin_slot(): the same arithmetic in the same order,
+        // so it lands in the same bin and, like it, stays inside the allocation
+        // (no floor: the values are >= 0, so the conversion's truncation is it).
         // The scatter that consumes it cannot be vectorised -- the indices repeat
         // and collide, and resolving that would need AVX-512CD conflict detection
         // -- but everything ahead of it is, which is where the work is.
-        const simd_double slots = simd_ns::floor((masses + vhwmm) * vinv_bin_width);
+        const simd_double slots = (masses + vhwmm) * vinv_bin_width;
 
         // Hand the probabilities to the scatter through a buffer rather than by
         // subscripting the vector. Clang otherwise sees every lane extracted and
