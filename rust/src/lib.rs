@@ -58,6 +58,8 @@ mod envelope;
 mod error;
 mod ffi;
 mod generator;
+#[cfg(doctest)]
+mod guarantees;
 pub mod isa;
 mod iso;
 mod unimod;
