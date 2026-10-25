@@ -4,7 +4,6 @@ on:
     push:
         branches:
             - ci_test
-            - rust-crate
             - main
             - winworkflow
         tags:

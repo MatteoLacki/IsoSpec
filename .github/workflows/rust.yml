@@ -4,7 +4,6 @@ on:
     push:
         branches:
             - main
-            - rust-crate
     pull_request:
 
 env:
