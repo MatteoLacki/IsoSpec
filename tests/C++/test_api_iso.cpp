@@ -89,6 +89,25 @@ TEST_CASE("Iso dimensions match the formula") {
     }
 }
 
+TEST_CASE("Iso reports its isotope numbers, atom counts and isotopes") {
+    for (const char* f : kFormulas) {
+        INFO("formula=" << f);
+        const std::vector<ElementSpec> es = elements_of(f);
+        Iso iso(f);
+        for (size_t ii = 0; ii < es.size(); ii++) {
+            const int n = static_cast<int>(es[ii].isotopes.size());
+            CHECK(iso.getIsotopeNumbers()[ii] == n);
+            CHECK(iso.getAtomCounts()[ii] == es[ii].count);
+            double prob_sum = 0.0;
+            for (int jj = 0; jj < n; jj++) {
+                CHECK(iso.getElementIsotopeMasses(static_cast<int>(ii))[jj] == es[ii].isotopes[jj].mass);
+                prob_sum += std::exp(iso.getElementIsotopeLProbs(static_cast<int>(ii))[jj]);
+            }
+            CHECK(prob_sum == doctest::Approx(1.0));
+        }
+    }
+}
+
 TEST_CASE("Iso peak masses agree with the isotope tables") {
     for (const char* f : kFormulas) {
         INFO("formula=" << f);
