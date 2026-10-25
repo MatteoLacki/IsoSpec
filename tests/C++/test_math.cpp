@@ -41,9 +41,9 @@ TEST_CASE("lgamma_half and lgamma_stirling equal lgamma at integers and half-int
         CAPTURE(two_x);
         CHECK(lgamma_half(two_x) == doctest::Approx(std::lgamma(two_x * 0.5)).epsilon(1e-14));
     }
-    const std::int64_t far[] = {65535, 65536, 65537, 1999999, 2000000, 20000001,
+    const std::int64_t distant[] = {65535, 65536, 65537, 1999999, 2000000, 20000001,
                                 std::int64_t{2} * ISOSPEC_G_FACT_TABLE_SIZE + 7};
-    for (std::int64_t two_x : far) {
+    for (std::int64_t two_x : distant) {
         CAPTURE(two_x);
         CHECK(lgamma_half(two_x) == doctest::Approx(std::lgamma(two_x * 0.5)).epsilon(1e-14));
     }

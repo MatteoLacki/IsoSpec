@@ -167,10 +167,10 @@ TEST_CASE("Marginal log-size estimate is degenerate for one isotope") {
 
     // A polyisotopic marginal gives a finite, monotone estimate.
     Marginal poly = make_marginal(kClMasses, kClProbs, 2, 100);
-    const double small = poly.getLogSizeEstimate(std::log(1.0));
-    const double large = poly.getLogSizeEstimate(std::log(10.0));
-    CHECK(std::isfinite(small));
-    CHECK(large > small);
+    const double est_one = poly.getLogSizeEstimate(std::log(1.0));
+    const double est_ten = poly.getLogSizeEstimate(std::log(10.0));
+    CHECK(std::isfinite(est_one));
+    CHECK(est_ten > est_one);
 }
 
 TEST_CASE("PrecalculatedMarginal holds every configuration above the cutoff") {

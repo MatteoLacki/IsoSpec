@@ -749,7 +749,7 @@ bool has_bin_at(const FixedEnvelope& env, double mass, double tolerance) {
 
 }  // namespace
 
-TEST_CASE("Binned finds peaks of an artificial element far beyond 10 Da apart") {
+TEST_CASE("Binned finds peaks of an artificial element distant beyond 10 Da apart") {
     const int n = 1000;
     for(double width : {1.0, 0.1}) {
         INFO("width=" << width);
@@ -772,7 +772,7 @@ TEST_CASE("Binned finds peaks of an artificial element far beyond 10 Da apart") 
     CHECK(has_bin_at(two, 2.0 * n + 2.0, 1.0));
 }
 
-TEST_CASE("Binned finds clusters as far apart as the widest element's isotopes") {
+TEST_CASE("Binned finds clusters as distant apart as the widest element's isotopes") {
     // Element A: 0 or 50 Da, two atoms; element B: two isotopes 1 mDa apart.
     // Clusters at 0, 50 and 100 Da, each a few mDa wide.
     const int isotope_numbers[] = {2, 2};
@@ -1030,12 +1030,12 @@ TEST_CASE("FromArrays checks caller-supplied arrays, and the operations keep the
         FixedEnvelope c = FixedEnvelope::FromArrays(m, r, 1);
         CHECK_THROWS_AS(a * c, std::overflow_error);
 
-        const double far[1] = {1e100};
+        const double distant[1] = {1e100};
         const double one[1] = {1.0};
-        FixedEnvelope f = FixedEnvelope::FromArrays(far, one, 1);
+        FixedEnvelope f = FixedEnvelope::FromArrays(distant, one, 1);
         f.shift_mass(1.7e308);
         CHECK_THROWS_AS(f * f, std::overflow_error);
-        FixedEnvelope g = FixedEnvelope::FromArrays(far, one, 1);
+        FixedEnvelope g = FixedEnvelope::FromArrays(distant, one, 1);
         g.shift_mass(-1.7e308);
         CHECK(std::isfinite((f * g).mass(0)));  // opposite extremes cancel: no overflow
     }
@@ -1052,9 +1052,9 @@ TEST_CASE("FromArrays checks caller-supplied arrays, and the operations keep the
         const double same[2] = {1.0, 1.0};
         FixedEnvelope d = FixedEnvelope::FromArrays(same, p, 2);
         CHECK_THROWS_AS(d.bin(0.0), std::overflow_error);
-        const double far[1] = {1e100};
+        const double distant[1] = {1e100};
         const double one[1] = {1.0};
-        CHECK_THROWS_AS(FixedEnvelope::FromArrays(far, one, 1).bin(1e-300), std::overflow_error);
+        CHECK_THROWS_AS(FixedEnvelope::FromArrays(distant, one, 1).bin(1e-300), std::overflow_error);
     }
 }
 
@@ -1064,13 +1064,13 @@ TEST_CASE("bin() terminates, and keeps its grid, whatever the middle and the mas
     FixedEnvelope e = FixedEnvelope::FromArrays(m, p, 5);
     // 1e308 is an integer, so with width 1 it describes the same grid as 0
     // (found by fuzz_envelope: it used to loop forever, growing the output).
-    FixedEnvelope far = e.bin(1.0, 1e308);
-    FixedEnvelope near = e.bin(1.0, 0.0);
-    REQUIRE(far.confs_no() == near.confs_no());
-    for (size_t ii = 0; ii < far.confs_no(); ii++)
+    FixedEnvelope distant = e.bin(1.0, 1e308);
+    FixedEnvelope origin = e.bin(1.0, 0.0);
+    REQUIRE(distant.confs_no() == origin.confs_no());
+    for (size_t ii = 0; ii < distant.confs_no(); ii++)
     {
-        CHECK(far.mass(ii) == near.mass(ii));
-        CHECK(far.prob(ii) == near.prob(ii));
+        CHECK(distant.mass(ii) == origin.mass(ii));
+        CHECK(distant.prob(ii) == origin.prob(ii));
     }
     // Masses whose ulp exceeds the width: every bin still takes at least one peak.
     const double huge[3] = {1e17, 1e17 + 16, 1e17 + 64};

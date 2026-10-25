@@ -347,11 +347,11 @@ TEST_CASE("saveMarginalLogSizeEstimates ranks marginals sensibly") {
     }
 
     // A larger target coverage cannot shrink the estimate.
-    std::vector<double> small(iso.getDimNumber()), large(iso.getDimNumber());
-    iso.saveMarginalLogSizeEstimates(small.data(), 0.5);
-    iso.saveMarginalLogSizeEstimates(large.data(), 0.999);
+    std::vector<double> cover_half(iso.getDimNumber()), cover_999(iso.getDimNumber());
+    iso.saveMarginalLogSizeEstimates(cover_half.data(), 0.5);
+    iso.saveMarginalLogSizeEstimates(cover_999.data(), 0.999);
     for (int i = 0; i < iso.getDimNumber(); ++i)
-        CHECK(large[i] >= small[i] - 1e-12);
+        CHECK(cover_999[i] >= cover_half[i] - 1e-12);
 }
 
 TEST_CASE("single-isotope element has a degenerate log-size estimate") {
