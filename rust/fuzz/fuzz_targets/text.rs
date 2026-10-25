@@ -15,9 +15,14 @@ fn exercise(iso: &Iso) {
         iso.mode_lprob(),
     );
     let _ = iso.lightest_peak_conf();
-    let _ = iso.marginal_log_size_estimates(0.9);
-    // Small molecules only: the work grows with the atom counts.
-    if iso.atom_counts().iter().all(|&c| c <= 200) {
+    // Small enumerations only: the library's own estimate of how many
+    // configurations covering 0.9 takes (the product over elements); a few
+    // atoms of many-isotope elements (C77Ba9Cd3W194) need gigabytes.
+    let Ok(estimates) = iso.marginal_log_size_estimates(0.9) else {
+        return;
+    };
+    let log_size: f64 = estimates.iter().sum();
+    if log_size.is_finite() && log_size < 10.0 {
         if let Ok(env) = Envelope::from_total_prob(iso, 0.9) {
             assert!(env.probs().iter().all(|p| p.is_finite() && *p >= 0.0));
         }
