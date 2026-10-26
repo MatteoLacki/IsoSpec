@@ -9,6 +9,12 @@ isotopologues: all of those above a probability threshold, or the smallest
 set covering a chosen share of the total probability, which it finds without
 enumerating the (often astronomically many) others.
 
+```bash
+cargo add isospec
+```
+
+API documentation: <https://docs.rs/isospec>. Crate: <https://crates.io/crates/isospec>.
+
 ```rust
 use isospec::Iso;
 

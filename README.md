@@ -26,12 +26,18 @@ From source: `cd src && R CMD build IsoSpecR && R CMD INSTALL IsoSpecR_*.tar.gz`
 
 ### Rust
 
+```bash
+cargo add isospec
+```
+
+or, in `Cargo.toml`:
+
 ```toml
 [dependencies]
 isospec = "0.1"
 ```
 
-The build script compiles the bundled C++ library; a C++20 compiler is all that is needed. See `rust/README.md`.
+The crate ([crates.io](https://crates.io/crates/isospec), API documentation on [docs.rs](https://docs.rs/isospec)) carries the C++ sources and compiles them in its build script; a C++20 compiler is all that is needed. See `rust/README.md`.
 
 ### C++ library
 
