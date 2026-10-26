@@ -1,6 +1,10 @@
 [package]
 name = "isospec"
-version = "0.1.0"
+# The crate's own semver, then, after the "+", the IsoSpec library version it
+# bundles (VERSION). Cargo ignores the "+..." part when resolving versions;
+# crates.io and docs.rs show it. A crate release must change the part before
+# the "+": versions differing only in it cannot both be published.
+version = "0.1.0+2.6.0"
 edition = "2024"
 # cxx 1.0.205 (the bridge) needs 1.88; edition 2024 alone would allow 1.85.
 rust-version = "1.88"

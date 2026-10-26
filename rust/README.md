@@ -79,8 +79,10 @@ See `rust/examples/` in the repository for runnable programs.
 ## Versions
 
 The crate follows semver on its own version numbers; the C++ library it
-bundles is versioned separately, as `isospec::LIBRARY_VERSION`, and each
-crate release names the library version it ships (see `CHANGELOG.md`).
+bundles is versioned separately, as `isospec::LIBRARY_VERSION`, and appears
+in the crate version as build metadata: `0.1.0+2.6.0` is crate 0.1.0 with
+IsoSpec 2.6.0. Cargo ignores the part after the `+`, so depend on
+`isospec = "0.1"` as usual.
 
 The minimum supported Rust version is 1.88 (that of `cxx`). It is raised
 only in a release that bumps the crate's minor version (before 1.0, a

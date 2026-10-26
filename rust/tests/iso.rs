@@ -271,3 +271,11 @@ fn library_version_is_the_repository_version() {
         include_str!("../../VERSION").trim()
     );
 }
+
+#[test]
+fn crate_version_metadata_names_the_bundled_library() {
+    // Cargo.toml's version is "<crate semver>+<VERSION>": bumping VERSION
+    // without it would publish a crate that misstates what it contains.
+    let metadata = env!("CARGO_PKG_VERSION").split_once('+').map(|(_, m)| m);
+    assert_eq!(metadata, Some(isospec::LIBRARY_VERSION));
+}
