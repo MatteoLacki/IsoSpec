@@ -184,38 +184,25 @@ jobs:
           name: release-r
           path: IsoSpecR_*.tar.gz
 
-  upload_pypi:
+  # Publishing, reversible steps first: a draft GitHub release (invisible,
+  # deletable) carrying every source package, checked; then PyPI, which
+  # cannot be undone (a filename that reaches it once can never be uploaded
+  # again); then the draft made public. A failure before PyPI leaves only a
+  # draft behind, which a rerun of the tag replaces.
+
+  draft_release:
+    # The GitHub release for the tag, as a draft: the source packages for all
+    # three registries (the Python sdist, the Rust .crate, the CRAN tarball),
+    # each built and checked above, and the version's CHANGELOG section as
+    # its text. CRAN and crates.io are then fed by hand from these files.
     needs: [build_wheels, build_sdist, package_crate, build_r]
-    runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write
-    # if: github.event_name == 'release' && github.event.action == 'published'
-    # or, alternatively, upload to PyPI on every tag starting with 'v' (remove on: release above to use this)
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          # unpacks all CIBW artifacts into dist/
-          pattern: cibw-*
-          path: dist
-          merge-multiple: true
-
-      - uses: pypa/gh-action-pypi-publish@release/v1
-        # To test uploads to TestPyPI, uncomment the following:
-        # with:
-        #   repository-url: https://test.pypi.org/legacy/
-
-  github_release:
-    # After PyPI accepted the wheels: the GitHub release for the same tag, with
-    # the source packages for all three registries (the Python sdist, the Rust
-    # .crate, the CRAN tarball), each built and checked above, and the
-    # version's CHANGELOG section as its text.
-    needs: [upload_pypi, build_sdist, package_crate, build_r]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - uses: actions/download-artifact@v8
         with:
@@ -232,11 +219,65 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: release-notes
-      - name: Create release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Create the draft release
         run: |
           ls -l release
-          gh release create "$GITHUB_REF_NAME" release/* \
-            --repo "$GITHUB_REPOSITORY" --verify-tag \
+          # A draft left by an earlier, failed run of this tag is replaced; a
+          # published release is never touched.
+          if draft=$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$draft" != true ]; then
+              echo "::error::release $GITHUB_REF_NAME is already published"
+              exit 1
+            fi
+            gh release delete "$GITHUB_REF_NAME" --yes
+          fi
+          gh release create "$GITHUB_REF_NAME" release/* --draft --verify-tag \
             --title "IsoSpec ${GITHUB_REF_NAME#v}" --notes-file release-notes.md
+      - name: Check the draft
+        run: |
+          expected=$(ls release | wc -l)
+          gh release view "$GITHUB_REF_NAME" --json isDraft,assets \
+            --jq '"draft: \(.isDraft)", (.assets[] | "\(.name) \(.size) \(.state)")'
+          uploaded=$(gh release view "$GITHUB_REF_NAME" --json assets \
+            --jq '[.assets[] | select(.state == "uploaded" and .size > 0)] | length')
+          draft=$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft)
+          if [ "$draft" != true ] || [ "$uploaded" != "$expected" ]; then
+            echo "::error::draft release incomplete: $uploaded of $expected assets uploaded, draft=$draft"
+            exit 1
+          fi
+
+  upload_pypi:
+    needs: [draft_release]
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          # unpacks all CIBW artifacts into dist/
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        # To test uploads to TestPyPI, uncomment the following:
+        # with:
+        #   repository-url: https://test.pypi.org/legacy/
+
+  publish_release:
+    # PyPI has the wheels: the draft becomes the public release.
+    needs: [upload_pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Publish the draft release
+        run: |
+          gh release edit "$GITHUB_REF_NAME" --draft=false
+          test "$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft)" = false
