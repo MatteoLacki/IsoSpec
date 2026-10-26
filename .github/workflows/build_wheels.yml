@@ -107,6 +107,28 @@ jobs:
           name: cibw-sdist
           path: dist/*.tar.gz
 
+      # The release text is VERSION's section of CHANGELOG (the lines between
+      # its "2.6.0" heading and the next version's). Extracted here, before
+      # anything is published, so that a release without a changelog entry
+      # fails while there is still nothing to undo.
+      - name: Release notes from CHANGELOG
+        run: |
+          version=$(cat VERSION)
+          awk -v ver="$version" '$0 == ver {found = 1; getline; next}
+                                 found && /^[0-9]+\.[0-9]+(\.[0-9]+)?( |$)/ {exit}
+                                 found' CHANGELOG \
+            | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "::error::CHANGELOG has no section for $version"
+            exit 1
+          fi
+          cat release-notes.md
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-notes
+          path: release-notes.md
+
   package_crate:
     # The Rust sources as crates.io would receive them. Publishing the crate
     # stays manual (cargo publish); the release only carries the .crate.
@@ -187,7 +209,8 @@ jobs:
   github_release:
     # After PyPI accepted the wheels: the GitHub release for the same tag, with
     # the source packages for all three registries (the Python sdist, the Rust
-    # .crate, the CRAN tarball), each built and checked above.
+    # .crate, the CRAN tarball), each built and checked above, and the
+    # version's CHANGELOG section as its text.
     needs: [upload_pypi, build_sdist, package_crate, build_r]
     runs-on: ubuntu-latest
     permissions:
@@ -206,6 +229,9 @@ jobs:
         with:
           name: release-r
           path: release
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-notes
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -213,4 +239,4 @@ jobs:
           ls -l release
           gh release create "$GITHUB_REF_NAME" release/* \
             --repo "$GITHUB_REPOSITORY" --verify-tag \
-            --title "IsoSpec ${GITHUB_REF_NAME#v}" --generate-notes
+            --title "IsoSpec ${GITHUB_REF_NAME#v}" --notes-file release-notes.md
