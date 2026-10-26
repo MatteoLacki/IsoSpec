@@ -1,12 +1,20 @@
-name: Wheels
+name: Release
+run-name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0}', github.ref_name) || format('Release rehearsal ({0})', github.ref_name) }}
 
-# Pushing a v* tag builds *and publishes*. To exercise the wheel build without
-# that, push the branch instead -- `git push -f origin HEAD:ci_wheels` -- or use
-# the Run workflow button / `gh workflow run build_wheels.yml --ref <branch>`,
-# which can narrow the run to one runner and one Python:
+# Pushing a v* tag builds, checks *and publishes* (a draft GitHub release, then
+# PyPI, then the release made public). Anything else is a full rehearsal:
+# every build and check of a real release -- wheels on every platform, sdist,
+# release notes from CHANGELOG, the Rust .crate, R CMD check --as-cran -- with
+# the publishing jobs skipped. Run one with the Run workflow button,
+# `gh workflow run build_wheels.yml --ref <branch>`, or by pushing to
+# ci_wheels (`git push -f origin HEAD:ci_wheels`); by hand, the wheel build
+# can be narrowed to one runner and one Python:
 #     gh workflow run build_wheels.yml --ref main -f os=macos-latest -f build='cp39-*'
-# Never re-push a version tag to test: upload_pypi fires on every v* push, and a
-# filename that reaches PyPI once can never be replaced.
+# Never re-push a version tag to test: a filename that reaches PyPI once can
+# never be replaced.
+#
+# The file keeps its old name, build_wheels.yml: PyPI's trusted publisher for
+# IsoSpecPy names this workflow file, and a renamed file could not upload.
 on:
   push:
     branches:
@@ -65,7 +73,10 @@ jobs:
       # Used to host cibuildwheel
       - uses: actions/setup-python@v7
 
+      # The tag must name VERSION. Tags only: a rehearsal runs before the
+      # tag exists, when the latest tag is still the previous release's.
       - name: Check version
+        if: startsWith(github.ref, 'refs/tags/v')
         run: python .github/scripts/check_version.py
 
       # 4.2.0 is the first release that builds and tests cp315/cp315t without
@@ -96,7 +107,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The tag must name VERSION. Tags only: a rehearsal runs before the
+      # tag exists, when the latest tag is still the previous release's.
       - name: Check version
+        if: startsWith(github.ref, 'refs/tags/v')
         run: python .github/scripts/check_version.py
 
       - name: Build sdist
