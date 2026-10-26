@@ -13,6 +13,11 @@ New:
 - Thread safety: independent objects may be used from any number of threads,
   and const methods of a shared Iso or FixedEnvelope concurrently (the C
   library's lgamma, whose global signgam raced, is no longer called)
+- R catches up with Python: IsoBinned(), IsoStochastic() (with a seed),
+  IsoProperties() (monoisotopic, lightest, heaviest and mode peaks, mean and
+  variance), and operations on envelopes: envelopeConvolve(),
+  envelopeLinearCombination(), envelopeBin(), envelopeResample(), and the
+  Wasserstein distances and matching
 - C++: parse_formula_composition() (a formula as element counts), Iso getters
   for isotope numbers, atom counts and per-element isotopes; the parsers take
   std::string_view
@@ -31,6 +36,10 @@ Changed (may break existing code):
 - Python: abyssalWassersteinDistanceGrad removed (it never worked)
 - The shared library's soname is now libIsoSpec++.so.2.6
 - R: the package version follows the library's, 2.3.3 -> 2.6.0
+- R: IsoSpecify() total-probability envelopes come out in the same order as
+  from the other interfaces (R alone used middle pivots in the trimming
+  quickselect); among equally probable configurations at the cut, which are
+  kept may differ from before
 
 Faster:
 - Layered generator, FromTotalProb and Binned: 16-62% faster, depending on

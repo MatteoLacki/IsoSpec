@@ -40,4 +40,4 @@ LazyData: no
 LinkingTo: Rcpp
 SystemRequirements: C++20
 NeedsCompilation: yes
-RoxygenNote: 7.1.1
+Config/roxygen2/version: 8.1.0

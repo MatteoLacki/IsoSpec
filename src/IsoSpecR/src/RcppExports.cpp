@@ -52,3 +52,139 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// RBinned
+NumericMatrix RBinned(const IntegerVector& molecule, const DataFrame& isotopes, double stopCondition, double binWidth, double binMiddle, double charge);
+RcppExport SEXP _IsoSpecR_RBinned(SEXP moleculeSEXP, SEXP isotopesSEXP, SEXP stopConditionSEXP, SEXP binWidthSEXP, SEXP binMiddleSEXP, SEXP chargeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type molecule(moleculeSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type isotopes(isotopesSEXP);
+    Rcpp::traits::input_parameter< double >::type stopCondition(stopConditionSEXP);
+    Rcpp::traits::input_parameter< double >::type binWidth(binWidthSEXP);
+    Rcpp::traits::input_parameter< double >::type binMiddle(binMiddleSEXP);
+    Rcpp::traits::input_parameter< double >::type charge(chargeSEXP);
+    rcpp_result_gen = Rcpp::wrap(RBinned(molecule, isotopes, stopCondition, binWidth, binMiddle, charge));
+    return rcpp_result_gen;
+END_RCPP
+}
+// RStochastic
+NumericMatrix RStochastic(const IntegerVector& molecule, const DataFrame& isotopes, double ionicCurrent, double precision, double betaBias, Nullable<NumericVector> seed, bool showCounts, double charge);
+RcppExport SEXP _IsoSpecR_RStochastic(SEXP moleculeSEXP, SEXP isotopesSEXP, SEXP ionicCurrentSEXP, SEXP precisionSEXP, SEXP betaBiasSEXP, SEXP seedSEXP, SEXP showCountsSEXP, SEXP chargeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type molecule(moleculeSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type isotopes(isotopesSEXP);
+    Rcpp::traits::input_parameter< double >::type ionicCurrent(ionicCurrentSEXP);
+    Rcpp::traits::input_parameter< double >::type precision(precisionSEXP);
+    Rcpp::traits::input_parameter< double >::type betaBias(betaBiasSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< bool >::type showCounts(showCountsSEXP);
+    Rcpp::traits::input_parameter< double >::type charge(chargeSEXP);
+    rcpp_result_gen = Rcpp::wrap(RStochastic(molecule, isotopes, ionicCurrent, precision, betaBias, seed, showCounts, charge));
+    return rcpp_result_gen;
+END_RCPP
+}
+// RIsoProperties
+List RIsoProperties(const IntegerVector& molecule, const DataFrame& isotopes, double charge);
+RcppExport SEXP _IsoSpecR_RIsoProperties(SEXP moleculeSEXP, SEXP isotopesSEXP, SEXP chargeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const IntegerVector& >::type molecule(moleculeSEXP);
+    Rcpp::traits::input_parameter< const DataFrame& >::type isotopes(isotopesSEXP);
+    Rcpp::traits::input_parameter< double >::type charge(chargeSEXP);
+    rcpp_result_gen = Rcpp::wrap(RIsoProperties(molecule, isotopes, charge));
+    return rcpp_result_gen;
+END_RCPP
+}
+// REnvelopeConvolve
+NumericMatrix REnvelopeConvolve(const NumericVector& masses1, const NumericVector& probs1, const NumericVector& masses2, const NumericVector& probs2);
+RcppExport SEXP _IsoSpecR_REnvelopeConvolve(SEXP masses1SEXP, SEXP probs1SEXP, SEXP masses2SEXP, SEXP probs2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses1(masses1SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs1(probs1SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses2(masses2SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs2(probs2SEXP);
+    rcpp_result_gen = Rcpp::wrap(REnvelopeConvolve(masses1, probs1, masses2, probs2));
+    return rcpp_result_gen;
+END_RCPP
+}
+// REnvelopeLinearCombination
+NumericMatrix REnvelopeLinearCombination(const List& masses, const List& probs, const NumericVector& intensities);
+RcppExport SEXP _IsoSpecR_REnvelopeLinearCombination(SEXP massesSEXP, SEXP probsSEXP, SEXP intensitiesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type masses(massesSEXP);
+    Rcpp::traits::input_parameter< const List& >::type probs(probsSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type intensities(intensitiesSEXP);
+    rcpp_result_gen = Rcpp::wrap(REnvelopeLinearCombination(masses, probs, intensities));
+    return rcpp_result_gen;
+END_RCPP
+}
+// REnvelopeBin
+NumericMatrix REnvelopeBin(const NumericVector& masses, const NumericVector& probs, double width, double middle);
+RcppExport SEXP _IsoSpecR_REnvelopeBin(SEXP massesSEXP, SEXP probsSEXP, SEXP widthSEXP, SEXP middleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses(massesSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs(probsSEXP);
+    Rcpp::traits::input_parameter< double >::type width(widthSEXP);
+    Rcpp::traits::input_parameter< double >::type middle(middleSEXP);
+    rcpp_result_gen = Rcpp::wrap(REnvelopeBin(masses, probs, width, middle));
+    return rcpp_result_gen;
+END_RCPP
+}
+// REnvelopeResample
+NumericMatrix REnvelopeResample(const NumericVector& masses, const NumericVector& probs, double ionicCurrent, double betaBias, Nullable<NumericVector> seed);
+RcppExport SEXP _IsoSpecR_REnvelopeResample(SEXP massesSEXP, SEXP probsSEXP, SEXP ionicCurrentSEXP, SEXP betaBiasSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses(massesSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs(probsSEXP);
+    Rcpp::traits::input_parameter< double >::type ionicCurrent(ionicCurrentSEXP);
+    Rcpp::traits::input_parameter< double >::type betaBias(betaBiasSEXP);
+    Rcpp::traits::input_parameter< Nullable<NumericVector> >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(REnvelopeResample(masses, probs, ionicCurrent, betaBias, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
+// RWasserstein
+double RWasserstein(const NumericVector& masses1, const NumericVector& probs1, const NumericVector& masses2, const NumericVector& probs2, int kind, double abyssDepth, double otherScale);
+RcppExport SEXP _IsoSpecR_RWasserstein(SEXP masses1SEXP, SEXP probs1SEXP, SEXP masses2SEXP, SEXP probs2SEXP, SEXP kindSEXP, SEXP abyssDepthSEXP, SEXP otherScaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses1(masses1SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs1(probs1SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses2(masses2SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs2(probs2SEXP);
+    Rcpp::traits::input_parameter< int >::type kind(kindSEXP);
+    Rcpp::traits::input_parameter< double >::type abyssDepth(abyssDepthSEXP);
+    Rcpp::traits::input_parameter< double >::type otherScale(otherScaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(RWasserstein(masses1, probs1, masses2, probs2, kind, abyssDepth, otherScale));
+    return rcpp_result_gen;
+END_RCPP
+}
+// RWassersteinMatch
+NumericVector RWassersteinMatch(const NumericVector& masses1, const NumericVector& probs1, const NumericVector& masses2, const NumericVector& probs2, double flowDistance, double otherScale);
+RcppExport SEXP _IsoSpecR_RWassersteinMatch(SEXP masses1SEXP, SEXP probs1SEXP, SEXP masses2SEXP, SEXP probs2SEXP, SEXP flowDistanceSEXP, SEXP otherScaleSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses1(masses1SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs1(probs1SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type masses2(masses2SEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type probs2(probs2SEXP);
+    Rcpp::traits::input_parameter< double >::type flowDistance(flowDistanceSEXP);
+    Rcpp::traits::input_parameter< double >::type otherScale(otherScaleSEXP);
+    rcpp_result_gen = Rcpp::wrap(RWassersteinMatch(masses1, probs1, masses2, probs2, flowDistance, otherScale));
+    return rcpp_result_gen;
+END_RCPP
+}

@@ -28,6 +28,9 @@
 #include <stdexcept>
 #include <iostream>
 #include <map>
+#include <cmath>
+#include <cstdint>
+#include <random>
 
 using namespace Rcpp;
 using namespace IsoSpec;
@@ -49,20 +52,17 @@ FixedEnvelope mkIsoG(Iso& iso, int algo, double stopCondition, bool trim, bool g
     throw std::logic_error("Invalid algorithm selected");
 }
 
-// [[Rcpp::export]]
-NumericMatrix Rinterface(
+// The molecule as IsoSpecify() and the other molecule-level functions take
+// it: a named vector of atom counts, each element's isotopes looked up by
+// symbol in the `isotopes` data frame (masses divided by `charge`). With
+// `isotopeTags`, the labels of the isotopes are appended to it, in the order
+// of a configuration's counts.
+static Iso iso_from_R(
     const IntegerVector&    molecule,
     const DataFrame&        isotopes,
-    double                  stopCondition,
-    int                     algo = 0,
-    int                     tabSize = 64,
-    int                     hashSize = 1000,
-    double                  step = .3,
-    bool                    showCounts = false,
-    bool                    trim = true,
-    double                  charge = 1.0
+    double                  charge,
+    CharacterVector*        isotopeTags = nullptr
 ){
-
     unsigned int dimNumber = molecule.size();
     std::vector<int>     stdIsotopeNumbers;
     std::vector<double> stdIsotopeMasses;
@@ -73,8 +73,6 @@ NumericMatrix Rinterface(
     const NumericVector& mass      = isotopes["mass"];
     const NumericVector& abundance = isotopes["abundance"];
     const CharacterVector& molecule_names = molecule.names();
-
-    CharacterVector stdIsotopeTags = CharacterVector::create("mass", "prob");
 
     for (unsigned int i=0; i<dimNumber; i++)
     {
@@ -101,8 +99,8 @@ NumericMatrix Rinterface(
                 counter++;
                 stdIsotopeMasses.push_back( mass[j] / charge );
                 stdIsotopeProbabilities.push_back( abundance[j] );
-                if( showCounts )
-                    stdIsotopeTags.push_back( isotope[j] );
+                if( isotopeTags != nullptr )
+                    isotopeTags->push_back( isotope[j] );
             }
         // A molecule element with zero matching rows in `isotopes` previously
         // went through silently as a zero-isotope dimension -- Iso's
@@ -136,7 +134,26 @@ NumericMatrix Rinterface(
         IP.push_back(&(stdIsotopeProbabilities.data()[tot]));
         tot += stdIsotopeNumbers[ii];
     }
-    Iso iso(dimNumber, stdIsotopeNumbers.data(), Rcpp::as<std::vector<int> >( molecule).data(), IM.data(), IP.data());
+    return Iso(dimNumber, stdIsotopeNumbers.data(), Rcpp::as<std::vector<int> >( molecule).data(), IM.data(), IP.data());
+
+}
+
+// [[Rcpp::export]]
+NumericMatrix Rinterface(
+    const IntegerVector&    molecule,
+    const DataFrame&        isotopes,
+    double                  stopCondition,
+    int                     algo = 0,
+    int                     tabSize = 64,
+    int                     hashSize = 1000,
+    double                  step = .3,
+    bool                    showCounts = false,
+    bool                    trim = true,
+    double                  charge = 1.0
+){
+
+    CharacterVector stdIsotopeTags = CharacterVector::create("mass", "prob");
+    Iso iso = iso_from_R(molecule, isotopes, charge, showCounts ? &stdIsotopeTags : nullptr);
 
     unsigned int columnsNo = stdIsotopeTags.size(); // standard
 
@@ -358,4 +375,207 @@ DataFrame RIsotopicTable()
         Named("abundance") = abundance,
         Named("stringsAsFactors") = false
     );
+}
+
+// ---------------------------------------------------------------------------
+// Binned and stochastic distributions, molecule properties, and the envelope
+// operations. An envelope crosses the boundary as two plain vectors (masses,
+// probabilities) and comes back as a two-column matrix, "mass" and "prob",
+// the shape IsoSpecify() returns: R code holds nothing of the C++ side between
+// calls. Operations that are one line of R on such a matrix (shifting masses,
+// scaling or normalising probabilities, sorting, weighted means) are not
+// duplicated here.
+
+static NumericMatrix envelope_to_R(const FixedEnvelope& env)
+{
+    const size_t n = env.confs_no();
+    NumericMatrix res(n, 2);
+    for(size_t i = 0; i < n; i++)
+    {
+        res(i, 0) = env.mass(i);
+        res(i, 1) = env.prob(i);
+    }
+    colnames(res) = CharacterVector::create("mass", "prob");
+    return res;
+}
+
+static FixedEnvelope envelope_from_R(const NumericVector& masses, const NumericVector& probs)
+{
+    if(masses.size() != probs.size())
+        throw std::invalid_argument("An envelope needs as many masses as probabilities.");
+    // Copies, and checks what every operation relies on (finite masses,
+    // finite nonnegative probabilities).
+    return FixedEnvelope::FromArrays(masses.begin(), probs.begin(), masses.size());
+}
+
+// NULL: the calling thread's randomly seeded generator. A number: a seed,
+// giving the same stream as the C++, Python and Rust interfaces for that seed.
+static std::mt19937 rng_from_R(const Nullable<NumericVector>& seed, bool& seeded)
+{
+    seeded = seed.isNotNull();
+    if(!seeded)
+        return std::mt19937();
+    NumericVector s(seed);
+    // 2^53: beyond it a double no longer holds every integer exactly.
+    if(s.size() != 1 || !std::isfinite(s[0]) || s[0] < 0 || s[0] != std::floor(s[0]) || s[0] > 9007199254740992.0)
+        throw std::invalid_argument("seed must be NULL or a single whole number between 0 and 2^53.");
+    return seeded_rng(static_cast<std::uint64_t>(s[0]));
+}
+
+static size_t count_from_R(double count, const char* name)
+{
+    // Up to 2^53 so that the double holds it exactly.
+    if(!std::isfinite(count) || count < 0 || count != std::floor(count) || count > 9007199254740992.0)
+        throw std::invalid_argument(std::string(name) + " must be a whole number between 0 and 2^53.");
+    return static_cast<size_t>(count);
+}
+
+// [[Rcpp::export]]
+NumericMatrix RBinned(
+    const IntegerVector&    molecule,
+    const DataFrame&        isotopes,
+    double                  stopCondition,
+    double                  binWidth,
+    double                  binMiddle,
+    double                  charge
+){
+    Iso iso = iso_from_R(molecule, isotopes, charge);
+    return envelope_to_R(FixedEnvelope::Binned(std::move(iso), stopCondition, binWidth, binMiddle));
+}
+
+// [[Rcpp::export]]
+NumericMatrix RStochastic(
+    const IntegerVector&    molecule,
+    const DataFrame&        isotopes,
+    double                  ionicCurrent,
+    double                  precision,
+    double                  betaBias,
+    Nullable<NumericVector> seed,
+    bool                    showCounts,
+    double                  charge
+){
+    CharacterVector tags = CharacterVector::create("mass", "prob");
+    Iso iso = iso_from_R(molecule, isotopes, charge, showCounts ? &tags : nullptr);
+    const size_t molecules = count_from_R(ionicCurrent, "ionicCurrent");
+    bool seeded;
+    std::mt19937 rng = rng_from_R(seed, seeded);
+    FixedEnvelope env = FixedEnvelope::FromStochastic(std::move(iso), molecules, precision, betaBias,
+                                                      showCounts, seeded ? rng : random_gen);
+    if(!showCounts)
+        return envelope_to_R(env);
+    const size_t n = env.confs_no();
+    const int dim = env.getAllDim();
+    NumericMatrix res(n, 2 + dim);
+    for(size_t i = 0; i < n; i++)
+    {
+        res(i, 0) = env.mass(i);
+        res(i, 1) = env.prob(i);
+        const int* conf = env.conf(i);
+        for(int j = 0; j < dim; j++)
+            res(i, 2 + j) = conf[j];
+    }
+    colnames(res) = tags;
+    return res;
+}
+
+// [[Rcpp::export]]
+List RIsoProperties(
+    const IntegerVector&    molecule,
+    const DataFrame&        isotopes,
+    double                  charge
+){
+    CharacterVector tags;
+    Iso iso = iso_from_R(molecule, isotopes, charge, &tags);
+    const int dim = iso.getAllDim();
+    auto conf = [&](void (Iso::*getter)(int*) const) {
+        IntegerVector counts(dim);
+        (iso.*getter)(counts.begin());
+        counts.names() = tags;
+        return counts;
+    };
+    return List::create(
+        Named("monoisotopicMass")   = iso.getMonoisotopicPeakMass(),
+        Named("monoisotopicLogProb") = iso.getMonoisotopicPeakLProb(),
+        Named("monoisotopicCounts") = conf(&Iso::getMonoisotopicPeakSignature),
+        Named("lightestMass")       = iso.getLightestPeakMass(),
+        Named("lightestLogProb")    = iso.getLightestPeakLProb(),
+        Named("lightestCounts")     = conf(&Iso::getLightestPeakSignature),
+        Named("heaviestMass")       = iso.getHeaviestPeakMass(),
+        Named("heaviestLogProb")    = iso.getHeaviestPeakLProb(),
+        Named("heaviestCounts")     = conf(&Iso::getHeaviestPeakSignature),
+        Named("modeMass")           = iso.getModeMass(),
+        Named("modeLogProb")        = iso.getModeLProb(),
+        Named("averageMass")        = iso.getTheoreticalAverageMass(),
+        Named("variance")           = iso.variance());
+}
+
+// [[Rcpp::export]]
+NumericMatrix REnvelopeConvolve(const NumericVector& masses1, const NumericVector& probs1,
+                                const NumericVector& masses2, const NumericVector& probs2)
+{
+    return envelope_to_R(envelope_from_R(masses1, probs1) * envelope_from_R(masses2, probs2));
+}
+
+// [[Rcpp::export]]
+NumericMatrix REnvelopeLinearCombination(const List& masses, const List& probs, const NumericVector& intensities)
+{
+    if(masses.size() != probs.size() || masses.size() != intensities.size())
+        throw std::invalid_argument("As many intensities as envelopes are needed.");
+    std::vector<FixedEnvelope> envelopes;
+    envelopes.reserve(masses.size());
+    for(R_xlen_t i = 0; i < masses.size(); i++)
+        envelopes.push_back(envelope_from_R(masses[i], probs[i]));
+    std::vector<const FixedEnvelope*> pointers;
+    for(const FixedEnvelope& env : envelopes)
+        pointers.push_back(&env);
+    return envelope_to_R(FixedEnvelope::LinearCombination(
+        pointers, std::vector<double>(intensities.begin(), intensities.end())));
+}
+
+// [[Rcpp::export]]
+NumericMatrix REnvelopeBin(const NumericVector& masses, const NumericVector& probs, double width, double middle)
+{
+    return envelope_to_R(envelope_from_R(masses, probs).bin(width, middle));
+}
+
+// [[Rcpp::export]]
+NumericMatrix REnvelopeResample(const NumericVector& masses, const NumericVector& probs,
+                                double ionicCurrent, double betaBias, Nullable<NumericVector> seed)
+{
+    FixedEnvelope env = envelope_from_R(masses, probs);
+    const size_t molecules = count_from_R(ionicCurrent, "ionicCurrent");
+    bool seeded;
+    std::mt19937 rng = rng_from_R(seed, seeded);
+    env.resample(molecules, betaBias, seeded ? rng : random_gen);
+    return envelope_to_R(env);
+}
+
+// kind: 0 plain, 1 oriented, 2 abyssal.
+// [[Rcpp::export]]
+double RWasserstein(const NumericVector& masses1, const NumericVector& probs1,
+                    const NumericVector& masses2, const NumericVector& probs2,
+                    int kind, double abyssDepth, double otherScale)
+{
+    FixedEnvelope a = envelope_from_R(masses1, probs1);
+    FixedEnvelope b = envelope_from_R(masses2, probs2);
+    switch(kind)
+    {
+        case 0: return a.WassersteinDistance(b);
+        case 1: return a.OrientedWassersteinDistance(b);
+        case 2: return a.AbyssalWassersteinDistance(b, abyssDepth, otherScale);
+    }
+    throw std::logic_error("Invalid Wasserstein distance kind");
+}
+
+// [[Rcpp::export]]
+NumericVector RWassersteinMatch(const NumericVector& masses1, const NumericVector& probs1,
+                                const NumericVector& masses2, const NumericVector& probs2,
+                                double flowDistance, double otherScale)
+{
+    FixedEnvelope a = envelope_from_R(masses1, probs1);
+    FixedEnvelope b = envelope_from_R(masses2, probs2);
+    const auto [unmatched_this, unmatched_other, flow] = a.WassersteinMatch(b, flowDistance, otherScale);
+    return NumericVector::create(Named("unmatchedThis") = unmatched_this,
+                                 Named("unmatchedOther") = unmatched_other,
+                                 Named("flow") = flow);
 }

@@ -56,11 +56,31 @@ IsoSpecify <- function(
         step    = .25,
         charge  = 1.0
 ){
-    if(is.null(isotopes)){
-        isotopes <- isotopicData$IsoSpec
-    }
+    isotopes <- .default_isotopes(isotopes)
+    .check_molecule(molecule)
 
-    # molecule[molecule > 0] below drops zero counts, which is right (an
+    Rinterface(
+        molecule        = molecule[ molecule > 0 ],
+        isotopes        = isotopes,
+        stopCondition   = stopCondition,
+        algo            = as.integer(algo),
+        tabSize         = 64,
+        hashSize        = 1000,
+        step            = step,
+        showCounts      = showCounts,
+        trim            = trim,
+        charge          = charge
+    )
+}
+
+# The molecule-level functions share these two: the default isotope table,
+# and the rejection of negative counts.
+.default_isotopes <- function(isotopes) {
+    if(is.null(isotopes)) isotopicData$IsoSpec else isotopes
+}
+
+.check_molecule <- function(molecule) {
+    # The callers' molecule[molecule > 0] drops zero counts, which is right (an
     # element with no atoms contributes nothing), but it used to drop
     # negative ones just as quietly -- and a negative count is not an absence,
     # it is an error. RParsePeptideSequence returns a signed composition (a
@@ -78,17 +98,4 @@ IsoSpecify <- function(
             "from RParsePeptideSequence, the sequence's modifications remove more of those ",
             "elements than the bare sequence provides."))
     }
-
-    Rinterface(
-        molecule        = molecule[ molecule > 0 ],
-        isotopes        = isotopes,
-        stopCondition   = stopCondition,
-        algo            = as.integer(algo),
-        tabSize         = 64,
-        hashSize        = 1000,
-        step            = step,
-        showCounts      = showCounts,
-        trim            = trim,
-        charge          = charge
-    )
 }

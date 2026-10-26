@@ -57,6 +57,14 @@ python -m pytest tests/Python/test_iso_api.py -k <expr>   # single test
 
 Tests use `pip install .[testing]` extras (pytest + OldIsoSpecPy). The installed wheel is what's tested — reinstall after C++ changes.
 
+### R
+
+```bash
+R CMD build src/IsoSpecR && R CMD check --as-cran --no-manual IsoSpecR_*.tar.gz   # build dereferences src/IsoSpecR/src's symlinks into src/IsoSpec++
+```
+
+`src/IsoSpecR/src/Rinterface.cpp` holds the Rcpp entry points (`[[Rcpp::export]]`), `R/` the exported R functions (roxygen comments; envelopes are `mass`/`prob` matrices, as `IsoSpecify` returns). After changing an entry point: `Rcpp::compileAttributes("src/IsoSpecR")`, then add or adjust its line in `src/IsoSpecR_init.c` by hand (routines are registered there, not by Rcpp), then `roxygen2::roxygenise("src/IsoSpecR", roclets = c("rd", "namespace"))` for `man/` and `NAMESPACE`. R builds define `ISOSPEC_BUILDING_R` (`src/IsoSpecR/src/platform_incl.h`). Tests are testthat, `src/IsoSpecR/tests/testthat/`.
+
 ### Rust
 
 ```bash

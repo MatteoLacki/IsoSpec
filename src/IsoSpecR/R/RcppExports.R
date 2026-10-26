@@ -13,3 +13,39 @@ RIsotopicTable <- function() {
     .Call('_IsoSpecR_RIsotopicTable', PACKAGE = 'IsoSpecR')
 }
 
+RBinned <- function(molecule, isotopes, stopCondition, binWidth, binMiddle, charge) {
+    .Call('_IsoSpecR_RBinned', PACKAGE = 'IsoSpecR', molecule, isotopes, stopCondition, binWidth, binMiddle, charge)
+}
+
+RStochastic <- function(molecule, isotopes, ionicCurrent, precision, betaBias, seed, showCounts, charge) {
+    .Call('_IsoSpecR_RStochastic', PACKAGE = 'IsoSpecR', molecule, isotopes, ionicCurrent, precision, betaBias, seed, showCounts, charge)
+}
+
+RIsoProperties <- function(molecule, isotopes, charge) {
+    .Call('_IsoSpecR_RIsoProperties', PACKAGE = 'IsoSpecR', molecule, isotopes, charge)
+}
+
+REnvelopeConvolve <- function(masses1, probs1, masses2, probs2) {
+    .Call('_IsoSpecR_REnvelopeConvolve', PACKAGE = 'IsoSpecR', masses1, probs1, masses2, probs2)
+}
+
+REnvelopeLinearCombination <- function(masses, probs, intensities) {
+    .Call('_IsoSpecR_REnvelopeLinearCombination', PACKAGE = 'IsoSpecR', masses, probs, intensities)
+}
+
+REnvelopeBin <- function(masses, probs, width, middle) {
+    .Call('_IsoSpecR_REnvelopeBin', PACKAGE = 'IsoSpecR', masses, probs, width, middle)
+}
+
+REnvelopeResample <- function(masses, probs, ionicCurrent, betaBias, seed) {
+    .Call('_IsoSpecR_REnvelopeResample', PACKAGE = 'IsoSpecR', masses, probs, ionicCurrent, betaBias, seed)
+}
+
+RWasserstein <- function(masses1, probs1, masses2, probs2, kind, abyssDepth, otherScale) {
+    .Call('_IsoSpecR_RWasserstein', PACKAGE = 'IsoSpecR', masses1, probs1, masses2, probs2, kind, abyssDepth, otherScale)
+}
+
+RWassersteinMatch <- function(masses1, probs1, masses2, probs2, flowDistance, otherScale) {
+    .Call('_IsoSpecR_RWassersteinMatch', PACKAGE = 'IsoSpecR', masses1, probs1, masses2, probs2, flowDistance, otherScale)
+}
+
