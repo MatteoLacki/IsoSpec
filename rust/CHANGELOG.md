@@ -4,7 +4,7 @@ The crate's own versions; the C++ library it bundles has its own
 (`isospec::LIBRARY_VERSION`), carried as semver build metadata after the `+`
 (`0.1.0+2.6.0`: crate 0.1.0, IsoSpec 2.6.0) and listed with each release.
 
-## 0.1.0+2.6.0 (unreleased)
+## 0.1.0+2.6.0 (2026-10-26)
 
 First release, bundling IsoSpec 2.6.0.
 
