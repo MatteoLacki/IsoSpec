@@ -57,8 +57,11 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
+      # The repository named explicitly: on Windows this shell is Rtools' bash,
+      # and an R started from it does not see the CRAN mirror setup-r
+      # configures ("trying to use CRAN without setting a mirror").
       - name: Install dependencies
-        run: Rscript -e 'install.packages(c("Rcpp", "testthat"))'
+        run: Rscript -e 'install.packages(c("Rcpp", "testthat"), repos = Sys.getenv("RSPM", "https://cloud.r-project.org"))'
       - uses: actions/download-artifact@v8
         with:
           name: release-r
