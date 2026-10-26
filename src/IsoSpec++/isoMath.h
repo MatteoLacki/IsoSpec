@@ -163,7 +163,10 @@ size_t rdvariate_binom(size_t tries, double succ_prob, std::mt19937& rgen = rand
 //! FromTotalProb's output order, and which of several equally probable
 //! configurations survive the cut, differ between runs of the same program.
 //! Pseudo-random rather than e.g. middle-of-range so the expected cost stays
-//! linear whatever order the generators emit configurations in.
+//! linear whatever order the generators emit configurations in. No random
+//! number generator is involved, so the R package uses it too (it once took
+//! the middle element, since CRAN packages may not draw from their own RNG,
+//! and so ordered its envelopes differently from every other binding).
 class PivotSequence
 {
     std::uint64_t state = 0;

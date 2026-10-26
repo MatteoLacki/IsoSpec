@@ -1231,9 +1231,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
     size_t end = this->_confs_no;
     double sum_to_start = prob_at_last_switch;
 
-#if !ISOSPEC_BUILDING_R
     PivotSequence pivots;
-#endif
     while(start < end)
     {
         size_t len = end - start;
@@ -1245,11 +1243,7 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
                 end = start;
             break;
         }
-#if ISOSPEC_BUILDING_R
-        size_t pivot = len/2 + start;
-#else
         size_t pivot = pivots.next(len) + start;
-#endif
         const double pprob = this->_probs[pivot];
 
         // Descending Hoare partition of [start, end) around the value pprob:

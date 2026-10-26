@@ -30,18 +30,12 @@ void* quickselect(void** array, size_t n, size_t start, size_t end)
     if(start == end)
         return array[start];
 
-#if !ISOSPEC_BUILDING_R
     PivotSequence pivots;
-#endif
     while(true)
     {
         // Partition part
         size_t len = end - start;
-#if ISOSPEC_BUILDING_R
-        size_t pivot = len/2 + start;
-#else
         size_t pivot = pivots.next(len) + start;
-#endif
         void* pval = array[pivot];
         double pprob = getLProb(pval);
         std::swap(array[pivot], array[end-1]);
