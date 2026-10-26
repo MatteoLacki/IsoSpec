@@ -1,5 +1,53 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+2.6.0
+----------------------------------
+New:
+- Rust bindings: the `isospec` crate (for crates.io), a safe API over the C++
+  library, built from source by its build script
+- Reproducible sampling: a seed for stochastic envelopes, resampling and the
+  stochastic generator (`seed=` in Python, `seeded_rng()` in C++, `*Seeded`
+  functions in the C API); the same seed gives the same result on every
+  platform. FromTotalProb now returns the same envelope, in the same order,
+  on every run
+- Thread safety: independent objects may be used from any number of threads,
+  and const methods of a shared Iso or FixedEnvelope concurrently (the C
+  library's lgamma, whose global signgam raced, is no longer called)
+- C++: parse_formula_composition() (a formula as element counts), Iso getters
+  for isotope numbers, atom counts and per-element isotopes; the parsers take
+  std::string_view
+
+Changed (may break existing code):
+- Invalid input is rejected instead of producing NaN, inf, a hang or a
+  crash: NaN thresholds and target probabilities, stochastic precision
+  outside (0, 1], negative or NaN beta_bias, non-finite scale factors, mass
+  shifts and intensities, bad Wasserstein parameters, non-finite or huge
+  isotope masses, negative atom counts. Python raises ValueError
+- Isotope probabilities given for an element must sum to 1 (within 1e-3);
+  they are divided by their sum
+- Envelope operations whose result would not be finite (scaling,
+  convolution, linear combinations, binning) raise an overflow error
+- Formulas repeating an element ("C1C1") are rejected
+- Python: abyssalWassersteinDistanceGrad removed (it never worked)
+- The shared library's soname is now libIsoSpec++.so.2.6
+- R: the package version follows the library's, 2.3.3 -> 2.6.0
+
+Faster:
+- Layered generator, FromTotalProb and Binned: 16-62% faster, depending on
+  molecule and compiler; formula parsing 2.5x faster under gcc; FASTA parsing
+  1.35x; many small molecules in a row 16-20% (smaller allocation slabs)
+
+Fixed:
+- Binned(): out-of-bounds writes on some grids, infinite loops on far-off
+  bin middles, and whole regions lost for artificial elements with widely
+  spaced isotopes
+- Wasserstein matching could leave a negative remainder; bin() could loop
+  forever
+- Memory leaks when an allocation failed while building an Iso
+- Builds: MSVC, MinGW (R's Rtools), FreeBSD and musl; runtime CPU detection
+  without libgcc/compiler-rt
+- R: the package failed to load under R CMD check (assignInNamespace)
+
 2.1.4
 ----------------------------------
 - Add charge parameter in Python and R
