@@ -1,13 +1,26 @@
 name: Tests
 
+# On a push, the checkout is tested. The Release workflow calls this one with
+# from-package, after building the packages: pytest then runs on the built
+# wheels (and on the sdist, installed from the tarball), and the C++ and C-ABI
+# suites compile against the C++ sources shipped in the sdist rather than the
+# checkout's, so a release is tested as it will be downloaded.
 on:
     push:
         branches:
             - ci_test
             - main
             - winworkflow
-        tags:
-            - 'v*'
+    workflow_call:
+        inputs:
+            from-package:
+                description: Test the built wheels and sdist instead of the checkout
+                type: boolean
+                default: false
+            wheel-os:
+                description: The runners wheels were built for (a JSON list); pytest runs on these
+                type: string
+                default: ''
 
 jobs:
   run_pytest:
@@ -19,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         # macos-15-intel is an Intel runner, macos-latest is Apple silicon
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-latest, windows-11-arm]
+        os: ${{ fromJSON(inputs.wheel-os || '["ubuntu-latest", "ubuntu-24.04-arm", "windows-latest", "macos-15-intel", "macos-latest", "windows-11-arm"]') }}
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
         exclude:
         - os: windows-11-arm
@@ -41,7 +54,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
       - name: Install GCC (macOS only — Apple Clang/libc++ lacks <experimental/simd>)
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && !inputs.from-package
         run: |
           brew install gcc
           GCC_PREFIX="$(brew --prefix gcc)"
@@ -50,10 +63,67 @@ jobs:
           echo "CC=$CC" >> "$GITHUB_ENV"
           echo "CXX=$CXX" >> "$GITHUB_ENV"
       - name: Install package
+        if: ${{ !inputs.from-package }}
         env:
           VERBOSE: '1'
         run: |
           python -m pip install -v .[testing]
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          pattern: cibw-wheels-*
+          path: dist
+          merge-multiple: true
+      - name: Install the built wheel
+        # From dist/ alone (no index, no dependencies): the package under test
+        # is the wheel the release built, never one already on PyPI. Then its
+        # dependencies and the testing extras, from the index.
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: |
+          python -m pip install --no-index --no-deps --find-links dist --only-binary :all: "IsoSpecPy==$(cat VERSION)"
+          python -m pip install "IsoSpecPy[testing]==$(cat VERSION)" --find-links dist
+      - name: Test with pytest
+        working-directory: ./tests/Python
+        run: |
+          python -m pytest .
+
+  run_pytest_sdist:
+    # The sdist as pip builds it on a user's machine: from the tarball, with the
+    # platform's compiler (Homebrew GCC on macOS, as for the wheels).
+    name: Run pytest on the sdist on ${{ matrix.os }}
+    if: ${{ inputs.from-package }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-latest, windows-11-arm]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Install GCC (macOS only — Apple Clang/libc++ lacks <experimental/simd>)
+        if: runner.os == 'macOS'
+        run: |
+          brew install gcc
+          GCC_PREFIX="$(brew --prefix gcc)"
+          CC="$(ls "$GCC_PREFIX"/bin/gcc-* | sort -V | tail -1)"
+          CXX="$(ls "$GCC_PREFIX"/bin/g++-* | sort -V | tail -1)"
+          echo "CC=$CC" >> "$GITHUB_ENV"
+          echo "CXX=$CXX" >> "$GITHUB_ENV"
+      - uses: actions/download-artifact@v8
+        with:
+          name: cibw-sdist
+          path: dist
+      - name: Install the sdist
+        shell: bash
+        env:
+          VERBOSE: '1'
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -v dist/*.tar.gz
+          python -m pip install "IsoSpecPy[testing]==$(cat VERSION)" --find-links dist
       - name: Test with pytest
         working-directory: ./tests/Python
         run: |
@@ -71,6 +141,18 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm]
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: cibw-sdist
+          path: sdist
+      - name: Use the C++ sources shipped in the sdist
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: |
+          tar xzf sdist/*.tar.gz -C sdist
+          rm -rf src/IsoSpec++
+          cp -r sdist/*/src/IsoSpec++ src/
       - name: Install toolchain
         run: |
           sudo apt-get update
@@ -99,6 +181,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: cibw-sdist
+          path: sdist
+      - name: Use the C++ sources shipped in the sdist
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: |
+          tar xzf sdist/*.tar.gz -C sdist
+          rm -rf src/IsoSpec++
+          cp -r sdist/*/src/IsoSpec++ src/
       - name: Show the toolchain
         run: |
           clang++ --version
@@ -122,6 +216,18 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: cibw-sdist
+          path: sdist
+      - name: Use the C++ sources shipped in the sdist
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: |
+          tar xzf sdist/*.tar.gz -C sdist
+          rm -rf src/IsoSpec++
+          cp -r sdist/*/src/IsoSpec++ src/
       - uses: ilammy/msvc-dev-cmd@v1
       - name: Build and run the doctest suite
         shell: pwsh

@@ -55,6 +55,9 @@ middle pivot can go quadratic on adversarial input.
 
 testthat, `src/IsoSpecR/tests/testthat/`; `test-envelopes.R` checks the
 newer functions against IsoSpecPy's values (binned probabilities, seeded
-stochastic and resample counts, Wasserstein distances). The release workflow
-runs `R CMD check` and `R CMD check --as-cran` on the built tarball and fails
-on any WARNING or ERROR.
+stochastic and resample counts, Wasserstein distances). `r.yml` runs `R CMD
+check` and `R CMD check --as-cran` on the built tarball on Linux, macOS and
+Windows, on every push and, called by the Release workflow, on the release's
+own tarball; it fails on any WARNING or ERROR. The comparison with the
+version on CRAN runs only for a release, since between a release and the
+next bump every push carries CRAN's version.

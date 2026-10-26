@@ -1,11 +1,11 @@
 name: Release
 run-name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0}', github.ref_name) || format('Release rehearsal ({0})', github.ref_name) }}
 
-# Pushing a v* tag builds, checks *and publishes* (a draft GitHub release, then
-# PyPI, then the release made public). Anything else is a full rehearsal:
-# every build and check of a real release -- wheels on every platform, sdist,
-# release notes from CHANGELOG, the Rust .crate, R CMD check --as-cran -- with
-# the publishing jobs skipped. Run one with the Run workflow button,
+# Pushing a v* tag builds the packages, runs every binding's full test suite
+# on them (the Tests, Rust and R workflows, called with from-package), and
+# only if all of it passes *publishes* (a draft GitHub release, then PyPI,
+# then the release made public). Anything else is a full rehearsal: every
+# build and test of a real release, with the publishing jobs skipped. Run one with the Run workflow button,
 # `gh workflow run build_wheels.yml --ref <branch>`, or by pushing to
 # ci_wheels (`git push -f origin HEAD:ci_wheels`); by hand, the wheel build
 # can be narrowed to one runner and one Python:
@@ -161,42 +161,53 @@ jobs:
           path: target/package/*.crate
 
   build_r:
-    # The CRAN source tarball, checked the way CRAN checks it. R CMD build
-    # copies the symlinks in src/IsoSpecR/src as the files they point to, so
-    # the tarball is self-contained.
-    name: Build and check R package
+    # The CRAN source tarball. R CMD build copies the symlinks in
+    # src/IsoSpecR/src as the files they point to, so the tarball is
+    # self-contained. Checked below, by test_r.
+    name: Build R package
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
-      - name: Install dependencies
-        run: Rscript -e 'install.packages(c("Rcpp", "testthat"))'
       - name: R CMD build
         run: R CMD build src/IsoSpecR
-      # R CMD check exits non-zero only on ERROR; CRAN rejects WARNINGs too,
-      # so both checks fail on either. A slow check puts its timing between
-      # the dots and the verdict ("... [4s/10s] WARNING"), hence the match on
-      # the line's end. The incoming-feasibility WARNING includes a version
-      # CRAN already has: DESCRIPTION's Version must be bumped for a release.
-      # NOTEs are left to a human (a stale Date field, say, is one).
-      - name: R CMD check
-        run: |
-          R CMD check --no-manual IsoSpecR_*.tar.gz
-          if grep -E '^\* checking .*(WARNING|ERROR)$' IsoSpecR.Rcheck/00check.log; then exit 1; fi
-      - name: R CMD check --as-cran
-        run: |
-          R CMD check --as-cran --no-manual IsoSpecR_*.tar.gz
-          if grep -E '^\* checking .*(WARNING|ERROR)$' IsoSpecR.Rcheck/00check.log; then exit 1; fi
-      - name: Check logs
-        if: always()
-        run: cat IsoSpecR.Rcheck/00check.log || true
       - uses: actions/upload-artifact@v7
         with:
           name: release-r
           path: IsoSpecR_*.tar.gz
+
+  # The full test suite of every binding, by the same workflows that test each
+  # push, but run on the packages just built rather than on the checkout:
+  # pytest on the wheels and the sdist, the C++ and C-ABI suites on the C++
+  # the sdist ships, cargo test (and lint, MSRV) on the unpacked .crate on
+  # every platform, R CMD check --as-cran on the R tarball on three OSes.
+  # Publishing waits for all of it.
+
+  test_python_cpp:
+    name: Tests on the built packages
+    needs: [build_wheels, build_sdist]
+    uses: ./.github/workflows/run_tests.yml
+    with:
+      from-package: true
+      # The runners wheels were built for: all of them unless narrowed by hand.
+      wheel-os: ${{ inputs.os && inputs.os != 'all' && format('["{0}"]', inputs.os) || '' }}
+
+  test_rust:
+    name: Rust on the packaged crate
+    needs: [package_crate]
+    uses: ./.github/workflows/rust.yml
+    with:
+      from-package: true
+
+  test_r:
+    name: R on the built tarball
+    needs: [build_r]
+    uses: ./.github/workflows/r.yml
+    with:
+      from-package: true
 
   # Publishing, reversible steps first: a draft GitHub release (invisible,
   # deletable) carrying every source package, checked; then PyPI, which
@@ -209,7 +220,7 @@ jobs:
     # three registries (the Python sdist, the Rust .crate, the CRAN tarball),
     # each built and checked above, and the version's CHANGELOG section as
     # its text. CRAN and crates.io are then fed by hand from these files.
-    needs: [build_wheels, build_sdist, package_crate, build_r]
+    needs: [build_wheels, build_sdist, package_crate, build_r, test_python_cpp, test_rust, test_r]
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -1,10 +1,20 @@
 name: Rust
 
+# On a push or pull request, the checkout is tested. The Release workflow calls
+# this one with from-package, after `cargo package`: every job then runs on the
+# packaged crate (its tests and examples ship in it), unpacked in place of a
+# checkout, so a release is tested as crates.io would receive it.
 on:
     push:
         branches:
             - main
     pull_request:
+    workflow_call:
+        inputs:
+            from-package:
+                description: Test the release-crate artifact instead of the checkout
+                type: boolean
+                default: false
 
 env:
     CARGO_TERM_COLOR: always
@@ -22,6 +32,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+        if: ${{ !inputs.from-package }}
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: release-crate
+      - name: Unpack the packaged crate
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: tar xzf isospec-*.crate --strip-components=1 && rm isospec-*.crate
       # Installs rustup too where the image lacks it (windows-11-arm).
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --all-targets
@@ -38,6 +57,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
+        if: ${{ !inputs.from-package }}
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: release-crate
+      - name: Unpack the packaged crate
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: tar xzf isospec-*.crate --strip-components=1 && rm isospec-*.crate
       - uses: msys2/setup-msys2@v2
         id: msys2
         with:
@@ -60,8 +88,17 @@ jobs:
     runs-on: ubuntu-latest
     container: rust:alpine
     steps:
-      - run: apk add --no-cache g++ git
+      - run: apk add --no-cache g++ git tar
       - uses: actions/checkout@v7
+        if: ${{ !inputs.from-package }}
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: release-crate
+      - name: Unpack the packaged crate
+        if: ${{ inputs.from-package }}
+        shell: sh
+        run: tar xzf isospec-*.crate --strip-components=1 && rm isospec-*.crate
       - run: cargo test --all-targets
       - run: cargo test --test isa -- --nocapture
       - run: cargo test --release --all-targets
@@ -72,6 +109,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        if: ${{ !inputs.from-package }}
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: release-crate
+      - name: Unpack the packaged crate
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: tar xzf isospec-*.crate --strip-components=1 && rm isospec-*.crate
       - uses: vmactions/freebsd-vm@v1
         with:
           usesh: true
@@ -97,6 +143,15 @@ jobs:
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER: qemu-aarch64 -L /usr/aarch64-linux-gnu
     steps:
       - uses: actions/checkout@v7
+        if: ${{ !inputs.from-package }}
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: release-crate
+      - name: Unpack the packaged crate
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: tar xzf isospec-*.crate --strip-components=1 && rm isospec-*.crate
       - run: sudo apt-get update && sudo apt-get install -y g++-aarch64-linux-gnu qemu-user
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -106,8 +161,10 @@ jobs:
 
   package:
     # `cargo package` builds the crate from the packaged tarball alone: the
-    # proof that the C++ sources ship inside it.
+    # proof that the C++ sources ship inside it. (For a release, the Release
+    # workflow packages it itself.)
     name: cargo package
+    if: ${{ !inputs.from-package }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -121,6 +178,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        if: ${{ !inputs.from-package }}
+      - uses: actions/download-artifact@v8
+        if: ${{ inputs.from-package }}
+        with:
+          name: release-crate
+      - name: Unpack the packaged crate
+        if: ${{ inputs.from-package }}
+        shell: bash
+        run: tar xzf isospec-*.crate --strip-components=1 && rm isospec-*.crate
       - run: rustup toolchain install stable --profile minimal --component rustfmt,clippy && rustup default stable
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
