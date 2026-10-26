@@ -179,7 +179,19 @@ IsoSpecify(molecule = composition, stopCondition = 0.999)
 
 Like the Python `ParsePeptideSequence`, this returns the residue composition without a free peptide's terminal H2O -- add `c(H = 2, O = 1)` to it for the neutral molecule. A modification whose delta removes more atoms of an element than the bare sequence provides gives a negative count (`"G[UNIMOD:11]"` nets `H -1`, `S -1`); `IsoSpecify` rejects such a vector rather than quietly dropping those elements.
 
-See `Examples/R/` for radiolabelling, full-spectrum extraction, and Unimod-annotated sequences.
+The rest of the API takes the same named vector, and treats an envelope as what `IsoSpecify` returns, a matrix with columns `mass` and `prob`:
+
+```r
+insulin <- c(C = 254, H = 377, N = 65, O = 75, S = 6)
+IsoProperties(insulin)$averageMass            # also mono/lightest/heaviest/mode peaks, variance
+IsoBinned(insulin, binWidth = 1)              # unit-resolution distribution, computed directly
+IsoStochastic(insulin, ionicCurrent = 1e4, seed = 1)   # simulated, reproducible measurement
+wassersteinDistance(IsoSpecify(insulin, 0.999), IsoSpecify(c(C = 254, H = 377, N = 65, O = 74, S = 7), 0.999))
+```
+
+with `envelopeConvolve`, `envelopeLinearCombination`, `envelopeBin` and `envelopeResample` for envelope arithmetic, and `orientedWassersteinDistance`, `abyssalWassersteinDistance` and `wassersteinMatch` beside `wassersteinDistance`.
+
+See `Examples/R/` for radiolabelling, full-spectrum extraction, Unimod-annotated sequences, and binned, simulated and compared envelopes.
 
 ## Advanced features
 
@@ -189,9 +201,11 @@ See `Examples/R/` for radiolabelling, full-spectrum extraction, and Unimod-annot
   - `IsoBinned` — histogram-style envelope at a chosen bin width.
 - **FASTA/peptide-sequence support** — build an `Iso` directly from an amino-acid sequence, with `[UNIMOD:<id>]` modification tags recognized inline; optionally include the N/C-terminal water.
 - **Custom isotopic tables** — override natural abundances per element (e.g. for radio- or stable-isotope labelling). See `Examples/*/radiolabelling.*`.
-- **Fixed-envelope arithmetic** — addition, normalization, convolution, Wasserstein distance.
+- **Fixed-envelope arithmetic** — addition, normalization, convolution, binning, resampling, Wasserstein distances.
+- **Reproducible sampling** — stochastic envelopes and resampling take a seed (`seed=` in Python and R, `seeded_rng()` in C++, `with_seed` in Rust); a seed gives the same counts on every platform and in every binding.
 - **Nominal-mass mode** — compute distributions over nucleon counts instead of real masses.
-- **Streaming generators (for performance)** — the tabulated functions above materialize the full envelope into arrays. For large molecules where that uses too much memory, or for pipelines that consume one configuration at a time (e.g. binning on the fly), use the generator classes instead: `IsoThresholdGenerator`, `IsoLayeredGenerator`, `IsoOrderedGenerator`, `IsoStochasticGenerator`. They yield one isotopologue per call to `advanceToNextConfiguration()` without ever storing the full set. `IsoOrderedGenerator` additionally streams in strict order of decreasing probability.
+- **Thread safety** — the library never parallelises its own work, but independent molecules and envelopes may be used from any number of threads, and a shared molecule or envelope may be read from several at once.
+- **Streaming generators (for performance)** — the tabulated functions above materialize the full envelope into arrays. For large molecules where that uses too much memory, or for pipelines that consume one configuration at a time (e.g. binning on the fly), use the generator classes instead: `IsoThresholdGenerator`, `IsoLayeredGenerator`, `IsoOrderedGenerator`, `IsoStochasticGenerator`. They yield one isotopologue per call to `advanceToNextConfiguration()` without ever storing the full set. `IsoOrderedGenerator` additionally streams in strict order of decreasing probability. Generators are in C++, Python and Rust; R has the materialized functions only.
 
 Algorithmic details are in the papers cited below; the Supporting Information of each is the better starting point for implementation specifics.
 
@@ -203,9 +217,13 @@ src/IsoSpecPy/    Python binding, loaded via cffi
 src/IsoSpecR/     R binding, via Rcpp
 rust/             Rust crate (Cargo.toml at the repository root), via cxx
 Examples/         Working examples in each language
-tests/            C, C++, and Python test suites
+tests/            C, C++, and Python test suites (R's are in src/IsoSpecR/tests, Rust's in rust/tests)
 skbuild/          scikit-build-core entry point used when installing the Python wheel
 ```
+
+## Changes
+
+`CHANGELOG` lists the major changes in each release (the Rust crate keeps its own, `rust/CHANGELOG.md`).
 
 ## Citation
 

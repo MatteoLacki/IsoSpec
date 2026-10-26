@@ -107,6 +107,8 @@ The pipeline is: **Iso → per-element Marginals → a generator that combines t
 
 The batched fill kernels use `std::experimental::simd`, whose ABI is fixed at template instantiation from `-march` macros — so `target_clones`/function attributes cannot work. Instead the kernels (`isa_kernel_impl.h`, deliberately **no include guard**) are compiled once per ISA level into separate namespaces/objects: `isa_kernels_{baseline,avx,v3,v4}.cpp`, selected at runtime by `isa_dispatch.cpp` (which must itself stay baseline-compiled). Enabled by `-DISOSPEC_ISA_DISPATCH=1` + per-level objects (see `IsaDispatch.cmake` and the tests/C++ Makefile); without it (plain unity build, R package) kernels compile at the build's native `-march`. This matters because the PyPI wheel is built with no `-march` (x86-64 baseline, 2-wide vectors) while user machines are mostly AVX2+.
 
+The CPU is asked directly, CPUID and XGETBV through `<cpuid.h>` (`x86_features()` in `isa_dispatch.cpp`), not through `__builtin_cpu_supports`: that needs `__cpu_model` from libgcc or compiler-rt, which a program linked by something other than the compiler driver may lack (Rust on musl and on macOS did).
+
 Build-system consequence: any target using the library must compile the four `isa_kernels_*.cpp` with matching flags minus `-march` (sanitizers/`_GLIBCXX_DEBUG` must match across objects — ODR).
 
 ### Threading
@@ -116,7 +118,7 @@ The library never parallelises its own work, but callers may use it from any num
 - Independent objects (`Iso`, generators, `FixedEnvelope`s) on separate threads never interfere. Nothing process-global is mutable without synchronisation: the Unimod override-path cache is a mutex-guarded, never-evicted map; the C library's `lgamma` (which writes the global `signgam`) is never called: lnΓ comes from `isoMath.h` (`lgamma_stirling`, `lgamma_half`, the log-factorial cache); the ISA selection is one atomic pointer.
 - `const` methods on one shared `Iso` or `FixedEnvelope` may run concurrently. This is why `Marginal` computes its mode in the constructor rather than lazily (+210 ns per bare `Iso` from a peptide on x86-64-v3; free once any generator runs).
 - A generator is stateful and belongs to one thread at a time, but may move between threads. The stochastic generator therefore draws from the `thread_local` RNG of the thread currently sampling, never the one that built it (a user-supplied `std::mt19937&` is kept as given). For reproducible sampling, `FromStochastic`, `resample` and the stochastic generator take a `std::mt19937&` (build it with `seeded_rng(uint64_t)`, which gives the same stream on every platform); the C ABI has `*Seeded` variants and Python a `seed=` argument. Nothing else draws random numbers: the quickselect pivots are a fixed pseudo-random sequence (`PivotSequence`), so `FromTotalProb` returns the same envelope, in the same order, on every run.
-- `tests/C++/test_threads.cpp` under `make tsan` is the proof. Under TSan, `aligned_ptr.h` grows VM-backed buffers by mmap+copy+munmap instead of `mremap`, which TSan does not intercept (it reports address reuse across threads as races).
+- `tests/C++/test_threads.cpp` under `make tsan` is the proof. Under TSan, `aligned_ptr.h` grows VM-backed buffers by mmap+copy+munmap instead of `mremap` (the same path platforms without `mremap`, such as FreeBSD, always take), which TSan does not intercept (it reports address reuse across threads as races).
 
 Do not reintroduce function-local `static` scratch buffers or lazy caches behind `const` accessors; `thread_local` is no escape either (TLS teardown has crashed the Python module at interpreter shutdown on macOS).
 
@@ -141,6 +143,7 @@ This file stays a short overview; design rationale/history for each feature live
 | `docs/ai/unimod.md` | `[UNIMOD:<id>]` modification-aware peptide sequence parsing (`fasta_mods.h`/`unimod.h`), the `fasta`/`peptide_sequence` naming note |
 | `docs/ai/precursor_isotopes_notebook.md` | Pipeline peptide notebook: unmodified optimal 99% isotope sets, 1 Da sparse mmappet export, notebook fingerprint |
 | `docs/ai/rust_bindings.md` | The `isospec` crate: layout, the cxx shim, error translation, Send/Sync reasoning, the batched iterator and its measurements, what is deliberately not exposed |
+| `docs/ai/r_bindings.md` | The R package's API: envelopes as `mass`/`prob` matrices, what is deliberately left to plain R, routine registration, and why R now shares the other bindings' quickselect pivots |
 | `docs/ai/composition_expansion.md` | `composition.h`: `ElementComposition`/`expand_composition_into`/`expandCompositionC` — the one symbol→isotopes resolution every path and binding forwards to, and the copy that remains |
 
 # Persona
