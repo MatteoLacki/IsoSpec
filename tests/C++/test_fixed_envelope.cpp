@@ -435,6 +435,40 @@ TEST_CASE("Binned() named constructor") {
     CHECK(from_move.get_total_prob() >= 0.9);
 }
 
+TEST_CASE("Binned agrees with binning the full envelope on both sides of the accumulator gate") {
+    // Below ISOSPEC_BINNED_MMAP_MIN_BYTES the accumulator comes from calloc,
+    // above it from mmap; nearly every other Binned test is small enough for
+    // the calloc side, so this one pins the mapped side as well.
+    Iso iso("C20H40N5O5S2");
+    const double span = iso.getHeaviestPeakMass() - iso.getLightestPeakMass();
+    const double gate = static_cast<double>(ISOSPEC_BINNED_MMAP_MIN_BYTES);
+    const FixedEnvelope full = FixedEnvelope::FromThreshold(Iso(iso, true), 0.0, true, false);
+
+    for (double width : {0.01, 0.0005}) {
+        CAPTURE(width);
+        const double acc_bytes = sizeof(double) * span / width;
+        // The two widths straddle the default gate by a wide margin.
+        if (width == 0.01)
+            CHECK(acc_bytes < 0.5 * gate);
+        else
+            CHECK(acc_bytes > 2.0 * gate);
+
+        FixedEnvelope binned = FixedEnvelope::Binned(Iso(iso, true), 1.0, width, 0.0);
+        FixedEnvelope manual = FixedEnvelope(full).bin(width, 0.0);
+        std::vector<Peak> a, b;
+        for (std::size_t i = 0; i < binned.confs_no(); ++i)
+            a.push_back({binned.mass(i), binned.prob(i)});
+        for (std::size_t i = 0; i < manual.confs_no(); ++i)
+            if (manual.prob(i) > 0.0)
+                b.push_back({manual.mass(i), manual.prob(i)});
+        CHECK(peaks_close(a, b, 1e-9));
+
+        FixedEnvelope part = FixedEnvelope::Binned(Iso(iso, true), 0.999, width, 0.0);
+        CHECK(part.get_total_prob() >= 0.999 - 1e-9);
+        CHECK(part.get_total_prob() <= 1.0 + 1e-9);
+    }
+}
+
 TEST_CASE("FromThreshold: absolute vs relative thresholds") {
     Iso iso("C50H100N20O20S5");
     const double mode_prob = std::exp(iso.getModeLProb());

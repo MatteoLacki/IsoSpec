@@ -2,8 +2,10 @@
 // fuzzer-chosen bin width, middle and target probability -- IEEE doubles of
 // every kind, and widths derived from the masses so that bin indices land on
 // either side of the 2^48 limit, where the shifted grid origin rounds the most.
-// The accumulator is mmap'ed, beyond ASan's sight: what catches a slot outside
-// it is the bin_slot()/bin_run() check, live in this ISOSPEC_DEBUG build. The
+// The fuzz build keeps the accumulator on the heap at every size
+// (ISOSPEC_BINNED_MMAP_MIN_BYTES set to infinity), where ASan watches it; the
+// bin_slot()/bin_run() check, live in this ISOSPEC_DEBUG build, catches a slot
+// outside it even where ASan's redzones would not reach. The
 // output must be finite, nonnegative, sit on bins between the lightest and
 // heaviest masses, and sum to at most 1 and at least the target (which a bin
 // lost by the gap-bounded scan would break); a broken invariant aborts.

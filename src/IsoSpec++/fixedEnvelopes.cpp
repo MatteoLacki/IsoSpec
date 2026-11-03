@@ -1587,26 +1587,49 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
         throw std::logic_error("Binned: the shifted bin grid starts below its first slot");
     const size_t no_bins = static_cast<size_t>(last_slot) + 2;
 
-    double* acc;
-# if ISOSPEC_GOT_MMAN
-    acc = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*no_bins, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
-    if(acc == MAP_FAILED)
-        throw std::bad_alloc();
-#else
-    // Platforms without mmap use a zero-initialized heap accumulator.
-    acc = reinterpret_cast<double*>(calloc(no_bins, sizeof(double)));
-    if(acc == nullptr)
-        throw std::bad_alloc();
-#endif
-    // Keep the original mapping alive through generator construction and output
-    // growth, both of which can throw. acc is offset below for absolute indexing;
-    // the owner must always retain the actual base address for cleanup.
-    const auto release_acc = [no_bins](double* base) noexcept {
+    // The accumulator spans the whole mass range, of which a large molecule
+    // populates only a small part: mapped anonymously, the rest costs address
+    // space only.  A small one's range is mostly populated, and below
+    // ISOSPEC_BINNED_MMAP_MIN_BYTES (see fixedEnvelopes.h) calloc's zeroing is
+    // cheaper than mmap's syscalls and page faults.  Above it calloc is no
+    // substitute: glibc serves blocks up to its adaptive mmap threshold (as much
+    // as 32 MiB) from the heap and memsets all of them.
+    const size_t acc_bytes = sizeof(double)*no_bins;
 #if ISOSPEC_GOT_MMAN
-        munmap(base, sizeof(double)*no_bins);
+    const bool mapped = acc_bytes >= ISOSPEC_BINNED_MMAP_MIN_BYTES;
 #else
-        free(base);
+    constexpr bool mapped = false;
 #endif
+
+    double* acc;
+    if(mapped)
+    {
+#if ISOSPEC_GOT_MMAN
+        acc = reinterpret_cast<double*>(mmap(nullptr, acc_bytes, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+        if(acc == MAP_FAILED)
+            throw std::bad_alloc();
+#endif
+    }
+    else
+    {
+        acc = reinterpret_cast<double*>(calloc(no_bins, sizeof(double)));
+        if(acc == nullptr)
+            throw std::bad_alloc();
+    }
+    // Keep the accumulator alive through generator construction and output
+    // growth, both of which can throw.
+    const auto release_acc = [acc_bytes, mapped](double* base) noexcept {
+#if ISOSPEC_GOT_MMAN
+        if(mapped)
+        {
+            munmap(base, acc_bytes);
+            return;
+        }
+#else
+        (void)acc_bytes;
+        (void)mapped;
+#endif
+        free(base);
     };
     std::unique_ptr<double, decltype(release_acc)> acc_owner(acc, release_acc);
 
@@ -1622,8 +1645,8 @@ FixedEnvelope FixedEnvelope::Binned(Iso&& iso, double target_total_prob, double 
 #  ifndef ISOSPEC_BINNED_HUGEPAGE_MIN_BYTES
 #    define ISOSPEC_BINNED_HUGEPAGE_MIN_BYTES (size_t(64) << 20)  // 64 MiB
 #  endif
-    if(sizeof(double)*no_bins >= ISOSPEC_BINNED_HUGEPAGE_MIN_BYTES)
-        madvise(acc, sizeof(double)*no_bins, MADV_HUGEPAGE);
+    if(mapped && acc_bytes >= ISOSPEC_BINNED_HUGEPAGE_MIN_BYTES)
+        madvise(acc, acc_bytes, MADV_HUGEPAGE);
 #endif
 
     std::ptrdiff_t nonzero_slot = 0;

@@ -43,6 +43,20 @@
 #  define ISOSPEC_BINNED_LAYER_MAXSTEP (-3.0)
 #endif
 
+// Binned() takes its bin accumulator from calloc below this size, and maps it
+// anonymously at and above it.  The mmap path costs a fixed 2-25 us (map, page
+// faults, unmap: 2.5 on Alder Lake, 2 on M1 macOS, 8 under WSL2, 25 in a KVM
+// guest), which calloc saves; calloc in turn zeroes the whole range, which the
+// mmap path never touches beyond the populated bins.  Measured as calloc/mmap
+// time: glucose at 0.001 Da (241 KB) 0.43 / 0.21 / 0.63 / 0.43 on those four,
+// a 1 kDa peptide at 0.01 Da (157 KB) 0.69 / 0.30 / 0.80 / 0.53.  Where calloc
+// starts to lose depends on how much of the range is populated: on Alder Lake,
+// insulin breaks even at ~300 KB, a 1 kDa peptide at ~1 MB; the other hosts
+// tolerate 1-2 MB.  256 KiB never loses on the primary target.
+#ifndef ISOSPEC_BINNED_MMAP_MIN_BYTES
+#  define ISOSPEC_BINNED_MMAP_MIN_BYTES (std::size_t(256) << 10)
+#endif
+
 // The same knob for total_prob_init, which can afford a wider step than Binned:
 // it trims afterwards, so overshooting the target costs only the work of
 // generating what gets thrown away.

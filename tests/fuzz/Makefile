@@ -30,6 +30,7 @@ ifeq ($(origin CXX),default)
 CXX := clang++
 endif
 FLAGS := -std=c++20 -O1 -g -DISOSPEC_DEBUG '-DISOSPEC_ALIGNED_PTR_VM_THRESHOLD=(~std::size_t(0))' \
+         '-DISOSPEC_BINNED_MMAP_MIN_BYTES=(~std::size_t(0))' \
          -fsanitize=fuzzer,address,undefined -fno-sanitize-recover=all
 INC   := -I../../src/IsoSpec++
 UNITY := ../../src/IsoSpec++/unity-build.cpp
