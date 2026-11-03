@@ -371,6 +371,12 @@ TEST_CASE("saveMarginalLogSizeEstimates ranks marginals sensibly") {
     iso.saveMarginalLogSizeEstimates(cover_999.data(), 0.999);
     for (int i = 0; i < iso.getDimNumber(); ++i)
         CHECK(cover_999[i] >= cover_half[i] - 1e-12);
+
+    // Strictly, in fact, for every marginal that can vary. C100H2O1 has only
+    // K = 4 degrees of freedom, where the chi-square quantile used to saturate
+    // (at 2 Gamma(K), whatever the target) and with it every estimate.
+    for (int i = 0; i < iso.getDimNumber(); ++i)
+        CHECK(cover_999[i] > cover_half[i] + 0.1);
 }
 
 TEST_CASE("single-isotope element has a degenerate log-size estimate") {

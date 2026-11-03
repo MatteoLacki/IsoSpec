@@ -4,7 +4,9 @@
 // Each is checked against an independent reference — a textbook identity, a
 // numerically integrated definition, or the statistics of a large sample.
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <cstddef>
 #include <random>
 #include <vector>
@@ -111,107 +113,102 @@ TEST_CASE("NormalCDFInverse inverts NormalCDF") {
           doctest::Approx(10.0 + 3.0 * NormalCDFInverse(0.975)).epsilon(1e-9));
 }
 
-TEST_CASE("LowerIncompleteGamma2 matches closed forms") {
-    // LowerIncompleteGamma2(a, x) is the lower incomplete gamma of (a/2, x).
-    // For a = 2 (i.e. s = 1) it is 1 - exp(-x).
-    for (double x : {0.1, 0.5, 1.0, 2.0, 5.0}) {
+namespace {
+struct ChiSquareQuantile { int k; double x, q; };
+// SciPy's chi-square quantiles (k up to 10^6, x from 1e-300 to 1 - 2^-53),
+// written by gen_chi2_quantiles.py.
+const ChiSquareQuantile chi2_quantiles[] = {
+#include "chi2_quantiles.inc"
+};
+}  // namespace
+
+TEST_CASE("InverseChiSquareCDF2 agrees with SciPy's chi-square quantiles") {
+    // The callers only need about 0.1% (the quantile orders marginals by
+    // estimated size); the Halley iteration gets to rounding, and this holds
+    // it there. Rounding grows with k: the density's exponent has terms of
+    // order k log k, so at k = 10^6 a libm differing by an ulp moves the
+    // answer by ~1e-11 (glibc's worst row is 8.6e-12 there; below k = 1000,
+    // 6e-14).
+    REQUIRE(sizeof(chi2_quantiles) / sizeof(chi2_quantiles[0]) > 2000);
+    double worst = 0.0;
+    for (const ChiSquareQuantile& r : chi2_quantiles) {
+        const double q = InverseChiSquareCDF2(r.k, r.x);
+        const double error = std::fabs(q / r.q - 1.0);
+        if (error > (r.k <= 1000 ? 1e-11 : 1e-9)) {
+            CAPTURE(r.k);
+            CAPTURE(r.x);
+            CHECK(q == r.q);
+        }
+        worst = std::max(worst, error);
+    }
+    MESSAGE("worst relative error against SciPy: " << worst);
+}
+
+TEST_CASE("InverseChiSquareCDF2 matches closed forms") {
+    for (double x : {1e-9, 0.01, 0.3, 0.5, 0.7, 0.99, 0.9999, 1.0 - 1e-12}) {
         CAPTURE(x);
-        CHECK(LowerIncompleteGamma2(2, x) == doctest::Approx(1.0 - std::exp(-x)).epsilon(1e-12));
-        // For a = 1 (s = 1/2) it is sqrt(pi) * erf(sqrt(x)).
-        CHECK(LowerIncompleteGamma2(1, x) ==
-              doctest::Approx(std::sqrt(pi) * std::erf(std::sqrt(x))).epsilon(1e-12));
-        // For a = 4 (s = 2) it is 1 - (1+x)exp(-x).
-        CHECK(LowerIncompleteGamma2(4, x) ==
-              doctest::Approx(1.0 - (1.0 + x) * std::exp(-x)).epsilon(1e-12));
-    }
-
-    // Monotone increasing in x, tending to gamma(a/2).
-    for (int a : {1, 2, 3, 6}) {
-        CAPTURE(a);
-        double previous = -1.0;
-        for (double x = 0.5; x < 20.0; x += 0.5) {
-            const double v = LowerIncompleteGamma2(a, x);
-            CHECK(v > previous);
-            previous = v;
-        }
-        CHECK(previous == doctest::Approx(std::tgamma(a / 2.0)).epsilon(1e-4));
+        // k = 2: exponential with mean 2.
+        CHECK(InverseChiSquareCDF2(2, x) == doctest::Approx(-2.0 * std::log1p(-x)).epsilon(1e-12));
+        // k = 1: the square of a standard normal, P(chi2 <= q) = erf(sqrt(q/2)).
+        CHECK(std::erf(std::sqrt(InverseChiSquareCDF2(1, x) / 2.0)) == doctest::Approx(x).epsilon(1e-12));
+        // k = 4: P = 1 - (1 + q/2) exp(-q/2).
+        const double h = InverseChiSquareCDF2(4, x) / 2.0;
+        CHECK(-std::expm1(-h) - h * std::exp(-h) == doctest::Approx(x).epsilon(1e-12));
     }
 }
 
-TEST_CASE("InverseLowerIncompleteGamma2 inverts LowerIncompleteGamma2") {
-    // Only for `a` large enough that the root falls inside the bisection
-    // bracket the implementation uses; see the DOC case at the end of the file.
-    for (int a : {4, 6, 8, 12}) {
-        for (double target : {0.1, 0.5, 0.9}) {
-            CAPTURE(a);
-            CAPTURE(target);
-            const double x = target * std::tgamma(a / 2.0);
-            const double y = InverseLowerIncompleteGamma2(a, x);
-            // The bisection stops at a relative width of 1e-3.
-            CHECK(LowerIncompleteGamma2(a, y) == doctest::Approx(x).epsilon(1e-2));
-        }
-    }
-}
-
-TEST_CASE("InverseChiSquareCDF2 matches tabulated chi-square quantiles") {
-    // Textbook chi-square quantiles (k degrees of freedom, p quantile).  Only
-    // the regime where the underlying bisection brackets the root is checked
-    // here — see the DOC case below for the rest.
-    struct Ref { int k; double p; double q; };
-    const Ref refs[] = {
-        {4,  0.50,  3.357},
-        {5,  0.50,  4.351},
-        {5,  0.95, 11.070},
-        {6,  0.95, 12.592},
-        {8,  0.95, 15.507},
-        {10, 0.95, 18.307},
-        {10, 0.50,  9.342},
-        {10, 0.99, 23.209},
-        {20, 0.95, 31.410},
-        {20, 0.50, 19.337},
-    };
-    for (const Ref& r : refs) {
-        CAPTURE(r.k);
-        CAPTURE(r.p);
-        // The bisection inside stops at 0.1% relative width, so allow 1%.
-        CHECK(InverseChiSquareCDF2(r.k, r.p) == doctest::Approx(r.q).epsilon(1e-2));
-    }
-
-    // Monotone in both arguments.
-    for (int k : {5, 10, 20}) {
+TEST_CASE("InverseChiSquareCDF2 is strictly increasing in both arguments") {
+    for (int k : {1, 2, 3, 4, 5, 8, 13, 40, 299, 300, 301, 5000}) {
         CAPTURE(k);
-        CHECK(InverseChiSquareCDF2(k, 0.5) < InverseChiSquareCDF2(k, 0.9));
-        CHECK(InverseChiSquareCDF2(k, 0.9) < InverseChiSquareCDF2(k, 0.99));
+        double previous = 0.0;
+        for (int i = 1; i < 2000; ++i) {
+            const double x = i / 2000.0;
+            const double q = InverseChiSquareCDF2(k, x);
+            CAPTURE(x);
+            REQUIRE(q > previous);
+            previous = q;
+        }
     }
-    for (double p : {0.5, 0.9, 0.99}) {
-        CAPTURE(p);
-        CHECK(InverseChiSquareCDF2(5, p) < InverseChiSquareCDF2(20, p));
+    for (double x : {1e-6, 0.5, 0.99, 0.9999}) {
+        CAPTURE(x);
+        double previous = 0.0;
+        for (int k = 1; k <= 1000; ++k) {
+            const double q = InverseChiSquareCDF2(k, x);
+            CAPTURE(k);
+            REQUIRE(q > previous);
+            previous = q;
+        }
     }
 }
 
-TEST_CASE("DOC: InverseLowerIncompleteGamma2 saturates for small `a`") {
-    // The bisection in InverseLowerIncompleteGamma2 searches the interval
-    // [0, tgamma(a)] — but tgamma(a) is a value in the function's *range*, not
-    // a bound on its *argument*.  Whenever the root lies above tgamma(a) the
-    // bisection cannot reach it and converges to the bracket's upper end
-    // instead, silently returning tgamma(a).
-    //
-    // Consequence: InverseChiSquareCDF2(k, p) is wrong for small k — e.g.
-    // chi-square(1) at p=0.95 is 3.841 but the call returns 2*tgamma(1) = 2 —
-    // and, through Iso::saveMarginalLogSizeEstimates, the marginal size
-    // estimates saturate too.  That only mis-ranks marginals (a heuristic:
-    // it costs speed, not correctness of the computed distribution), which is
-    // why this is documented rather than asserted.
-    CHECK(InverseLowerIncompleteGamma2(1, 0.95 * std::tgamma(0.5)) ==
-          doctest::Approx(std::tgamma(1)).epsilon(1e-3));
-    CHECK(InverseChiSquareCDF2(1, 0.95) == doctest::Approx(2.0).epsilon(1e-3));
-    CHECK(InverseChiSquareCDF2(2, 0.95) == doctest::Approx(2.0).epsilon(1e-3));
-    // Saturated: the answer no longer even depends on p.
-    CHECK(InverseChiSquareCDF2(2, 0.95) == doctest::Approx(InverseChiSquareCDF2(2, 0.99)));
-
-    MESSAGE("InverseLowerIncompleteGamma2 bisects [0, tgamma(a)] and saturates "
-            "when the root exceeds tgamma(a); fix by growing the upper bound "
-            "until LowerIncompleteGamma2(a, hi) >= x before bisecting.");
+TEST_CASE("InverseChiSquareCDF2 is defined for every argument") {
+    // Its value becomes a sort key (Iso::saveMarginalLogSizeEstimates): it
+    // must never be NaN, or std::sort's comparator stops being an ordering.
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const double inf = std::numeric_limits<double>::infinity();
+    for (int k : {-5, 0}) {
+        CHECK(InverseChiSquareCDF2(k, 0.5) == 0.0);
+        CHECK(InverseChiSquareCDF2(k, nan) == 0.0);
+    }
+    for (int k : {1, 2, 3, 8, 100, 1000000}) {
+        CAPTURE(k);
+        CHECK(InverseChiSquareCDF2(k, 0.0) == 0.0);
+        CHECK(InverseChiSquareCDF2(k, -1.0) == 0.0);
+        CHECK(InverseChiSquareCDF2(k, -inf) == 0.0);
+        CHECK(InverseChiSquareCDF2(k, nan) == 0.0);
+        // The quantile at 1 is infinite; the answer is the one just below.
+        const double top = InverseChiSquareCDF2(k, 1.0 - 0x1p-53);
+        CHECK(std::isfinite(top));
+        CHECK(InverseChiSquareCDF2(k, 1.0) == top);
+        CHECK(InverseChiSquareCDF2(k, 2.0) == top);
+        CHECK(InverseChiSquareCDF2(k, inf) == top);
+        // Down to the smallest doubles, where the quantile underflows.
+        for (double x : {1e-300, 0x1p-1022, 0x1p-1074}) {
+            const double q = InverseChiSquareCDF2(k, x);
+            CHECK(std::isfinite(q));
+            CHECK(q >= 0.0);
+        }
+    }
 }
 
 TEST_CASE("rdvariate_beta_1_b samples Beta(1, b)") {

@@ -90,7 +90,7 @@ TEST_SRCS := tests_main.cpp \
 # Rebuild whenever anything in the library changes, not just the test sources:
 # the unity build pulls in every .cpp, and the headers are full of inline code.
 LIB_SRCS  := $(wildcard ../../src/IsoSpec++/*.cpp ../../src/IsoSpec++/*.h)
-TEST_DEPS := $(TEST_SRCS) test_helpers.h doctest.h $(UNITY) $(LIB_SRCS)
+TEST_DEPS := $(TEST_SRCS) test_helpers.h doctest.h chi2_quantiles.inc $(UNITY) $(LIB_SRCS)
 
 CLI_SRCS := $(wildcard cli/*.cpp)
 CLI_BINS := $(patsubst cli/%.cpp,$(BUILD)/cli/%,$(CLI_SRCS))
