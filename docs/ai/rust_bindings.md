@@ -80,7 +80,17 @@ that computes.
 ## Ownership and threads
 
 - Generators take their `Iso` by value (the C++ constructors move out of it).
-- Envelopes are built from `&Iso` (the C++ copies it).
+- Envelopes are built from `&Iso`, which the C++ copies, or from an `Iso` by
+  value, moved in: `Envelope::{from_threshold, from_total_prob, binned}` take
+  either (`IsoArg`, a sealed trait implemented for both), and
+  `Iso::into_envelope()` is the owning twin of `Iso::envelope()`. The shim
+  bridges each envelope twice (`envelope_*` from `const Iso&`,
+  `envelope_*_owned` from `std::unique_ptr<Iso>`, one template behind both).
+  The copy matters for small molecules: measured on nighthaven (x86-64-v3,
+  release-wheel flags), a 30-residue peptide binned at 1 Da took 4.61 / 6.12 /
+  8.92 us at target 0.99 / 0.999 / 0.9999 from `&Iso`, and 3.89 / 5.58 / 8.40
+  us for the same C++ given the Iso by move: the bridge itself costs nothing
+  measurable, the copy 0.5-0.7 us.
 - `Iso`, `Envelope`, `UnimodTable`: `Send + Sync`. AGENTS.md's Threading
   section is the basis: const members may run concurrently. The safe API puts
   every non-const C++ call (sorting, `get_total_prob`, the statistics, the

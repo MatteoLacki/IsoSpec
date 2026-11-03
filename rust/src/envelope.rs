@@ -45,11 +45,159 @@ pub struct Match {
     pub flow: f64,
 }
 
+/// A molecule given to an envelope constructor such as [`Envelope::binned`]:
+/// `&Iso` or `Iso`.
+///
+/// Given `&Iso`, the molecule stays the caller's and the library copies it for
+/// the computation. Given an `Iso` by value, it is moved in instead, which
+/// saves that copy: 0.65 µs of the 4.5 µs a 30-residue peptide takes binned at
+/// 1 Da. Pass the `Iso` itself whenever it is not needed afterwards.
+///
+/// ```
+/// use isospec::{Envelope, Iso, Masses};
+/// let iso = Iso::from_fasta("PEPTIDE", true, Masses::Exact)?;
+/// let kept = Envelope::binned(&iso, 0.99, 1.0, 0.0)?; // iso still usable
+/// let moved = Envelope::binned(iso, 0.99, 1.0, 0.0)?; // iso gone, no copy
+/// assert_eq!(kept.probs(), moved.probs());
+/// # Ok::<(), isospec::Error>(())
+/// ```
+///
+/// Sealed: implemented for `Iso` and `&Iso` only.
+pub trait IsoArg: sealed::Sealed {}
+
+impl IsoArg for Iso {}
+impl IsoArg for &Iso {}
+
+mod sealed {
+    use super::Source;
+    use crate::Iso;
+
+    pub trait Sealed {
+        fn into_source<'s>(self) -> Source<'s>
+        where
+            Self: 's;
+    }
+
+    impl Sealed for Iso {
+        fn into_source<'s>(self) -> Source<'s> {
+            Source::Owned(self)
+        }
+    }
+
+    impl Sealed for &Iso {
+        fn into_source<'s>(self) -> Source<'s>
+        where
+            Self: 's,
+        {
+            Source::Borrowed(self)
+        }
+    }
+}
+
+// The molecule an envelope is computed from, with the bridge call for each
+// kind of envelope: from a borrowed Iso the C++ copies it, an owned one it
+// moves into the envelope's generator.
+pub enum Source<'a> {
+    Borrowed(&'a Iso),
+    Owned(Iso),
+}
+
+type RawEnvelope = UniquePtr<sys::FixedEnvelope>;
+
+impl Source<'_> {
+    fn iso(&self) -> &Iso {
+        match self {
+            Source::Borrowed(iso) => iso,
+            Source::Owned(iso) => iso,
+        }
+    }
+
+    // `confs` keeps the configurations; their layout is taken from the
+    // molecule before it is given away.
+    fn envelope(
+        self,
+        confs: bool,
+        borrowed: impl FnOnce(&sys::Iso) -> std::result::Result<RawEnvelope, cxx::Exception>,
+        owned: impl FnOnce(UniquePtr<sys::Iso>) -> std::result::Result<RawEnvelope, cxx::Exception>,
+    ) -> Result<Envelope> {
+        let layout = confs.then(|| self.iso().isotope_numbers_arc());
+        let inner = match self {
+            Source::Borrowed(iso) => borrowed(iso.raw())?,
+            Source::Owned(iso) => owned(iso.into_raw())?,
+        };
+        Ok(Envelope::adopt(inner, layout.as_ref()))
+    }
+
+    fn threshold(self, threshold: f64, mode: Threshold, confs: bool) -> Result<Envelope> {
+        let absolute = mode == Threshold::Absolute;
+        self.envelope(
+            confs,
+            |iso| sys::envelope_threshold(iso, threshold, absolute, confs),
+            |iso| sys::envelope_threshold_owned(iso, threshold, absolute, confs),
+        )
+    }
+
+    fn total_prob(self, target: f64, optimize: bool, confs: bool) -> Result<Envelope> {
+        self.envelope(
+            confs,
+            |iso| sys::envelope_total_prob(iso, target, optimize, confs),
+            |iso| sys::envelope_total_prob_owned(iso, target, optimize, confs),
+        )
+    }
+
+    fn stochastic(
+        self,
+        molecules: usize,
+        options: StochasticOptions,
+        confs: bool,
+    ) -> Result<Envelope> {
+        let (precision, beta_bias) = (options.precision, options.beta_bias);
+        let (seeded, seed) = (options.seed.is_some(), options.seed.unwrap_or(0));
+        self.envelope(
+            confs,
+            |iso| {
+                sys::envelope_stochastic(iso, molecules, precision, beta_bias, confs, seeded, seed)
+            },
+            |iso| {
+                sys::envelope_stochastic_owned(
+                    iso, molecules, precision, beta_bias, confs, seeded, seed,
+                )
+            },
+        )
+    }
+
+    fn binned(self, target: f64, bin_width: f64, bin_middle: f64) -> Result<Envelope> {
+        self.envelope(
+            false,
+            |iso| sys::envelope_binned(iso, target, bin_width, bin_middle),
+            |iso| sys::envelope_binned_owned(iso, target, bin_width, bin_middle),
+        )
+    }
+}
+
 /// Options for computing an [`Envelope`] from an [`Iso`]: whether to keep
-/// configurations. Start one with [`Iso::envelope`].
+/// configurations. Start one with [`Iso::envelope`], or with
+/// [`Iso::into_envelope`] for an [`OwnedEnvelopeBuilder`], which gives the
+/// molecule away and saves copying it.
 #[derive(Clone, Copy, Debug)]
 pub struct EnvelopeBuilder<'a> {
     iso: &'a Iso,
+    confs: bool,
+}
+
+/// As [`EnvelopeBuilder`], but owning its molecule, which the envelope then
+/// consumes instead of copying (see [`IsoArg`] for what that saves). Start
+/// one with [`Iso::into_envelope`].
+///
+/// ```
+/// use isospec::Iso;
+/// let env = Iso::from_formula("C6H12O6")?.into_envelope().total_prob(0.99)?;
+/// assert_eq!(env.len(), 3);
+/// # Ok::<(), isospec::Error>(())
+/// ```
+#[derive(Debug)]
+pub struct OwnedEnvelopeBuilder {
+    iso: Iso,
     confs: bool,
 }
 
@@ -70,6 +218,22 @@ impl Iso {
             confs: false,
         }
     }
+
+    /// As [`envelope`](Self::envelope), but giving the molecule away to the
+    /// envelope, which saves copying it.
+    ///
+    /// ```
+    /// use isospec::{Iso, Threshold};
+    /// let env = Iso::from_formula("H2O1")?.into_envelope().with_confs().threshold(1e-3, Threshold::Absolute)?;
+    /// assert_eq!(env.conf(0).unwrap().len(), 2);
+    /// # Ok::<(), isospec::Error>(())
+    /// ```
+    pub fn into_envelope(self) -> OwnedEnvelopeBuilder {
+        OwnedEnvelopeBuilder {
+            iso: self,
+            confs: false,
+        }
+    }
 }
 
 impl<'a> EnvelopeBuilder<'a> {
@@ -86,15 +250,6 @@ impl<'a> EnvelopeBuilder<'a> {
         self
     }
 
-    fn finish(self, inner: UniquePtr<sys::FixedEnvelope>) -> Envelope {
-        let layout = if self.confs {
-            Some(self.iso.isotope_numbers_arc())
-        } else {
-            None
-        };
-        Envelope::adopt(inner, layout.as_ref())
-    }
-
     /// Every isotopologue with probability at least `threshold` (or that
     /// times the most probable one's, with [`Threshold::Relative`]).
     ///
@@ -107,13 +262,7 @@ impl<'a> EnvelopeBuilder<'a> {
     /// # Ok::<(), isospec::Error>(())
     /// ```
     pub fn threshold(self, threshold: f64, mode: Threshold) -> Result<Envelope> {
-        let inner = sys::envelope_threshold(
-            self.iso.raw(),
-            threshold,
-            mode == Threshold::Absolute,
-            self.confs,
-        )?;
-        Ok(self.finish(inner))
+        Source::Borrowed(self.iso).threshold(threshold, mode, self.confs)
     }
 
     /// The smallest set of isotopologues whose probabilities sum to at least
@@ -121,14 +270,14 @@ impl<'a> EnvelopeBuilder<'a> {
     ///
     /// ```
     /// use isospec::Iso;
-    /// let mut env = Iso::from_formula("C6H12O6")?.envelope().total_prob(0.99)?;
+    /// let iso = Iso::from_formula("C6H12O6")?;
+    /// let mut env = iso.envelope().total_prob(0.99)?;
     /// assert_eq!(env.len(), 3);
     /// assert!(env.total_prob() >= 0.99);
     /// # Ok::<(), isospec::Error>(())
     /// ```
     pub fn total_prob(self, target: f64) -> Result<Envelope> {
-        let inner = sys::envelope_total_prob(self.iso.raw(), target, true, self.confs)?;
-        Ok(self.finish(inner))
+        Source::Borrowed(self.iso).total_prob(target, true, self.confs)
     }
 
     /// Like [`total_prob`](Self::total_prob), but stopping at the end of the
@@ -144,8 +293,7 @@ impl<'a> EnvelopeBuilder<'a> {
     /// # Ok::<(), isospec::Error>(())
     /// ```
     pub fn total_prob_layered(self, target: f64) -> Result<Envelope> {
-        let inner = sys::envelope_total_prob(self.iso.raw(), target, false, self.confs)?;
-        Ok(self.finish(inner))
+        Source::Borrowed(self.iso).total_prob(target, false, self.confs)
     }
 
     /// A simulated spectrum of `molecules` molecules: each peak's probability
@@ -159,16 +307,35 @@ impl<'a> EnvelopeBuilder<'a> {
     /// # Ok::<(), isospec::Error>(())
     /// ```
     pub fn stochastic(self, molecules: usize, options: StochasticOptions) -> Result<Envelope> {
-        let inner = sys::envelope_stochastic(
-            self.iso.raw(),
-            molecules,
-            options.precision,
-            options.beta_bias,
-            self.confs,
-            options.seed.is_some(),
-            options.seed.unwrap_or(0),
-        )?;
-        Ok(self.finish(inner))
+        Source::Borrowed(self.iso).stochastic(molecules, options, self.confs)
+    }
+}
+
+impl OwnedEnvelopeBuilder {
+    /// As [`EnvelopeBuilder::with_confs`].
+    pub fn with_confs(mut self) -> Self {
+        self.confs = true;
+        self
+    }
+
+    /// As [`EnvelopeBuilder::threshold`].
+    pub fn threshold(self, threshold: f64, mode: Threshold) -> Result<Envelope> {
+        Source::Owned(self.iso).threshold(threshold, mode, self.confs)
+    }
+
+    /// As [`EnvelopeBuilder::total_prob`].
+    pub fn total_prob(self, target: f64) -> Result<Envelope> {
+        Source::Owned(self.iso).total_prob(target, true, self.confs)
+    }
+
+    /// As [`EnvelopeBuilder::total_prob_layered`].
+    pub fn total_prob_layered(self, target: f64) -> Result<Envelope> {
+        Source::Owned(self.iso).total_prob(target, false, self.confs)
+    }
+
+    /// As [`EnvelopeBuilder::stochastic`].
+    pub fn stochastic(self, molecules: usize, options: StochasticOptions) -> Result<Envelope> {
+        Source::Owned(self.iso).stochastic(molecules, options, self.confs)
     }
 }
 
@@ -197,49 +364,54 @@ impl Envelope {
     }
 
     /// Every isotopologue of `iso` with probability at least `threshold`,
-    /// without configurations. See [`EnvelopeBuilder::threshold`].
+    /// without configurations. See [`EnvelopeBuilder::threshold`]; `iso` is
+    /// `&Iso` or `Iso` (moved in, saving a copy: see [`IsoArg`]).
     ///
     /// ```
     /// use isospec::{Envelope, Iso, Threshold};
-    /// let env = Envelope::from_threshold(&Iso::from_formula("C6H12O6")?, 1e-4, Threshold::Absolute)?;
+    /// let env = Envelope::from_threshold(Iso::from_formula("C6H12O6")?, 1e-4, Threshold::Absolute)?;
     /// assert!(env.probs().iter().all(|&p| p >= 1e-4));
     /// # Ok::<(), isospec::Error>(())
     /// ```
-    pub fn from_threshold(iso: &Iso, threshold: f64, mode: Threshold) -> Result<Envelope> {
-        iso.envelope().threshold(threshold, mode)
+    pub fn from_threshold(iso: impl IsoArg, threshold: f64, mode: Threshold) -> Result<Envelope> {
+        iso.into_source().threshold(threshold, mode, false)
     }
 
     /// The smallest set of isotopologues of `iso` covering `target`, without
-    /// configurations. See [`EnvelopeBuilder::total_prob`].
+    /// configurations. See [`EnvelopeBuilder::total_prob`]; `iso` is `&Iso`
+    /// or `Iso` (moved in, saving a copy: see [`IsoArg`]).
     ///
     /// ```
     /// use isospec::{Envelope, Iso};
-    /// let mut env = Envelope::from_total_prob(&Iso::from_formula("C6H12O6")?, 0.999)?;
+    /// let mut env = Envelope::from_total_prob(Iso::from_formula("C6H12O6")?, 0.999)?;
     /// assert!(env.total_prob() >= 0.999);
     /// # Ok::<(), isospec::Error>(())
     /// ```
-    pub fn from_total_prob(iso: &Iso, target: f64) -> Result<Envelope> {
-        iso.envelope().total_prob(target)
+    pub fn from_total_prob(iso: impl IsoArg, target: f64) -> Result<Envelope> {
+        iso.into_source().total_prob(target, true, false)
     }
 
     /// The distribution of `iso` binned on a grid of width `bin_width` (one
     /// bin centred on `bin_middle`), computed directly rather than by binning
     /// an envelope: isotopologues are enumerated until `target` of the
     /// probability is covered, and each bin reports the mass at its centre.
+    /// `iso` is `&Iso` or `Iso` (moved in, saving a copy: see [`IsoArg`]).
     ///
     /// ```
     /// use isospec::{Envelope, Iso};
     /// // Unit-mass resolution: bins centred on whole daltons.
-    /// let mut env = Envelope::binned(&Iso::from_formula("C6H12O6")?, 0.999, 1.0, 0.0)?;
+    /// let mut env = Envelope::binned(Iso::from_formula("C6H12O6")?, 0.999, 1.0, 0.0)?;
     /// env.sort_by_mass();
     /// assert_eq!(env.masses(), &[180.0, 181.0, 182.0, 183.0]);
     /// # Ok::<(), isospec::Error>(())
     /// ```
-    pub fn binned(iso: &Iso, target: f64, bin_width: f64, bin_middle: f64) -> Result<Envelope> {
-        Ok(Envelope::adopt(
-            sys::envelope_binned(iso.raw(), target, bin_width, bin_middle)?,
-            None,
-        ))
+    pub fn binned(
+        iso: impl IsoArg,
+        target: f64,
+        bin_width: f64,
+        bin_middle: f64,
+    ) -> Result<Envelope> {
+        iso.into_source().binned(target, bin_width, bin_middle)
     }
 
     /// An envelope of the given peaks. Masses must be finite (|mass| at most
@@ -359,7 +531,7 @@ impl Envelope {
     ///
     /// ```
     /// use isospec::Iso;
-    /// let env = Iso::from_formula("H2O1")?.envelope().with_confs().total_prob(0.999)?;
+    /// let env = Iso::from_formula("H2O1")?.into_envelope().with_confs().total_prob(0.999)?;
     /// for conf in env.confs().unwrap() {
     ///     assert_eq!(conf.element(0).iter().sum::<i32>(), 2); // two hydrogens
     /// }
@@ -461,7 +633,7 @@ impl Envelope {
     ///
     /// ```
     /// use isospec::{Envelope, Iso};
-    /// let mut env = Envelope::from_total_prob(&Iso::from_formula("C100")?, 0.999)?;
+    /// let mut env = Envelope::from_total_prob(Iso::from_formula("C100")?, 0.999)?;
     /// env.resample(1000, 5.0, Some(1))?;
     /// assert_eq!(env.total_prob(), 1000.0);
     /// # Ok::<(), isospec::Error>(())

@@ -20,7 +20,7 @@ fn sorted_masses(mut v: Vec<f64>) -> Vec<f64> {
 
 #[test]
 fn threshold_generator_agrees_with_the_threshold_envelope() {
-    let env = Envelope::from_threshold(&iso("C6H12O6"), 1e-6, Threshold::Absolute).unwrap();
+    let env = Envelope::from_threshold(iso("C6H12O6"), 1e-6, Threshold::Absolute).unwrap();
     let peaks: Vec<_> = ThresholdGenerator::new(iso("C6H12O6"), 1e-6, Threshold::Absolute)
         .unwrap()
         .into_iter()

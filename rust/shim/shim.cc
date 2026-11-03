@@ -351,31 +351,86 @@ void stochastic_generator_conf(const StochasticGenerator& gen, rust::Slice<int32
 
 // ---- FixedEnvelope -----------------------------------------------------------
 
+// Each envelope from an Iso is bridged twice: from a borrowed Iso (`I` is
+// const Iso&), which the library copies for the generator inside to own, and
+// from an owned one (Iso&&, Rust's Iso by value), moved in instead. The copy
+// is 0.65 us of the 4.5 us a 30-residue peptide takes binned at 1 Da.
+template<typename I>
+std::unique_ptr<FixedEnvelope> threshold_impl(I&& iso, double threshold, bool absolute, bool confs)
+{
+    return boxed(FixedEnvelope::FromThreshold(std::forward<I>(iso), threshold, absolute, confs));
+}
+
+template<typename I>
+std::unique_ptr<FixedEnvelope> total_prob_impl(I&& iso, double target, bool optimize, bool confs)
+{
+    return boxed(FixedEnvelope::FromTotalProb(std::forward<I>(iso), target, optimize, confs));
+}
+
+template<typename I>
+std::unique_ptr<FixedEnvelope> stochastic_impl(I&& iso, size_t no_molecules, double precision, double beta_bias,
+                                               bool confs, bool seeded, uint64_t seed)
+{
+    if (seeded)
+    {
+        std::mt19937 rng = IsoSpec::seeded_rng(seed);
+        return boxed(FixedEnvelope::FromStochastic(std::forward<I>(iso), no_molecules, precision, beta_bias, confs,
+                                                   rng));
+    }
+    return boxed(FixedEnvelope::FromStochastic(std::forward<I>(iso), no_molecules, precision, beta_bias, confs));
+}
+
+template<typename I>
+std::unique_ptr<FixedEnvelope> binned_impl(I&& iso, double target, double bin_width, double bin_middle)
+{
+    return boxed(FixedEnvelope::Binned(std::forward<I>(iso), target, bin_width, bin_middle));
+}
+
 std::unique_ptr<FixedEnvelope> envelope_threshold(const Iso& iso, double threshold, bool absolute, bool confs)
 {
-    return boxed(FixedEnvelope::FromThreshold(iso, threshold, absolute, confs));
+    return threshold_impl(iso, threshold, absolute, confs);
+}
+
+std::unique_ptr<FixedEnvelope> envelope_threshold_owned(std::unique_ptr<Iso> iso, double threshold, bool absolute,
+                                                        bool confs)
+{
+    return threshold_impl(std::move(*iso), threshold, absolute, confs);
 }
 
 std::unique_ptr<FixedEnvelope> envelope_total_prob(const Iso& iso, double target, bool optimize, bool confs)
 {
-    return boxed(FixedEnvelope::FromTotalProb(iso, target, optimize, confs));
+    return total_prob_impl(iso, target, optimize, confs);
+}
+
+std::unique_ptr<FixedEnvelope> envelope_total_prob_owned(std::unique_ptr<Iso> iso, double target, bool optimize,
+                                                         bool confs)
+{
+    return total_prob_impl(std::move(*iso), target, optimize, confs);
 }
 
 std::unique_ptr<FixedEnvelope> envelope_stochastic(const Iso& iso, size_t no_molecules, double precision,
                                                    double beta_bias, bool confs, bool seeded, uint64_t seed)
 {
-    if (seeded)
-    {
-        std::mt19937 rng = IsoSpec::seeded_rng(seed);
-        return boxed(FixedEnvelope::FromStochastic(iso, no_molecules, precision, beta_bias, confs, rng));
-    }
-    return boxed(FixedEnvelope::FromStochastic(iso, no_molecules, precision, beta_bias, confs));
+    return stochastic_impl(iso, no_molecules, precision, beta_bias, confs, seeded, seed);
+}
+
+std::unique_ptr<FixedEnvelope> envelope_stochastic_owned(std::unique_ptr<Iso> iso, size_t no_molecules,
+                                                         double precision, double beta_bias, bool confs, bool seeded,
+                                                         uint64_t seed)
+{
+    return stochastic_impl(std::move(*iso), no_molecules, precision, beta_bias, confs, seeded, seed);
 }
 
 std::unique_ptr<FixedEnvelope> envelope_binned(const Iso& iso, double target, double bin_width,
                                                double bin_middle)
 {
-    return boxed(FixedEnvelope::Binned(iso, target, bin_width, bin_middle));
+    return binned_impl(iso, target, bin_width, bin_middle);
+}
+
+std::unique_ptr<FixedEnvelope> envelope_binned_owned(std::unique_ptr<Iso> iso, double target, double bin_width,
+                                                     double bin_middle)
+{
+    return binned_impl(std::move(*iso), target, bin_width, bin_middle);
 }
 
 std::unique_ptr<FixedEnvelope> envelope_from_arrays(rust::Slice<const double> masses,

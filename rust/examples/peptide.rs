@@ -17,7 +17,7 @@ fn main() -> Result<(), isospec::Error> {
     println!("monoisotopic mass {:.6} Da", iso.monoisotopic_mass());
 
     // Binned directly from the molecule: no fine structure kept.
-    let mut binned = Envelope::binned(&iso, 0.9999, 1.0, 0.0)?;
+    let mut binned = Envelope::binned(iso, 0.9999, 1.0, 0.0)?;
     binned.sort_by_mass();
     for (mass, prob) in binned.iter() {
         println!("{mass:.1}\t{prob:.6}");

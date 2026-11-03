@@ -191,6 +191,15 @@ std::unique_ptr<FixedEnvelope> envelope_stochastic(const Iso& iso, size_t no_mol
                                                    double beta_bias, bool confs, bool seeded, uint64_t seed);
 std::unique_ptr<FixedEnvelope> envelope_binned(const Iso& iso, double target, double bin_width,
                                                double bin_middle);
+std::unique_ptr<FixedEnvelope> envelope_threshold_owned(std::unique_ptr<Iso> iso, double threshold, bool absolute,
+                                                        bool confs);
+std::unique_ptr<FixedEnvelope> envelope_total_prob_owned(std::unique_ptr<Iso> iso, double target, bool optimize,
+                                                         bool confs);
+std::unique_ptr<FixedEnvelope> envelope_stochastic_owned(std::unique_ptr<Iso> iso, size_t no_molecules,
+                                                         double precision, double beta_bias, bool confs, bool seeded,
+                                                         uint64_t seed);
+std::unique_ptr<FixedEnvelope> envelope_binned_owned(std::unique_ptr<Iso> iso, double target, double bin_width,
+                                                     double bin_middle);
 std::unique_ptr<FixedEnvelope> envelope_from_arrays(rust::Slice<const double> masses,
                                                     rust::Slice<const double> probs);
 std::unique_ptr<FixedEnvelope> envelope_empty();

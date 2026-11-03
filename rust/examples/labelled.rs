@@ -15,8 +15,8 @@ fn main() -> Result<(), isospec::Error> {
     labelled.add_element(&ElementSpec::new(5, &masses, &[0.01, 0.99]))?;
 
     let natural = Iso::from_formula("C6H12O6")?;
-    let mut a = Envelope::from_total_prob(&natural, 0.9999)?;
-    let mut b = Envelope::from_total_prob(&labelled, 0.9999)?;
+    let mut a = Envelope::from_total_prob(natural, 0.9999)?;
+    let mut b = Envelope::from_total_prob(labelled, 0.9999)?;
     a.normalize()?;
     b.normalize()?;
     println!("natural  glucose: {:.4} Da on average", a.average_mass()?);

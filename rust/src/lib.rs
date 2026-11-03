@@ -67,7 +67,7 @@ mod unimod;
 pub use composition::{Composition, ExpandedComposition, PeptideOptions};
 pub use conf::{Conf, ConfRef};
 pub use element::{Element, Isotope};
-pub use envelope::{Envelope, EnvelopeBuilder, Match};
+pub use envelope::{Envelope, EnvelopeBuilder, IsoArg, Match, OwnedEnvelopeBuilder};
 pub use error::{Error, ErrorKind, Result};
 pub use generator::{
     LayeredGenerator, LayeredOptions, OrderedGenerator, Peak, Peaks, StochasticGenerator,

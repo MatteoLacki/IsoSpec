@@ -12,20 +12,23 @@ fn iso(formula: &str) -> Iso {
 
 #[test]
 fn total_prob_matches_python() {
-    let mut env = Envelope::from_total_prob(&iso("C100H202"), 0.99).unwrap();
+    let mut env = Envelope::from_total_prob(iso("C100H202"), 0.99).unwrap();
     assert_eq!(env.len(), 8);
     assert_close(env.total_prob(), 0.9929694469968894, 1e-12);
-    let mut layered = iso("C100H202").envelope().total_prob_layered(0.99).unwrap();
+    let mut layered = iso("C100H202")
+        .into_envelope()
+        .total_prob_layered(0.99)
+        .unwrap();
     assert_eq!(layered.len(), 8);
     assert_close(layered.total_prob(), 0.9922602266897552, 1e-12);
 }
 
 #[test]
 fn threshold_matches_python() {
-    let mut env = Envelope::from_threshold(&iso("C6H12O6"), 1e-6, Threshold::Absolute).unwrap();
+    let mut env = Envelope::from_threshold(iso("C6H12O6"), 1e-6, Threshold::Absolute).unwrap();
     assert_eq!(env.len(), 21);
     assert_close(env.total_prob(), 0.9999976192461025, 1e-12);
-    let rel = Envelope::from_threshold(&iso("C6H12O6"), 1e-2, Threshold::Relative).unwrap();
+    let rel = Envelope::from_threshold(iso("C6H12O6"), 1e-2, Threshold::Relative).unwrap();
     assert_eq!(rel.len(), 3);
 }
 
@@ -42,7 +45,10 @@ fn seeded_stochastic_envelope_is_the_same_as_python_s() {
         (1206.0201290112, 3.0),
     ];
     let options = StochasticOptions::default().with_seed(42);
-    let mut env = iso("C100").envelope().stochastic(1000, options).unwrap();
+    let mut env = iso("C100")
+        .into_envelope()
+        .stochastic(1000, options)
+        .unwrap();
     env.sort_by_mass();
     let got: Vec<(f64, f64)> = env.iter().collect();
     assert_eq!(got.len(), expected.len());
@@ -51,7 +57,10 @@ fn seeded_stochastic_envelope_is_the_same_as_python_s() {
         assert_eq!(*p, ep);
     }
     // And the same twice.
-    let again = iso("C100").envelope().stochastic(1000, options).unwrap();
+    let again = iso("C100")
+        .into_envelope()
+        .stochastic(1000, options)
+        .unwrap();
     let mut again = again;
     again.sort_by_mass();
     assert_eq!(again.probs(), env.probs());
@@ -69,7 +78,7 @@ fn seeded_resample_is_the_same_as_python_s() {
         (182.07009777884, 2.0),
         (183.07098793714, 4.0),
     ];
-    let mut env = Envelope::from_total_prob(&iso("C6H12O6"), 0.999).unwrap();
+    let mut env = Envelope::from_total_prob(iso("C6H12O6"), 0.999).unwrap();
     env.resample(1000, 1.0, Some(7)).unwrap();
     env.sort_by_mass();
     let got: Vec<(f64, f64)> = env.iter().filter(|&(_, p)| p > 0.0).collect();
@@ -82,7 +91,7 @@ fn seeded_resample_is_the_same_as_python_s() {
 
 #[test]
 fn binned_matches_python() {
-    let mut env = Envelope::binned(&iso("C100H202"), 0.999, 1.0, 0.0).unwrap();
+    let mut env = Envelope::binned(iso("C100H202"), 0.999, 1.0, 0.0).unwrap();
     env.sort_by_mass();
     assert_eq!(env.len(), 7);
     assert_eq!(&env.masses()[..3], &[1404.0, 1405.0, 1406.0]);
@@ -90,7 +99,7 @@ fn binned_matches_python() {
     assert_close(env.probs()[1], 0.367830792929928, 1e-12);
     assert_close(env.total_prob(), 0.9990856895148157, 1e-12);
     assert_eq!(
-        Envelope::binned(&iso("C1"), 0.9, 0.0, 0.0)
+        Envelope::binned(iso("C1"), 0.9, 0.0, 0.0)
             .unwrap_err()
             .kind(),
         ErrorKind::InvalidArgument
@@ -99,8 +108,8 @@ fn binned_matches_python() {
 
 #[test]
 fn wasserstein_distances_match_python() {
-    let mut a = Envelope::from_total_prob(&iso("C6H12O6"), 0.999).unwrap();
-    let mut b = Envelope::from_total_prob(&iso("C6H12O5N1"), 0.999).unwrap();
+    let mut a = Envelope::from_total_prob(iso("C6H12O6"), 0.999).unwrap();
+    let mut b = Envelope::from_total_prob(iso("C6H12O5N1"), 0.999).unwrap();
     a.normalize().unwrap();
     b.normalize().unwrap();
     assert_close(a.wasserstein(&mut b).unwrap(), 1.9930987487082414, 1e-10);
@@ -155,7 +164,11 @@ fn configurations_ride_along() {
 #[test]
 #[should_panic(expected = "peak index out of range")]
 fn conf_index_is_checked() {
-    let env = iso("H2O1").envelope().with_confs().total_prob(0.9).unwrap();
+    let env = iso("H2O1")
+        .into_envelope()
+        .with_confs()
+        .total_prob(0.9)
+        .unwrap();
     env.conf(env.len());
 }
 
@@ -229,7 +242,7 @@ fn sums_convolutions_and_combinations() {
     far.shift_mass(1.7e308).unwrap();
     assert_eq!(far.convolve(&far).unwrap_err().kind(), ErrorKind::Overflow);
     // Convolving two glucoses gives the distribution of two glucoses.
-    let g = Envelope::from_threshold(&iso("C6H12O6"), 0.0, Threshold::Absolute).unwrap();
+    let g = Envelope::from_threshold(iso("C6H12O6"), 0.0, Threshold::Absolute).unwrap();
     let mut gg = g.convolve(&g).unwrap();
     let two = iso("C12H24O12");
     assert_close(gg.average_mass().unwrap(), two.average_mass(), 1e-9);
@@ -276,4 +289,74 @@ fn scalar_arguments_are_checked() {
             .stochastic(10, StochasticOptions::default().with_beta_bias(-1.0))
             .is_err()
     );
+}
+
+#[test]
+fn owned_and_borrowed_molecules_give_the_same_envelopes() {
+    // An Iso given by value is moved into the envelope instead of copied: the
+    // envelope must be the same either way, and a borrowed Iso stays usable.
+    fn peaks(env: &Envelope) -> Vec<(f64, f64)> {
+        env.iter().collect()
+    }
+    let formula = "C20H40N5O5S2";
+    let kept = iso(formula);
+    let options = StochasticOptions::default().with_seed(7);
+
+    assert_eq!(
+        peaks(&Envelope::from_threshold(&kept, 1e-5, Threshold::Absolute).unwrap()),
+        peaks(&Envelope::from_threshold(iso(formula), 1e-5, Threshold::Absolute).unwrap())
+    );
+    assert_eq!(
+        peaks(&Envelope::from_total_prob(&kept, 0.999).unwrap()),
+        peaks(&Envelope::from_total_prob(iso(formula), 0.999).unwrap())
+    );
+    assert_eq!(
+        peaks(&Envelope::binned(&kept, 0.999, 1.0, 0.0).unwrap()),
+        peaks(&Envelope::binned(iso(formula), 0.999, 1.0, 0.0).unwrap())
+    );
+    assert_eq!(
+        peaks(&kept.envelope().total_prob_layered(0.999).unwrap()),
+        peaks(
+            &iso(formula)
+                .into_envelope()
+                .total_prob_layered(0.999)
+                .unwrap()
+        )
+    );
+    assert_eq!(
+        peaks(&kept.envelope().stochastic(5000, options).unwrap()),
+        peaks(
+            &iso(formula)
+                .into_envelope()
+                .stochastic(5000, options)
+                .unwrap()
+        )
+    );
+
+    // Configurations survive the move, with the molecule's layout.
+    let borrowed = kept
+        .envelope()
+        .with_confs()
+        .threshold(1e-3, Threshold::Absolute)
+        .unwrap();
+    let owned = iso(formula)
+        .into_envelope()
+        .with_confs()
+        .threshold(1e-3, Threshold::Absolute)
+        .unwrap();
+    assert!(owned.has_confs());
+    assert_eq!(peaks(&borrowed), peaks(&owned));
+    for i in 0..owned.len() {
+        assert_eq!(borrowed.conf(i).unwrap(), owned.conf(i).unwrap());
+    }
+
+    assert_close(
+        kept.monoisotopic_mass(),
+        iso(formula).monoisotopic_mass(),
+        0.0,
+    );
+
+    // A failed call consumes the molecule all the same (no leak under ASan).
+    assert!(Envelope::binned(iso(formula), 0.99, f64::NAN, 0.0).is_err());
+    assert!(iso(formula).into_envelope().total_prob(f64::NAN).is_err());
 }

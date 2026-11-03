@@ -155,7 +155,7 @@ fuzz_target!(|input: Input| {
             } else {
                 1.0
             };
-            if let Ok(env) = Envelope::binned(&iso, 0.9, width, input.seed as f64) {
+            if let Ok(env) = Envelope::binned(iso, 0.9, width, input.seed as f64) {
                 assert!(env.probs().iter().all(|p| p.is_finite() && *p > 0.0));
             }
         }

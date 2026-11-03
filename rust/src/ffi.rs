@@ -239,6 +239,33 @@ pub(crate) mod bridge {
             bin_width: f64,
             bin_middle: f64,
         ) -> Result<UniquePtr<FixedEnvelope>>;
+        fn envelope_threshold_owned(
+            iso: UniquePtr<Iso>,
+            threshold: f64,
+            absolute: bool,
+            confs: bool,
+        ) -> Result<UniquePtr<FixedEnvelope>>;
+        fn envelope_total_prob_owned(
+            iso: UniquePtr<Iso>,
+            target: f64,
+            optimize: bool,
+            confs: bool,
+        ) -> Result<UniquePtr<FixedEnvelope>>;
+        fn envelope_stochastic_owned(
+            iso: UniquePtr<Iso>,
+            no_molecules: usize,
+            precision: f64,
+            beta_bias: f64,
+            confs: bool,
+            seeded: bool,
+            seed: u64,
+        ) -> Result<UniquePtr<FixedEnvelope>>;
+        fn envelope_binned_owned(
+            iso: UniquePtr<Iso>,
+            target: f64,
+            bin_width: f64,
+            bin_middle: f64,
+        ) -> Result<UniquePtr<FixedEnvelope>>;
         fn envelope_from_arrays(masses: &[f64], probs: &[f64]) -> Result<UniquePtr<FixedEnvelope>>;
         fn envelope_empty() -> Result<UniquePtr<FixedEnvelope>>;
         fn envelope_clone(env: &FixedEnvelope) -> Result<UniquePtr<FixedEnvelope>>;
