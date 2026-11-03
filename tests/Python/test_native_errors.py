@@ -41,10 +41,11 @@ else:
     ("setupIsoLayeredGenerator", lambda: I.IsoLayeredGenerator("C2")),
     ("setupIsoOrderedGenerator", lambda: I.IsoOrderedGenerator("C2")),
     ("setupIsoStochasticGenerator", lambda: I.IsoStochasticGenerator(10, "C2")),
-    ("setupThresholdFixedEnvelope", lambda: I.IsoThreshold(.01, "C2")),
-    ("setupTotalProbFixedEnvelope", lambda: I.IsoTotalProb(.99, "C2")),
-    ("setupStochasticFixedEnvelope", lambda: I.IsoStochastic(10, "C2")),
-    ("setupBinnedFixedEnvelope", lambda: I.IsoBinned(1., "C2")),
+    ("setupThresholdFixedEnvelopeConsuming", lambda: I.IsoThreshold(.01, "C2")),
+    ("setupTotalProbFixedEnvelopeConsuming", lambda: I.IsoTotalProb(.99, "C2")),
+    ("setupStochasticFixedEnvelopeConsuming", lambda: I.IsoStochastic(10, "C2")),
+    ("setupStochasticFixedEnvelopeSeededConsuming", lambda: I.IsoStochastic(10, "C2", seed=1)),
+    ("setupBinnedFixedEnvelopeConsuming", lambda: I.IsoBinned(1., "C2")),
     ("getMarginalLogSizeEstimates", lambda: I.Iso("C2").getMarginalLogSizeEstimates(.99)),
 ])
 def test_null_native_constructors(monkeypatch, function, build):

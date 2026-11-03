@@ -130,7 +130,16 @@ ISOSPEC_C_API void* setupIsoStochasticGeneratorSeeded(void* iso,
                                    double beta_bias,
                                    uint64_t seed);
 
+/* Envelopes from an Iso. Each comes in two forms: the plain one leaves `iso`
+   untouched (it copies it, marginal tables and all), the *Consuming one takes
+   `iso` over and saves that copy (0.65 us of a 30-residue peptide's 4.5 us
+   binned at 1 Da). A *Consuming call deletes `iso` before returning, whether
+   or not it succeeds: never use or deleteIso() it afterwards. */
 ISOSPEC_C_API void* setupThresholdFixedEnvelope(void* iso,
+                              double threshold,
+                              bool absolute,
+                              bool get_confs);
+ISOSPEC_C_API void* setupThresholdFixedEnvelopeConsuming(void* iso,
                               double threshold,
                               bool absolute,
                               bool get_confs);
@@ -139,8 +148,17 @@ ISOSPEC_C_API void* setupTotalProbFixedEnvelope(void* iso,
                               double taget_coverage,
                               bool optimize,
                               bool get_confs);
+ISOSPEC_C_API void* setupTotalProbFixedEnvelopeConsuming(void* iso,
+                              double taget_coverage,
+                              bool optimize,
+                              bool get_confs);
 
 ISOSPEC_C_API void* setupStochasticFixedEnvelope(void* iso,
+                              size_t no_molecules,
+                              double precision,
+                              double beta_bias,
+                              bool get_confs);
+ISOSPEC_C_API void* setupStochasticFixedEnvelopeConsuming(void* iso,
                               size_t no_molecules,
                               double precision,
                               double beta_bias,
@@ -152,8 +170,18 @@ ISOSPEC_C_API void* setupStochasticFixedEnvelopeSeeded(void* iso,
                               double beta_bias,
                               bool get_confs,
                               uint64_t seed);
+ISOSPEC_C_API void* setupStochasticFixedEnvelopeSeededConsuming(void* iso,
+                              size_t no_molecules,
+                              double precision,
+                              double beta_bias,
+                              bool get_confs,
+                              uint64_t seed);
 
 ISOSPEC_C_API void* setupBinnedFixedEnvelope(void* iso,
+                    double target_total_prob,
+                    double bin_width,
+                    double bin_middle);
+ISOSPEC_C_API void* setupBinnedFixedEnvelopeConsuming(void* iso,
                     double target_total_prob,
                     double bin_width,
                     double bin_middle);

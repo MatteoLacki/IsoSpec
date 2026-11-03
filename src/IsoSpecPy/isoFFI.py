@@ -92,13 +92,26 @@ class IsoFFI:
                                     double threshold,
                                     bool absolute,
                                     bool get_confs);
+        void* setupThresholdFixedEnvelopeConsuming(void* iso,
+                                    double threshold,
+                                    bool absolute,
+                                    bool get_confs);
 
         void* setupTotalProbFixedEnvelope(void* iso,
                                       double taget_coverage,
                                       bool optimize,
                                       bool get_confs);
+        void* setupTotalProbFixedEnvelopeConsuming(void* iso,
+                                      double taget_coverage,
+                                      bool optimize,
+                                      bool get_confs);
 
         void* setupStochasticFixedEnvelope(void* iso,
+                                     size_t no_molecules,
+                                     double precision,
+                                     double beta_bias,
+                                     bool get_confs);
+        void* setupStochasticFixedEnvelopeConsuming(void* iso,
                                      size_t no_molecules,
                                      double precision,
                                      double beta_bias,
@@ -110,8 +123,18 @@ class IsoFFI:
                                      double beta_bias,
                                      bool get_confs,
                                      uint64_t seed);
+        void* setupStochasticFixedEnvelopeSeededConsuming(void* iso,
+                                     size_t no_molecules,
+                                     double precision,
+                                     double beta_bias,
+                                     bool get_confs,
+                                     uint64_t seed);
 
         void* setupBinnedFixedEnvelope(void* iso,
+                            double target_total_prob,
+                            double bin_width,
+                            double bin_middle);
+        void* setupBinnedFixedEnvelopeConsuming(void* iso,
                             double target_total_prob,
                             double bin_width,
                             double bin_middle);

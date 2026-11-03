@@ -506,6 +506,12 @@ class Iso(object):
     def parse_conf(self, cptr, starting_with = 0):
         return tuple(tuple(cptr[i+starting_with] for i in o) for o in self.offsets)
 
+    def _hand_over(self):
+        """Gives the C Iso away to a *Consuming setup call, which deletes it,
+        and leaves this object without one. Saves that call copying it."""
+        c_iso, self.iso = self.iso, None
+        return c_iso
+
     def _get_parse_conf_fun(self):
         # Can't just use the above function as lambda, as the entire class instance will be in closure
         offsets = self.offsets
@@ -894,7 +900,7 @@ def IsoThreshold(threshold,
         **kwds: named arguments to IsoSpectrum.
     """
     iso = Iso(formula = formula, get_confs = get_confs, **kwargs)
-    tabulator = _check_pointer(isoFFI.clib.setupThresholdFixedEnvelope(iso.iso, threshold, absolute, get_confs),
+    tabulator = _check_pointer(isoFFI.clib.setupThresholdFixedEnvelopeConsuming(iso._hand_over(), threshold, absolute, get_confs),
                                "setupThresholdFixedEnvelope")
     ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
     isoFFI.clib.deleteFixedEnvelope(tabulator, False)
@@ -916,7 +922,7 @@ def IsoTotalProb(prob_to_cover,
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
-        tabulator = _check_pointer(isoFFI.clib.setupTotalProbFixedEnvelope(iso.iso, prob_to_cover, get_minimal_pset, get_confs),
+        tabulator = _check_pointer(isoFFI.clib.setupTotalProbFixedEnvelopeConsuming(iso._hand_over(), prob_to_cover, get_minimal_pset, get_confs),
                                    "setupTotalProbFixedEnvelope")
         ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)
@@ -947,9 +953,9 @@ def IsoStochastic(no_molecules,
         """
         iso = Iso(formula=formula, get_confs=get_confs, **kwargs)
         if seed is None:
-            tabulator = isoFFI.clib.setupStochasticFixedEnvelope(iso.iso, no_molecules, precision, beta_bias, get_confs)
+            tabulator = isoFFI.clib.setupStochasticFixedEnvelopeConsuming(iso._hand_over(), no_molecules, precision, beta_bias, get_confs)
         else:
-            tabulator = isoFFI.clib.setupStochasticFixedEnvelopeSeeded(iso.iso, no_molecules, precision, beta_bias,
+            tabulator = isoFFI.clib.setupStochasticFixedEnvelopeSeededConsuming(iso._hand_over(), no_molecules, precision, beta_bias,
                                                                        get_confs, _check_seed(seed))
         _check_pointer(tabulator, "setupStochasticFixedEnvelope")
         ido = IsoDistribution(cobject = tabulator, get_confs = get_confs, iso = iso)
@@ -973,7 +979,7 @@ def IsoBinned(bin_width,
             **kwargs: named arguments to the superclass.
         """
         iso = Iso(formula=formula, get_confs=False, **kwargs)
-        tabulator = _check_pointer(isoFFI.clib.setupBinnedFixedEnvelope(iso.iso, target_total_prob, bin_width, bin_middle),
+        tabulator = _check_pointer(isoFFI.clib.setupBinnedFixedEnvelopeConsuming(iso._hand_over(), target_total_prob, bin_width, bin_middle),
                                    "setupBinnedFixedEnvelope")
         ido = IsoDistribution(cobject = tabulator, get_confs = False, iso = iso)
         isoFFI.clib.deleteFixedEnvelope(tabulator, False)

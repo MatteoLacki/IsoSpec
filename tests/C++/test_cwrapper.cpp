@@ -364,6 +364,66 @@ TEST_CASE("fixed envelopes through the C ABI") {
     }
 }
 
+TEST_CASE("the consuming envelope constructors match the copying ones") {
+    // Each *Consuming variant takes the Iso over (moves it in, deletes the
+    // handle) and must produce exactly what its copying twin does. Under
+    // `make asan` LeakSanitizer checks that the handle goes on every path,
+    // the failing ones included.
+    std::vector<int> isoNo, atomCnt;
+    std::vector<double> masses, probs;
+    void* kept = c_iso_for("C20H40N5O5S2", isoNo, atomCnt, masses, probs);
+    REQUIRE(kept != nullptr);
+    IsoHandle h(kept);
+    auto fresh = [&]() {
+        std::vector<int> n, c;
+        std::vector<double> m, p;
+        void* iso = c_iso_for("C20H40N5O5S2", n, c, m, p);
+        REQUIRE(iso != nullptr);
+        return iso;
+    };
+    auto same = [](void* a, void* b) {
+        REQUIRE(a != nullptr);
+        REQUIRE(b != nullptr);
+        const std::size_t n = confs_noFixedEnvelope(a);
+        REQUIRE(n == confs_noFixedEnvelope(b));
+        const double* ma = massesFixedEnvelope(a);
+        const double* mb = massesFixedEnvelope(b);
+        const double* pa = probsFixedEnvelope(a);
+        const double* pb = probsFixedEnvelope(b);
+        for (std::size_t i = 0; i < n; ++i) {
+            CHECK(ma[i] == mb[i]);
+            CHECK(pa[i] == pb[i]);
+        }
+        for (const double* x : {ma, mb, pa, pb}) freeReleasedArray(const_cast<double*>(x));
+        deleteFixedEnvelope(a, false);
+        deleteFixedEnvelope(b, false);
+    };
+
+    same(setupThresholdFixedEnvelope(h.p, 1e-5, true, false),
+         setupThresholdFixedEnvelopeConsuming(fresh(), 1e-5, true, false));
+    same(setupTotalProbFixedEnvelope(h.p, 0.999, true, false),
+         setupTotalProbFixedEnvelopeConsuming(fresh(), 0.999, true, false));
+    same(setupStochasticFixedEnvelopeSeeded(h.p, 5000, 0.9999, 5.0, false, 7),
+         setupStochasticFixedEnvelopeSeededConsuming(fresh(), 5000, 0.9999, 5.0, false, 7));
+    same(setupBinnedFixedEnvelope(h.p, 0.999, 1.0, 0.0),
+         setupBinnedFixedEnvelopeConsuming(fresh(), 0.999, 1.0, 0.0));
+    void* stochastic = setupStochasticFixedEnvelopeConsuming(fresh(), 5000, 0.9999, 5.0, false);
+    REQUIRE(stochastic != nullptr);
+    CHECK(getTotalProbOfEnvelope(stochastic) == doctest::Approx(5000.0));
+    deleteFixedEnvelope(stochastic, false);
+
+    // The copying ones left the caller's Iso intact.
+    CHECK(getMonoisotopicPeakMassIso(h.p) == doctest::Approx(Iso("C20H40N5O5S2").getMonoisotopicPeakMass()));
+
+    // A failed consuming call still deletes the handle (else a leak, under ASan).
+    const double nan = std::nan("");
+    CHECK(setupThresholdFixedEnvelopeConsuming(fresh(), nan, true, false) == nullptr);
+    CHECK(setupTotalProbFixedEnvelopeConsuming(fresh(), nan, true, false) == nullptr);
+    CHECK(setupStochasticFixedEnvelopeConsuming(fresh(), 10, nan, 5.0, false) == nullptr);
+    CHECK(setupStochasticFixedEnvelopeSeededConsuming(fresh(), 10, nan, 5.0, false, 7) == nullptr);
+    CHECK(setupBinnedFixedEnvelopeConsuming(fresh(), 0.99, nan, 0.0) == nullptr);
+}
+
 TEST_CASE("envelopes built from caller-owned arrays") {
     double masses[3] = {1.0, 2.0, 3.0};
     double probs[3] = {0.2, 0.3, 0.5};
