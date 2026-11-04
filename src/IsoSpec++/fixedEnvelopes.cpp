@@ -1303,8 +1303,15 @@ template<bool tgetConfs> void FixedEnvelope::total_prob_init(Iso&& iso, double t
     // recomputes land inside the smaller buffer rather than past its end.
     this->_confs_no = end;
 
-    if(end <= current_size/2)
-        // Overhead in memory of 2x or more, shrink to fit
+    // Overhead in memory of 2x or more: shrink to fit, but only buffers big
+    // enough for the waste to matter. Below the VM backend's threshold the
+    // shrink is a fresh aligned_alloc plus a copy of every survivor, paid on
+    // every call for at most a few hundred KiB of slack (C254H377N65O75S6 to
+    // p = 0.9999: 25 KiB copied out of 64 KiB buffers, each call).
+    size_t bytes_per_conf = 2 * sizeof(double);
+    constexpr_if(tgetConfs)
+        bytes_per_conf += this->allDimSizeofInt;
+    if(end <= current_size/2 && current_size * bytes_per_conf >= aligned_ptr_detail::vm_backend_threshold())
         this->template reallocate_memory<tgetConfs>(end);
 }
 
