@@ -15,17 +15,17 @@ New:
 - Rust (crate 0.2.0): envelopes from an Iso given by value
   (Iso::into_envelope(), and the IsoArg trait accepting &Iso or Iso)
 
-Faster:
-- FromTotalProb and Binned of peptides (30 residues, binned at 1 Da on
-  x86-64-v3): the layered generator's starting radius comes from an exact
-  inverse chi-square instead of a bisection that saturated for small
-  numbers of isotopes (-10%); fewer allocations per molecule, 144 -> 54
-  (-14% at 0.99, -7% at 0.9999); Binned from Python or Rust no longer
-  copies the Iso (-5% from Python, -13% from Rust at 0.99)
-- Binned of small molecules: the bin accumulator comes from calloc instead
-  of mmap below 256 KiB (0.2-0.8x the time)
-- FromTotalProb of small molecules: no shrink-to-fit copy of the result
-  (up to -8%)
+Faster (measured against 2.6.0 on x86-64-v3, from C++):
+- Binned of peptides: 2.1x at 0.99, 1.75x at 0.999, 1.45x at 0.9999 (30
+  residues at 1 Da: 6.5 -> 3.1 us at 0.99). The layered generator's starting
+  radius comes from an accurate inverse chi-square (the old bisection
+  saturated for small numbers of isotopes), and a peptide takes 54 memory
+  allocations instead of 143. Python and Rust also no longer copy the Iso
+  into the envelope
+- Binned of small molecules (up to ~C100): 2.1-4.5x (the bin accumulator
+  comes from calloc instead of mmap below 256 KiB)
+- FromTotalProb: 4-46% faster for small molecules, 11-19% for a C254
+  protein; very large proteins (C2934) unchanged
 
 2.6.0
 ----------------------------------
