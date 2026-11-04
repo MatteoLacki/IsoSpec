@@ -35,7 +35,7 @@ If, instead, you wish to install the package manually, follow these
 instructions:
 
 Requirements:
-    Python >= 3.9
+    Python >= 3.10
     C++20 compiler
 
 Execute the following commands:
