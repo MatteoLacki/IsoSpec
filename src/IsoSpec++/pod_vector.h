@@ -218,6 +218,9 @@ template<typename T> class pod_vector
         first_free = store = backend_past_end = NULL;
     }
 
+    // Unlike clear(), keeps the storage for reuse.
+    void clear_keep_capacity() noexcept { first_free = store; }
+
     friend class unsafe_pod_vector<T>;
 };
 

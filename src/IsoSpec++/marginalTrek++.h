@@ -402,6 +402,12 @@ class LayeredMarginal : public Marginal
     pod_vector<Conf> configurations;
     pod_vector<Conf> fringe;
     pod_vector<double> fringe_unn_lprobs;
+    // extend()'s scratch, kept between calls so that a layer allocates
+    // nothing once they have grown: the fringe below the new threshold (then
+    // swapped with fringe), and the sort order of the new configurations.
+    pod_vector<Conf> next_fringe;
+    pod_vector<double> next_fringe_unn_lprobs;
+    pod_vector<size_t> sort_order;
     Allocator<int> allocator;
     pod_vector<double> lProbs;
     pod_vector<double> probs;

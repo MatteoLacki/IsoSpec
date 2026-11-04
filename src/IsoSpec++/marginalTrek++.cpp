@@ -736,8 +736,12 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
     for(size_t ii = 0; ii < ISOSPEC_LPROB_GUARDIANS; ii++)
         lProbs.pop_back();  // Remove the trailing -inf guardians; restored at the end
 
-    pod_vector<Conf> new_fringe;
-    pod_vector<double> new_fringe_unn_lprobs;
+    // Empty already (swapped with the drained fringe at the end of the last
+    // call), unless that call threw partway.
+    pod_vector<Conf>& new_fringe = next_fringe;
+    pod_vector<double>& new_fringe_unn_lprobs = next_fringe_unn_lprobs;
+    new_fringe.clear_keep_capacity();
+    new_fringe_unn_lprobs.clear_keep_capacity();
 
     while(!fringe.empty())
     {
@@ -809,10 +813,15 @@ bool LayeredMarginal::extend(double new_threshold, bool do_sort)
         size_t to_sort_size = configurations.size() - probs.size();
         if(to_sort_size > 0)
         {
-            std::unique_ptr<size_t[]> order_arr(get_inverse_order(lProbs.data()+1+probs.size(), to_sort_size));
+            // get_inverse_order(), into the reused sort_order.
             double* P = lProbs.data()+1+probs.size();
             Conf* C = configurations.data()+probs.size();
-            size_t* O = order_arr.get();
+            sort_order.clear_keep_capacity();
+            sort_order.resize(to_sort_size);
+            size_t* O = sort_order.data();
+            for(size_t ii = 0; ii < to_sort_size; ii++)
+                O[ii] = ii;
+            std::sort(O, O + to_sort_size, [P](size_t i, size_t j) { return P[i] > P[j]; });
             impose_order(O, to_sort_size, P, C);
         }
     }
