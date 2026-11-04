@@ -1,0 +1,26 @@
+name: CI
+
+# Every push and pull request runs all three test workflows as one run, so the
+# Actions list shows one entry per push instead of three. The three files keep
+# only workflow_call: this file and the Release workflow (build_wheels.yml,
+# with from-package) are their only callers.
+on:
+    push:
+        branches:
+            - main
+            - ci_test
+            - winworkflow
+    pull_request:
+
+jobs:
+    tests:
+        name: Tests
+        uses: ./.github/workflows/run_tests.yml
+
+    rust:
+        name: Rust
+        uses: ./.github/workflows/rust.yml
+
+    r:
+        name: R
+        uses: ./.github/workflows/r.yml

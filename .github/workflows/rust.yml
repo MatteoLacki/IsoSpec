@@ -1,14 +1,11 @@
 name: Rust
 
-# On a push or pull request, the checkout is tested. The Release workflow calls
-# this one with from-package, after `cargo package`: every job then runs on the
-# packaged crate (its tests and examples ship in it), unpacked in place of a
-# checkout, so a release is tested as crates.io would receive it.
+# Called by ci.yml on a push or pull request, it tests the checkout. The
+# Release workflow calls it with from-package, after `cargo package`: every
+# job then runs on the packaged crate (its tests and examples ship in it),
+# unpacked in place of a checkout, so a release is tested as crates.io would
+# receive it.
 on:
-    push:
-        branches:
-            - main
-    pull_request:
     workflow_call:
         inputs:
             from-package:

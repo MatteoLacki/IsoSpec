@@ -4,13 +4,10 @@ name: R
 # the symlinks in src/IsoSpecR/src into copies of src/IsoSpec++), checked with
 # R CMD check and R CMD check --as-cran on Linux, macOS and Windows; either
 # fails on any WARNING or ERROR, not only on the ERRORs R CMD check itself
-# fails on. On a push the tarball is built here; the Release workflow calls
-# this one with from-package to check the tarball it built instead.
+# fails on. Called by ci.yml on a push or pull request, it builds the tarball
+# here; the Release workflow calls it with from-package to check the tarball
+# it built instead.
 on:
-    push:
-        branches:
-            - main
-    pull_request:
     workflow_call:
         inputs:
             from-package:

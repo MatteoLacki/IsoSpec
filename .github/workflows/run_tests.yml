@@ -1,16 +1,12 @@
 name: Tests
 
-# On a push, the checkout is tested. The Release workflow calls this one with
-# from-package, after building the packages: pytest then runs on the built
-# wheels (and on the sdist, installed from the tarball), and the C++ and C-ABI
-# suites compile against the C++ sources shipped in the sdist rather than the
-# checkout's, so a release is tested as it will be downloaded.
+# Called by ci.yml on a push or pull request, it tests the checkout. The
+# Release workflow calls it with from-package, after building the packages:
+# pytest then runs on the built wheels (and on the sdist, installed from the
+# tarball), and the C++ and C-ABI suites compile against the C++ sources
+# shipped in the sdist rather than the checkout's, so a release is tested as
+# it will be downloaded.
 on:
-    push:
-        branches:
-            - ci_test
-            - main
-            - winworkflow
     workflow_call:
         inputs:
             from-package:
