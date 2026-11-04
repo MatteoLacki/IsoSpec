@@ -46,7 +46,8 @@ TEST_CASE("pod_vector: growth, indexing and iteration") {
 
     v.clear();
     CHECK(v.size() == 0);
-    CHECK(v.capacity() == 0);
+    // clear() frees the heap store and falls back to the inline one.
+    CHECK(v.capacity() == pod_vector<int>::inline_capacity);
     // A cleared vector is still usable.
     v.push_back(42);
     CHECK(v.size() == 1);
@@ -54,8 +55,9 @@ TEST_CASE("pod_vector: growth, indexing and iteration") {
 }
 
 TEST_CASE("pod_vector: reserve and resize") {
+    // A request within the inline storage gets the inline storage.
     pod_vector<double> v(4);
-    CHECK(v.capacity() == 4);
+    CHECK(v.capacity() == pod_vector<double>::inline_capacity);
 
     v.reserve(100);
     CHECK(v.capacity() >= 100);
@@ -86,28 +88,75 @@ TEST_CASE("pod_vector: reserve and resize") {
 }
 
 TEST_CASE("pod_vector: move semantics and swap") {
-    pod_vector<int> a(8);
-    for (int i = 0; i < 8; ++i) a.push_back(i);
+    // Past the inline storage, so on the heap: moves steal the buffer.
+    const int n = static_cast<int>(pod_vector<int>::inline_capacity) + 8;
+    pod_vector<int> a;
+    for (int i = 0; i < n; ++i) a.push_back(i);
     const int* buf = a.data();
 
     pod_vector<int> b(std::move(a));
-    CHECK(b.size() == 8);
+    CHECK(b.size() == static_cast<std::size_t>(n));
     CHECK(b.data() == buf);   // buffer stolen, not copied
-    CHECK(a.size() == 0);     // moved-from vector is empty and safe to destroy
+    CHECK(a.size() == 0);     // moved-from vector is empty and reusable
+    a.push_back(5);
+    CHECK(a[0] == 5);
 
     pod_vector<int> c(4);
     c.push_back(99);
     c = std::move(b);
-    CHECK(c.size() == 8);
+    CHECK(c.size() == static_cast<std::size_t>(n));
     CHECK(c.data() == buf);
 
+    // Heap with inline, both ways round.
     pod_vector<int> d(2);
     d.push_back(1);
     d.push_back(2);
     c.swap(d);
     CHECK(c.size() == 2);
-    CHECK(d.size() == 8);
-    CHECK(d[7] == 7);
+    CHECK(c[0] == 1);
+    CHECK(c[1] == 2);
+    CHECK(d.size() == static_cast<std::size_t>(n));
+    CHECK(d.data() == buf);
+    CHECK(d[n - 1] == n - 1);
+    c.swap(d);
+    CHECK(c.data() == buf);
+    CHECK(d.size() == 2);
+    CHECK(d[1] == 2);
+
+    // Inline with inline: the elements are copied, each into its own object.
+    pod_vector<int> e;
+    e.push_back(7);
+    pod_vector<int> f;
+    f.push_back(8);
+    f.push_back(9);
+    e.swap(f);
+    CHECK(e.size() == 2);
+    CHECK(e[1] == 9);
+    CHECK(f.size() == 1);
+    CHECK(f[0] == 7);
+    pod_vector<int> g(std::move(e));
+    CHECK(g.size() == 2);
+    CHECK(g[0] == 8);
+    CHECK(g.data() != e.data());
+    CHECK(e.size() == 0);
+    f = std::move(g);
+    CHECK(f.size() == 2);
+    CHECK(f[1] == 9);
+
+    // Growing out of the inline storage keeps the contents.
+    pod_vector<int> h;
+    for (int i = 0; i < 1000; ++i) h.push_back(i);
+    CHECK(h.size() == 1000);
+    CHECK(h[15] == 15);
+    CHECK(h[16] == 16);
+    CHECK(h[999] == 999);
+
+    // A heap vector moved into one that already had a heap store frees it.
+    pod_vector<int> k;
+    for (int i = 0; i < 100; ++i) k.push_back(-i);
+    k = std::move(h);
+    CHECK(k.size() == 1000);
+    CHECK(k[999] == 999);
 }
 
 TEST_CASE("pod_vector: nocheck_push_back within reserved capacity") {

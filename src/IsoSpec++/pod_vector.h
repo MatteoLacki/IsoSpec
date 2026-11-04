@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <cstdlib>
 #include <cstddef>
+#include <cstring>
 #include <utility>
 #include <new>
 #include <algorithm>
@@ -29,19 +30,66 @@
 
 template<typename T> class unsafe_pod_vector;
 
+// The first inline_capacity elements live inside the object itself; the
+// store moves to the heap only when the vector outgrows them, and stays there.
+// Most vectors in the library (a marginal's configurations, probabilities and
+// masses, a layer's fringe) never get past a handful of elements, so they
+// cost no allocation at all. The flip side: unlike a plain heap vector, a move
+// or swap of a vector that is still inline copies its elements, so pointers
+// into data() do not survive either. (unsafe_pod_vector, below, has no inline
+// storage: it must stay trivially copyable, and a self-pointer would not.)
 template<typename T> class pod_vector
 {
+ public:
+    static constexpr size_t inline_capacity = 16;
+
+ private:
     T* backend_past_end;
     T* first_free;
     T* store;
+    alignas(T) unsigned char inline_buf[inline_capacity * sizeof(T)];
+
+    ISOSPEC_FORCE_INLINE T* inline_store() noexcept { return reinterpret_cast<T*>(inline_buf); }
+    ISOSPEC_FORCE_INLINE bool is_inline() const noexcept { return store == reinterpret_cast<const T*>(inline_buf); }
+
+    void reset_to_inline() noexcept
+    {
+        store = first_free = inline_store();
+        backend_past_end = store + inline_capacity;
+    }
+
+    // Takes other's contents; *this must hold no heap store. other is left
+    // empty and inline.
+    void take(pod_vector<T>& other) noexcept
+    {
+        if(other.is_inline())
+        {
+            const size_t n = other.size();
+            reset_to_inline();
+            memcpy(static_cast<void*>(store), other.store, n * sizeof(T));
+            first_free = store + n;
+        }
+        else
+        {
+            backend_past_end = other.backend_past_end;
+            first_free = other.first_free;
+            store = other.store;
+        }
+        other.reset_to_inline();
+    }
 
  public:
-    explicit pod_vector(size_t initial_size = 16)
+    explicit pod_vector(size_t initial_size = inline_capacity)
     {
     #if !ISOSPEC_BUILDING_R
         static_assert(std::is_trivially_copyable<T>::value, "Cannot use a pod_vector with a non-Plain Old Data type.");
     #endif
 
+        if(initial_size <= inline_capacity)
+        {
+            reset_to_inline();
+            return;
+        }
         store = reinterpret_cast<T*>(malloc(sizeof(T) * initial_size));
         if(store == NULL)
             throw std::bad_alloc();
@@ -51,25 +99,20 @@ template<typename T> class pod_vector
 
     pod_vector(const pod_vector<T>& other) = delete;
     pod_vector& operator=(const pod_vector<T>& other) = delete;
-    pod_vector& operator=(pod_vector<T>&& other)
+    pod_vector& operator=(pod_vector<T>&& other) noexcept
     {
-        free(store);
-        backend_past_end = other.backend_past_end;
-        first_free = other.first_free;
-        store = other.store;
-        other.backend_past_end = other.first_free = other.store = NULL;
+        if(this != &other)
+        {
+            if(!is_inline())
+                free(store);
+            take(other);
+        }
         return *this;
     }
 
-    pod_vector(pod_vector<T>&& other)
-    {
-        backend_past_end = other.backend_past_end;
-        first_free = other.first_free;
-        store = other.store;
-        other.backend_past_end = other.first_free = other.store = NULL;
-    }
+    pod_vector(pod_vector<T>&& other) noexcept { take(other); }
 
-    ~pod_vector() { free(store); backend_past_end = first_free = store = NULL; }
+    ~pod_vector() { if(!is_inline()) free(store); }
 
     explicit pod_vector(unsafe_pod_vector<T>&& other)
     {
@@ -83,9 +126,20 @@ template<typename T> class pod_vector
     {
         ISOSPEC_IMPOSSIBLE(n < static_cast<size_t>(backend_past_end - store));
         const std::ptrdiff_t store_used_size = first_free - store;
-        T* new_store = reinterpret_cast<T*>(realloc(store, n * sizeof(T)));
-        if(new_store == NULL)
-            throw std::bad_alloc();
+        T* new_store;
+        if(is_inline())
+        {
+            new_store = reinterpret_cast<T*>(malloc(n * sizeof(T)));
+            if(new_store == NULL)
+                throw std::bad_alloc();
+            memcpy(static_cast<void*>(new_store), store, store_used_size * sizeof(T));
+        }
+        else
+        {
+            new_store = reinterpret_cast<T*>(realloc(store, n * sizeof(T)));
+            if(new_store == NULL)
+                throw std::bad_alloc();
+        }
         first_free = new_store + store_used_size;
         backend_past_end = new_store + n;
         store = new_store;
@@ -187,9 +241,16 @@ template<typename T> class pod_vector
 
     void swap(pod_vector<T>& other) noexcept
     {
-        std::swap(backend_past_end, other.backend_past_end);
-        std::swap(first_free, other.first_free);
-        std::swap(store, other.store);
+        if(!is_inline() && !other.is_inline())
+        {
+            std::swap(backend_past_end, other.backend_past_end);
+            std::swap(first_free, other.first_free);
+            std::swap(store, other.store);
+            return;
+        }
+        pod_vector<T> tmp(std::move(other));
+        other.take(*this);
+        take(tmp);
     }
 
     typedef T* iterator;
@@ -214,8 +275,9 @@ template<typename T> class pod_vector
 
     void clear()
     {
-        free(store);
-        first_free = store = backend_past_end = NULL;
+        if(!is_inline())
+            free(store);
+        reset_to_inline();
     }
 
     // Unlike clear(), keeps the storage for reuse.
