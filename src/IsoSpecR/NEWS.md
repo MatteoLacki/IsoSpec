@@ -1,3 +1,11 @@
+# IsoSpecR 2.6.1
+
+## Changed
+
+* Faster total-probability and binned computations, mostly for peptides and
+  small molecules (fewer memory allocations, a better starting point for the
+  layered search).
+
 # IsoSpecR 2.6.0
 
 The package now follows the version numbers of the IsoSpec library it

@@ -1,5 +1,32 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+2.6.1
+----------------------------------
+Changed (may break existing code):
+- Python 3.10 or newer is required (3.9 is no longer built or tested)
+
+New:
+- C API: *Consuming variants of the envelope constructors that take an Iso
+  (setupThresholdFixedEnvelopeConsuming, setupTotalProbFixedEnvelopeConsuming,
+  setupStochasticFixedEnvelope[Seeded]Consuming,
+  setupBinnedFixedEnvelopeConsuming): the Iso is moved in instead of copied,
+  and its handle is deleted whether or not the call succeeds. Python's
+  IsoThreshold, IsoTotalProb, IsoStochastic and IsoBinned use them
+- Rust (crate 0.2.0): envelopes from an Iso given by value
+  (Iso::into_envelope(), and the IsoArg trait accepting &Iso or Iso)
+
+Faster:
+- FromTotalProb and Binned of peptides (30 residues, binned at 1 Da on
+  x86-64-v3): the layered generator's starting radius comes from an exact
+  inverse chi-square instead of a bisection that saturated for small
+  numbers of isotopes (-10%); fewer allocations per molecule, 144 -> 54
+  (-14% at 0.99, -7% at 0.9999); Binned from Python or Rust no longer
+  copies the Iso (-5% from Python, -13% from Rust at 0.99)
+- Binned of small molecules: the bin accumulator comes from calloc instead
+  of mmap below 256 KiB (0.2-0.8x the time)
+- FromTotalProb of small molecules: no shrink-to-fit copy of the result
+  (up to -8%)
+
 2.6.0
 ----------------------------------
 New:
