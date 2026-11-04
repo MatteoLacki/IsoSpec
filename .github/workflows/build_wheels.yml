@@ -9,7 +9,7 @@ run-name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0}', git
 # `gh workflow run build_wheels.yml --ref <branch>`, or by pushing to
 # ci_wheels (`git push -f origin HEAD:ci_wheels`); by hand, the wheel build
 # can be narrowed to one runner and one Python:
-#     gh workflow run build_wheels.yml --ref main -f os=macos-latest -f build='cp39-*'
+#     gh workflow run build_wheels.yml --ref main -f os=macos-latest -f build='cp310-*'
 # Never re-push a version tag to test: a filename that reaches PyPI once can
 # never be replaced.
 #
@@ -41,7 +41,7 @@ on:
         # it is compiled once per platform, under the first selected Python,
         # and merely tested under the rest -- so narrowing this narrows what
         # gets *tested*, not what gets built.
-        description: 'CIBW_BUILD selector, e.g. "cp39-*" (blank = every Python)'
+        description: 'CIBW_BUILD selector, e.g. "cp310-*" (blank = every Python)'
         type: string
         default: ''
 
@@ -92,6 +92,8 @@ jobs:
           # "*" is cibuildwheel's own default; spelling it out keeps an unset
           # input from becoming an empty selector that matches nothing.
           CIBW_BUILD: ${{ inputs.build || '*' }}
+          # Python 3.9 is no longer built under or tested.
+          CIBW_SKIP: "cp39-* pp39-*"
 
       - uses: actions/upload-artifact@v7
         with:
