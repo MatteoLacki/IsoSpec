@@ -125,7 +125,12 @@ def test_binning_allocation_failure_raises_in_subprocess():
     proc = subprocess.run([sys.executable, "-c", """
 import resource
 import IsoSpecPy as I
-resource.setrlimit(resource.RLIMIT_AS, (512 * 1024**2, 512 * 1024**2))
+# Headroom above what the process already maps, not a fixed cap: a free-threaded
+# interpreter (mimalloc arenas) can map close to 512 MiB before doing anything.
+with open('/proc/self/status') as f:
+    vm = next(int(l.split()[1]) * 1024 for l in f if l.startswith('VmSize:'))
+limit = vm + 256 * 1024**2
+resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
 try:
     I.IsoBinned(1e-9, formula='C2')
 except ValueError:
