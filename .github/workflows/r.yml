@@ -69,8 +69,15 @@ jobs:
           R CMD check --no-manual IsoSpecR_*.tar.gz
           if grep -E '^\* checking .*(WARNING|ERROR)$' IsoSpecR.Rcheck/00check.log; then exit 1; fi
       - name: R CMD check --as-cran
+        # The CRAN incoming-feasibility check downloads from CRAN, and an
+        # unreachable CRAN (an SSL connect error from a Windows runner, seen on
+        # the v2.6.1 release) aborts the whole check: retry that case only.
         run: |
-          R CMD check --as-cran --no-manual IsoSpecR_*.tar.gz
+          for attempt in 1 2 3; do
+            if R CMD check --as-cran --no-manual IsoSpecR_*.tar.gz 2>&1 | tee check.out; then break; fi
+            if [ "$attempt" = 3 ] || ! grep -q "cannot open the connection to 'https://CRAN" check.out; then exit 1; fi
+            echo "CRAN unreachable, retrying in 60 s"; sleep 60
+          done
           if grep -E '^\* checking .*(WARNING|ERROR)$' IsoSpecR.Rcheck/00check.log; then exit 1; fi
       - name: Check log
         if: always()
