@@ -31,6 +31,51 @@ jobs:
           name: release-r
           path: IsoSpecR_*.tar.gz
 
+  old_macos_libcxx:
+    # CRAN's macOS builders compile with Apple clang 14 against the macOS 11.3
+    # SDK, whose libc++ is LLVM 12's: C++20 library features newer than that
+    # (std::atomic_ref, std::assume_aligned) broke the 2.6.1 install there,
+    # while the runners' current Xcode has them all. No runner has that SDK,
+    # so the tarball's sources are compiled (syntax only) by the runner's
+    # clang against its headers, taken from a pinned copy of the SDK. This
+    # catches a missing library feature; a construct only old clang rejects
+    # needs CRAN's own macOS builder (mac.r-project.org/macbuilder).
+    name: Compile against the macOS 11.3 SDK's libc++
+    needs: build
+    if: ${{ !cancelled() && needs.build.result != 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - name: Install Rcpp
+        run: Rscript -e 'install.packages("Rcpp", repos = Sys.getenv("RSPM", "https://cloud.r-project.org"))'
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-r
+      - name: Fetch the macOS 11.3 SDK headers
+        run: |
+          git init -q sdk && cd sdk
+          git remote add origin https://github.com/phracker/MacOSX-SDKs.git
+          git sparse-checkout set MacOSX11.3.sdk/usr/include
+          git fetch -q --depth 1 --filter=blob:none origin 041600eda65c6a668f66cb7d56b7d1da3e8bcc93
+          git checkout -q FETCH_HEAD
+      - name: Compile every source file
+        run: |
+          tar xzf IsoSpecR_*.tar.gz
+          SDK=$PWD/sdk/MacOSX11.3.sdk
+          RINC=$(Rscript -e 'cat(R.home("include"))')
+          RCPP=$(Rscript -e 'cat(system.file("include", package = "Rcpp"))')
+          cd IsoSpecR/src
+          status=0
+          for f in *.cpp; do
+            echo "$f"
+            clang++ --target=x86_64-apple-macos11 -isysroot "$SDK" -nostdinc++ \
+              -isystem "$SDK/usr/include/c++/v1" -std=gnu++20 -DNDEBUG \
+              -I"$RINC" -I"$RCPP" -fsyntax-only "$f" || status=1
+          done
+          exit $status
+
   check:
     name: R CMD check (${{ matrix.os }})
     needs: build

@@ -86,12 +86,25 @@ static inline double minuslogFactorial(int n)
     if (n >= ISOSPEC_G_FACT_TABLE_SIZE)
         return -lgamma_stirling(n + 1.0);
 
+#if defined(__cpp_lib_atomic_ref)
     std::atomic_ref<double> slot(g_lfact_table[n]);
     double v = slot.load(std::memory_order_relaxed);
     if (v == 0.0) {
         v = -lgamma_stirling(n + 1.0);
         slot.store(v, std::memory_order_relaxed);
     }
+#else
+    // libc++ has std::atomic_ref only from LLVM 19; CRAN's macOS builders
+    // compile against the macOS 11.3 SDK's libc++ 12. The builtins below are
+    // what atomic_ref's relaxed load/store compile to on gcc and clang (MSVC
+    // has atomic_ref, so never gets here).
+    double v;
+    __atomic_load(&g_lfact_table[n], &v, __ATOMIC_RELAXED);
+    if (v == 0.0) {
+        v = -lgamma_stirling(n + 1.0);
+        __atomic_store(&g_lfact_table[n], &v, __ATOMIC_RELAXED);
+    }
+#endif
     return v;
 }
 

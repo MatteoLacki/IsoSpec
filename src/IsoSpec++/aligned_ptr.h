@@ -29,6 +29,21 @@
 
 #include "platform.h"   // ISOSPEC_WE_ARE_ON_WINDOWS / ISOSPEC_WE_ARE_ON_UNIX_YAY
 
+namespace aligned_ptr_detail {
+// std::assume_aligned, or the builtin it is made of where the standard library
+// lacks it: libc++ has it only from LLVM 15, and CRAN's macOS builders compile
+// against the macOS 11.3 SDK's libc++ 12.
+template <std::size_t Alignment, typename T>
+[[nodiscard]] inline T* assume_aligned(T* p) noexcept
+{
+#if defined(__cpp_lib_assume_aligned)
+    return std::assume_aligned<Alignment>(p);
+#else
+    return static_cast<T*>(__builtin_assume_aligned(p, Alignment));
+#endif
+}
+}  // namespace aligned_ptr_detail
+
 // aligned_unique_ptr's realloc() grows/shrinks without copying once the
 // allocation is big enough to be worth mapping directly from the OS. Below
 // that size it stays on the plain aligned_alloc/copy/free path. Deliberately
@@ -522,12 +537,12 @@ class aligned_unique_ptr {
 
     T* get() noexcept
     {
-        return std::assume_aligned<Alignment>(ptr_);
+        return aligned_ptr_detail::assume_aligned<Alignment>(ptr_);
     }
 
     const T* get() const noexcept
     {
-        return std::assume_aligned<Alignment>(ptr_);
+        return aligned_ptr_detail::assume_aligned<Alignment>(ptr_);
     }
 
     T& operator[](std::size_t i) noexcept
@@ -655,7 +670,7 @@ class aligned_unique_ptr {
         }
 
         capacity_bytes_ = 0;
-        return std::assume_aligned<Alignment>(std::exchange(ptr_, nullptr));
+        return aligned_ptr_detail::assume_aligned<Alignment>(std::exchange(ptr_, nullptr));
     }
 
     // Fast counterpart to release(): never copies. Returns the raw pointer
