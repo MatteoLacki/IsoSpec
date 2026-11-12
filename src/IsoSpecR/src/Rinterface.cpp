@@ -29,6 +29,7 @@
 #include <iostream>
 #include <map>
 #include <cmath>
+#include <cstring>
 #include <cstdint>
 #include <random>
 
@@ -92,9 +93,15 @@ static Iso iso_from_R(
                 "' -- a molecule can't contain a negative number of atoms. If this vector came "
                 "from RParsePeptideSequence, the sequence's modifications remove more of this "
                 "element than the bare sequence provides.");
+        // Compared as C strings, which is what Rcpp's proxy operator== does
+        // anyway: proxy == proxy is ambiguous in C++20 (its operator== is a
+        // non-const member, so the reversed candidate ties with it), a hard
+        // error on Apple clang 14 (CRAN's macOS x86_64 build) that newer
+        // compilers accept silently.
+        const char* name = molecule_names[i];
         unsigned int counter = 0;
         for (int j=0; j<element.size(); j++)
-            if( element[j] == molecule_names[i] )
+            if( std::strcmp(element[j], name) == 0 )
             {
                 counter++;
                 stdIsotopeMasses.push_back( mass[j] / charge );
