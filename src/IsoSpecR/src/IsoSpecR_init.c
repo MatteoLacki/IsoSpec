@@ -7,7 +7,7 @@
 /* .Call calls */
 extern SEXP _IsoSpecR_Rinterface(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _IsoSpecR_RParsePeptideSequence(SEXP, SEXP);
-extern SEXP _IsoSpecR_RIsotopicTable();
+extern SEXP _IsoSpecR_RIsotopicTable(void);
 extern SEXP _IsoSpecR_RBinned(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _IsoSpecR_RStochastic(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _IsoSpecR_RIsoProperties(SEXP, SEXP, SEXP);
