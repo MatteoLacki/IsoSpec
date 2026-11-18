@@ -1,5 +1,15 @@
 This file lists *major* changes between releases, for a full list see git log.
 
+2.6.2
+----------------------------------
+Fixed:
+- Builds with older libc++ (12, as in the macOS 11.3 SDK that CRAN's macOS
+  builders use): fallbacks for std::atomic_ref and std::assume_aligned
+  where the standard library lacks them
+- R: element symbols compared with strcmp (Rcpp's string-proxy == is
+  ambiguous in C++20 on Apple clang 14); a (void) prototype in the routine
+  registration (-Wstrict-prototypes)
+
 2.6.1
 ----------------------------------
 Changed (may break existing code):

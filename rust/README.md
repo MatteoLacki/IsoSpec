@@ -86,8 +86,8 @@ See `rust/examples/` in the repository for runnable programs.
 
 The crate follows semver on its own version numbers; the C++ library it
 bundles is versioned separately, as `isospec::LIBRARY_VERSION`, and appears
-in the crate version as build metadata: `0.2.0+2.6.1` is crate 0.2.0 with
-IsoSpec 2.6.1. Cargo ignores the part after the `+`, so depend on
+in the crate version as build metadata: `0.2.0+2.6.2` is crate 0.2.0 with
+IsoSpec 2.6.2. Cargo ignores the part after the `+`, so depend on
 `isospec = "0.2"` as usual.
 
 The minimum supported Rust version is 1.88 (that of `cxx`). It is raised

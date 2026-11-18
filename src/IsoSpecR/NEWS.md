@@ -1,3 +1,12 @@
+# IsoSpecR 2.6.2
+
+## Fixed
+
+* Builds on CRAN's macOS machines (Apple clang 14 with the libc++ of the
+  macOS 11.3 SDK), which 2.6.1 did not.
+* No `-Wstrict-prototypes` warning from the routine registration with
+  recent clang.
+
 # IsoSpecR 2.6.1
 
 ## Changed

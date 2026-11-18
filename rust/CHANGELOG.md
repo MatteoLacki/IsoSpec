@@ -2,11 +2,11 @@
 
 The crate's own versions; the C++ library it bundles has its own
 (`isospec::LIBRARY_VERSION`), carried as semver build metadata after the `+`
-(`0.2.0+2.6.1`: crate 0.2.0, IsoSpec 2.6.1) and listed with each release.
+(`0.2.0+2.6.2`: crate 0.2.0, IsoSpec 2.6.2) and listed with each release.
 
-## 0.2.0+2.6.1 (unreleased)
+## 0.2.0+2.6.2 (unreleased)
 
-Bundles IsoSpec 2.6.1. Breaking before 1.0 only in that `Envelope::from_threshold`,
+Bundles IsoSpec 2.6.2. Breaking before 1.0 only in that `Envelope::from_threshold`,
 `from_total_prob` and `binned` are now generic over `IsoArg`: an argument that
 reached `&Iso` by deref coercion (`&Box<Iso>`, `&Arc<Iso>`) needs an explicit
 `&*`.
