@@ -61,3 +61,11 @@ Windows, on every push and, called by the Release workflow, on the release's
 own tarball; it fails on any WARNING or ERROR. The comparison with the
 version on CRAN runs only for a release, since between a release and the
 next bump every push carries CRAN's version.
+
+`cran_flavours.yml` adds what those runners cannot show: `--as-cran` on
+CRAN's own Linux setups, weekly and on release. fedora-clang is rebuilt from
+CRAN's published recipe by `.github/scripts/fedora_clang_check.sh` (it is the
+one R check with libc++, hence scalar kernels); R-hub's images give
+fedora-gcc, debian-clang, gcc/clang ASan+UBSan and valgrind. A sanitizer or
+valgrind report does not fail `R CMD check` by itself, so the job greps the
+test output for them.

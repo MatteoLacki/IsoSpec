@@ -185,8 +185,8 @@ jobs:
   # push, but run on the packages just built rather than on the checkout:
   # pytest on the wheels and the sdist, the C++ and C-ABI suites on the C++
   # the sdist ships, cargo test (and lint, MSRV) on the unpacked .crate on
-  # every platform, R CMD check --as-cran on the R tarball on three OSes.
-  # Publishing waits for all of it.
+  # every platform, R CMD check --as-cran on the R tarball on three OSes and
+  # on CRAN's Linux flavours. Publishing waits for all of it.
 
   test_python_cpp:
     name: Tests on the built packages
@@ -211,6 +211,13 @@ jobs:
     with:
       from-package: true
 
+  test_r_cran_flavours:
+    name: R on CRAN's Linux flavours
+    needs: [build_r]
+    uses: ./.github/workflows/cran_flavours.yml
+    with:
+      from-package: true
+
   # Publishing, reversible steps first: a draft GitHub release (invisible,
   # deletable) carrying every source package, checked; then PyPI, which
   # cannot be undone (a filename that reaches it once can never be uploaded
@@ -222,7 +229,7 @@ jobs:
     # three registries (the Python sdist, the Rust .crate, the CRAN tarball),
     # each built and checked above, and the version's CHANGELOG section as
     # its text. CRAN and crates.io are then fed by hand from these files.
-    needs: [build_wheels, build_sdist, package_crate, build_r, test_python_cpp, test_rust, test_r]
+    needs: [build_wheels, build_sdist, package_crate, build_r, test_python_cpp, test_rust, test_r, test_r_cran_flavours]
     runs-on: ubuntu-latest
     permissions:
       contents: write
